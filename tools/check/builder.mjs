@@ -897,7 +897,7 @@ try {
     const rail = (name) => page.locator(".bd-rail .bd-tab", { hasText: name });
 
     const tabs = await page.$$eval(".bd-rail [role=tab]", (b) => b.map((x) => x.textContent));
-    expect(tabs.join() === "Home,Assets,Pages,Layers,Content,Configure,Context", `the rail holds Home, Assets, Pages, Layers, Content, Configure and Context, got ${tabs}`);
+    expect(tabs.join() === "Home,Assets,Pages,Layers,Content,Configure,Assistant,Context", `the rail holds Home, Assets, Pages, Layers, Content, Configure, Assistant and Context, got ${tabs}`);
     const dupes = await page.locator(".bd-toolbar [aria-label='New frame'], .bd-toolbar [aria-label='Dark mode'], .bd-toolbar .bd-frame-size").count();
     expect(dupes === 0, "the top bar no longer repeats New frame, the frame size or dark mode");
     const gone = await page.locator(".bd-toolbar [aria-label='New'], .bd-toolbar [aria-label='Undo'], .bd-toolbar [aria-label='Redo'], .bd-toolbar [aria-label='Hide panels'], .bd-toolbar [aria-label='Copy link'], .bd-toolbar .bd-saved").count();
@@ -5752,6 +5752,52 @@ try {
     await page.locator('.bd-cx-group[data-scope="team"] .bd-cx-title', { hasText: "pricing-plans" }).waitFor();
     expect(await page.locator('.bd-cx-group[data-scope="file"] .bd-cx-item.is-off .bd-cx-title', { hasText: "Brand voice" }).count() === 1, "the file's doc comes back, still off");
     ok("docs and skills come back after a reload, where they were kept");
+    await page.close();
+  });
+
+  await step("Assistant: in practice mode a request changes the selection with system tokens, lists what changed, and Undo all takes it back; nothing is sent", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const sent = [];
+    page.on("request", (r) => { if (/functions\/v1\/assistant|anthropic/.test(r.url())) sent.push(r.url()); });
+    /* Let the first visit's own save land before seeding over it. */
+    await page.waitForTimeout(400);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      d.frames[0].root.children.push({ id: "ah", type: "Section", props: {}, style: {}, children: [{ id: "ahh", type: "Heading", props: { children: "Hello" }, style: {} }] });
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+    });
+    await page.waitForTimeout(400);
+    await page.reload();
+    await page.waitForFunction(() => window.__builder && window.__builder.saved && window.__builder.saved().ok);
+    await page.waitForFunction(() => window.__builder.doc().frames.some((f) => f.root.children.some((c) => c.id === "ah")));
+    await page.evaluate(() => window.__builder.select(["ah"]));
+    await page.waitForFunction(() => window.__builder.selection().includes("ah"));
+    await page.locator(".bd-rail .bd-tab", { hasText: "Assistant" }).click();
+    await page.locator(".bd-as").waitFor();
+    expect(await page.locator(".bd-as-badge", { hasText: "Practice" }).count() === 1, "the panel says it's in practice mode");
+    await page.locator(".bd-as-comp .bd-as-chip.is-target", { hasText: "Section" }).waitFor();
+    ok("the panel is in practice mode, with the selection riding in the message box as a chip");
+    const before = (await page.evaluate(() => window.__builder.history())).past;
+    await page.locator(".bd-as-input").fill("Make it feel more premium");
+    await page.keyboard.press("Enter");
+    await page.locator(".bd-as-acts").waitFor();
+    const node = () => page.evaluate(() => { const d = window.__builder.doc(); return d.frames[0].root.children.find((c) => c.id === "ah"); });
+    const changed = await node();
+    expect(changed.style.surface === "brand-muted" && changed.style.elevation, `the Section takes a token fill and shadow, got ${JSON.stringify(changed.style)}`);
+    const rows = await page.locator(".bd-as-row .bd-as-n").allTextContents();
+    expect(rows.includes("Fill") && rows.includes("Shadow"), `the change card lists what changed, got ${rows}`);
+    expect((await page.evaluate(() => window.__builder.history())).past === before + 2, "each change is its own history step");
+    await page.locator(".bd-as-acts button", { hasText: "Undo all" }).click();
+    await page.waitForFunction(() => { const d = window.__builder.doc(); const n = d.frames[0].root.children.find((c) => c.id === "ah"); return !n.style.surface && !n.style.elevation; });
+    expect(await page.locator(".bd-as-card-h .bd-as-note", { hasText: "Undone" }).count() === 1, "the card says it was undone");
+    ok("practice mode changes the selection with tokens, the card lists Fill and Shadow, and Undo all takes both back");
+    await page.locator(".bd-as-input").fill("Add a button");
+    await page.keyboard.press("Enter");
+    await page.locator(".bd-as-bot").nth(1).locator(".bd-as-acts").waitFor();
+    expect((await node()).children.some((c) => c.type === "Button"), "Add a button puts a Button in the selected Section");
+    expect(sent.length === 0, `nothing goes to a model or the cloud in practice mode, got ${sent.join(", ")}`);
+    ok("asking to add a button adds a Button from JSX, and no request leaves the page");
     await page.close();
   });
 

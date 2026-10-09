@@ -331,6 +331,7 @@ var RAIL = [
   ["layers", "Layers", "Everything in each frame", "layers2"],
   ["content", "Content", "Images, illustrations and icons", "folder"],
   ["configure", "Configure", "The system's brand, colour, type and layout", "sliders"],
+  ["assistant", "Assistant", "Ask for design changes on the canvas", "wand"],
   ["context", "Context", "Docs and skills the assistant reads", "book"],
 ];
 

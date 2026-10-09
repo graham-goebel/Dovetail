@@ -14,7 +14,11 @@ import { Pages } from "./Pages.js";
 import { Assets } from "./Assets.js";
 import { Content } from "./Content.js";
 import { ContextPanel } from "./ContextPanel.js";
-import { cleanItem } from "../model/context.js";
+import { cleanItem, contextFor, contextText } from "../model/context.js";
+import { AssistantPanel } from "./AssistantPanel.js";
+import { TOOLS, practiceScript, runTool } from "../model/agent.js";
+import { collector } from "../model/assistant.js";
+import { assistantMode, sendAssistant } from "../cloud/assistant.js";
 import { EditorAt, Labels, Marks, Resizers, Rulers, SpacingLines, ViewMarks, World, camera, onStage, placeMarks } from "./Stage.js";
 import { STARTERS } from "../model/starters.js";
 import { addPlayground } from "../model/playground.js";
@@ -369,6 +373,125 @@ function App(props) {
       var moved = Object.assign({}, it, { pages: to === "file" ? it.pages : [] });
       putCtx(from, (ctxRef.current[from] || []).filter(function (x) { return x.id !== id; }));
       putCtx(to, (ctxRef.current[to] || []).concat([moved]));
+    },
+  };
+  /* The assistant: a conversation whose tool calls (model/agent.js) edit the
+     canvas through change(), a history step each, so Undo all steps back
+     through a reply's changes. Requests go nowhere in practice mode
+     (cloud/assistant.js). */
+  var asThreadState = useState([]);
+  var asThread = asThreadState[0], setAsThread = asThreadState[1];
+  var asBusyState = useState(false);
+  var asBusy = asBusyState[0], setAsBusy = asBusyState[1];
+  var asDraftState = useState("");
+  var asSelState = useState(true);
+  var asReachState = useState("selection");
+  var asDropState = useState([]);
+  var asMsgs = useRef([]);
+  var asAbort = useRef(null);
+  var patchTurn = function (id, patch) {
+    setAsThread(function (t) { return t.map(function (x) { return x.id === id ? Object.assign({}, x, typeof patch === "function" ? patch(x) : patch) : x; }); });
+  };
+  var asContext = function () {
+    var ctx = contextFor(ctxRef.current, pageRef.current);
+    var drop = asDropState[0];
+    return Object.assign({}, ctx, { docs: ctx.docs.filter(function (d) { return drop.indexOf(d.id) < 0; }) });
+  };
+  var toolApi = {
+    doc: function () { return docRef.current; },
+    selection: function () { return asReachState[0] === "page" || !asSelState[0] ? [] : selRef.current.slice(); },
+    setStyle: function (ids, key, value) {
+      return change(function (d) { var any = false; ids.forEach(function (id) { var at = locate(d, id); if (!at || at.node.style[key] === value) return; any = true; if (value === undefined) delete at.node.style[key]; else at.node.style[key] = value; }); return any ? undefined : null; });
+    },
+    setProp: function (ids, name, value) {
+      return change(function (d) { var any = false; ids.forEach(function (id) { var at = locate(d, id); if (!at || at.node.props[name] === value) return; any = true; at.node.props[name] = value; }); return any ? undefined : null; });
+    },
+    insert: function (parent, index, nodes) {
+      var t = parent ? { parent: parent, index: index } : target();
+      var at0 = locate(docRef.current, t.parent);
+      if (!at0) return [];
+      var at = t.index == null ? (at0.node.children || []).length : t.index, made = [];
+      change(function (d) { nodes.forEach(function (n) { if (ops.insert(d, t.parent, at, n, d.active)) { made.push(n.id); at++; } }); return made.length ? undefined : null; });
+      return made;
+    },
+    remove: function (ids) { var r = null; change(function (d) { r = ops.remove(d, ids); return r === null ? null : undefined; }); return r !== null; },
+    select: function (ids) { select(ids); },
+    skills: function () { return asContext().skills; },
+  };
+  /* One reply: send, run the tools it calls, send back what they did, until
+     it stops calling them (six rounds at most). */
+  var runAssistant = function (text) {
+    if (asBusy || !text) return;
+    var sel = toolApi.selection().map(function (id) { var at = locate(docRef.current, id); return at && at.node; }).filter(Boolean);
+    var ctx = asContext();
+    var fr = active(docRef.current);
+    var canvas = "# Canvas\n\nFrame: " + fr.name + " (" + (fr.mode || "free") + ", " + fr.width + " wide). " +
+      (asReachState[0] === "page" ? "You may change anything on this page." : sel.length ? "Selected: " + sel.map(function (n) { return (n.name || n.type) + " (" + n.id + ")"; }).join(", ") + ". Change only these unless asked for more." : "Nothing is selected.");
+    var system = [contextText(ctx), canvas].filter(Boolean).join("\n\n");
+    var me = { id: uid(), role: "user", text: text };
+    var turn = { id: uid(), role: "assistant", text: "", steps: [], changes: [], status: "working", from: history.current.past.length, prompt: text };
+    if (ctx.docs.length || ctx.skills.length) turn.steps.push({ ok: true, text: "Read " + (sel.length ? sel.length + (sel.length === 1 ? " layer" : " layers") + ", " : "") + ctx.docs.length + (ctx.docs.length === 1 ? " doc" : " docs") + " and " + ctx.skills.length + (ctx.skills.length === 1 ? " skill" : " skills") });
+    setAsThread(function (t) { return t.concat([me, turn]); });
+    asDraftState[1]("");
+    setAsBusy(true);
+    asMsgs.current = asMsgs.current.concat([{ role: "user", content: text }]);
+    var abort = typeof AbortController !== "undefined" ? new AbortController() : null;
+    asAbort.current = abort;
+    var script = practiceScript(sel);
+    var round = function (n) {
+      var c = collector();
+      var shown = "";
+      return sendAssistant({ system: system, messages: asMsgs.current, tools: TOOLS }, function (ev) {
+        c.add(ev);
+        if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") { shown += ev.delta.text; var now = shown; patchTurn(turn.id, function (x) { return { text: (x.base || "") + now }; }); }
+      }, { script: script, signal: abort && abort.signal }).then(function () {
+        var r = c.result();
+        asMsgs.current = asMsgs.current.concat([{ role: "assistant", content: r.content.length ? r.content : [{ type: "text", text: r.text || "…" }] }]);
+        if (r.error) throw new Error(r.error);
+        if (r.stop === "refusal") throw new Error("The model declined that request.");
+        if (r.stop !== "tool_use" || !r.tools.length) return null;
+        var results = [], changes = [], steps = [];
+        r.tools.forEach(function (call) {
+          if (call.bad) { results.push({ type: "tool_result", tool_use_id: call.id, content: "That input didn't parse; send it again.", is_error: true }); return; }
+          var res = runTool(toolApi, call);
+          if (res.change) changes.push(res.change);
+          if (call.name === "read_skill" && res.ok) steps.push({ ok: true, text: "Read the " + res.skill + " skill" });
+          if (!res.ok) steps.push({ ok: false, text: res.result });
+          results.push({ type: "tool_result", tool_use_id: call.id, content: res.result, is_error: !res.ok });
+        });
+        patchTurn(turn.id, function (x) { return { changes: x.changes.concat(changes), steps: x.steps.concat(steps), base: (x.text ? x.text + " " : "") }; });
+        asMsgs.current = asMsgs.current.concat([{ role: "user", content: results }]);
+        return n < 5 ? round(n + 1) : null;
+      });
+    };
+    round(0).then(function () {
+      patchTurn(turn.id, function (x) {
+        var made = history.current.past.length - x.from;
+        var steps = x.changes.length ? x.steps.concat([{ ok: true, text: "Changed " + x.changes.length + (x.changes.length === 1 ? " thing" : " things") + ", all with system tokens" }]) : x.steps;
+        return { status: "done", made: made, steps: steps };
+      });
+    }, function (err) {
+      patchTurn(turn.id, function (x) { return { status: "error", error: err.message || "The assistant stopped.", made: history.current.past.length - x.from }; });
+    }).then(function () { setAsBusy(false); asAbort.current = null; });
+  };
+  var asApi = {
+    send: runAssistant,
+    stop: function () { if (asAbort.current) asAbort.current.abort(); },
+    clear: function () { setAsThread([]); asMsgs.current = []; },
+    keep: function (id) { patchTurn(id, { kept: true }); },
+    undoTurn: function (id) {
+      var t = asThread.filter(function (x) { return x.id === id; })[0];
+      if (!t || !t.made) { patchTurn(id, { undone: true }); return; }
+      if (history.current.past.length !== t.from + t.made) { announce("Other edits came after this reply, so undo them first, or use Undo step by step."); return; }
+      for (var i = 0; i < t.made; i++) undo();
+      patchTurn(id, { undone: true });
+      announce("Undid the assistant's " + t.changes.length + (t.changes.length === 1 ? " change" : " changes"));
+    },
+    retry: function (id) {
+      var t = asThread.filter(function (x) { return x.id === id; })[0];
+      if (!t) return;
+      asApi.undoTurn(id);
+      setTimeout(function () { runAssistant(t.prompt); }, 0);
     },
   };
   var docked = left === "configure" && !(wide && (bare || preview)) && (wide || pane === "add");
@@ -6123,7 +6246,7 @@ function App(props) {
       })),
     e("div", { className: cx("bd-shell", hidePanels && "is-bare", arriving && "is-arriving", leftClosed && "is-left-closed"), "data-pane": pane, inert: home ? "" : undefined, "aria-hidden": home ? "true" : undefined,
       style: wide ? { "--bd-left-w": (leftClosed ? railW || 88 : panels.left) + "px", "--bd-right-w": (rightClosed ? 0 : panels.right) + "px" } : undefined },
-      e("aside", { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content, configure and context", hidden: hidePanels || undefined },
+      e("aside", { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content, configure, assistant and context", hidden: hidePanels || undefined },
         e("div", { className: "bd-left-tabs bd-rail" },
           e("div", { className: "bd-rail-tabs", role: "tablist", "aria-label": "Left panel", "aria-orientation": wide ? "vertical" : "horizontal" },
             RAIL.map(function (r) {
@@ -6138,6 +6261,12 @@ function App(props) {
           e("div", { className: cx("bd-left-main", left === "configure" && "bd-config-main") },
             left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null)
               : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps)
+              : left === "assistant" ? e(AssistantPanel, { thread: asThread, busy: asBusy, draft: asDraftState[0], setDraft: asDraftState[1], mode: assistantMode(),
+                  target: selectedNodes.length ? (selectedNodes.length === 1 ? (selectedNodes[0].name || selectedNodes[0].type) : selectedNodes.length + " layers") : null,
+                  includeSel: asSelState[0], toggleSel: function () { asSelState[1](!asSelState[0]); }, reach: asReachState[0], setReach: asReachState[1],
+                  docs: asContext().docs, skills: asContext().skills, dropDoc: function (id) { asDropState[1](asDropState[0].concat([id])); },
+                  suggestions: selectedNodes.length ? ["Make it feel more premium", "Round the corners", "Add a button"] : ["Add a pricing section"],
+                  send: asApi.send, stop: asApi.stop, clear: asApi.clear, keep: asApi.keep, undoTurn: asApi.undoTurn, retry: asApi.retry })
               : left === "context" ? e(ContextPanel, { items: ctxItems, query: contextQuery, hasProject: !!(project && project.group), projectName: groupName, fileName: project ? project.name : "",
                   pages: pagesOf(project), pageId: pageId, pageName: (pagesOf(project).filter(function (x) { return x.id === pageId; })[0] || {}).name, announce: announce,
                   add: ctxApi.add, update: ctxApi.update, remove: ctxApi.remove, move: ctxApi.move })
@@ -6146,6 +6275,7 @@ function App(props) {
             : left === "pages" ? e(SearchField, { className: "bd-search-dock", label: "Filter pages", placeholder: "Filter pages", value: pageQuery, onChange: setPageQuery })
             : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery })
             : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery })
+            : left === "assistant" ? null
             : left === "context" ? e(SearchField, { className: "bd-search-dock", label: "Filter context", placeholder: "Filter docs and skills", value: contextQuery, onChange: setContextQuery })
             : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery }))),
       e("div", { className: "bd-center" }, slot ? null : toolbar, stage),

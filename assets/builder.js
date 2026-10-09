@@ -424,6 +424,7 @@
     ["layers", "Layers", "Everything in each frame", "layers2"],
     ["content", "Content", "Images, illustrations and icons", "folder"],
     ["configure", "Configure", "The system's brand, colour, type and layout", "sliders"],
+    ["assistant", "Assistant", "Ask for design changes on the canvas", "wand"],
     ["context", "Context", "Docs and skills the assistant reads", "book"]
   ];
   var TEXT_STYLES = [
@@ -8639,6 +8640,16 @@
     }, 0);
     return { docs, skills, tokens: count };
   }
+  function contextText(ctx) {
+    var out = [];
+    if (ctx.docs.length) out.push("# Context\n\n" + ctx.docs.map(function(d) {
+      return "## " + d.title + "\n\n" + d.body.trim();
+    }).join("\n\n"));
+    if (ctx.skills.length) out.push("# Skills\n\nRead a skill's files with read_skill when a request fits its description.\n\n" + ctx.skills.map(function(s) {
+      return "- " + s.name + ": " + s.description;
+    }).join("\n"));
+    return out.join("\n\n");
+  }
 
   // assets/builder/model/zip.js
   var LOCAL_SIG = 67324752;
@@ -9214,6 +9225,648 @@
     );
   }
 
+  // assets/builder/app/AssistantPanel.js
+  function changeCard(p, turn) {
+    if (!turn.changes.length) return null;
+    return e(
+      "div",
+      { className: "bd-as-card" },
+      e(
+        "div",
+        { className: "bd-as-card-h" },
+        e("span", null, turn.changes.length + (turn.changes.length === 1 ? " change" : " changes")),
+        turn.kept ? e("span", { className: "bd-as-note" }, "Kept") : turn.undone ? e("span", { className: "bd-as-note" }, "Undone") : null
+      ),
+      turn.changes.map(function(c, i) {
+        return e(
+          "div",
+          { key: i, className: "bd-as-row" },
+          e("span", { className: "bd-as-n" }, c.label),
+          e("span", { className: "bd-as-v" }, c.value, c.on ? e("span", { className: "bd-as-on" }, " · " + c.on) : null)
+        );
+      }),
+      !turn.kept && !turn.undone && turn.status === "done" ? e(
+        "div",
+        { className: "bd-as-acts" },
+        e("button", { type: "button", className: "bd-btn bd-btn-sm bd-btn-primary", onClick: function() {
+          p.keep(turn.id);
+        } }, e(Icon, { name: "check" }), "Keep"),
+        e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+          p.undoTurn(turn.id);
+        } }, e(Icon, { name: "undo" }), "Undo all"),
+        e("button", { type: "button", className: "bd-btn bd-btn-sm bd-as-retry", onClick: function() {
+          p.retry(turn.id);
+        } }, "Retry")
+      ) : null
+    );
+  }
+  function AssistantPanel(p) {
+    var listRef = useRef(null);
+    useEffect(function() {
+      var el = listRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
+    }, [p.thread.length, p.thread.length && p.thread[p.thread.length - 1].text]);
+    var send = function() {
+      var t = p.draft.trim();
+      if (t && !p.busy) p.send(t);
+    };
+    return e(
+      "div",
+      { className: "bd-as" },
+      e(
+        "div",
+        { className: "bd-as-head" },
+        e("span", { className: "bd-as-title" }, "Assistant"),
+        p.mode === "practice" ? e("span", { className: "bd-as-badge", title: "Answers come from a script in this browser; nothing is sent or charged" }, "Practice") : null,
+        e("button", { type: "button", className: "bd-act bd-act-ghost", title: "New conversation", "aria-label": "New conversation", onClick: p.clear, disabled: !p.thread.length || p.busy }, e(Icon, { name: "plus" }))
+      ),
+      e(
+        "div",
+        { className: "bd-as-thread", ref: listRef, "aria-live": "polite" },
+        !p.thread.length ? e(
+          "div",
+          { className: "bd-as-empty" },
+          e("p", null, "Ask for a change to what's selected, or describe a section to add. It works with the design system's tokens and components only."),
+          e("div", { className: "bd-as-sugg" }, p.suggestions.map(function(s) {
+            return e("button", { key: s, type: "button", onClick: function() {
+              p.send(s);
+            }, disabled: p.busy }, s);
+          }))
+        ) : null,
+        p.thread.map(function(t) {
+          if (t.role === "user") return e("div", { key: t.id, className: "bd-as-me" }, t.text);
+          return e(
+            "div",
+            { key: t.id, className: cx("bd-as-bot", t.status === "error" && "is-error") },
+            t.steps.map(function(s, i) {
+              return e("div", { key: i, className: "bd-as-step" }, e("span", { className: "bd-as-ok" }, e(Icon, { name: s.ok ? "check" : "close" })), s.text);
+            }),
+            t.text ? e("p", { className: "bd-as-text" }, t.text) : t.status === "working" ? e("p", { className: "bd-as-text bd-as-wait" }, "Working…") : null,
+            t.error ? e("p", { className: "bd-as-text bd-as-err" }, t.error) : null,
+            changeCard(p, t)
+          );
+        })
+      ),
+      e(
+        "div",
+        { className: "bd-as-comp" },
+        e(
+          "div",
+          { className: "bd-as-chips" },
+          p.target ? e(
+            "span",
+            { className: cx("bd-as-chip is-target", !p.includeSel && "is-off") },
+            e(Icon, { name: "frame" }),
+            p.target,
+            e("button", { type: "button", "aria-label": p.includeSel ? "Don't send the selection" : "Send the selection", onClick: p.toggleSel }, p.includeSel ? "×" : "+")
+          ) : null,
+          p.docs.map(function(d) {
+            return e(
+              "span",
+              { key: d.id, className: "bd-as-chip" },
+              e(Icon, { name: "file" }),
+              d.title,
+              e("button", { type: "button", "aria-label": "Leave out " + d.title, onClick: function() {
+                p.dropDoc(d.id);
+              } }, "×")
+            );
+          }),
+          p.skills.map(function(s) {
+            return e("span", { key: s.id, className: "bd-as-chip is-skill", title: s.description }, e(Icon, { name: "bolt" }), s.name);
+          })
+        ),
+        e("textarea", {
+          className: "bd-as-input",
+          rows: 2,
+          value: p.draft,
+          placeholder: "Ask for a change, or describe a new section…",
+          "aria-label": "Message the assistant",
+          onChange: function(ev) {
+            p.setDraft(ev.target.value);
+          },
+          onKeyDown: function(ev) {
+            if (ev.key === "Enter" && !ev.shiftKey) {
+              ev.preventDefault();
+              send();
+            }
+          }
+        }),
+        e(
+          "div",
+          { className: "bd-as-bar" },
+          e(Segmented, {
+            label: "What it may change",
+            value: p.reach,
+            onChange: function(v) {
+              if (v) p.setReach(v);
+            },
+            options: [{ value: "selection", label: "Selection" }, { value: "page", label: "Page" }]
+          }),
+          e("span", { className: "bd-as-sp" }),
+          p.busy ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Stop", onClick: p.stop }, e(Icon, { name: "close" })) : e("button", { type: "button", className: "bd-as-send", "aria-label": "Send", disabled: !p.draft.trim(), onClick: send }, e(Icon, { name: "up" }))
+        )
+      )
+    );
+  }
+
+  // assets/builder/model/agent.js
+  var FAMILIES = Object.keys(DATA.tokens);
+  var TOOLS = [
+    { name: "read_selection", description: "The selected layers (or the frame when nothing is selected): each one's id, type, name, props and style tokens, and its children's ids and types.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+    { name: "list_tokens", description: "The values a style family accepts. Families: " + FAMILIES.join(", ") + ".", input_schema: { type: "object", properties: { family: { type: "string", enum: FAMILIES } }, required: ["family"], additionalProperties: false } },
+    { name: "set_style", description: "Set one style family to one of its token values on layers, or clear it with an empty value. Only token values from list_tokens are allowed.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, family: { type: "string", enum: FAMILIES }, value: { type: "string" } }, required: ["ids", "family", "value"], additionalProperties: false } },
+    { name: "set_prop", description: "Set one of a component's own props on layers of that type: its text, or one of the values its enum allows.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, name: { type: "string" }, value: { type: ["string", "number", "boolean"] } }, required: ["ids", "name", "value"], additionalProperties: false } },
+    { name: "insert_jsx", description: "Add new layers written as JSX with the design system's components (for example <Section><Heading>…</Heading></Section>) into a container, at an index, or after the selection when parent is omitted.", input_schema: { type: "object", properties: { jsx: { type: "string" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["jsx"], additionalProperties: false } },
+    { name: "remove", description: "Remove layers.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 } }, required: ["ids"], additionalProperties: false } },
+    { name: "select", description: "Select layers, so the person sees them.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" } } }, required: ["ids"], additionalProperties: false } },
+    { name: "read_skill", description: "Read a skill's files when a request fits its description: its SKILL.md, or another file by path.", input_schema: { type: "object", properties: { name: { type: "string" }, path: { type: "string" } }, required: ["name"], additionalProperties: false } }
+  ];
+  var LABEL = { surface: "Fill", radius: "Corners", elevation: "Shadow", border: "Border", padding: "Padding", gap: "Gap", blur: "Blur", backdrop: "Behind", opacity: "Opacity", gradient: "Gradient" };
+  function familyWord(f) {
+    return LABEL[f] || f.replace(/([A-Z])/g, " $1").replace(/^./, function(c) {
+      return c.toUpperCase();
+    });
+  }
+  function describe(n) {
+    return {
+      id: n.id,
+      type: n.type,
+      name: n.name || void 0,
+      props: n.props,
+      style: n.style,
+      children: (n.children || []).map(function(c) {
+        return { id: c.id, type: c.type, name: c.name || void 0 };
+      })
+    };
+  }
+  function runTool(api, call) {
+    var input = call.input || {};
+    var fail = function(msg) {
+      return { ok: false, result: msg };
+    };
+    var doc2 = api.doc();
+    var known = function(ids3) {
+      return (ids3 || []).filter(function(id) {
+        return typeof id === "string" && locate(doc2, id);
+      });
+    };
+    var nameOf2 = function(id) {
+      var at2 = locate(doc2, id);
+      return at2 ? at2.node.name || at2.node.type : id;
+    };
+    switch (call.name) {
+      case "read_selection": {
+        var sel = known(api.selection());
+        var nodes = sel.length ? sel.map(function(id) {
+          return locate(doc2, id).node;
+        }) : [locate(doc2, "root") && locate(doc2, "root").node].filter(Boolean);
+        return { ok: true, result: JSON.stringify(nodes.map(describe)) };
+      }
+      case "list_tokens": {
+        var fam = DATA.tokens[input.family];
+        if (!fam) return fail("There's no style family called " + input.family + ".");
+        return { ok: true, result: JSON.stringify(fam.options.map(function(o) {
+          return { value: o.value, token: o.tokens && o.tokens[0] };
+        })) };
+      }
+      case "set_style": {
+        var f = DATA.tokens[input.family];
+        if (!f) return fail("There's no style family called " + input.family + ".");
+        var v = String(input.value == null ? "" : input.value);
+        if (v && !f.options.some(function(o) {
+          return o.value === v;
+        })) return fail(v + " isn't one of " + input.family + "'s tokens. Call list_tokens for the ones it has.");
+        var ids = known(input.ids);
+        if (!ids.length) return fail("None of those layers are on the canvas.");
+        if (!api.setStyle(ids, input.family, v || void 0)) return fail("Nothing changed.");
+        return { ok: true, result: "Done.", change: { ids, label: familyWord(input.family), value: v || "none", on: ids.map(nameOf2).join(", ") } };
+      }
+      case "set_prop": {
+        var pids = known(input.ids);
+        if (!pids.length) return fail("None of those layers are on the canvas.");
+        var types = pids.map(function(id) {
+          return locate(doc2, id).node.type;
+        });
+        var spec = META[types[0]] && META[types[0]].props.filter(function(p) {
+          return p.name === input.name;
+        })[0];
+        var textProp = input.name === "children" || input.name === "title" || input.name === "label";
+        if (!spec && !textProp) return fail(types[0] + " has no prop called " + input.name + ".");
+        if (types.some(function(t) {
+          return t !== types[0];
+        })) return fail("Set a prop on layers of one type at a time.");
+        if (spec && spec.kind === "enum" && spec.options.indexOf(input.value) < 0) return fail(input.value + " isn't one of " + input.name + "'s options: " + spec.options.join(", ") + ".");
+        if (!api.setProp(pids, input.name, input.value)) return fail("Nothing changed.");
+        return { ok: true, result: "Done.", change: { ids: pids, label: input.name === "children" ? "Text" : input.name.charAt(0).toUpperCase() + input.name.slice(1), value: String(input.value).slice(0, 60), on: pids.map(nameOf2).join(", ") } };
+      }
+      case "insert_jsx": {
+        var els = readJsxElements(String(input.jsx || ""));
+        var raw = els.length ? jsxNodes(els, []) : [];
+        var made = raw.map(function(n) {
+          return cleanNode(n, null);
+        }).filter(Boolean).map(fresh);
+        if (!made.length) return fail("That JSX has no components the system knows.");
+        var ids2 = api.insert(input.parent || null, typeof input.index === "number" ? input.index : null, made);
+        if (!ids2 || !ids2.length) return fail("Those layers can't go there.");
+        return { ok: true, result: JSON.stringify({ added: ids2 }), change: { ids: ids2, label: "Added", value: made.map(function(n) {
+          return n.name || n.type;
+        }).join(", "), on: "" } };
+      }
+      case "remove": {
+        var rids = known(input.ids);
+        if (!rids.length) return fail("None of those layers are on the canvas.");
+        var names = rids.map(nameOf2).join(", ");
+        if (!api.remove(rids)) return fail("Those layers can't be removed.");
+        return { ok: true, result: "Done.", change: { ids: [], label: "Removed", value: names, on: "" } };
+      }
+      case "select": {
+        api.select(known(input.ids));
+        return { ok: true, result: "Done." };
+      }
+      case "read_skill": {
+        var skill = (api.skills() || []).filter(function(s) {
+          return s.name === input.name;
+        })[0];
+        if (!skill) return fail("There's no skill called " + input.name + " here.");
+        var path = input.path || "SKILL.md";
+        var file = skill.files.filter(function(x) {
+          return x.path === path;
+        })[0];
+        if (!file) return fail(input.name + " has no file " + path + ". It has: " + skill.files.map(function(x) {
+          return x.path;
+        }).join(", ") + ".");
+        return { ok: true, result: file.body, skill: skill.name };
+      }
+      default:
+        return fail("There's no tool called " + call.name + ".");
+    }
+  }
+  function practiceScript(sel) {
+    return function(request) {
+      var last = request.messages[request.messages.length - 1];
+      var text2 = String(typeof last.content === "string" ? last.content : (last.content || []).map(function(b) {
+        return b.text || "";
+      }).join(" ")).toLowerCase();
+      var ids = sel.map(function(n) {
+        return n.id;
+      });
+      var calls = [], said = [];
+      var surface = DATA.tokens.surface.options.map(function(o) {
+        return o.value;
+      });
+      if (!ids.length && !/add|insert|section|pricing/.test(text2)) return { text: "Practice mode: select something on the canvas and ask me to restyle it, or ask me to add a section.", calls: [] };
+      if (/premium|calm|quiet|muted|soft/.test(text2) && surface.indexOf("brand-muted") >= 0) {
+        calls.push({ name: "set_style", input: { ids, family: "surface", value: "brand-muted" } });
+        said.push("a quieter brand fill");
+      } else if (/bold|brand|loud|vivid/.test(text2) && surface.indexOf("brand") >= 0) {
+        calls.push({ name: "set_style", input: { ids, family: "surface", value: "brand" } });
+        said.push("the brand fill");
+      }
+      if (/round|corner|soft/.test(text2)) {
+        var r = DATA.tokens.radius.options;
+        calls.push({ name: "set_style", input: { ids, family: "radius", value: (r[Math.min(2, r.length - 1)] || r[0]).value } });
+        said.push("rounder corners");
+      }
+      if (/shadow|lift|float|premium/.test(text2)) {
+        var el = DATA.tokens.elevation.options;
+        calls.push({ name: "set_style", input: { ids, family: "elevation", value: (el[1] || el[0]).value } });
+        said.push("a soft shadow");
+      }
+      var headings = sel.filter(function(n) {
+        return n.type === "Heading";
+      });
+      if (/bigger|larger|premium|bold/.test(text2) && headings.length) {
+        calls.push({ name: "set_prop", input: { ids: headings.map(function(n) {
+          return n.id;
+        }), name: "size", value: "display-md" } });
+        said.push("a display-size heading");
+      }
+      if (/add|insert/.test(text2) && /button|cta|action/.test(text2)) {
+        calls.push({ name: "insert_jsx", input: { jsx: '<Button variant="primary">Get started</Button>' } });
+        said.push("a button");
+      }
+      if (/add|insert/.test(text2) && /section|pricing|hero/.test(text2)) {
+        calls.push({ name: "insert_jsx", input: { jsx: '<Section><Stack><Heading size="heading-lg">Plans for every team</Heading><Text>Start free, upgrade when you need to.</Text><Button>See plans</Button></Stack></Section>' } });
+        said.push("a section");
+      }
+      if (!calls.length) return { text: "Practice mode: I can try fills (premium, bold), corners, shadows, bigger headings, or adding a button or a section. Real requests go to the model once live mode is on.", calls: [] };
+      return { text: "Practice mode, with the real tools: " + said.join(", ") + ".", calls };
+    };
+  }
+
+  // assets/builder/model/assistant.js
+  function eventReader(onEvent) {
+    var rest = "";
+    return function feed(chunk) {
+      rest += chunk;
+      var parts = rest.split(/\r?\n\r?\n/);
+      rest = parts.pop();
+      parts.forEach(function(block) {
+        var data = block.split(/\r?\n/).filter(function(l) {
+          return l.indexOf("data:") === 0;
+        }).map(function(l) {
+          return l.slice(5).replace(/^ /, "");
+        }).join("\n");
+        if (!data) return;
+        try {
+          onEvent(JSON.parse(data));
+        } catch (err) {
+        }
+      });
+    };
+  }
+  function collector() {
+    var blocks = [], stop = null, error = null, usage = null;
+    return {
+      add: function(ev) {
+        if (!ev || typeof ev.type !== "string") return;
+        if (ev.type === "content_block_start") {
+          var b = ev.content_block || {};
+          blocks[ev.index] = b.type === "tool_use" ? { type: "tool_use", id: b.id, name: b.name, json: "", input: null } : b.type === "text" ? { type: "text", text: b.text || "" } : { type: b.type || "other" };
+        } else if (ev.type === "content_block_delta") {
+          var t = blocks[ev.index], d = ev.delta || {};
+          if (!t) return;
+          if (d.type === "text_delta") t.text += d.text;
+          else if (d.type === "input_json_delta") t.json += d.partial_json;
+        } else if (ev.type === "content_block_stop") {
+          var u = blocks[ev.index];
+          if (u && u.type === "tool_use") {
+            try {
+              u.input = u.json ? JSON.parse(u.json) : {};
+            } catch (err) {
+              u.input = null;
+              u.bad = true;
+            }
+          }
+        } else if (ev.type === "message_delta") {
+          if (ev.delta && ev.delta.stop_reason) stop = ev.delta.stop_reason;
+          if (ev.usage) usage = ev.usage;
+        } else if (ev.type === "error") {
+          error = ev.error && ev.error.message || "The assistant stopped.";
+        }
+      },
+      result: function() {
+        var list = blocks.filter(Boolean);
+        return {
+          text: list.filter(function(b) {
+            return b.type === "text";
+          }).map(function(b) {
+            return b.text;
+          }).join(""),
+          tools: list.filter(function(b) {
+            return b.type === "tool_use";
+          }),
+          content: list.filter(function(b) {
+            return b.type === "text" || b.type === "tool_use";
+          }).map(function(b) {
+            return b.type === "text" ? { type: "text", text: b.text } : { type: "tool_use", id: b.id, name: b.name, input: b.input || {} };
+          }),
+          stop,
+          error,
+          usage
+        };
+      }
+    };
+  }
+  function replyEvents(text2, calls, stop) {
+    var events = [{ type: "message_start", message: { id: "practice", role: "assistant", model: "practice", content: [] } }];
+    var i = 0;
+    if (text2) {
+      events.push({ type: "content_block_start", index: i, content_block: { type: "text", text: "" } });
+      String(text2).match(/.{1,24}(\s|$)|.+/g).forEach(function(piece) {
+        events.push({ type: "content_block_delta", index: i, delta: { type: "text_delta", text: piece } });
+      });
+      events.push({ type: "content_block_stop", index: i });
+      i++;
+    }
+    (calls || []).forEach(function(c, n) {
+      var json = JSON.stringify(c.input || {});
+      events.push({ type: "content_block_start", index: i, content_block: { type: "tool_use", id: "practice_" + n, name: c.name, input: {} } });
+      for (var at2 = 0; at2 < json.length; at2 += 32) events.push({ type: "content_block_delta", index: i, delta: { type: "input_json_delta", partial_json: json.slice(at2, at2 + 32) } });
+      events.push({ type: "content_block_stop", index: i });
+      i++;
+    });
+    events.push({ type: "message_delta", delta: { stop_reason: stop || ((calls || []).length ? "tool_use" : "end_turn") }, usage: { output_tokens: 0 } });
+    events.push({ type: "message_stop" });
+    return events;
+  }
+  function practiceEvents(request, script) {
+    var msgs = request && request.messages || [];
+    var last = msgs[msgs.length - 1];
+    var afterTools = last && Array.isArray(last.content) && last.content.some(function(b) {
+      return b && b.type === "tool_result";
+    });
+    if (afterTools) return replyEvents("Done. That's practice mode: nothing was sent to a model.", []);
+    var turn = script ? script(request) : null;
+    if (turn) return replyEvents(turn.text, turn.calls);
+    var asked = last ? typeof last.content === "string" ? last.content : (last.content || []).filter(function(b) {
+      return b && b.type === "text";
+    }).map(function(b) {
+      return b.text;
+    }).join(" ") : "";
+    return replyEvents("Practice mode: nothing is sent to a model yet. You asked: “" + String(asked).slice(0, 200) + "”.", []);
+  }
+
+  // assets/builder/cloud/config.js
+  var CLOUD = {
+    url: "",
+    anonKey: ""
+  };
+  var LIB_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/+esm";
+  function cloudConfig() {
+    var over = typeof window !== "undefined" && window.DovetailCloud;
+    var c = over && typeof over === "object" ? over : CLOUD;
+    return { url: String(c.url || "").replace(/\/+$/, ""), anonKey: String(c.anonKey || "") };
+  }
+  function cloudReady() {
+    var c = cloudConfig();
+    return /^https:\/\/[^\s/]+/.test(c.url) && c.anonKey.length > 20;
+  }
+
+  // assets/builder/cloud/client.js
+  var clientLoading = null;
+  function getClient() {
+    if (!cloudReady()) return Promise.reject(new Error("The cloud isn't connected."));
+    if (!clientLoading) {
+      var c = cloudConfig();
+      var lib = LIB_URL;
+      clientLoading = import(lib).then(function(mod) {
+        return mod.createClient(c.url, c.anonKey, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce" }
+        });
+      }, function() {
+        clientLoading = null;
+        throw new Error("Couldn't load the cloud. Check your connection and try again.");
+      });
+    }
+    return clientLoading;
+  }
+  var MESSAGES = {
+    invalid_credentials: "That email and password don't match an account.",
+    email_not_confirmed: "Confirm your email first: open the link we sent you.",
+    user_already_exists: "There's already an account with that email. Sign in instead.",
+    email_exists: "There's already an account with that email. Sign in instead.",
+    weak_password: "Choose a longer password: at least 8 characters.",
+    same_password: "That's your current password. Choose a new one.",
+    over_email_send_rate_limit: "Too many emails just now. Wait a minute and try again.",
+    over_request_rate_limit: "Too many tries just now. Wait a minute and try again.",
+    email_address_invalid: "That doesn't look like an email address.",
+    signup_disabled: "New accounts are turned off for this builder.",
+    session_not_found: "You've been signed out. Sign in again.",
+    otp_expired: "That link has expired. Ask for a new one.",
+    bad_code_verifier: "Your email is confirmed. Sign in with your password.",
+    flow_state_not_found: "Your email is confirmed. Sign in with your password.",
+    email_address_not_authorized: "This builder can't email that address yet (docs/cloud.md, step 4)."
+  };
+  function friendly(err) {
+    if (!err) return "";
+    var code = err.code || err.error_code || "";
+    if (MESSAGES[code]) return MESSAGES[code];
+    if (/fetch|network/i.test(String(err.message || err.name || ""))) return "Couldn't reach the cloud. Check your connection and try again.";
+    return String(err.message || "Something went wrong. Try again.");
+  }
+  function unwrap(res) {
+    if (res && res.error) throw new Error(friendly(res.error));
+    return res ? res.data : null;
+  }
+  function backHere() {
+    return location.origin + location.pathname;
+  }
+  function account(session) {
+    return session && session.user ? { id: session.user.id, email: session.user.email || "" } : null;
+  }
+  var auth = {
+    /* The signed-in account, or null. */
+    current: function() {
+      return getClient().then(function(sb) {
+        return sb.auth.getSession();
+      }).then(function(res) {
+        return account(unwrap(res).session);
+      });
+    },
+    /* Calls fn(event, account) on every change; returns a function to stop.
+       event is Supabase's: SIGNED_IN, SIGNED_OUT, PASSWORD_RECOVERY, ... */
+    watch: function(fn) {
+      var sub = null, stopped = false;
+      getClient().then(function(sb) {
+        if (stopped) return;
+        sub = sb.auth.onAuthStateChange(function(event, session) {
+          fn(event, account(session));
+        }).data.subscription;
+      }, function() {
+      });
+      return function() {
+        stopped = true;
+        if (sub) sub.unsubscribe();
+      };
+    },
+    /* A new account. Resolves { confirm: true } when an email must be
+       confirmed before signing in (the setting docs/cloud.md asks for). */
+    signUp: function(email, password) {
+      return getClient().then(function(sb) {
+        return sb.auth.signUp({ email, password, options: { emailRedirectTo: backHere() } });
+      }).then(function(res) {
+        var data = unwrap(res);
+        return { confirm: !data.session, account: account(data.session) };
+      });
+    },
+    signIn: function(email, password) {
+      return getClient().then(function(sb) {
+        return sb.auth.signInWithPassword({ email, password });
+      }).then(function(res) {
+        return account(unwrap(res).session);
+      });
+    },
+    signOut: function() {
+      return getClient().then(function(sb) {
+        return sb.auth.signOut();
+      }).then(unwrap);
+    },
+    /* Emails a link that brings you back here to choose a new password. */
+    resetPassword: function(email) {
+      return getClient().then(function(sb) {
+        return sb.auth.resetPasswordForEmail(email, { redirectTo: backHere() });
+      }).then(unwrap);
+    },
+    setPassword: function(password) {
+      return getClient().then(function(sb) {
+        return sb.auth.updateUser({ password });
+      }).then(unwrap);
+    },
+    /* Turns invites to this (confirmed) address into memberships; resolves
+       how many projects that joined. */
+    acceptInvites: function() {
+      return getClient().then(function(sb) {
+        return sb.rpc("accept_invites");
+      }).then(unwrap);
+    }
+  };
+
+  // assets/builder/cloud/assistant.js
+  var MODE_KEY = "dovetail-assistant";
+  function assistantMode() {
+    var asked = null;
+    try {
+      var over = typeof window !== "undefined" && window.DovetailAssistant;
+      asked = over && over.mode ? over.mode : window.localStorage.getItem(MODE_KEY);
+    } catch (err) {
+    }
+    return asked === "live" && cloudReady() ? "live" : "practice";
+  }
+  function sendAssistant(request, onEvent, opts) {
+    opts = opts || {};
+    if (assistantMode() !== "live") {
+      var events = practiceEvents(request, opts.script);
+      var delay = opts.delay == null ? 18 : opts.delay;
+      return new Promise(function(resolve, reject) {
+        var i = 0;
+        (function next() {
+          if (opts.signal && opts.signal.aborted) {
+            reject(new Error("Stopped."));
+            return;
+          }
+          if (i >= events.length) {
+            resolve();
+            return;
+          }
+          onEvent(events[i++]);
+          if (delay) setTimeout(next, delay);
+          else next();
+        })();
+      });
+    }
+    return getClient().then(function(sb) {
+      return sb.auth.getSession();
+    }).then(function(res) {
+      var session = res && res.data && res.data.session;
+      if (!session) throw new Error("Sign in to use the assistant.");
+      var c = cloudConfig();
+      return fetch(c.url + "/functions/v1/assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token, apikey: c.anonKey },
+        body: JSON.stringify(request),
+        signal: opts.signal
+      });
+    }).then(function(resp) {
+      if (!resp.ok) return resp.json().catch(function() {
+        return {};
+      }).then(function(b) {
+        throw new Error(b.error || "The assistant couldn't be reached.");
+      });
+      var feed = eventReader(onEvent), reader = resp.body.getReader(), dec = new TextDecoder();
+      return (function pump() {
+        return reader.read().then(function(r) {
+          if (r.done) {
+            feed("\n\n");
+            return;
+          }
+          feed(dec.decode(r.value, { stream: true }));
+          return pump();
+        });
+      })();
+    });
+  }
+
   // assets/builder/app/Stage.js
   var camNow = { x: STAGE_PAD, y: STAGE_PAD + LABEL_ROOM, z: 1 };
   var camListeners = [];
@@ -9638,141 +10291,6 @@
       })
     );
   }
-
-  // assets/builder/cloud/config.js
-  var CLOUD = {
-    url: "",
-    anonKey: ""
-  };
-  var LIB_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/+esm";
-  function cloudConfig() {
-    var over = typeof window !== "undefined" && window.DovetailCloud;
-    var c = over && typeof over === "object" ? over : CLOUD;
-    return { url: String(c.url || "").replace(/\/+$/, ""), anonKey: String(c.anonKey || "") };
-  }
-  function cloudReady() {
-    var c = cloudConfig();
-    return /^https:\/\/[^\s/]+/.test(c.url) && c.anonKey.length > 20;
-  }
-
-  // assets/builder/cloud/client.js
-  var clientLoading = null;
-  function getClient() {
-    if (!cloudReady()) return Promise.reject(new Error("The cloud isn't connected."));
-    if (!clientLoading) {
-      var c = cloudConfig();
-      var lib = LIB_URL;
-      clientLoading = import(lib).then(function(mod) {
-        return mod.createClient(c.url, c.anonKey, {
-          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce" }
-        });
-      }, function() {
-        clientLoading = null;
-        throw new Error("Couldn't load the cloud. Check your connection and try again.");
-      });
-    }
-    return clientLoading;
-  }
-  var MESSAGES = {
-    invalid_credentials: "That email and password don't match an account.",
-    email_not_confirmed: "Confirm your email first: open the link we sent you.",
-    user_already_exists: "There's already an account with that email. Sign in instead.",
-    email_exists: "There's already an account with that email. Sign in instead.",
-    weak_password: "Choose a longer password: at least 8 characters.",
-    same_password: "That's your current password. Choose a new one.",
-    over_email_send_rate_limit: "Too many emails just now. Wait a minute and try again.",
-    over_request_rate_limit: "Too many tries just now. Wait a minute and try again.",
-    email_address_invalid: "That doesn't look like an email address.",
-    signup_disabled: "New accounts are turned off for this builder.",
-    session_not_found: "You've been signed out. Sign in again.",
-    otp_expired: "That link has expired. Ask for a new one.",
-    bad_code_verifier: "Your email is confirmed. Sign in with your password.",
-    flow_state_not_found: "Your email is confirmed. Sign in with your password.",
-    email_address_not_authorized: "This builder can't email that address yet (docs/cloud.md, step 4)."
-  };
-  function friendly(err) {
-    if (!err) return "";
-    var code = err.code || err.error_code || "";
-    if (MESSAGES[code]) return MESSAGES[code];
-    if (/fetch|network/i.test(String(err.message || err.name || ""))) return "Couldn't reach the cloud. Check your connection and try again.";
-    return String(err.message || "Something went wrong. Try again.");
-  }
-  function unwrap(res) {
-    if (res && res.error) throw new Error(friendly(res.error));
-    return res ? res.data : null;
-  }
-  function backHere() {
-    return location.origin + location.pathname;
-  }
-  function account(session) {
-    return session && session.user ? { id: session.user.id, email: session.user.email || "" } : null;
-  }
-  var auth = {
-    /* The signed-in account, or null. */
-    current: function() {
-      return getClient().then(function(sb) {
-        return sb.auth.getSession();
-      }).then(function(res) {
-        return account(unwrap(res).session);
-      });
-    },
-    /* Calls fn(event, account) on every change; returns a function to stop.
-       event is Supabase's: SIGNED_IN, SIGNED_OUT, PASSWORD_RECOVERY, ... */
-    watch: function(fn) {
-      var sub = null, stopped = false;
-      getClient().then(function(sb) {
-        if (stopped) return;
-        sub = sb.auth.onAuthStateChange(function(event, session) {
-          fn(event, account(session));
-        }).data.subscription;
-      }, function() {
-      });
-      return function() {
-        stopped = true;
-        if (sub) sub.unsubscribe();
-      };
-    },
-    /* A new account. Resolves { confirm: true } when an email must be
-       confirmed before signing in (the setting docs/cloud.md asks for). */
-    signUp: function(email, password) {
-      return getClient().then(function(sb) {
-        return sb.auth.signUp({ email, password, options: { emailRedirectTo: backHere() } });
-      }).then(function(res) {
-        var data = unwrap(res);
-        return { confirm: !data.session, account: account(data.session) };
-      });
-    },
-    signIn: function(email, password) {
-      return getClient().then(function(sb) {
-        return sb.auth.signInWithPassword({ email, password });
-      }).then(function(res) {
-        return account(unwrap(res).session);
-      });
-    },
-    signOut: function() {
-      return getClient().then(function(sb) {
-        return sb.auth.signOut();
-      }).then(unwrap);
-    },
-    /* Emails a link that brings you back here to choose a new password. */
-    resetPassword: function(email) {
-      return getClient().then(function(sb) {
-        return sb.auth.resetPasswordForEmail(email, { redirectTo: backHere() });
-      }).then(unwrap);
-    },
-    setPassword: function(password) {
-      return getClient().then(function(sb) {
-        return sb.auth.updateUser({ password });
-      }).then(unwrap);
-    },
-    /* Turns invites to this (confirmed) address into memberships; resolves
-       how many projects that joined. */
-    acceptInvites: function() {
-      return getClient().then(function(sb) {
-        return sb.rpc("accept_invites");
-      }).then(unwrap);
-    }
-  };
 
   // assets/builder/cloud/Account.js
   var ARRIVED = (function() {
@@ -10789,6 +11307,208 @@
           return x.id !== id;
         }));
         putCtx(to, (ctxRef.current[to] || []).concat([moved]));
+      }
+    };
+    var asThreadState = useState([]);
+    var asThread = asThreadState[0], setAsThread = asThreadState[1];
+    var asBusyState = useState(false);
+    var asBusy = asBusyState[0], setAsBusy = asBusyState[1];
+    var asDraftState = useState("");
+    var asSelState = useState(true);
+    var asReachState = useState("selection");
+    var asDropState = useState([]);
+    var asMsgs = useRef([]);
+    var asAbort = useRef(null);
+    var patchTurn = function(id, patch) {
+      setAsThread(function(t) {
+        return t.map(function(x) {
+          return x.id === id ? Object.assign({}, x, typeof patch === "function" ? patch(x) : patch) : x;
+        });
+      });
+    };
+    var asContext = function() {
+      var ctx = contextFor(ctxRef.current, pageRef.current);
+      var drop = asDropState[0];
+      return Object.assign({}, ctx, { docs: ctx.docs.filter(function(d) {
+        return drop.indexOf(d.id) < 0;
+      }) });
+    };
+    var toolApi = {
+      doc: function() {
+        return docRef.current;
+      },
+      selection: function() {
+        return asReachState[0] === "page" || !asSelState[0] ? [] : selRef.current.slice();
+      },
+      setStyle: function(ids, key, value) {
+        return change(function(d) {
+          var any = false;
+          ids.forEach(function(id) {
+            var at2 = locate(d, id);
+            if (!at2 || at2.node.style[key] === value) return;
+            any = true;
+            if (value === void 0) delete at2.node.style[key];
+            else at2.node.style[key] = value;
+          });
+          return any ? void 0 : null;
+        });
+      },
+      setProp: function(ids, name, value) {
+        return change(function(d) {
+          var any = false;
+          ids.forEach(function(id) {
+            var at2 = locate(d, id);
+            if (!at2 || at2.node.props[name] === value) return;
+            any = true;
+            at2.node.props[name] = value;
+          });
+          return any ? void 0 : null;
+        });
+      },
+      insert: function(parent, index, nodes) {
+        var t = parent ? { parent, index } : target();
+        var at0 = locate(docRef.current, t.parent);
+        if (!at0) return [];
+        var at2 = t.index == null ? (at0.node.children || []).length : t.index, made = [];
+        change(function(d) {
+          nodes.forEach(function(n) {
+            if (ops.insert(d, t.parent, at2, n, d.active)) {
+              made.push(n.id);
+              at2++;
+            }
+          });
+          return made.length ? void 0 : null;
+        });
+        return made;
+      },
+      remove: function(ids) {
+        var r = null;
+        change(function(d) {
+          r = ops.remove(d, ids);
+          return r === null ? null : void 0;
+        });
+        return r !== null;
+      },
+      select: function(ids) {
+        select(ids);
+      },
+      skills: function() {
+        return asContext().skills;
+      }
+    };
+    var runAssistant = function(text2) {
+      if (asBusy || !text2) return;
+      var sel2 = toolApi.selection().map(function(id) {
+        var at2 = locate(docRef.current, id);
+        return at2 && at2.node;
+      }).filter(Boolean);
+      var ctx = asContext();
+      var fr = active(docRef.current);
+      var canvas = "# Canvas\n\nFrame: " + fr.name + " (" + (fr.mode || "free") + ", " + fr.width + " wide). " + (asReachState[0] === "page" ? "You may change anything on this page." : sel2.length ? "Selected: " + sel2.map(function(n) {
+        return (n.name || n.type) + " (" + n.id + ")";
+      }).join(", ") + ". Change only these unless asked for more." : "Nothing is selected.");
+      var system = [contextText(ctx), canvas].filter(Boolean).join("\n\n");
+      var me = { id: uid(), role: "user", text: text2 };
+      var turn = { id: uid(), role: "assistant", text: "", steps: [], changes: [], status: "working", from: history.current.past.length, prompt: text2 };
+      if (ctx.docs.length || ctx.skills.length) turn.steps.push({ ok: true, text: "Read " + (sel2.length ? sel2.length + (sel2.length === 1 ? " layer" : " layers") + ", " : "") + ctx.docs.length + (ctx.docs.length === 1 ? " doc" : " docs") + " and " + ctx.skills.length + (ctx.skills.length === 1 ? " skill" : " skills") });
+      setAsThread(function(t) {
+        return t.concat([me, turn]);
+      });
+      asDraftState[1]("");
+      setAsBusy(true);
+      asMsgs.current = asMsgs.current.concat([{ role: "user", content: text2 }]);
+      var abort = typeof AbortController !== "undefined" ? new AbortController() : null;
+      asAbort.current = abort;
+      var script = practiceScript(sel2);
+      var round = function(n) {
+        var c = collector();
+        var shown2 = "";
+        return sendAssistant({ system, messages: asMsgs.current, tools: TOOLS }, function(ev) {
+          c.add(ev);
+          if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") {
+            shown2 += ev.delta.text;
+            var now = shown2;
+            patchTurn(turn.id, function(x) {
+              return { text: (x.base || "") + now };
+            });
+          }
+        }, { script, signal: abort && abort.signal }).then(function() {
+          var r = c.result();
+          asMsgs.current = asMsgs.current.concat([{ role: "assistant", content: r.content.length ? r.content : [{ type: "text", text: r.text || "…" }] }]);
+          if (r.error) throw new Error(r.error);
+          if (r.stop === "refusal") throw new Error("The model declined that request.");
+          if (r.stop !== "tool_use" || !r.tools.length) return null;
+          var results = [], changes = [], steps = [];
+          r.tools.forEach(function(call) {
+            if (call.bad) {
+              results.push({ type: "tool_result", tool_use_id: call.id, content: "That input didn't parse; send it again.", is_error: true });
+              return;
+            }
+            var res = runTool(toolApi, call);
+            if (res.change) changes.push(res.change);
+            if (call.name === "read_skill" && res.ok) steps.push({ ok: true, text: "Read the " + res.skill + " skill" });
+            if (!res.ok) steps.push({ ok: false, text: res.result });
+            results.push({ type: "tool_result", tool_use_id: call.id, content: res.result, is_error: !res.ok });
+          });
+          patchTurn(turn.id, function(x) {
+            return { changes: x.changes.concat(changes), steps: x.steps.concat(steps), base: x.text ? x.text + " " : "" };
+          });
+          asMsgs.current = asMsgs.current.concat([{ role: "user", content: results }]);
+          return n < 5 ? round(n + 1) : null;
+        });
+      };
+      round(0).then(function() {
+        patchTurn(turn.id, function(x) {
+          var made = history.current.past.length - x.from;
+          var steps = x.changes.length ? x.steps.concat([{ ok: true, text: "Changed " + x.changes.length + (x.changes.length === 1 ? " thing" : " things") + ", all with system tokens" }]) : x.steps;
+          return { status: "done", made, steps };
+        });
+      }, function(err) {
+        patchTurn(turn.id, function(x) {
+          return { status: "error", error: err.message || "The assistant stopped.", made: history.current.past.length - x.from };
+        });
+      }).then(function() {
+        setAsBusy(false);
+        asAbort.current = null;
+      });
+    };
+    var asApi = {
+      send: runAssistant,
+      stop: function() {
+        if (asAbort.current) asAbort.current.abort();
+      },
+      clear: function() {
+        setAsThread([]);
+        asMsgs.current = [];
+      },
+      keep: function(id) {
+        patchTurn(id, { kept: true });
+      },
+      undoTurn: function(id) {
+        var t = asThread.filter(function(x) {
+          return x.id === id;
+        })[0];
+        if (!t || !t.made) {
+          patchTurn(id, { undone: true });
+          return;
+        }
+        if (history.current.past.length !== t.from + t.made) {
+          announce("Other edits came after this reply, so undo them first, or use Undo step by step.");
+          return;
+        }
+        for (var i = 0; i < t.made; i++) undo();
+        patchTurn(id, { undone: true });
+        announce("Undid the assistant's " + t.changes.length + (t.changes.length === 1 ? " change" : " changes"));
+      },
+      retry: function(id) {
+        var t = asThread.filter(function(x) {
+          return x.id === id;
+        })[0];
+        if (!t) return;
+        asApi.undoTurn(id);
+        setTimeout(function() {
+          runAssistant(t.prompt);
+        }, 0);
       }
     };
     var docked = left === "configure" && !(wide && (bare || preview)) && (wide || pane === "add");
@@ -13012,7 +13732,7 @@
           moves[i.id] = m;
         });
       }
-      var LABEL = { left: "Aligned left", hcenter: "Centred", right: "Aligned right", top: "Aligned top", vcenter: "Centred", bottom: "Aligned bottom", hspread: "Spread evenly across", vspread: "Spread evenly down", tidy: "Tidied up" };
+      var LABEL2 = { left: "Aligned left", hcenter: "Centred", right: "Aligned right", top: "Aligned top", vcenter: "Centred", bottom: "Aligned bottom", hspread: "Spread evenly across", vspread: "Spread evenly down", tidy: "Tidied up" };
       var moved = change(function(d) {
         var any = null;
         Object.keys(moves).forEach(function(id) {
@@ -13020,7 +13740,7 @@
           if ((m.dx || m.dy) && ops.shift(d, id, m.dx, m.dy)) any = id;
         });
         return any ? ids : null;
-      }, LABEL[kind]);
+      }, LABEL2[kind]);
       if (moved) select(ids);
       return true;
     };
@@ -19329,7 +20049,7 @@
         },
         e(
           "aside",
-          { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content, configure and context", hidden: hidePanels || void 0 },
+          { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content, configure, assistant and context", hidden: hidePanels || void 0 },
           e(
             "div",
             { className: "bd-left-tabs bd-rail" },
@@ -19373,7 +20093,32 @@
             e(
               "div",
               { className: cx("bd-left-main", left === "configure" && "bd-config-main") },
-              left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null) : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps) : left === "context" ? e(ContextPanel, {
+              left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null) : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps) : left === "assistant" ? e(AssistantPanel, {
+                thread: asThread,
+                busy: asBusy,
+                draft: asDraftState[0],
+                setDraft: asDraftState[1],
+                mode: assistantMode(),
+                target: selectedNodes.length ? selectedNodes.length === 1 ? selectedNodes[0].name || selectedNodes[0].type : selectedNodes.length + " layers" : null,
+                includeSel: asSelState[0],
+                toggleSel: function() {
+                  asSelState[1](!asSelState[0]);
+                },
+                reach: asReachState[0],
+                setReach: asReachState[1],
+                docs: asContext().docs,
+                skills: asContext().skills,
+                dropDoc: function(id) {
+                  asDropState[1](asDropState[0].concat([id]));
+                },
+                suggestions: selectedNodes.length ? ["Make it feel more premium", "Round the corners", "Add a button"] : ["Add a pricing section"],
+                send: asApi.send,
+                stop: asApi.stop,
+                clear: asApi.clear,
+                keep: asApi.keep,
+                undoTurn: asApi.undoTurn,
+                retry: asApi.retry
+              }) : left === "context" ? e(ContextPanel, {
                 items: ctxItems,
                 query: contextQuery,
                 hasProject: !!(project && project.group),
@@ -19391,7 +20136,7 @@
                 move: ctxApi.move
               }) : e(Content, contentProps)
             ),
-            left === "configure" ? e(SearchField, { className: "bd-search-dock", label: "Search settings", placeholder: "Search settings", value: configQuery, onChange: setConfigQuery }) : left === "pages" ? e(SearchField, { className: "bd-search-dock", label: "Filter pages", placeholder: "Filter pages", value: pageQuery, onChange: setPageQuery }) : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery }) : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }) : left === "context" ? e(SearchField, { className: "bd-search-dock", label: "Filter context", placeholder: "Filter docs and skills", value: contextQuery, onChange: setContextQuery }) : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })
+            left === "configure" ? e(SearchField, { className: "bd-search-dock", label: "Search settings", placeholder: "Search settings", value: configQuery, onChange: setConfigQuery }) : left === "pages" ? e(SearchField, { className: "bd-search-dock", label: "Filter pages", placeholder: "Filter pages", value: pageQuery, onChange: setPageQuery }) : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery }) : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }) : left === "assistant" ? null : left === "context" ? e(SearchField, { className: "bd-search-dock", label: "Filter context", placeholder: "Filter docs and skills", value: contextQuery, onChange: setContextQuery }) : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })
           )
         ),
         e("div", { className: "bd-center" }, slot2 ? null : toolbar, stage),
