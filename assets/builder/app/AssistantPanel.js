@@ -59,6 +59,34 @@ function planCard(p, turn) {
       "Don't ask before big changes") : null);
 }
 
+/* A question with a few ways to go: a click picks one, and anything typed
+   next answers it instead. */
+function askCard(p, turn) {
+  var q = turn.ask;
+  if (!q) return null;
+  var open = q.status === "pending" && p.busy;
+  return e("div", { className: "bd-as-card bd-as-ask", role: "group", "aria-label": q.question },
+    e("div", { className: "bd-as-card-h" }, e("span", null, q.question),
+      e("span", { className: "bd-as-note" }, q.status === "answered" ? "Answered" : q.status === "skipped" || !open ? "Set aside" : "Pick one")),
+    q.options.map(function (o, i) {
+      var chosen = q.choice === i;
+      return e("button", { key: i, type: "button", className: cx("bd-as-opt", chosen && "is-chosen"), disabled: !open, "aria-pressed": chosen,
+        onClick: function () { p.answerAsk(turn.id, i); } },
+        e("span", { className: "bd-as-opt-k", "aria-hidden": "true" }, chosen ? e(Icon, { name: "check" }) : String.fromCharCode(65 + i)),
+        e("span", { className: "bd-as-opt-t" }, e("b", null, o.label), o.detail ? e("span", null, o.detail) : null));
+    }),
+    q.answer ? e("p", { className: "bd-as-ask-said" }, e(Icon, { name: "chat" }), e("span", null, q.answer))
+      : open ? e("button", { type: "button", className: "bd-as-opt bd-as-opt-other", onClick: p.otherAsk }, e("span", { className: "bd-as-opt-k", "aria-hidden": "true" }, e(Icon, { name: "pencil" })), e("span", { className: "bd-as-opt-t" }, e("span", null, "Something else? Type it below."))) : null);
+}
+
+/* What the person changed since the last reply: in the thread once sent,
+   and above the message box until then. */
+function editLines(lines, count, max) {
+  var shown = lines.slice(0, max);
+  return e("ul", { className: "bd-as-edits-l" }, shown.map(function (l, i) { return e("li", { key: i }, l); }),
+    count > shown.length ? e("li", { className: "bd-as-edits-more" }, "and " + (count - shown.length) + " more") : null);
+}
+
 /* The panel's menu: its settings and the thread's actions. */
 function AsMenu(p) {
   var openState = useState(false), open = openState[0], setOpen = openState[1];
@@ -105,6 +133,9 @@ function AssistantPanel(p) {
         e("p", null, "Ask for a change to what's selected, or describe a section to add. It works with the design system's tokens and components only."),
         e("div", { className: "bd-as-sugg" }, p.suggestions.map(function (s) { return e("button", { key: s, type: "button", onClick: function () { p.send(s); }, disabled: p.busy }, s); }))) : null,
       p.thread.map(function (t) {
+        if (t.role === "edits") return e("div", { key: t.id, className: "bd-as-edits" },
+          e("div", { className: "bd-as-edits-h" }, e(Icon, { name: "cursor" }), e("b", null, "You changed " + t.count + (t.count === 1 ? " thing" : " things"))),
+          editLines(t.lines, t.count, 6));
         if (t.role === "divider") return e("p", { key: t.id, className: "bd-as-divider" }, t.text);
         if (t.role === "user") return t.queued ? e("div", { key: t.id, className: "bd-as-me-wrap" }, e("div", { className: "bd-as-me is-queued" }, t.text), e("span", { className: "bd-as-queued" }, e(Icon, { name: "chat" }), "Lands after this step"))
           : e("div", { key: t.id, className: "bd-as-me" }, t.text);
@@ -116,9 +147,15 @@ function AssistantPanel(p) {
           }),
           t.text ? e("p", { className: "bd-as-text" }, t.text) : t.status === "working" ? e("p", { className: "bd-as-text bd-as-wait" }, "Working…") : null,
           planCard(p, t),
+          askCard(p, t),
           t.error ? e("p", { className: "bd-as-text bd-as-err" }, t.error) : null,
           changeCard(p, t));
       })),
+    p.edits ? e("div", { className: "bd-as-edits is-pending" },
+      e("div", { className: "bd-as-edits-h" }, e(Icon, { name: "cursor" }), e("b", null, "You changed " + p.edits.count + (p.edits.count === 1 ? " thing" : " things") + " since its last reply"),
+        e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Don't send these changes", title: "Don't send these changes", onClick: p.dropEdits }, e(Icon, { name: "close" }))),
+      editLines(p.edits.lines, p.edits.count, 3),
+      e("p", { className: "bd-as-edits-n" }, "Sent with your next message, so it builds on them.")) : null,
     e("div", { className: "bd-as-comp" },
       e("div", { className: "bd-as-chips" },
         p.target ? e("span", { className: cx("bd-as-chip is-target", !p.includeSel && "is-off") },
@@ -129,7 +166,7 @@ function AssistantPanel(p) {
             e("button", { type: "button", "aria-label": "Leave out " + d.title, onClick: function () { p.dropDoc(d.id); } }, "×"));
         }),
         p.skills.map(function (s) { return e("span", { key: s.id, className: "bd-as-chip is-skill", title: s.description }, e(Icon, { name: "bolt" }), s.name); })),
-      e("textarea", { className: "bd-as-input", rows: 2, value: p.draft, placeholder: p.busy ? "Add a note while it works…" : "Ask for a change, or describe a new page…", "aria-label": p.busy ? "Add a note for the assistant" : "Message the assistant",
+      e("textarea", { className: "bd-as-input", rows: 2, value: p.draft, placeholder: p.waiting ? "Answer the question, or pick an option…" : p.busy ? "Add a note while it works…" : "Ask for a change, or describe a new page…", "aria-label": p.busy ? "Add a note for the assistant" : "Message the assistant",
         onChange: function (ev) { p.setDraft(ev.target.value); },
         onKeyDown: function (ev) { if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); send(); } } }),
       e("div", { className: "bd-as-bar" },

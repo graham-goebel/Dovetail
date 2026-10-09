@@ -7277,6 +7277,134 @@ input.bd-folder-name {
   color: var(--dt-text-tertiary);
   font-size: var(--dt-font-size-2xs, 11px);
 }
+/* A question with a few ways to go: each option a row to click, with its
+   letter, its label and what it means. */
+.bd-as-ask .bd-as-card-h {
+  gap: var(--dt-space-inline-xs);
+}
+.bd-as-opt {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--dt-space-inline-xs);
+  width: 100%;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  border: 0;
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.bd-as-opt:hover:not(:disabled), .bd-as-opt.is-chosen {
+  background: color-mix(in oklab, var(--dt-text-primary) 6%, transparent);
+}
+.bd-as-opt:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: calc(var(--dt-focus-ring-width) * -1);
+}
+.bd-as-opt:disabled {
+  cursor: default;
+}
+.bd-as-opt:disabled:not(.is-chosen) {
+  opacity: 0.6;
+}
+.bd-as-opt-k {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 var(--dt-border-width-default) var(--dt-border-default);
+  color: var(--dt-text-secondary);
+  font-size: 10px;
+}
+.bd-as-opt.is-chosen .bd-as-opt-k {
+  background: var(--dt-text-primary);
+  box-shadow: none;
+  color: var(--dt-surface-raised);
+}
+.bd-as-opt-k .bd-ic {
+  width: 11px;
+  height: 11px;
+}
+.bd-as-opt-t {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.bd-as-opt-t b {
+  font-weight: var(--dt-font-weight-medium, 500);
+}
+.bd-as-opt-t span {
+  color: var(--dt-text-tertiary);
+}
+.bd-as-opt-other .bd-as-opt-t span {
+  color: var(--dt-text-secondary);
+}
+.bd-as-ask-said {
+  display: flex;
+  gap: var(--dt-space-inline-xs);
+  margin: 0;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  color: var(--dt-text-secondary);
+}
+.bd-as-ask-said .bd-ic {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-top: 2px;
+}
+/* What the person changed since the last reply: a dashed card in the
+   thread, and above the message box until it's sent. */
+.bd-as-edits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  border: var(--dt-border-width-default) dashed var(--dt-border-default);
+  border-radius: var(--dt-radius-container, 10px);
+}
+.bd-as-edits.is-pending {
+  margin: 0 var(--dt-space-inset-sm) var(--dt-space-stack-2xs);
+}
+.bd-as-edits-h {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs);
+}
+.bd-as-edits-h b {
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--dt-font-weight-medium, 500);
+}
+.bd-as-edits-h > .bd-ic {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--dt-text-tertiary);
+}
+.bd-as-edits-l {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0 0 0 20px;
+  color: var(--dt-text-secondary);
+  overflow-wrap: anywhere;
+}
+.bd-as-edits-more {
+  color: var(--dt-text-tertiary);
+  list-style: none;
+}
+.bd-as-edits-n {
+  margin: 0;
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-xs);
+}
 /* A note typed while a reply runs, until that reply hears it. */
 .bd-as-me-wrap {
   display: flex;

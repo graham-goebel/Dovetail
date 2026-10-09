@@ -308,6 +308,38 @@ test("a big change waits for an approved plan", async () => {
   assert.match((await runTool(api, { name: "propose_plan", input: { title: "x", steps: [{ title: "y" }] } })).result, /wants to change the plan: two plans, not three/);
 });
 
+test("ask_user shows the options and hands back the choice, or what was typed", async () => {
+  const { api } = builder();
+  assert.equal(runTool(api, { name: "ask_user", input: { question: "Which?", options: [{ label: "A" }, { label: "B" }] } }).ok, false, "with nowhere to show it, it says to ask in the reply");
+  let shown = null;
+  api.askUser = (q) => { shown = q; return Promise.resolve({ index: 1 }); };
+  const r = await runTool(api, { name: "ask_user", input: { question: "How should it close?", options: [{ label: "Dark band", detail: "Section dark" }, { label: "Soft tint" }, { label: "" }] } });
+  assert.equal(shown.options.length, 2, "an option without a label is dropped");
+  assert.equal(r.result, "They chose: Soft tint.");
+  assert.equal(r.step, "You chose Soft tint");
+  api.askUser = () => Promise.resolve({ text: "A photo band instead" });
+  assert.match((await runTool(api, { name: "ask_user", input: { question: "x", options: [{ label: "A" }, { label: "B" }] } })).result, /own words: A photo band instead/);
+  api.askUser = () => Promise.resolve(null);
+  assert.match((await runTool(api, { name: "ask_user", input: { question: "x", options: [{ label: "A" }, { label: "B" }] } })).result, /wait for their message/);
+  assert.equal(runTool(api, { name: "ask_user", input: { question: "x", options: [{ label: "A" }] } }).ok, false, "one option isn't a choice");
+  assert.match(systemPrompt(), /call ask_user/);
+  assert.match(systemPrompt(), /what the person changed on the canvas since your last reply/);
+});
+
+test("the practice script asks how a page should close, builds the pick, and reads back the person's edits", () => {
+  const script = practiceScript([]);
+  const ask = [{ role: "user", content: "Add a close to the page" }];
+  const t1 = script({ messages: ask, tools: TOOLS });
+  assert.equal(t1.calls[0].name, "ask_user");
+  const msgs = ask.concat([{ role: "assistant", content: [{ type: "tool_use", id: "q", name: "ask_user", input: t1.calls[0].input }] }, { role: "user", content: [{ type: "tool_result", tool_use_id: "q", content: "They chose: Soft tint, two buttons." }] }]);
+  const t2 = script({ messages: msgs, tools: TOOLS });
+  assert.equal(t2.calls[0].name, "insert_jsx");
+  assert.match(t2.calls[0].input.jsx, /tone="brand-muted"/);
+  const told = script({ messages: [{ role: "user", content: [{ type: "text", text: "Since your last reply, the person changed the canvas themselves (keep these unless they ask otherwise):\n- Heading: text “a” → “b”" }, { type: "text", text: "What did I change?" }] }], tools: TOOLS });
+  assert.match(told.text, /you changed 1 thing: Heading: text “a” → “b”/);
+  assert.match(script({ messages: [{ role: "user", content: "What did I change?" }], tools: TOOLS }).text, /haven't changed anything/);
+});
+
 test("with plans on, the practice build shows a plan first, then builds once approved", () => {
   const script = practiceScript([]);
   const ask = [{ role: "user", content: "Build a pricing page" }];

@@ -41,6 +41,7 @@ var TOOLS = [
   { name: "create_frame", description: "Add a frame to this page and make it the one you're working in. structured frames are auto layout pages (they start with a Content group to fill, whose id comes back); free frames place layers anywhere. Presets: " + PRESETS.map(function (f) { return f.id + " (" + f.width + "×" + f.height + ")"; }).join(", ") + ".", input_schema: { type: "object", properties: { name: { type: "string" }, preset: { type: "string", enum: PRESETS.map(function (f) { return f.id; }) }, mode: { type: "string", enum: ["structured", "free"] } }, required: ["name", "preset", "mode"], additionalProperties: false } },
   { name: "use_frame", description: "Work in another frame on this page: the edit tools act on the frame you're in.", input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false } },
   { name: "propose_plan", description: "Before a new page or frame, or any change that adds more than about 10 layers, show the person a short plan and wait for their answer: the frame it goes in (when it's a new one), the steps in order (a title and a line each), and anything they should know (missing content you'll stand in for, a choice you made). It comes back approved, or with what they want changed.", input_schema: { type: "object", properties: { title: { type: "string" }, frame: { type: "object", properties: { name: { type: "string" }, preset: { type: "string" }, mode: { type: "string", enum: ["structured", "free"] } }, additionalProperties: false }, steps: { type: "array", minItems: 1, maxItems: 12, items: { type: "object", properties: { title: { type: "string" }, detail: { type: "string" } }, required: ["title"], additionalProperties: false } }, notes: { type: "array", maxItems: 4, items: { type: "string" } } }, required: ["title", "steps"], additionalProperties: false } },
+  { name: "ask_user", description: "Ask the person to choose when the request leaves a real choice open: two to four ways that would set a different tone or direction, which the request, the docs and the theme don't settle. Each option is a short label and a line on what it means (the components and tokens it would use). The answer comes back as the option they picked, or what they wrote instead. Don't ask about what you can decide yourself.", input_schema: { type: "object", properties: { question: { type: "string" }, options: { type: "array", minItems: 2, maxItems: 4, items: { type: "object", properties: { label: { type: "string" }, detail: { type: "string" } }, required: ["label"], additionalProperties: false } } }, required: ["question", "options"], additionalProperties: false } },
   { name: "batch", description: "Run several edit calls in order as one step the person can undo at once. Each call is { name, input } for one of: " + BATCHABLE.join(", ") + ". It stops at the first call that fails, keeping the ones before it.", input_schema: { type: "object", properties: { calls: { type: "array", minItems: 1, maxItems: 40, items: { type: "object", properties: { name: { type: "string", enum: BATCHABLE }, input: { type: "object" } }, required: ["name", "input"], additionalProperties: false } } }, required: ["calls"], additionalProperties: false } },
   { name: "remove", description: "Remove layers.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 } }, required: ["ids"], additionalProperties: false } },
   { name: "select", description: "Select layers, so the person sees them.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" } } }, required: ["ids"], additionalProperties: false } },
@@ -145,7 +146,8 @@ function systemPrompt() {
     "- Write real, short copy in the brand's voice. Never lorem ipsum.",
     "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish.",
     "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
-    "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first.",
+    "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first. When it leaves a real choice of direction open (two good answers with a different tone), call ask_user with the options rather than guessing.",
+    "- A message may start with what the person changed on the canvas since your last reply. Keep those changes unless they ask otherwise, and build on them.",
     "- Before a new page or frame, or a change that adds more than about 10 layers, call propose_plan and wait for the answer, unless the canvas notes say plans are off. Building without one is refused.",
     "- Finish with a sentence or two on what you changed and anything the person should check.",
     "## The system's rules",
@@ -442,6 +444,17 @@ function runTool(api, call) {
         return { ok: true, result: "Not approved yet: the person wants to change the plan" + (answer && answer.note ? ": " + answer.note : "") + ". Stop here and wait for their message.", step: "Plan set aside to change" };
       });
     }
+    case "ask_user": {
+      if (!api.askUser) return fail("Questions can't be shown here; ask in your reply instead.");
+      var opts = (input.options || []).slice(0, 4).map(function (o) { return { label: short(String((o && o.label) || ""), 60), detail: o && o.detail ? short(String(o.detail), 140) : "" }; }).filter(function (o) { return o.label; });
+      if (opts.length < 2) return fail("Give at least two options.");
+      var q = { question: short(String(input.question || "Which way?"), 140), options: opts };
+      return Promise.resolve(api.askUser(q)).then(function (answer) {
+        if (answer && typeof answer.index === "number" && opts[answer.index]) return { ok: true, result: "They chose: " + opts[answer.index].label + ".", step: "You chose " + opts[answer.index].label };
+        if (answer && answer.text) return { ok: true, result: "They answered in their own words: " + answer.text, step: "You answered" };
+        return { ok: true, result: "They didn't choose. Stop here and wait for their message.", step: "Question set aside" };
+      });
+    }
     case "remove": {
       var rids = known(input.ids);
       if (!rids.length) return fail("None of those layers are on the canvas.");
@@ -510,6 +523,20 @@ function practiceAnswer(request, results) {
     try { th = JSON.parse(body(0)); } catch (err) { th = {}; }
     return { text: "Practice mode: this file's brand is " + (th.brand || "unnamed") + ", primary " + (th.primary || "?") + ", " + (th.context ? th.context + " context" : "no context set") + ", " + (th.fonts && th.fonts.body ? th.fonts.body + " type" : "the default type") + ". A model would use that to pick variants and copy.", calls: [] };
   }
+  if (names[0] === "ask_user") {
+    var said0 = body(0);
+    var pick = /^They chose: (.+)\.$/.exec(said0);
+    if (!pick) return { text: /own words/.test(said0) ? "Practice mode: a model would build what you described. Pick an option to see the practice version." : "Practice mode: pick an option whenever you're ready.", calls: [] };
+    var CLOSES = {
+      "Dark band, one button": "<Section dark><Stack gap=\"md\" align=\"center\"><Heading>Ready when you are</Heading><Button variant=\"primary\">Start free</Button></Stack></Section>",
+      "Soft tint, two buttons": "<Section tone=\"brand-muted\"><Stack gap=\"md\" align=\"center\"><Heading>Ready when you are</Heading><Inline gap=\"sm\"><Button variant=\"primary\">Start free</Button><Button variant=\"secondary\">Talk to us</Button></Inline></Stack></Section>",
+      "Quiet line and a link": "<Section><Stack gap=\"sm\" align=\"center\"><Text>Questions first? We're happy to help.</Text><Link href=\"#\">Talk to us</Link></Stack></Section>",
+    };
+    var jsx = CLOSES[pick[1]];
+    if (!jsx) return { text: "Practice mode: you chose " + pick[1] + ".", calls: [] };
+    return { text: "", calls: [{ name: "insert_jsx", input: { jsx: jsx } }] };
+  }
+  if (names[0] === "insert_jsx") return { text: "Practice mode, with the real tools: the close you picked is at the foot of the frame.", calls: [] };
   if (names[0] === "read_guideline") return { text: "Practice mode: " + body(0).split("\n")[0].replace(/^# /, "") + " read. A model would apply it to the next change.", calls: [] };
   if (names[0] === "search_components") {
     var found = [];
@@ -527,7 +554,14 @@ function practiceScript(sel) {
     var last = request.messages[request.messages.length - 1];
     var results = Array.isArray(last.content) ? last.content.filter(function (b) { return b && b.type === "tool_result"; }) : [];
     if (results.length) return practiceAnswer(request, results);
-    var text = String(typeof last.content === "string" ? last.content : (last.content || []).map(function (b) { return b.text || ""; }).join(" ")).toLowerCase();
+    var blocks = typeof last.content === "string" ? [{ text: last.content }] : (last.content || []);
+    var edits = blocks.filter(function (b) { return /^Since your last reply, the person changed/.test(b.text || ""); })[0];
+    var text = blocks.filter(function (b) { return b !== edits; }).map(function (b) { return b.text || ""; }).join(" ").toLowerCase();
+    if (/what (did|have) i changed?|my (changes|edits)/.test(text)) {
+      if (!edits) return { text: "Practice mode: you haven't changed anything since my last reply.", calls: [] };
+      var mine = edits.text.split("\n").filter(function (l) { return /^- /.test(l); }).map(function (l) { return l.slice(2); });
+      return { text: "Practice mode: since my last reply you changed " + mine.length + (mine.length === 1 ? " thing" : " things") + ": " + mine.join("; ") + ". I'd keep those.", calls: [] };
+    }
     var ids = sel.map(function (n) { return n.id; });
     var calls = [], said = [];
     var offered = (request.tools || []).map(function (t) { return t.name; });
@@ -548,6 +582,11 @@ function practiceScript(sel) {
         { title: "Close", detail: "A dark band with one button" },
       ], notes: ["Practice mode writes stand-in copy; a model would use your context docs."] } }] };
     }
+    if (/\b(add|give it|needs?|want) (a |an )?(close|closing|ending|final call to action)\b/.test(text) && offered.indexOf("ask_user") >= 0) return { text: "There are a few good ways to close a page, and they set different tones. Which fits?", calls: [{ name: "ask_user", input: { question: "How should it close?", options: [
+      { label: "Dark band, one button", detail: "Section dark · Button primary · a strong end" },
+      { label: "Soft tint, two buttons", detail: "Section brand-muted · primary and secondary" },
+      { label: "Quiet line and a link", detail: "No band · Text and a Link to contact" },
+    ] } }] };
     if (/\btheme\b|brand colou?r|which fonts?/.test(text)) return { text: "", calls: [{ name: "read_theme", input: {} }] };
     var topic = /\b(voice|accessibility|tokens|theming)\b/.exec(text);
     if (topic && /guideline|guide|rule|say|how/.test(text)) return { text: "", calls: [{ name: "read_guideline", input: { topic: topic[1] } }] };
