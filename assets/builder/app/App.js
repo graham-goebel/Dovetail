@@ -4,6 +4,7 @@ import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_I
 import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
+import { applyOps, opsOf } from "../model/nameedit.js";
 import { mergeUsage, usageOf, usesToken } from "../model/usage.js";
 import { absorbComponents, componentsFor, copyText, encode, loadLibrary, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
 import { foldersOf, itemsOf, libScopeOf, pageOf, pagesOf } from "../model/store.js";
@@ -167,6 +168,10 @@ function App(props) {
   var code = codeState[0], setCode = codeState[1];
   var sayState = useState("");
   var say = sayState[0], setSay = sayState[1];
+  /* What the last applied edit changed: { fid, doc, items: [{ id, icon, label }], n, removed }, until the document changes again. */
+  var editMarksState = useState(null);
+  var editMarks = editMarksState[0], setEditMarks = editMarksState[1];
+  var editMarksRef = useRef(null);
   var savedState = useState({ ok: true, at: null });
   var saved = savedState[0], setSaved = savedState[1];
   var savedRef = useRef(saved); savedRef.current = saved;
@@ -1706,6 +1711,10 @@ function App(props) {
         }).filter(Boolean) : [],
         hover: h && hf && h.id !== "root" && !(h.f === fid && selRef.current.indexOf(h.id) >= 0) ? (function () { var r = hf.rect(h.id); return r ? { fid: h.f, r: r } : null; })() : null,
         drop: m.drop,
+        edited: (function () {
+          var em = editMarksRef.current, ea = em && em.doc === docRef.current ? api(em.fid) : null;
+          return ea ? em.items.map(function (it) { var r = ea.rect(it.id); return r ? { id: it.id, fid: em.fid, r: r, icon: it.icon, label: it.label } : null; }).filter(Boolean) : [];
+        })(),
       };
     });
     var ed = editRef.current;
@@ -2692,6 +2701,9 @@ function App(props) {
   }, []);
 
   useEffect(function () { remeasure(); }, [selection, hover, layout.width, layout.height, doc.active, edit && edit.id]);
+  useEffect(function () {
+    if (editMarksRef.current && editMarksRef.current.doc !== doc) { editMarksRef.current = null; setEditMarks(null); remeasure(); }
+  }, [doc]);
   /* Layout columns read each frame's page width, gutter and column gap as
      its theme and page settings make them. */
   var colKey = doc.frames.map(function (f) { return f.id + ":" + f.width + ":" + (f.pageWidth || "") + ":" + (f.gutter || "") + ":" + (f.spacing || "") + ":" + !!ready[f.id]; }).join("|");
@@ -4840,6 +4852,49 @@ function App(props) {
     }, "Added " + incoming.length + (incoming.length === 1 ? " frame" : " frames") + " from the pasted layout." + dropped);
     setTimeout(function () { if (firstId) showFrameRef.current(firstId, true); }, 0);
   };
+  /* An edit by layer name: the frame drawn out of sight (as it is, or as
+     the edit would leave it) with the boxes of the layers it changes, as
+     parts of the picture; then the edit made in one step, its layers
+     labelled on the canvas and dotted in Layers until the next change. */
+  var editPreview = function (frame, ids) {
+    return drawAndAudit(frame, frame.width, !!frame.dark, function (a) {
+      var root = a.rect("root");
+      var rects = {};
+      ids.forEach(function (id) {
+        var r = a.rect(id);
+        if (r && root && root.width && root.height) rects[id] = { left: (r.left - root.left) / root.width, top: (r.top - root.top) / root.height, width: r.width / root.width, height: r.height / root.height };
+      });
+      return a.snapshot("jpeg", { scale: 1, fonts: false }).then(function (url) { return { url: url, rects: rects }; });
+    });
+  };
+  var applyEdit = function (plan, choice) {
+    var ops = opsOf(plan, choice);
+    var fid = plan.frame && plan.frame.id;
+    if (!ops.length || !fid) return;
+    var touched = [];
+    var n = plan.rows.filter(function (r) { return r.kind !== "none" && (!r.choices || (choice[r.key] && choice[r.key] !== "skip")); }).length;
+    var ok = change(function (d) { touched = applyOps(d, fid, ops); return touched.length ? undefined : null; }, "Applied " + n + (n === 1 ? " change" : " changes") + " from the edit. Undo takes them back.");
+    var dlg = importRef.current;
+    if (dlg) dlg.close();
+    if (!ok) { announce("The edit didn't change anything."); return; }
+    if (docRef.current.active !== fid) activate(fid);
+    var items = [];
+    plan.rows.forEach(function (r) {
+      if (r.kind === "none" || r.kind === "remove" || r.kind === "add") return;
+      var id = r.choices ? choice[r.key] : r.ids[0];
+      if (!id || id === "skip") return;
+      var o = r.choices ? (function () { var at = locate(docRef.current, id, fid); return at ? r.opsFor(at.node) : null; })() : r;
+      var label = o && o.changes ? o.changes.map(function (c) { return (c.label === "Text" ? "text" : c.label.toLowerCase()) + " " + (c.label === "Text" ? "changed" : c.value); }).join(", ") : "changed";
+      items.push({ id: id, icon: r.kindIcon || r.icon, label: label });
+    });
+    var setIds = ops.map(function (o) { return o.id; }).filter(Boolean);
+    touched.forEach(function (id) { if (setIds.indexOf(id) < 0) items.push({ id: id, icon: "plus", label: "added" }); });
+    var removed = plan.rows.filter(function (r) { return r.kind === "remove" && (!r.choices || (choice[r.key] && choice[r.key] !== "skip")); }).length;
+    var marks = { fid: fid, doc: docRef.current, items: items, n: n, removed: removed };
+    editMarksRef.current = marks;
+    setEditMarks(marks);
+    setTimeout(remeasure, 60);
+  };
   var copyLayout = function () {
     var out = withoutUploads(docRef.current);
     copyText(JSON.stringify(out.doc, null, 2)).then(function () {
@@ -6803,6 +6858,7 @@ function App(props) {
   var onKeepVersion = useEvent(keepVersion), onRestoreVersion = useEvent(restoreVersion);
   var onSaveComponent = useEvent(saveComponent), onFixComponent = useEvent(fixComponent);
   var onImportLayout = useEvent(importLayout);
+  var onGetDoc = useEvent(function () { return docRef.current; }), onEditPreview = useEvent(editPreview), onApplyEdit = useEvent(applyEdit);
   var onCopyCode = useEvent(function () { copyText(code).then(function () { announce("Code copied"); }); });
   var onExportImage = useEvent(function (type) { exportImage(frame.id, type, { scale: exportScale, id: codePick }); });
   var onCopyLayout = useEvent(copyLayout), onShare = useEvent(function () { share(); });
@@ -6824,7 +6880,8 @@ function App(props) {
   /* Layers (Layers.js) is memoized: handlers through useEvent, data as it is. */
   var onPick = useEvent(pick), onOpenMenu = useEvent(openMenu), onStartDrag = useEvent(startDrag), onSetName = useEvent(setName), onFlagLayer = useEvent(flagLayer);
   var onFramePick = useEvent(function (fid, v) { frameOps.pick(fid, v); }), onFrameRename = useEvent(function (fid, v) { frameOps.rename(fid, v); }), onAnatomy = useEvent(anatomyOf);
-  var layersProps = { doc: doc, selection: selection, partId: part ? part.id : null, listDrop: listDrop, hover: hover, frameOn: frameOn, hasSel: !!sel, query: layerQuery, collapsed: collapsed, openFrames: openFrames, renaming: renaming, boxes: boxes, scalars: scalars,
+  var editedIds = useMemo(function () { var o = {}; (editMarks ? editMarks.items : []).forEach(function (it) { o[it.id] = true; }); return o; }, [editMarks]);
+  var layersProps = { doc: doc, selection: selection, edited: editedIds, partId: part ? part.id : null, listDrop: listDrop, hover: hover, frameOn: frameOn, hasSel: !!sel, query: layerQuery, collapsed: collapsed, openFrames: openFrames, renaming: renaming, boxes: boxes, scalars: scalars,
     layersRef: layersRef, justDragged: justDragged, setCollapsed: setCollapsed, setHover: setHover, setRenaming: setRenaming, setOpenFrames: setOpenFrames,
     pick: onPick, openMenu: onOpenMenu, startDrag: onStartDrag, setName: onSetName, flagLayer: onFlagLayer, framePick: onFramePick, frameRename: onFrameRename, anatomyOf: onAnatomy };
 
@@ -6911,7 +6968,12 @@ function App(props) {
     })() : drag && !drag.inside ? e("div", { className: "bd-ghost", style: { left: drag.x + "px", top: drag.y + "px" }, "aria-hidden": true }, drag.label) : null,
     e(CodeDialog, { dialogRef: dialogRef, code: code, notes: codeNotes, title: codeTitle, picked: !!codePick, frameName: frame.name, scale: exportScale, setScale: setExportScale, hasSelection: !!sel,
       onCopyCode: onCopyCode, onExportImage: onExportImage, onCopyLayout: onCopyLayout, onShare: onShare, onDownloadProject: onDownloadProject }),
-    e(ImportDialog, { dialogRef: importRef, text: importText, setText: setImportText, onImport: onImportLayout }),
+    e(ImportDialog, { dialogRef: importRef, text: importText, setText: setImportText, onImport: onImportLayout, getDoc: onGetDoc, preview: onEditPreview, onApplyEdit: onApplyEdit }),
+    editMarks ? e("div", { className: "bd-toast", role: "status" },
+      e(Icon, { name: "check" }),
+      e("span", null, e("b", null, "Applied " + editMarks.n + (editMarks.n === 1 ? " change" : " changes")), " from the edit" + (editMarks.removed ? ", " + editMarks.removed + " removed" : "") + "."),
+      e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { undo(); } }, e(Icon, { name: "undo" }), "Undo"),
+      e("button", { type: "button", className: "bd-act", "aria-label": "Dismiss", onClick: function () { editMarksRef.current = null; setEditMarks(null); remeasure(); } }, e(Icon, { name: "close" }))) : null,
     e(VersionsDialog, { dialogRef: versionsRef, open: shown === "versions", onClose: closeShown, projectName: project.name, versions: versions, onKeep: onKeepVersion, onRestore: onRestoreVersion }),
     e(KeysDialog, { dialogRef: keysRef, open: shown === "keys", onClose: closeShown }),
     e(ComponentDialog, { dialogRef: compRef, draft: compDraft, setDraft: setCompDraft, node: compNode, onClose: closeComponent, onSave: onSaveComponent, onFix: onFixComponent }),

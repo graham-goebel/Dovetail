@@ -366,6 +366,27 @@ The finished components carry their own layout and sample copy. For an expressiv
 }
 ```
 
+## Editing a layout by layer name
+
+To change a layout that's already on the canvas, write an edit instead of the whole layout again. An edit names layers the way the Layers list does: by the name a layer was given, else the name Layers works out for it (`$6,214 grid`, `Rent · $2,400`, `Chips`, `Glow`), else by its text in quotes, else by its type when only one layer has it. Paste it into Paste a layout: the builder lists each change with what it was and what it becomes, draws the frame before and after, asks which one when two layers share a name, and applies everything as one step to undo.
+
+```markdown
+## Edit Ledger
+- Hero: padding xl
+- Glow: z behind
+- "$284,120": size display-2xl
+- "Rent": text "Rent and bills"
+- remove Spending
+- add Heading "This week" to Bento, first
+```
+
+- The heading names the frame (`## Edit` alone means the frame in view).
+- `Layer: key value, key value` sets keys. A style key takes one of its tokens; `text` sets the layer's words; any other key is one of the component's props.
+- `remove Layer` removes it with everything inside.
+- `add Type "words" to Layer`, then `first`, `last` (the default) or `at N`, adds a component inside it.
+
+The same edit as JSON: `{ "edit": "Ledger", "changes": [{ "layer": "Hero", "style": { "padding": "xl" } }, { "layer": "$284,120", "props": { "size": "display-2xl" } }, { "layer": "Spending", "remove": true }, { "into": "Bento", "at": 0, "add": [{ "type": "Heading", "props": { "children": "This week" } }] }] }`. In JSON, `add` takes whole nodes, written as in a layout.
+
 ## What doesn't carry over
 
 - Raw values: pixels, custom CSS or class names, and colours outside a free frame. Use the style keys.

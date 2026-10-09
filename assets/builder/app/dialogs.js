@@ -6,6 +6,7 @@
 
 import { DATA, IS_MAC, SHORTCUTS, TOOL_INFO, cx, e, isContainer, kbd, mountEl, nameOf } from "../config.js";
 import { readLayout } from "../model/paste.js";
+import { after as editAfter, countOf, opsOf, planEdit, readEdit, sourceOf } from "../model/nameedit.js";
 import { VERSIONS_MAX } from "../model/store.js";
 import { Icon } from "../ui/icons.js";
 import { Segmented, playHeights } from "../ui/parts.js";
@@ -66,12 +67,15 @@ function notes(list) {
    be left out; then added beside the frames or in place of them.
    { dialogRef, text, setText, onImport(mode) } */
 var ImportDialog = memo(function ImportDialog(p) {
+  var edit = readEdit(p.text);
+  var dialogProps = { className: cx("bd-code bd-import", edit && "bd-edit"), ref: p.dialogRef, "aria-labelledby": "bd-import-title" };
+  if (edit) return e("dialog", dialogProps, e(EditBody, Object.assign({}, p, { edit: edit })));
   var read = readLayout(p.text);
   var ok = read && !read.error;
   var formatHref = mountEl.getAttribute("data-format") || "assets/builder-layouts.md";
-  return e("dialog", { className: "bd-code bd-import", ref: p.dialogRef, "aria-labelledby": "bd-import-title" },
+  return e("dialog", dialogProps,
     head("bd-import-title", "Paste a layout",
-      e(React.Fragment, null, "Paste builder JSON (from Claude, a teammate or Copy layout JSON), a builder link, or JSX with Dovetail components (from the docs or the Code dialog). Only the components, props and tokens the builder can set come in. ",
+      e(React.Fragment, null, "Paste builder JSON (from Claude, a teammate or Copy layout JSON), a builder link, JSX with Dovetail components (from the docs or the Code dialog), or an edit that names layers the way Layers does (a “## Edit” heading and a list, or JSON with changes). Only the components, props and tokens the builder can set come in. ",
         e("a", { href: formatHref, target: "_blank", rel: "noopener" }, "The layout format"), "."),
       [closeButton(p.dialogRef)]),
     e("div", { className: "bd-import-body" },
@@ -91,6 +95,111 @@ var ImportDialog = memo(function ImportDialog(p) {
         e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: !ok, onClick: function () { p.onImport("add"); } }, e(Icon, { name: "plus" }), ok ? "Add " + (read.doc.frames.length === 1 ? "the frame" : read.doc.frames.length + " frames") : "Add"),
         e("button", { type: "button", className: "bd-btn", disabled: !ok, onClick: function () { p.onImport("replace"); } }, "Replace all frames"))));
 });
+
+/* An edit by layer name, pasted in the same box: each change as a line
+   with an icon for its kind, a picture of the frame before and after with
+   the changed layers marked, a choice where a name is shared, and the edit
+   as Markdown or JSON. Applied in one step.
+   { dialogRef, text, setText, edit, getDoc, preview(frame, ids), onApplyEdit(plan, choice) } */
+function EditBody(p) {
+  var choiceState = React.useState({}), choice = choiceState[0], setChoice = choiceState[1];
+  var srcState = React.useState(""), src = srcState[0], setSrc = srcState[1];
+  var sideState = React.useState("after"), side = sideState[0], setSide = sideState[1];
+  var plan = React.useMemo(function () { return planEdit(p.getDoc(), p.edit); }, [p.text]);
+  React.useEffect(function () { setChoice({}); }, [p.text]);
+  var n = countOf(plan, choice);
+  var asks = plan.rows.filter(function (r) { return r.choices && !choice[r.key]; }).length;
+  var frame = plan.frame;
+  return e(React.Fragment, null,
+    head("bd-import-title", "Paste a layout",
+      "An edit names layers the way Layers does. Check each change, then apply them in one step.",
+      [closeButton(p.dialogRef)]),
+    e("div", { className: "bd-edit-kind" },
+      e("span", { className: "bd-edit-badge" }, e(Icon, { name: "link" }), "An edit to ", e("b", null, frame ? frame.name : "this frame")),
+      e("span", { className: "bd-edit-n" }, plan.rows.length + (plan.rows.length === 1 ? " change" : " changes")),
+      e("span", { className: "bd-edit-sp" }),
+      e("button", { type: "button", className: cx("bd-btn bd-btn-sm", src && "is-on"), "aria-pressed": !!src, onClick: function () { setSrc(src ? "" : p.edit.format === "json" ? "json" : "markdown"); } }, e(Icon, { name: "code" }), "Source")),
+    e("div", { className: "bd-edit-cols" },
+      e(EditPreview, { frame: frame, plan: plan, choice: choice, side: side, setSide: setSide, preview: p.preview, getDoc: p.getDoc }),
+      src ? e("div", { className: "bd-edit-src" },
+        e("div", { className: "bd-edit-src-h" }, e("span", null, "Source"), e(Segmented, { label: "Source as", value: src, onChange: function (v) { if (v) setSrc(v); }, options: [{ value: "markdown", label: "Markdown" }, { value: "json", label: "JSON" }] })),
+        e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, sourceOf(p.edit, src))))
+        : e("ul", { className: "bd-edit-list", role: "list", "aria-label": "Changes" }, plan.rows.map(function (r) { return editRow(r, choice, setChoice); }))),
+    e("div", { className: "bd-import-actions bd-edit-foot" },
+      e("span", { className: "bd-edit-undo" }, e(Icon, { name: "undo" }), asks ? asks + (asks === 1 ? " question" : " questions") + " to answer, or skip" : "One step to undo"),
+      e("span", { className: "bd-edit-sp" }),
+      e("button", { type: "button", className: "bd-btn", onClick: function () { p.setText(""); } }, "Clear"),
+      e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: !n, onClick: function () { p.onApplyEdit(plan, choice); } }, e(Icon, { name: "check" }), n ? "Apply " + n + (n === 1 ? " change" : " changes") : "Nothing to apply")));
+}
+
+function editRow(r, choice, setChoice) {
+  var picked = choice[r.key];
+  return e("li", { key: r.key, className: cx("bd-edit-row", r.kind === "none" && "is-off") },
+    e("span", { className: "bd-edit-ic" }, e(Icon, { name: r.icon })),
+    e("div", { className: "bd-edit-t" },
+      e("b", null, r.title),
+      e("span", null, r.choices && picked && picked !== "skip" ? r.choices.filter(function (c) { return c.id === picked; })[0].path + ": " + (r.opsFor ? describeAsked(r) : "") : r.detail),
+      r.via === "text" ? e("em", { className: "bd-edit-via" }, "Found by its text") : r.via === "type" ? e("em", { className: "bd-edit-via" }, "Found by its type, the only one") : null,
+      r.choices ? e("div", { className: "bd-edit-pick", role: "radiogroup", "aria-label": "Which " + r.title + "?" },
+        r.choices.map(function (c) {
+          return e("button", { key: c.id, type: "button", role: "radio", "aria-checked": picked === c.id, className: cx("bd-edit-opt", picked === c.id && "is-on"), onClick: function () { setChoice(Object.assign({}, choice, { [r.key]: c.id })); } }, c.path);
+        }),
+        e("button", { type: "button", role: "radio", "aria-checked": picked === "skip", className: cx("bd-edit-opt", picked === "skip" && "is-on"), onClick: function () { setChoice(Object.assign({}, choice, { [r.key]: "skip" })); } }, "Skip")) : null));
+}
+/* What an asked row will do, once one is picked: its change without the
+   question. */
+function describeAsked(r) {
+  var kinds = { style: "", order: "", size: "", text: "", prop: "", remove: "Removed", add: "Adds to it" };
+  return r.changes ? r.changes.map(function (c) { return c.label + " → " + c.value; }).join(", ") : kinds[r.ask] || "";
+}
+
+/* The frame drawn before and after, with a marker on each layer that
+   changes. Drawn out of sight, so it takes a moment the first time. */
+function EditPreview(p) {
+  var shotState = React.useState({}), shots = shotState[0], setShots = shotState[1];
+  var ops = opsOf(p.plan, p.choice);
+  var key = p.side + ":" + JSON.stringify(ops.map(function (o) { return [o.op, o.id || o.parent, o.key, o.value]; }));
+  var marks = {};
+  p.plan.rows.forEach(function (r) {
+    if (r.kind === "none") return;
+    var id = r.choices ? p.choice[r.key] : r.ids[0];
+    if (!id || id === "skip") return;
+    if (p.side === "before" || r.kind !== "remove") marks[id] = r.kind === "add" ? null : r.kindIcon || r.icon;
+  });
+  React.useEffect(function () {
+    if (!p.frame || !p.preview || shots[key]) return;
+    var live = true;
+    var frame = p.frame, ids = Object.keys(marks).filter(function (id) { return marks[id]; });
+    var added = [];
+    if (p.side === "after") {
+      var out = editAfter(p.getDoc(), frame.id, ops);
+      frame = out.frame;
+      var setIds = ops.filter(function (o) { return o.op === "set"; }).map(function (o) { return o.id; });
+      added = out.ids.filter(function (id) { return setIds.indexOf(id) < 0 && ops.every(function (o) { return o.id !== id; }); });
+    }
+    p.preview(frame, ids.concat(added)).then(function (got) {
+      if (!live || !got) return;
+      got.added = added;
+      setShots(function (s) { var n = Object.assign({}, s); n[key] = got; return n; });
+    }, function () { if (live) setShots(function (s) { var n = Object.assign({}, s); n[key] = { error: true }; return n; }); });
+    return function () { live = false; };
+  }, [key]);
+  var shot = shots[key];
+  var addIcon = function (id) { return shot && shot.added && shot.added.indexOf(id) >= 0 ? "plus" : marks[id]; };
+  return e("div", { className: "bd-edit-pv" },
+    e(Segmented, { label: "Show", value: p.side, onChange: function (v) { if (v) p.setSide(v); }, options: [{ value: "before", label: "Before" }, { value: "after", label: "After" }] }),
+    e("div", { className: "bd-edit-shot", "aria-busy": !shot },
+      !shot ? e("p", { className: "bd-sec-empty" }, "Drawing the frame…")
+        : shot.error ? e("p", { className: "bd-sec-empty" }, "The frame couldn't be drawn here. The list says what changes.")
+        : e(React.Fragment, null,
+          e("img", { src: shot.url, alt: (p.side === "before" ? "The frame now" : "The frame after the edit") + ", with the changed layers marked" }),
+          Object.keys(shot.rects || {}).map(function (id) {
+            var b = shot.rects[id], ic = addIcon(id);
+            if (!b || !ic) return null;
+            return e("span", { key: id, className: "bd-edit-mark", style: { left: b.left * 100 + "%", top: b.top * 100 + "%", width: b.width * 100 + "%", height: b.height * 100 + "%" } },
+              e("span", { className: "bd-edit-mark-ic" }, e(Icon, { name: ic })));
+          }))));
+}
 
 /* ------------------------------------------------------------ Versions */
 
