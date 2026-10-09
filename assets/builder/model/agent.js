@@ -541,7 +541,7 @@ function practiceAnswer(request, results) {
   }
   if (names[0] === "lint") {
     var rows = body(0).split("\n").filter(function (l) { return /^- /.test(l); });
-    var open = rows.filter(function (l) { return /^- (FAIL|WARN) /.test(l); }).map(function (l) { return l.replace(/^- (FAIL|WARN) /, "").replace(/:.*$/, "").replace(/ \[layers:.*$/, ""); });
+    var open = rows.filter(function (l) { return /^- (FAIL|WARN) /.test(l); }).map(function (l) { return l.replace(/^- (FAIL|WARN) /, "").replace(/ \[layers:.*$/, "").replace(/\.$/, ""); });
     var asked = /^fix this check/i.test(String(request.messages.filter(function (m) { return m.role === "user" && typeof m.content === "string"; }).slice(-1).map(function (m) { return m.content; })[0] || ""));
     return { text: "Practice mode: I ran the checks. " + (open.length ? open.length + (open.length === 1 ? " wants" : " want") + " attention: " + open.join("; ") + "." : "Everything passes.") + (asked && open.length ? " A model would now fix them with the edit tools and check again." : ""), calls: [] };
   }

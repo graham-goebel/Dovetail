@@ -1748,6 +1748,22 @@ try {
     await page.close();
   });
 
+  await step("The checks name the layers: what spills at 390px, and decoration painted over text", async () => {
+    const pg = await open({ width: 1440, height: 900 });
+    await startFrom(pg.page, "Paste a layout");
+    await pg.page.locator(".bd-import-text").fill(JSON.stringify({"frames": [{"name": "Covered", "width": 1280, "mode": "structured", "hug": true, "dark": true, "root": {"children": [{"type": "Group", "name": "Hero", "props": {"direction": "column", "gap": "md"}, "style": {"padding": "xl"}, "children": [{"type": "Shape", "name": "Glow", "props": {"shape": "ellipse"}, "style": {"position": "floating", "anchor": "top-left", "w": "x8", "height": "x2", "surface": "brand", "blur": "glass"}}, {"type": "Heading", "props": {"size": "display-lg", "children": "$284,120"}}, {"type": "Shape", "name": "Spark", "props": {"shape": "ellipse"}, "style": {"position": "floating", "anchor": "bottom-right", "w": "x2", "height": "x2", "surface": "brand-secondary"}}, {"type": "Group", "name": "Paycheck", "props": {"direction": "column"}, "style": {"position": "floating", "anchor": "bottom-right", "padding": "md", "surface": "raised"}, "children": [{"type": "Text", "props": {"children": "Paycheck in 6 days"}}]}]}, {"type": "Group", "name": "Spending", "props": {"direction": "row"}, "style": {"w": "x12", "padding": "md", "marginTop": "section"}, "children": [{"type": "Text", "props": {"children": "Rent $2,400"}}]}]}}]}));
+    await pg.page.locator(".bd-import-actions button", { hasText: "Replace" }).click();
+    await pg.page.waitForFunction(() => window.__builder.doc().frames.some((f) => f.name === "Covered"));
+    const res = await pg.page.evaluate(async () => { const d = window.__builder.doc(); const f = d.frames.find((x) => x.name === "Covered"); return (await window.__builder.checks(f.id)).rows; });
+    const by = Object.fromEntries(res.map((r) => [r.id, r]));
+    expect(by.narrow.status === "fail" && /^Spending runs \d+px past the edge/.test(by.narrow.detail), `the 390px check names Spending and how far it spills, got ${JSON.stringify(by.narrow)}`);
+    ok("the 390px check names the outermost layer that spills, and how far");
+    expect(by.covered && by.covered.status === "warn" && /“\$284,120” is under Glow/.test(by.covered.detail), `the glow over the number is caught, got ${JSON.stringify(by.covered)}`);
+    expect(!/Paycheck in 6 days/.test(by.covered.detail), `the card floating after the spark paints above it, so it isn't flagged, got ${by.covered.detail}`);
+    ok("a glow floating over the number warns, naming the text and the shape; a card floating above a shape doesn't");
+    await pg.page.close();
+  });
+
   await step("Layouts from elsewhere: the reference's example opens whole, and a pasted layout lists what it left out", async () => {
     const md = fs.readFileSync(path.join(ROOT, "assets/builder-layouts.md"), "utf8");
     const m = /\]\(https:\/\/[^)]*builder\.html(#b=[\w-]+)\)/.exec(md);
@@ -1997,6 +2013,8 @@ try {
     expect((await names(".bd-home-sec[aria-label=Projects]")).join() === "Kiln & Co" && /0 files/.test(await homeCard(page, "Kiln & Co").textContent()), "Escape goes back to Home, which lists the project");
     await cardMenu(page, "Untitled", "Move to Kiln & Co");
     await page.waitForFunction(() => window.__builder.project().group);
+    /* The move saves before Home draws it again; wait for the page, not the data. */
+    await page.waitForFunction(() => !document.querySelector(".bd-home-sec[aria-label=Files]") && [...document.querySelectorAll(".bd-proj")].some((c) => c.querySelector(".bd-proj-name")?.textContent === "Kiln & Co" && /1 file/.test(c.textContent))).catch(() => {});
     expect(await page.locator(".bd-home-sec[aria-label=Files]").count() === 0 && /1 file/.test(await homeCard(page, "Kiln & Co").textContent()), "the file moves into the project and off Home");
     await page.locator(".bd-home-search input").fill("untit");
     expect((await names(".bd-home-sec[aria-label=Files]")).join() === "Untitled" && /in Kiln & Co/.test(await homeCard(page, "Untitled").textContent()), "searching Home finds a file inside a project, and says which");
@@ -3064,7 +3082,8 @@ try {
        otherwise win when it opens again. */
     const theme = JSON.stringify({ vars: { "--dt-surface-subtle": "rgb(255, 0, 0)", "--dt-surface-base": "rgb(0, 0, 255)" } });
     const themed = await open({ width: 1280, height: 900 }, { store: { "dovetail-theme-config": theme }, before: (p) => p.addInitScript((t) => { try { if (!sessionStorage.getItem("themed")) { sessionStorage.setItem("themed", "1"); localStorage.setItem("dovetail-theme-config", t); } } catch (err) { /* no storage */ } }, theme) });
-    await themed.frame().waitForFunction(() => getComputedStyle(document.body).backgroundColor === "rgb(0, 0, 255)");
+    /* A cold frame under a busy machine can take a while to paint. */
+    await themed.frame().waitForFunction(() => getComputedStyle(document.body).backgroundColor === "rgb(0, 0, 255)", null, { timeout: 20000 });
     const chrome = await themed.page.evaluate(() => [document.documentElement.hasAttribute("data-theme-fixed"), getComputedStyle(document.querySelector(".bd-left")).backgroundColor]);
     expect(chrome[0] && chrome[1] !== "rgb(255, 0, 0)", `the builder's panels should keep their own colours, got ${chrome[1]}`);
     ok("the canvas takes the configured surface; the panels keep theirs");
@@ -5790,7 +5809,8 @@ try {
     expect(changed.style.surface === "brand-muted" && changed.style.elevation, `the Section takes a token fill and shadow, got ${JSON.stringify(changed.style)}`);
     await page.locator(".bd-as-bot").first().locator(".bd-as-check").first().waitFor({ timeout: 20000 });
     const checks = await page.locator(".bd-as-bot").first().locator(".bd-as-check").evaluateAll((els) => els.map((el) => ({ cls: el.className, text: el.textContent })));
-    expect(checks.length === 6, `six checks run after the reply, got ${JSON.stringify(checks)}`);
+    expect(checks.length === 7, `seven checks run after the reply, got ${JSON.stringify(checks)}`);
+    expect(checks.some((c) => /No decoration covers text/.test(c.text) && /is-pass/.test(c.cls)), `nothing floats over the copy, got ${JSON.stringify(checks)}`);
     expect(checks.some((c) => /docs say/.test(c.text)), "the usage check ran");
     expect(checks.some((c) => /is-fail/.test(c.cls) && /accessibility issue/.test(c.text)), `the Input without a label fails the accessibility check, got ${JSON.stringify(checks)}`);
     expect(checks.some((c) => /390px|reflowed/.test(c.text)), `the 390px check ran, or says why a freeform frame isn't reflowed, got ${JSON.stringify(checks)}`);

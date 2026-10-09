@@ -1553,7 +1553,50 @@
       seen["o" + id2] = true;
       out.overflow.push({ id: id2, by: Math.round(r.right - out.width) });
     }
+    out.covered = covered(root, idOf);
     return out;
+  }
+  /* Text that a floating or pinned Shape paints over: the shape overlaps a
+     good part of the text's box and sits above it in the stacking order. The
+     text is above only when its outermost positioned ancestor below the parent
+     they share has a higher z-index, or the same and comes later in the
+     page. */
+  function zOf(el) { var z = parseInt(getComputedStyle(el).zIndex, 10); return isNaN(z) ? 0 : z; }
+  function covered(root, idOf) {
+    var found = [], seen = {};
+    var decor = Array.prototype.filter.call(root.querySelectorAll('[data-bf-type="Shape"] > *'), function (el) {
+      var cs = getComputedStyle(el);
+      return (cs.position === "absolute" || cs.position === "fixed") && visible(el, cs);
+    });
+    if (!decor.length) return found;
+    var texts = Array.prototype.filter.call(root.querySelectorAll("*"), function (el) {
+      if (el.closest('[data-bf-type="Shape"]')) return false;
+      return Array.prototype.some.call(el.childNodes, function (t) { return t.nodeType === 3 && t.textContent.trim(); }) && visible(el, getComputedStyle(el));
+    });
+    texts.forEach(function (t) {
+      if (found.length >= 20) return;
+      var tr = t.getBoundingClientRect();
+      var id = idOf(t);
+      if (seen[id]) return;
+      for (var i = 0; i < decor.length; i++) {
+        var d = decor[i], dr = d.getBoundingClientRect();
+        var w = Math.min(tr.right, dr.right) - Math.max(tr.left, dr.left), h = Math.min(tr.bottom, dr.bottom) - Math.max(tr.top, dr.top);
+        if (w <= 0 || h <= 0 || w * h < 0.25 * tr.width * tr.height) continue;
+        /* What competes with the shape is the outermost positioned
+           ancestor of the text below the parent they share. */
+        var lift = null;
+        for (var a = t; a && a !== root; a = a.parentElement) {
+          if (a.contains(d)) break;
+          if (getComputedStyle(a).position !== "static") lift = a;
+        }
+        var above = !lift ? false : zOf(lift) > zOf(d) || (zOf(lift) === zOf(d) && !!(d.compareDocumentPosition(lift) & Node.DOCUMENT_POSITION_FOLLOWING));
+        if (above) continue;
+        seen[id] = true;
+        found.push({ id: id, by: idOf(d), text: t.textContent.trim().slice(0, 40) });
+        break;
+      }
+    });
+    return found;
   }
   /* The spacing tokens in pixels, as this page resolves them. */
   function tokenPx(names) {

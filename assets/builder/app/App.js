@@ -1265,6 +1265,8 @@ function App(props) {
      for the save. */
   useEffect(function () {
     window.__builder = { doc: function () { return docRef.current; }, project: function () { return projectRef.current; }, library: function () { return libRef.current; }, flush: flush, store: store,
+      /* The assistant's checks on a frame (the active one by default), as the lint tool runs them. */
+      checks: function (fid) { return runChecks(fid || docRef.current.active); },
       /* One prop on one layer, through the same undoable change a control makes. */
       edit: function (id, key, value) { return change(function (d) { var at = locate(d, id); if (!at) return null; at.node.props[key] = value; return undefined; }); },
       /* Changes as someone else would send them, and the changes an edit makes. */

@@ -90,3 +90,33 @@ test("the components' own rules: danger only for destructive actions, no card in
   const rows = checksFrom(f, lintFrame(f), {});
   assert.equal(rows.find((r) => r.id === "usage").status, "warn");
 });
+
+test("an overflow names the outermost layer that spills, with how far, and counts what it carries", () => {
+  const tile = make("Group", {}, [make("Text", { children: "Rent" }), make("Text", { children: "$2,400" })]);
+  tile.name = "Spending";
+  const f = frameWith([make("Section", {}, [tile])]);
+  const [rent, amount] = tile.children;
+  const rows = checksFrom(f, [], { narrow: { contrast: [], overflow: [{ id: "root", by: 40 }, { id: tile.id, by: 40 }, { id: rent.id, by: 12 }, { id: amount.id, by: 40 }], scrolls: true } });
+  const narrow = rows.find((r) => r.id === "narrow");
+  assert.equal(narrow.status, "fail");
+  assert.equal(narrow.detail, "Spending runs 40px past the edge (with 2 layers inside)");
+  assert.deepEqual(narrow.ids, [tile.id, rent.id, amount.id], "the outermost first, and never the frame itself");
+});
+
+test("decoration over text warns, names the text and the shape, and says at which width", () => {
+  const glow = make("Shape", { shape: "ellipse" });
+  glow.name = "Glow";
+  const h = make("Heading", { children: "$284,120" });
+  const f = frameWith([make("Group", {}, [glow, h])]);
+  const rows = checksFrom(f, [], {
+    here: { contrast: [], overflow: [], covered: [] },
+    narrow: { contrast: [], overflow: [], scrolls: false, covered: [{ id: h.id, by: glow.id, text: "$284,120" }] },
+  });
+  const row = rows.find((r) => r.id === "covered");
+  assert.equal(row.status, "warn");
+  assert.match(row.detail, /^“\$284,120” is under Glow at 390px\. Move the decoration clear/);
+  assert.deepEqual(row.ids, [h.id, glow.id]);
+  const clear = checksFrom(f, [], { here: { contrast: [], overflow: [], covered: [] } }).find((r) => r.id === "covered");
+  assert.equal(clear.status, "pass");
+  assert.equal(checksFrom(f, [], {}).find((r) => r.id === "covered"), undefined, "no row when nothing was drawn");
+});
