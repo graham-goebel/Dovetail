@@ -16,7 +16,7 @@ import { Content } from "./Content.js";
 import { ContextPanel } from "./ContextPanel.js";
 import { cleanItem, contextFor, contextText } from "../model/context.js";
 import { AssistantPanel } from "./AssistantPanel.js";
-import { TOOLS, practiceScript, runTool } from "../model/agent.js";
+import { practiceScript, runTool, systemPrompt, toolsFor } from "../model/agent.js";
 import { collector } from "../model/assistant.js";
 import { assistantMode, sendAssistant } from "../cloud/assistant.js";
 import { EditorAt, Labels, Marks, Resizers, Rulers, SpacingLines, ViewMarks, World, camera, onStage, placeMarks } from "./Stage.js";
@@ -397,6 +397,58 @@ function App(props) {
     var drop = asDropState[0];
     return Object.assign({}, ctx, { docs: ctx.docs.filter(function (d) { return drop.indexOf(d.id) < 0; }) });
   };
+  /* What the assistant sees when it looks: the frame (or one layer) drawn
+     as a JPEG no bigger than 1280 by 2000, so it fits what the model reads.
+     A frame that's off screen (a stand-in) is brought into view first. */
+  var shootForAssistant = function (fid, id) {
+    var wait = function (tries) {
+      var a = api(fid);
+      if (a && a.snapshot) return Promise.resolve(a);
+      if (tries <= 0) return Promise.reject(new Error("That frame isn't drawn yet."));
+      return new Promise(function (r) { setTimeout(r, 150); }).then(function () { return wait(tries - 1); });
+    };
+    if (!api(fid)) showFrame(fid);
+    return wait(20).then(function (a) {
+      var shot = a.snapshot("jpeg", { scale: 1, id: id || null });
+      var late = new Promise(function (resolve, reject) { setTimeout(function () { reject(new Error("The picture took too long.")); }, 15000); });
+      return Promise.race([shot, late]);
+    }).then(function (url) {
+      return new Promise(function (resolve, reject) {
+        var img = new Image();
+        img.onload = function () {
+          var k = Math.min(1, 1280 / img.naturalWidth, 2000 / img.naturalHeight);
+          var w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
+          var c = document.createElement("canvas");
+          c.width = w; c.height = h;
+          var g = c.getContext("2d");
+          g.fillStyle = "#ffffff"; g.fillRect(0, 0, w, h);
+          g.drawImage(img, 0, 0, w, h);
+          var out = c.toDataURL("image/jpeg", 0.8);
+          resolve({ media_type: "image/jpeg", data: out.slice(out.indexOf(",") + 1), width: w, height: h, url: out });
+        };
+        img.onerror = function () { reject(new Error("The picture couldn't be read.")); };
+        img.src = url;
+      });
+    });
+  };
+  /* A component's documentation (its .md beside the code), found through
+     the system's manifest; both are fetched once. */
+  var docsRef = useRef({ manifest: null, md: {} });
+  var componentDoc = function (name) {
+    var cache = docsRef.current;
+    if (cache.md[name]) return cache.md[name];
+    if (!cache.manifest) cache.manifest = fetch("system/manifest.json").then(function (r) { if (!r.ok) throw new Error("no manifest"); return r.json(); }).catch(function (err) { cache.manifest = null; throw err; });
+    cache.md[name] = cache.manifest.then(function (m) {
+      var path = (m.files || []).filter(function (f) { return new RegExp("^components/[^/]+/" + name + "\\.md$").test(f); })[0];
+      if (!path) return null;
+      return fetch("system/" + path).then(function (r) { return r.ok ? r.text() : null; });
+    }).catch(function () { delete cache.md[name]; return null; });
+    return cache.md[name];
+  };
+  /* Whether the assistant may look at the canvas: on unless turned off for
+     this file. */
+  var LOOK_KEY = "dovetail-assistant-look:";
+  var canLook = function () { try { return window.localStorage.getItem(LOOK_KEY + projectRef.current.id) !== "off"; } catch (err) { return true; } };
   var toolApi = {
     doc: function () { return docRef.current; },
     selection: function () { return asReachState[0] === "page" || !asSelState[0] ? [] : selRef.current.slice(); },
@@ -417,9 +469,15 @@ function App(props) {
     remove: function (ids) { var r = null; change(function (d) { r = ops.remove(d, ids); return r === null ? null : undefined; }); return r !== null; },
     select: function (ids) { select(ids); },
     skills: function () { return asContext().skills; },
+    pages: function () { return pagesOf(projectRef.current).map(function (pg) { return { id: pg.id, name: pg.name, current: pg.id === pageRef.current || undefined }; }); },
+    loadPage: function (pg) { return store.loadDoc(projectRef.current.id, pg); },
+    screenshot: function (fid, id) { return shootForAssistant(fid, id); },
+    componentDoc: function (name) { return componentDoc(name); },
   };
   /* One reply: send, run the tools it calls, send back what they did, until
-     it stops calling them (six rounds at most). */
+     it stops calling them (eight rounds at most). The brief (systemPrompt)
+     goes first and never changes; what's particular to this page and this
+     message follows it. */
   var runAssistant = function (text) {
     if (asBusy || !text) return;
     var sel = toolApi.selection().map(function (id) { var at = locate(docRef.current, id); return at && at.node; }).filter(Boolean);
@@ -428,6 +486,8 @@ function App(props) {
     var canvas = "# Canvas\n\nFrame: " + fr.name + " (" + (fr.mode || "free") + ", " + fr.width + " wide). " +
       (asReachState[0] === "page" ? "You may change anything on this page." : sel.length ? "Selected: " + sel.map(function (n) { return (n.name || n.type) + " (" + n.id + ")"; }).join(", ") + ". Change only these unless asked for more." : "Nothing is selected.");
     var system = [contextText(ctx), canvas].filter(Boolean).join("\n\n");
+    var tools = toolsFor({ look: canLook() });
+    var api2 = canLook() ? toolApi : Object.assign({}, toolApi, { screenshot: null });
     var me = { id: uid(), role: "user", text: text };
     var turn = { id: uid(), role: "assistant", text: "", steps: [], changes: [], status: "working", from: history.current.past.length, prompt: text };
     if (ctx.docs.length || ctx.skills.length) turn.steps.push({ ok: true, text: "Read " + (sel.length ? sel.length + (sel.length === 1 ? " layer" : " layers") + ", " : "") + ctx.docs.length + (ctx.docs.length === 1 ? " doc" : " docs") + " and " + ctx.skills.length + (ctx.skills.length === 1 ? " skill" : " skills") });
@@ -441,7 +501,7 @@ function App(props) {
     var round = function (n) {
       var c = collector();
       var shown = "";
-      return sendAssistant({ system: system, messages: asMsgs.current, tools: TOOLS }, function (ev) {
+      return sendAssistant({ stable: systemPrompt(), system: system, messages: asMsgs.current, tools: tools }, function (ev) {
         c.add(ev);
         if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") { shown += ev.delta.text; var now = shown; patchTurn(turn.id, function (x) { return { text: (x.base || "") + now }; }); }
       }, { script: script, signal: abort && abort.signal }).then(function () {
@@ -449,19 +509,25 @@ function App(props) {
         asMsgs.current = asMsgs.current.concat([{ role: "assistant", content: r.content.length ? r.content : [{ type: "text", text: r.text || "…" }] }]);
         if (r.error) throw new Error(r.error);
         if (r.stop === "refusal") throw new Error("The model declined that request.");
-        if (r.stop !== "tool_use" || !r.tools.length) return null;
-        var results = [], changes = [], steps = [];
-        r.tools.forEach(function (call) {
-          if (call.bad) { results.push({ type: "tool_result", tool_use_id: call.id, content: "That input didn't parse; send it again.", is_error: true }); return; }
-          var res = runTool(toolApi, call);
-          if (res.change) changes.push(res.change);
-          if (call.name === "read_skill" && res.ok) steps.push({ ok: true, text: "Read the " + res.skill + " skill" });
-          if (!res.ok) steps.push({ ok: false, text: res.result });
-          results.push({ type: "tool_result", tool_use_id: call.id, content: res.result, is_error: !res.ok });
+        var noted = r.notes.map(function (t) { return { ok: true, note: true, text: t }; });
+        if (r.stop !== "tool_use" || !r.tools.length) { if (noted.length) patchTurn(turn.id, function (x) { return { steps: x.steps.concat(noted) }; }); return null; }
+        var results = [], changes = [], steps = noted.slice();
+        /* One at a time, in order: an edit can depend on the one before. */
+        return r.tools.reduce(function (p, call) {
+          return p.then(function () {
+            if (call.bad) { results.push({ type: "tool_result", tool_use_id: call.id, content: "That input didn't parse; send it again.", is_error: true }); return; }
+            return Promise.resolve(runTool(api2, call)).then(function (res) {
+              if (res.change) changes.push(res.change);
+              if (res.step && res.ok) steps.push({ ok: true, text: res.step, shot: res.shot ? res.shot.url : undefined });
+              if (!res.ok) steps.push({ ok: false, text: res.result });
+              results.push({ type: "tool_result", tool_use_id: call.id, content: res.result, is_error: !res.ok });
+            });
+          });
+        }, Promise.resolve()).then(function () {
+          patchTurn(turn.id, function (x) { return { changes: x.changes.concat(changes), steps: x.steps.concat(steps), base: (x.text ? x.text + " " : "") }; });
+          asMsgs.current = asMsgs.current.concat([{ role: "user", content: results }]);
+          return n < 7 ? round(n + 1) : null;
         });
-        patchTurn(turn.id, function (x) { return { changes: x.changes.concat(changes), steps: x.steps.concat(steps), base: (x.text ? x.text + " " : "") }; });
-        asMsgs.current = asMsgs.current.concat([{ role: "user", content: results }]);
-        return n < 5 ? round(n + 1) : null;
       });
     };
     round(0).then(function () {

@@ -1,5 +1,5 @@
 /* The Assistant panel: a conversation about the canvas. Each reply shows
-   what it read, what it changed (old token struck through, new beside it)
+   what it read (and, when it looked, the picture it saw), what it changed (old token struck through, new beside it)
    and Keep or Undo all; the box at the foot carries what goes with the next
    message as chips (the selection, the docs, the skills), each removable.
    The App runs the conversation; this draws it. */
@@ -40,7 +40,11 @@ function AssistantPanel(p) {
       p.thread.map(function (t) {
         if (t.role === "user") return e("div", { key: t.id, className: "bd-as-me" }, t.text);
         return e("div", { key: t.id, className: cx("bd-as-bot", t.status === "error" && "is-error") },
-          t.steps.map(function (s, i) { return e("div", { key: i, className: "bd-as-step" }, e("span", { className: "bd-as-ok" }, e(Icon, { name: s.ok ? "check" : "close" })), s.text); }),
+          t.steps.map(function (s, i) {
+            if (s.note) return e("p", { key: i, className: "bd-as-note-step" }, s.text);
+            if (s.shot) return e("div", { key: i, className: "bd-as-look" }, e("img", { src: s.shot, alt: "" }), e("span", null, e(Icon, { name: "eye" }), s.text));
+            return e("div", { key: i, className: cx("bd-as-step", !s.ok && "is-failed") }, e("span", { className: "bd-as-ok" }, e(Icon, { name: s.ok ? "check" : "close" })), s.text);
+          }),
           t.text ? e("p", { className: "bd-as-text" }, t.text) : t.status === "working" ? e("p", { className: "bd-as-text bd-as-wait" }, "Working…") : null,
           t.error ? e("p", { className: "bd-as-text bd-as-err" }, t.error) : null,
           changeCard(p, t));

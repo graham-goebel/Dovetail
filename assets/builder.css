@@ -6940,6 +6940,47 @@ input.bd-folder-name {
   width: 12px;
   height: 12px;
 }
+.bd-as-step.is-failed .bd-as-ok {
+  color: var(--dt-text-danger, #e5484d);
+}
+/* A note the model wrote between tool calls: what it's doing next. */
+.bd-as-note-step {
+  margin: 0;
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-2xs, 11px);
+  font-style: italic;
+}
+/* When it looked at the canvas: the picture it saw, small. */
+.bd-as-look {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  padding: var(--dt-space-inset-2xs, 6px);
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-control, 8px);
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-2xs, 11px);
+}
+.bd-as-look img {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 4px;
+  background: #fff;
+}
+.bd-as-look span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs);
+  min-width: 0;
+}
+.bd-as-look .bd-ic {
+  flex: none;
+  width: 12px;
+  height: 12px;
+}
 .bd-as-text {
   margin: 0;
   color: var(--dt-text-secondary);

@@ -5755,7 +5755,7 @@ try {
     await page.close();
   });
 
-  await step("Assistant: in practice mode a request changes the selection with system tokens, lists what changed, and Undo all takes it back; nothing is sent", async () => {
+  await step("Assistant: in practice mode a request changes the selection with system tokens, lists what changed, and Undo all takes it back; it reads the page and looks at the canvas; nothing is sent", async () => {
     const { page } = await open({ width: 1440, height: 900 });
     const sent = [];
     page.on("request", (r) => { if (/functions\/v1\/assistant|anthropic/.test(r.url())) sent.push(r.url()); });
@@ -5796,8 +5796,28 @@ try {
     await page.keyboard.press("Enter");
     await page.locator(".bd-as-bot").nth(1).locator(".bd-as-acts").waitFor();
     expect((await node()).children.some((c) => c.type === "Button"), "Add a button puts a Button in the selected Section");
+    ok("asking to add a button adds a Button from JSX");
+    const reply = (i) => page.locator(".bd-as-bot").nth(i);
+    await page.locator(".bd-as-input").fill("What's on this page?");
+    await page.keyboard.press("Enter");
+    const settled = () => page.locator('.bd-as-send[aria-label="Send"]').waitFor({ timeout: 20000 });
+    await page.waitForFunction(() => { const b = document.querySelectorAll(".bd-as-bot")[2]; return b && /this page has/.test(b.textContent); });
+    await settled();
+    const readStep = await reply(2).locator(".bd-as-step").allTextContents();
+    expect(readStep.some((t) => /^Read .+ · \d+ layers$/.test(t)), `the thread says it read the page, got ${readStep}`);
+    const answer = await reply(2).locator(".bd-as-text").textContent();
+    expect(/Section/.test(answer), `the answer names what is at the top level, got ${answer}`);
+    ok("asking what's on the page reads its outline and answers from it");
+    await page.locator(".bd-as-input").fill("Take a look at it");
+    await page.keyboard.press("Enter");
+    await reply(3).locator(".bd-as-look img").waitFor({ timeout: 20000 });
+    const src = await reply(3).locator(".bd-as-look img").getAttribute("src");
+    expect(/^data:image\/jpeg;base64,/.test(src), "the picture it took shows in the thread");
+    expect(/Looked at Section/.test(await reply(3).locator(".bd-as-look").textContent()), "the step names what it looked at");
+    await page.waitForFunction(() => { const b = document.querySelectorAll(".bd-as-bot")[3]; return b && /I looked at/.test(b.textContent); });
+    await settled();
     expect(sent.length === 0, `nothing goes to a model or the cloud in practice mode, got ${sent.join(", ")}`);
-    ok("asking to add a button adds a Button from JSX, and no request leaves the page");
+    ok("asking it to look takes a picture of the selection and shows it, and no request leaves the page");
     await page.close();
   });
 
