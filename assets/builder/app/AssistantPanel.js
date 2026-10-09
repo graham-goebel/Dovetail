@@ -8,6 +8,7 @@
 import { cx, e, useEffect, useRef, useState } from "../config.js";
 import { Icon } from "../ui/icons.js";
 import { Segmented, Switch } from "../ui/parts.js";
+import { senderOf } from "../model/threads.js";
 
 function changeCard(p, turn) {
   if (!turn.changes.length) return null;
@@ -135,8 +136,47 @@ function AsMenu(p) {
       row("bd-as-m-look", "Look at the canvas", "Sends a picture of what it built so it can check and fix it. Off keeps this file's canvas private.", p.look, p.setLook),
       e("p", { className: "bd-as-mnote" }, "Checks run after every change."),
       e("hr"),
-      e("button", { type: "button", className: "bd-as-mbtn", disabled: !p.thread.length, onClick: function () { setOpen(false); p.exportThread(); } }, e(Icon, { name: "download" }), "Export thread as .md"),
-      e("button", { type: "button", className: "bd-as-mbtn", disabled: !p.thread.length || p.busy, onClick: function () { setOpen(false); p.clear(); } }, e(Icon, { name: "trash" }), "Clear this thread")) : null);
+      e("div", { className: "bd-as-mrow is-off" },
+        e("span", { className: "bd-as-mrow-t" }, e("b", { id: "bd-as-m-share" }, "Share in this file"), e("span", null, p.cloudFile ? "Everyone on this file can read it and carry it on." : "Sharing needs this file in the cloud, which isn't built yet. Conversations stay in this browser for now.")),
+        e(Switch, { value: false, onChange: function () {}, labelledBy: "bd-as-m-share", disabled: !p.cloudFile })),
+      e("hr"),
+      e("button", { type: "button", className: "bd-as-mbtn", disabled: !p.thread.length, onClick: function () { setOpen(false); p.exportThread(); } }, e(Icon, { name: "download" }), "Export as .md"),
+      e("button", { type: "button", className: "bd-as-mbtn", disabled: !p.thread.length || p.busy, onClick: function () { setOpen(false); p.clear(); } }, e(Icon, { name: "trash" }), "Delete this conversation")) : null);
+}
+
+/* When a conversation was last carried on, in a few words. */
+function ago(t) {
+  var s = Math.max(0, (Date.now() - (t || 0)) / 1000);
+  if (s < 60) return "just now";
+  if (s < 3600) return Math.round(s / 60) + " min";
+  if (s < 86400) return Math.round(s / 3600) + " h";
+  var d = new Date(t);
+  return s < 7 * 86400 ? d.toLocaleDateString(undefined, { weekday: "short" }) : d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+/* The file's conversations: the open one first marked, each with what was
+   said last and the changes still standing. */
+function ThreadList(p) {
+  var mine = p.list.filter(function (x) { return !x.by || !p.me || x.by.id === p.me.id; });
+  var others = p.list.filter(function (x) { return mine.indexOf(x) < 0; });
+  var row = function (x) {
+    return e("div", { key: x.id, className: cx("bd-as-tr", x.id === p.currentId && "is-open") },
+      e("button", { type: "button", className: "bd-as-tr-open", onClick: function () { p.openThread(x.id); }, disabled: p.busy, "aria-current": x.id === p.currentId ? "true" : undefined },
+        e("span", { className: "bd-as-tr-h" }, e("b", null, x.title), e("span", { className: "bd-as-note" }, ago(x.updated))),
+        x.said ? e("span", { className: "bd-as-tr-said" }, x.said) : null,
+        e("span", { className: "bd-as-tr-m" },
+          x.changes ? e("span", null, e(Icon, { name: "pencil" }), x.changes + (x.changes === 1 ? " change" : " changes")) : null,
+          x.shared ? e("span", null, e(Icon, { name: "user" }), "Shared") : null,
+          x.by && p.me && x.by.id !== p.me.id ? e("span", null, x.by.name) : null)),
+      e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-tr-del", "aria-label": "Delete " + x.title, title: "Delete", onClick: function () { p.removeThread(x.id); }, disabled: p.busy }, e(Icon, { name: "trash" })));
+  };
+  return e("div", { className: "bd-as-list" },
+    !p.list.length ? e("p", { className: "bd-as-empty-l" }, "No conversations on this file yet. Start one and it's kept here.") : null,
+    mine.length ? e("div", { className: "bd-as-grp" }, e("span", null, "This file"), e("span", { className: "bd-as-note" }, String(mine.length))) : null,
+    mine.map(row),
+    others.length ? e("div", { className: "bd-as-grp" }, e("span", null, "Shared with you"), e("span", { className: "bd-as-note" }, String(others.length))) : null,
+    others.map(row),
+    e("p", { className: "bd-as-list-n" }, p.cloudFile ? "Kept in the cloud. Shared ones show to everyone on the file." : "Kept in this browser."));
 }
 
 function AssistantPanel(p) {
@@ -150,9 +190,10 @@ function AssistantPanel(p) {
     e("div", { className: "bd-as-head" },
       e("span", { className: "bd-as-title" }, "Assistant"),
       p.mode === "practice" ? e("span", { className: "bd-as-badge", title: "Answers come from a script in this browser; nothing is sent or charged" }, "Practice") : null,
-      e("button", { type: "button", className: "bd-act bd-act-ghost", title: "New conversation", "aria-label": "New conversation", onClick: p.clear, disabled: !p.thread.length || p.busy }, e(Icon, { name: "plus" })),
+      e("button", { type: "button", className: cx("bd-act bd-act-ghost", p.view === "list" && "is-on"), title: p.view === "list" ? "Back to the conversation" : "Conversations", "aria-label": "Conversations", "aria-pressed": p.view === "list", onClick: function () { p.showList(p.view !== "list"); } }, e(Icon, { name: "list" })),
+      e("button", { type: "button", className: "bd-act bd-act-ghost", title: "New conversation", "aria-label": "New conversation", onClick: p.fresh, disabled: (!p.thread.length && p.view !== "list") || p.busy }, e(Icon, { name: "plus" })),
       e(AsMenu, p)),
-    e("div", { className: "bd-as-thread", ref: listRef, "aria-live": "polite" },
+    p.view === "list" ? e(ThreadList, p) : e("div", { className: "bd-as-thread", ref: listRef, "aria-live": "polite" },
       !p.thread.length ? e("div", { className: "bd-as-empty" },
         e("p", null, "Ask for a change to what's selected, or describe a section to add. It works with the design system's tokens and components only."),
         e("div", { className: "bd-as-sugg" }, p.suggestions.map(function (s) { return e("button", { key: s, type: "button", onClick: function () { p.send(s); }, disabled: p.busy }, s); }))) : null,
@@ -162,6 +203,7 @@ function AssistantPanel(p) {
           editLines(t.lines, t.count, 6));
         if (t.role === "divider") return e("p", { key: t.id, className: "bd-as-divider" }, t.text);
         if (t.role === "user") return t.queued ? e("div", { key: t.id, className: "bd-as-me-wrap" }, e("div", { className: "bd-as-me is-queued" }, t.text), e("span", { className: "bd-as-queued" }, e(Icon, { name: "chat" }), "Lands after this step"))
+          : senderOf(t, p.me) ? e("div", { key: t.id, className: "bd-as-me-wrap" }, e("span", { className: "bd-as-from" }, senderOf(t, p.me)), e("div", { className: "bd-as-me" }, t.text))
           : e("div", { key: t.id, className: "bd-as-me" }, t.text);
         return e("div", { key: t.id, className: cx("bd-as-bot", t.status === "error" && "is-error") },
           t.steps.map(function (s, i) {
@@ -176,12 +218,12 @@ function AssistantPanel(p) {
           t.error ? e("p", { className: "bd-as-text bd-as-err" }, t.error) : null,
           changeCard(p, t));
       })),
-    p.edits ? e("div", { className: "bd-as-edits is-pending" },
+    p.edits && p.view !== "list" ? e("div", { className: "bd-as-edits is-pending" },
       e("div", { className: "bd-as-edits-h" }, e(Icon, { name: "cursor" }), e("b", null, "You changed " + p.edits.count + (p.edits.count === 1 ? " thing" : " things") + " since its last reply"),
         e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Don't send these changes", title: "Don't send these changes", onClick: p.dropEdits }, e(Icon, { name: "close" }))),
       editLines(p.edits.lines, p.edits.count, 3),
       e("p", { className: "bd-as-edits-n" }, "Sent with your next message, so it builds on them.")) : null,
-    e("div", { className: "bd-as-comp" },
+    p.view === "list" ? null : e("div", { className: "bd-as-comp" },
       e("div", { className: "bd-as-chips" },
         p.target ? e("span", { className: cx("bd-as-chip is-target", !p.includeSel && "is-off") },
           e(Icon, { name: "frame" }), p.target,

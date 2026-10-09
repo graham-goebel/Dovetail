@@ -245,14 +245,30 @@ test("files made before libraries were kept apart go on sharing the one library,
   assert.equal(copy.lib, "shared", "a copy of an older file keeps sharing");
 });
 
-test("a file's assistant thread is kept, read back, and cleared", async () => {
+test("a file keeps several assistant conversations, each read back, listed and removed", async () => {
   const s = fresh();
-  assert.equal(await s.loadThread("f1"), null);
-  await s.saveThread("f1", { thread: [{ id: "a", role: "user", text: "Hi" }], msgs: [{ role: "user", content: "Hi" }] });
-  const back = await s.loadThread("f1");
-  assert.equal(back.thread[0].text, "Hi");
-  assert.equal(back.msgs.length, 1);
-  assert.equal(await s.loadThread("f2"), null, "each file has its own");
-  await s.saveThread("f1", null);
-  assert.equal(await s.loadThread("f1"), null);
+  assert.deepEqual(await s.listThreads("f1"), { list: [], current: null });
+  await s.saveThread("f1", "t1", { thread: [{ id: "a", role: "user", text: "Hi" }], msgs: [{ role: "user", content: "Hi" }] }, { title: "Hi", updated: 1 });
+  await s.saveThread("f1", "t2", { thread: [{ id: "b", role: "user", text: "Pricing" }], msgs: [] }, { title: "Pricing", updated: 2 });
+  const idx = await s.listThreads("f1");
+  assert.deepEqual(idx.list.map((x) => x.id), ["t2", "t1"], "the newest save comes first");
+  assert.equal(idx.current, "t2", "the one saved last is the open one");
+  assert.equal((await s.loadThread("f1", "t1")).thread[0].text, "Hi");
+  assert.equal((await s.loadThread("f1", "t1")).msgs.length, 1);
+  await s.openThread("f1", "t1");
+  assert.equal((await s.listThreads("f1")).current, "t1");
+  assert.deepEqual((await s.listThreads("f2")).list, [], "each file has its own");
+  await s.saveThread("f1", "t1", null);
+  assert.deepEqual((await s.listThreads("f1")).list.map((x) => x.id), ["t2"]);
+  assert.equal(await s.loadThread("f1", "t1"), null);
+});
+
+test("the one conversation a file kept before becomes its first", async () => {
+  const s = fresh();
+  window.localStorage.setItem("dovetail-builder-thread:f9", JSON.stringify({ thread: [{ id: "a", role: "user", text: "Make it calmer" }], msgs: [] }));
+  const idx = await s.listThreads("f9");
+  assert.equal(idx.list.length, 1);
+  assert.equal(idx.list[0].title, "Make it calmer");
+  assert.equal((await s.loadThread("f9", idx.current)).thread[0].text, "Make it calmer");
+  assert.equal(window.localStorage.getItem("dovetail-builder-thread:f9"), null, "the old entry moves across");
 });

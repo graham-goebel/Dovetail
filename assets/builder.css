@@ -6869,16 +6869,21 @@ input.bd-folder-name {
 .bd-as-head {
   display: flex;
   align-items: center;
-  gap: var(--dt-space-inline-xs);
+  gap: var(--dt-space-inline-2xs);
   padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
   border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
 }
 .bd-as-title {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: var(--dt-font-size-sm);
   font-weight: var(--dt-font-weight-semibold, 600);
 }
 .bd-as-badge {
+  flex: none;
   padding: 2px var(--dt-space-inset-xs);
   border-radius: var(--dt-radius-pill);
   background: color-mix(in oklab, var(--dt-color-violet-500, #8b6cf6) 22%, transparent);
@@ -7554,4 +7559,113 @@ input.bd-folder-name {
   padding: 0 var(--dt-space-inset-sm) var(--dt-space-inset-xs);
   color: var(--dt-text-tertiary);
   font-size: var(--dt-font-size-xs);
+}
+/* The file's conversations: a row each that opens it, with what was said
+   last and the changes still standing; the open one marked. */
+.bd-as-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--dt-space-inset-xs) 0;
+}
+.bd-as-grp {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm) var(--dt-space-inset-2xs);
+  color: var(--dt-text-secondary);
+  font-weight: var(--dt-font-weight-semibold, 600);
+}
+.bd-as-tr {
+  display: flex;
+  align-items: flex-start;
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+.bd-as-tr.is-open {
+  background: color-mix(in oklab, var(--dt-text-primary) 6%, transparent);
+}
+.bd-as-tr-open {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.bd-as-tr-open:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: calc(var(--dt-focus-ring-width) * -1);
+}
+.bd-as-tr-h {
+  display: flex;
+  gap: var(--dt-space-inline-xs);
+}
+.bd-as-tr-h b {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: var(--dt-font-weight-medium, 500);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bd-as-tr-said {
+  color: var(--dt-text-secondary);
+  overflow-wrap: anywhere;
+}
+.bd-as-tr-m {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dt-space-inline-xs);
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-xs);
+}
+.bd-as-tr-m:empty {
+  display: none;
+}
+.bd-as-tr-m span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.bd-as-tr-m .bd-ic {
+  width: 11px;
+  height: 11px;
+}
+.bd-as-tr-del {
+  margin: var(--dt-space-inset-xs) var(--dt-space-inset-xs) 0 0;
+  opacity: 0;
+}
+.bd-as-tr:hover .bd-as-tr-del, .bd-as-tr-del:focus-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .bd-as-tr-del {
+    opacity: 1;
+  }
+}
+.bd-as-empty-l, .bd-as-list-n {
+  margin: 0;
+  padding: var(--dt-space-inset-sm);
+  color: var(--dt-text-tertiary);
+}
+.bd-as-list-n {
+  margin-top: auto;
+  font-size: var(--dt-font-size-xs);
+}
+/* Who sent a message, above it, in a shared conversation. */
+.bd-as-from {
+  align-self: flex-end;
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-xs);
+}
+.bd-as-mrow.is-off .bd-switch:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
