@@ -358,6 +358,36 @@ test("the practice script asks how a page should close, builds the pick, and rea
   assert.match(script({ messages: [{ role: "user", content: "What did I change?" }], tools: TOOLS }).text, /haven't changed anything/);
 });
 
+test("make_variants copies the frame once per label and hands back the copies", () => {
+  const { api, doc } = builder();
+  assert.equal(runTool(api, { name: "make_variants", input: { labels: ["A", "B"] } }).ok, false, "with nowhere to make them, it says so");
+  let asked = null;
+  api.makeVariants = (fid, labels) => { asked = [fid, labels]; return labels.map((l, i) => "v" + i); };
+  const r = runTool(api, { name: "make_variants", input: { labels: ["Dark band", "Soft tint", ""] } });
+  assert.equal(r.ok, true);
+  assert.deepEqual(asked, [doc.frames[0].id, ["Dark band", "Soft tint"]], "the frame you're in, an empty label dropped");
+  assert.deepEqual(JSON.parse(r.result.replace(/ Now use_frame.*$/, "")).variants, [{ label: "Dark band", frame: "v0" }, { label: "Soft tint", frame: "v1" }]);
+  assert.equal(r.variants.source, doc.frames[0].id);
+  assert.equal(r.change.label, "Variants");
+  assert.equal(runTool(api, { name: "make_variants", input: { labels: ["only"] } }).ok, false, "one label isn't a comparison");
+  assert.equal(runTool(api, { name: "make_variants", input: { frame: "nope", labels: ["A", "B"] } }).ok, false);
+  assert.match(systemPrompt(), /make_variants copies the frame once per option/);
+});
+
+test("the practice script tries every close as a variant, from a request or from Try them all", () => {
+  const script = practiceScript([]);
+  const t1 = script({ messages: [{ role: "user", content: "Try all three closes" }], tools: TOOLS });
+  assert.equal(t1.calls[0].name, "make_variants");
+  assert.equal(t1.calls[0].input.labels.length, 3);
+  const ask = [{ role: "user", content: "Add a close" }];
+  const q = script({ messages: ask, tools: TOOLS }).calls[0];
+  const all = script({ messages: ask.concat([{ role: "assistant", content: [{ type: "tool_use", id: "q", name: "ask_user", input: q.input }] }, { role: "user", content: [{ type: "tool_result", tool_use_id: "q", content: "They answered in their own words: Try them all, as variants side by side, so I can compare." }] }]), tools: TOOLS });
+  assert.equal(all.calls[0].name, "make_variants");
+  const made = JSON.stringify({ variants: q.input.options.map((o, i) => ({ label: o.label, frame: "v" + i })) }) + " Now use_frame into each and make its change.";
+  const build = script({ messages: [{ role: "user", content: "x" }, { role: "assistant", content: [{ type: "tool_use", id: "m", name: "make_variants", input: {} }] }, { role: "user", content: [{ type: "tool_result", tool_use_id: "m", content: made }] }], tools: TOOLS });
+  assert.deepEqual(build.calls.map((c) => c.name), ["use_frame", "insert_jsx", "use_frame", "insert_jsx", "use_frame", "insert_jsx"]);
+});
+
 test("with plans on, the practice build shows a plan first, then builds once approved", () => {
   const script = practiceScript([]);
   const ask = [{ role: "user", content: "Build a pricing page" }];

@@ -676,6 +676,31 @@ function App(props) {
     rename: function (id, name) { return change(function (d) { var at = locate(d, id); if (!at || at.node.name === name) return null; at.node.name = name; return undefined; }); },
     createFrame: function (opts) { return frameOps.add(null, false, null, opts); },
     useFrame: function (fid) { activate(fid); },
+    /* A copy of a frame per label, beside it, in one step; their ids. */
+    makeVariants: function (fid, labels) {
+      var made = [];
+      var boxesNow = layoutRef.current.boxes;
+      change(function (d) {
+        var src = frameById(d, fid);
+        if (!src) return null;
+        var box = typeof src.x === "number" ? { x: src.x, y: src.y } : boxesNow[src.id] ? { x: Math.round(boxesNow[src.id].x), y: Math.round(boxesNow[src.id].y) } : null;
+        var w = (boxesNow[src.id] && boxesNow[src.id].w) || src.width;
+        if (box) d.frames.forEach(function (fr) { if (typeof fr.x !== "number" && boxesNow[fr.id]) { fr.x = Math.round(boxesNow[fr.id].x); fr.y = Math.round(boxesNow[fr.id].y); } });
+        var at = d.frames.indexOf(src);
+        labels.forEach(function (label, i) {
+          var c = copy(src);
+          c.id = uid();
+          c.name = src.name + " · " + label;
+          c.root = fresh(src.root);
+          c.root.id = "root";
+          if (box) { c.x = Math.round(box.x + (i + 1) * (w + FRAME_GAP)); c.y = box.y; }
+          d.frames.splice(at + 1 + i, 0, c);
+          made.push(c.id);
+        });
+        return [];
+      }, "Made variants");
+      return made;
+    },
     /* Edits made inside fn become one history step. */
     guideline: function (g) { return guidelineText(g); },
     theme: function () { return themeSummary(); },
@@ -768,6 +793,7 @@ function App(props) {
             var at = history.current.past.length;
             return Promise.resolve(runTool(api2, call)).then(function (res) {
               var mine = [].concat(res.change ? [res.change] : [], res.changes || []).map(function (ch) { return Object.assign({}, ch, { at: at }); });
+              if (res.variants && res.ok) patchTurn(turn.id, { variants: res.variants });
               changes.push.apply(changes, mine);
               if (res.step && res.ok) steps.push({ ok: true, text: res.step, shot: res.shot ? res.shot.url : undefined });
               if (!res.ok) steps.push({ ok: false, text: res.result });
@@ -837,6 +863,45 @@ function App(props) {
       setAsThread(function (t) { return t.concat([item]); });
       asDraftState[1]("");
     },
+    /* Every option, as variants side by side. */
+    answerAskAll: function (id) {
+      if (!askWait.current || askWait.current.turn !== id) return;
+      patchTurn(id, function (x) { return { ask: Object.assign({}, x.ask, { status: "answered", answer: "Try them all" }) }; });
+      askWait.current.resolve({ text: "Try them all, as variants side by side, so I can compare." });
+    },
+    /* A variant on the canvas, in view. */
+    showVariant: function (fid) {
+      if (!frameById(docRef.current, fid)) { announce("That variant isn't on this page any more."); return; }
+      activate(fid);
+      showFrameRef.current(fid, true);
+    },
+    /* Keep one variant (index), or the original (-1): the kept one takes
+       the original's place and name, and the rest go, in one step. */
+    keepVariant: function (id, index) {
+      var t = asThread.filter(function (x) { return x.id === id; })[0];
+      var vs = t && t.variants;
+      if (!vs || vs.kept != null) return;
+      var keep = index >= 0 ? vs.items[index] : null;
+      var gone = vs.items.filter(function (v, i) { return i !== index; }).map(function (v) { return v.frame; });
+      var ok = change(function (d) {
+        var src = frameById(d, vs.source);
+        var pick = keep ? frameById(d, keep.frame) : null;
+        if (keep && !pick) return null;
+        if (pick && src) {
+          pick.name = src.name;
+          if (typeof src.x === "number") { pick.x = src.x; pick.y = src.y; }
+          d.frames.splice(d.frames.indexOf(pick), 1);
+          d.frames.splice(d.frames.indexOf(src), 1, pick);
+        }
+        d.frames = d.frames.filter(function (f) { return gone.indexOf(f.id) < 0; });
+        if (!d.frames.length) return null;
+        if (!frameById(d, d.active)) d.active = pick ? pick.id : (src ? src.id : d.frames[0].id);
+        return [];
+      }, keep ? "Kept " + keep.label : "Kept the original");
+      if (ok === false) { announce("That variant isn't on this page any more."); return; }
+      patchTurn(id, { variants: Object.assign({}, vs, { kept: index }) });
+      announce(keep ? "Kept " + keep.label + "; the other variants are gone. Undo brings them back." : "Kept the original; the variants are gone. Undo brings them back.");
+    },
     /* A click on one of a question's options. */
     answerAsk: function (id, index) {
       if (!askWait.current || askWait.current.turn !== id) return;
@@ -899,6 +964,7 @@ function App(props) {
           (t.steps || []).forEach(function (st) { lines.push("- " + (st.ok ? "" : "(failed) ") + st.text); });
           if (t.text) lines.push("", t.text);
           if (t.changes && t.changes.length) { lines.push("", "Changes:"); t.changes.forEach(function (c) { lines.push("- " + c.label + ": " + c.value + (c.on ? " · " + c.on : "") + (c.undone ? " (undone)" : "")); }); }
+          if (t.variants) { lines.push("", "Variants of " + t.variants.sourceName + ":"); t.variants.items.forEach(function (v, i) { lines.push("- " + v.label + (t.variants.kept === i ? " (kept)" : "")); }); }
           if (t.checks) { lines.push("", "Checks:"); t.checks.forEach(function (r) { lines.push("- " + r.status + ": " + r.title); }); }
           lines.push("");
         }
@@ -6721,7 +6787,7 @@ function App(props) {
                   docs: asContext().docs, skills: asContext().skills, dropDoc: function (id) { asDropState[1](asDropState[0].concat([id])); },
                   suggestions: selectedNodes.length ? ["Make it feel more premium", "Round the corners", "Add a button"] : ["Add a pricing section"],
                   send: asApi.send, stop: asApi.stop, clear: asApi.clear, keep: asApi.keep, undoTurn: asApi.undoTurn, retry: asApi.retry, fix: asApi.fix, show: asApi.show,
-                  note: asApi.note, waiting: asBusy && asThread.some(function (t) { return t.ask && t.ask.status === "pending"; }), answerAsk: asApi.answerAsk, otherAsk: asApi.otherAsk, edits: asEditsNow, dropEdits: asApi.dropEdits, approvePlan: asApi.approvePlan, changePlan: asApi.changePlan, undoFrom: asApi.undoFrom, exportThread: asApi.exportThread,
+                  note: asApi.note, waiting: asBusy && asThread.some(function (t) { return t.ask && t.ask.status === "pending"; }), answerAsk: asApi.answerAsk, answerAskAll: asApi.answerAskAll, showVariant: asApi.showVariant, keepVariant: asApi.keepVariant, otherAsk: asApi.otherAsk, edits: asEditsNow, dropEdits: asApi.dropEdits, approvePlan: asApi.approvePlan, changePlan: asApi.changePlan, undoFrom: asApi.undoFrom, exportThread: asApi.exportThread,
                   plans: asPlanState[0], setPlans: asApi.setPlans, effort: asEffortState[0], setEffort: asApi.setEffort, look: canLook(), setLook: asApi.setLook })
               : left === "context" ? e(ContextPanel, { items: ctxItems, query: contextQuery, hasProject: !!(project && project.group), projectName: groupName, fileName: project ? project.name : "",
                   pages: pagesOf(project), pageId: pageId, pageName: (pagesOf(project).filter(function (x) { return x.id === pageId; })[0] || {}).name, announce: announce,
