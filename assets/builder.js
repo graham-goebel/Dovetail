@@ -9538,6 +9538,8 @@
     { name: "read_page", description: "An outline of every layer on a page: one line each, indented by depth, with its id, type, name, text, props and style tokens. Reads the current page unless page names another; frame narrows it to one frame. Read it before changing anything beyond the selection.", input_schema: { type: "object", properties: { page: { type: "string" }, frame: { type: "string" } }, additionalProperties: false } },
     { name: "read_selection", description: "The selected layers (or the frame when nothing is selected): each one's id, type, name, props and style tokens, and its children's ids and types.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
     { name: "screenshot", description: "A picture of a frame or one layer on the current page, as it's drawn now. Look after visible changes and fix what looks wrong: overlaps, cramped spacing, weak contrast, text that wraps badly.", input_schema: { type: "object", properties: { id: { type: "string" } }, additionalProperties: false } },
+    { name: "read_guideline", description: "Read one of the system's guidelines, by topic id from the brief's Guidelines list (accessibility, tokens, theming, voice, colour, space, type…), when a choice depends on it.", input_schema: { type: "object", properties: { topic: { type: "string" } }, required: ["topic"], additionalProperties: false } },
+    { name: "read_theme", description: "The file's theme: its brand name and colours, whether actions are ink or brand, fonts, corner style, density, page and section tints, texture, whitespace, page width, and its context (product, marketing or social). Read it before a choice that depends on the brand or the context, such as a component's product or marketing variant.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
     { name: "lint", description: "Check a frame (the one you're in unless frame names another): text contrast as drawn, anything spilling past the edge at 390px wide, contrast in dark mode, labels, alt text, heading order, primary buttons and placeholder copy. Each finding names its layers. Run it after you change something and fix what fails.", input_schema: { type: "object", properties: { frame: { type: "string" } }, additionalProperties: false } },
     { name: "measure", description: "The space between two layers as drawn, across and down, in pixels and as the nearest spacing token.", input_schema: { type: "object", properties: { a: { type: "string" }, b: { type: "string" } }, required: ["a", "b"], additionalProperties: false } },
     { name: "search_components", description: "Find components by what they're for: each match's name, group and one-line purpose. An empty query lists every component by group.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false } },
@@ -9645,20 +9647,34 @@
   var SIDES = /^(padding|margin|border|radius)(Top|Right|Bottom|Left|TopLeft|TopRight|BottomLeft|BottomRight)$/;
   function systemPrompt() {
     if (brief) return brief;
+    var first = function(t) {
+      var m = /^.*?[.!?](?=\s|$)/.exec(String(t || ""));
+      return m ? m[0] : String(t || "");
+    };
+    var line2 = function(t) {
+      var m = META[t], g = m.guide || {};
+      var out = "- " + t + (m.container ? " (holds layers)" : "") + ": " + short2(first(g.lead || m.blurb), 120);
+      if (g.use && g.use.length) out += " Use: " + short2(g.use[0], 90);
+      if (g.avoid && g.avoid.length) out += " Not: " + short2(g.avoid[0], 90);
+      else if (g.rules && g.rules.length) out += " Rule: " + short2(g.rules[0], 90);
+      return out;
+    };
     var comps = (DATA.groups || []).map(function(g) {
       return "## " + g.label + "\n" + g.items.filter(function(t) {
         return META[t];
-      }).map(function(t) {
-        return "- " + t + (META[t].container ? " (holds layers)" : "") + ": " + (META[t].blurb || "");
-      }).join("\n");
+      }).map(line2).join("\n");
     }).join("\n\n");
     var fams = FAMILIES.filter(function(f) {
       return !SIDES.test(f);
     }).map(function(f) {
       return "- " + f + ": " + DATA.tokens[f].options.map(function(o) {
-        return o.value;
+        return o.use ? o.value + " (" + short2(first(o.use), 48) + ")" : o.value;
       }).join(", ");
     }).join("\n");
+    var guides = {};
+    (DATA.guidelines || []).forEach(function(x) {
+      (guides[x.group] = guides[x.group] || []).push(x.id);
+    });
     var sides = FAMILIES.filter(function(f) {
       return SIDES.test(f);
     });
@@ -9667,7 +9683,9 @@
       "You design on a canvas made only of the Dovetail design system: its components, laid out in frames, styled only with its tokens. The tools are your hands. Changes land on the canvas as you make them, and the person can undo any of them.",
       "## How to work",
       "- Read before you change. read_selection for the selection; read_page before anything wider, or when you need ids.",
-      "- Prefer a component that already does the job (search_components, read_component) over a styled Group or Shape.",
+      "- Prefer a component that already does the job over a styled Group or Shape. Its Use and Not lines below say when; read_component for its variants, props and examples before you use one you haven't read in this conversation.",
+      "- Choose token values by what they're for (each family below says), not by how they look: raised for cards, subtle for a quiet band, brand-muted for a band with presence.",
+      "- When the brand or the context matters (a component's product or marketing variant, the voice of copy), read_theme first; read_guideline for the rules on a topic.",
       "- A new page starts with create_frame (structured for web pages, a social preset for posts), then fills its Content group.",
       "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
       "- Write real, short copy in the brand's voice. Never lorem ipsum.",
@@ -9687,7 +9705,12 @@
       "# Style token families",
       "A layer's style maps a family to one value.",
       fams,
-      sides.length ? "Per-side families take the same values as their base family: " + sides.join(", ") + "." : ""
+      sides.length ? "Per-side families take the same values as their base family: " + sides.join(", ") + "." : "",
+      "# Guidelines",
+      "Read any of these with read_guideline:",
+      Object.keys(guides).map(function(k) {
+        return "- " + k + ": " + guides[k].join(", ");
+      }).join("\n")
     ].filter(Boolean).join("\n\n");
     return brief;
   }
@@ -9787,6 +9810,32 @@
           return fail(err && err.message || "The picture couldn't be made.");
         });
       }
+      case "read_guideline": {
+        var list = DATA.guidelines || [];
+        var want = String(input.topic || "").toLowerCase().trim();
+        var g = list.filter(function(x) {
+          return x.id === want;
+        })[0] || list.filter(function(x) {
+          return x.title.toLowerCase() === want;
+        })[0] || list.filter(function(x) {
+          return want && (x.id.indexOf(want) >= 0 || x.title.toLowerCase().indexOf(want) >= 0);
+        })[0];
+        if (!g) return fail("There's no guideline " + JSON.stringify(input.topic) + ". Topics: " + list.map(function(x) {
+          return x.id;
+        }).join(", ") + ".");
+        if (!api.guideline) return fail("Guidelines can't be read here.");
+        return Promise.resolve(api.guideline(g)).then(function(text3) {
+          if (!text3) return fail("The " + g.title + " guideline couldn't be read.");
+          return { ok: true, result: "# " + g.title + (g.about ? "\n" + g.about : "") + "\n\n" + String(text3).slice(0, 12e3), step: "Read the " + g.title + " guideline" };
+        }, function() {
+          return fail("The " + g.title + " guideline couldn't be read.");
+        });
+      }
+      case "read_theme": {
+        var th = api.theme ? api.theme() : null;
+        if (!th) return fail("The theme isn't loaded yet.");
+        return { ok: true, result: JSON.stringify(th), step: "Read the theme" };
+      }
       case "lint": {
         var lf = input.frame ? (doc2.frames || []).filter(function(f2) {
           return f2.id === input.frame;
@@ -9816,8 +9865,8 @@
           return !META[t].builder;
         });
         if (!words3.length) {
-          var byGroup = (DATA.groups || []).map(function(g) {
-            return g.label + ": " + g.items.filter(function(t) {
+          var byGroup = (DATA.groups || []).map(function(g2) {
+            return g2.label + ": " + g2.items.filter(function(t) {
               return META[t];
             }).join(", ");
           }).join("\n");
@@ -9842,7 +9891,7 @@
       case "read_component": {
         var m = META[input.name];
         if (!m) return fail("There's no component called " + input.name + ". Call search_components to find one.");
-        var spec2 = { name: input.name, purpose: m.blurb, group: m.group, holdsLayers: !!m.container, props: (m.props || []).map(function(pp) {
+        var spec2 = { name: input.name, purpose: m.blurb, group: m.group, holdsLayers: !!m.container, guide: m.guide || void 0, props: (m.props || []).map(function(pp) {
           return { name: pp.name, kind: pp.kind, options: pp.options, default: pp.default, note: pp.note };
         }) };
         return Promise.resolve(api.componentDoc ? api.componentDoc(input.name) : null).then(function(md) {
@@ -9863,7 +9912,7 @@
         var fam = DATA.tokens[input.family];
         if (!fam) return fail("There's no style family called " + input.family + ".");
         return { ok: true, result: JSON.stringify(fam.options.map(function(o) {
-          return { value: o.value, token: o.tokens && o.tokens[0] };
+          return { value: o.value, token: o.tokens && o.tokens[0], use: o.use || void 0 };
         })) };
       }
       case "set_style": {
@@ -10140,6 +10189,16 @@
       return { text: "Practice mode: I ran the checks. " + (open.length ? open.length + (open.length === 1 ? " wants" : " want") + " attention: " + open.join("; ") + "." : "Everything passes.") + (asked && open.length ? " A model would now fix them with the edit tools and check again." : ""), calls: [] };
     }
     if (names[0] === "batch") return { text: "Practice mode, with the real tools: a new structured frame with a hero, three plan cards and a dark closing band, as one step you can undo at once.", calls: [] };
+    if (names[0] === "read_theme") {
+      var th = {};
+      try {
+        th = JSON.parse(body(0));
+      } catch (err) {
+        th = {};
+      }
+      return { text: "Practice mode: this file's brand is " + (th.brand || "unnamed") + ", primary " + (th.primary || "?") + ", " + (th.context ? th.context + " context" : "no context set") + ", " + (th.fonts && th.fonts.body ? th.fonts.body + " type" : "the default type") + ". A model would use that to pick variants and copy.", calls: [] };
+    }
+    if (names[0] === "read_guideline") return { text: "Practice mode: " + body(0).split("\n")[0].replace(/^# /, "") + " read. A model would apply it to the next change.", calls: [] };
     if (names[0] === "search_components") {
       var found = [];
       try {
@@ -10187,6 +10246,9 @@
           { title: "Close", detail: "A dark band with one button" }
         ], notes: ["Practice mode writes stand-in copy; a model would use your context docs."] } }] };
       }
+      if (/\btheme\b|brand colou?r|which fonts?/.test(text2)) return { text: "", calls: [{ name: "read_theme", input: {} }] };
+      var topic = /\b(voice|accessibility|tokens|theming)\b/.exec(text2);
+      if (topic && /guideline|guide|rule|say|how/.test(text2)) return { text: "", calls: [{ name: "read_guideline", input: { topic: topic[1] } }] };
       var forWhat = /component (?:for|to)\s+(.+)$/.exec(text2) || /(?:which|find a|is there a) component\s+(?:for\s+)?(.+)$/.exec(text2);
       if (forWhat) return { text: "", calls: [{ name: "search_components", input: { query: forWhat[1].replace(/[?.!]+$/, "") } }] };
       var surface = DATA.tokens.surface.options.map(function(o) {
@@ -10236,6 +10298,7 @@
   var FIELD_TYPES = ["Input", "Select", "Textarea", "Field", "Combobox", "Slider"];
   var PLACEHOLDER = /\b(lorem|ipsum|dolor sit|placeholder|todo|tbd|xxx+)\b/i;
   var TEXT_KEYS3 = ["children", "title", "label", "text", "description", "heading", "eyebrow"];
+  var DESTRUCTIVE = /\b(delete|remove|discard|erase|revoke|cancel (my |your |the )?(account|subscription|plan|order)|close (my |your |the )?account|leave|reset|destroy|unsubscribe|deactivate|disconnect|uninstall|clear all|empty trash)\b/i;
   function label(n) {
     return n.name || n.type;
   }
@@ -10246,23 +10309,32 @@
     };
     var headings = [];
     var bands = {};
-    (function walk(n, band) {
+    var callouts = {};
+    (function walk(n, band, inCard, inSection) {
       (n.children || []).forEach(function(c) {
         if (c.hidden) return;
         var p = c.props || {};
         var here = band || (c.type === "Section" ? c.id : null);
+        if (c.type === "Button" && p.variant === "danger" && typeof p.children === "string" && !DESTRUCTIVE.test(p.children)) add("usage", "warn", c, "“" + p.children.slice(0, 30) + "” isn't a destructive action, so it shouldn't be a danger button.");
+        if (c.type === "Card" && inCard) add("usage", "warn", c, label(c) + " is a card inside a card; use a Stack and a Divider instead.");
+        if (c.type === "Section" && inSection) add("usage", "warn", c, label(c) + " is a Section inside a Section; Sections are top-level bands.");
+        if (c.type === "Callout") {
+          var k = here || "root";
+          callouts[k] = (callouts[k] || 0) + 1;
+          if (callouts[k] === 2) add("usage", "warn", c, "More than one Callout in a section; keep one and let the text do the rest.");
+        }
         if (c.type === "Heading") headings.push(c);
         if (c.type === "Button" && (p.variant || "primary") === "primary") (bands[here || "root"] = bands[here || "root"] || []).push(c);
         if (c.type === "Image" && !(p.alt && String(p.alt).trim())) add("a11y", "warn", c, label(c) + " has no alt text.");
         if (FIELD_TYPES.indexOf(c.type) >= 0 && !(p.label && String(p.label).trim())) add("a11y", "fail", c, label(c) + " has no label.");
         if (c.type === "IconButton" && !(p.label && String(p.label).trim())) add("a11y", "fail", c, label(c) + " has no label for screen readers.");
         if ((c.type === "Heading" || c.type === "Button" || c.type === "Text") && typeof p.children === "string" && !p.children.trim()) add("copy", "warn", c, label(c) + " is empty.");
-        TEXT_KEYS3.forEach(function(k) {
-          if (typeof p[k] === "string" && PLACEHOLDER.test(p[k])) add("copy", "warn", c, label(c) + " has placeholder copy: “" + p[k].slice(0, 40) + "”.");
+        TEXT_KEYS3.forEach(function(k2) {
+          if (typeof p[k2] === "string" && PLACEHOLDER.test(p[k2])) add("copy", "warn", c, label(c) + " has placeholder copy: “" + p[k2].slice(0, 40) + "”.");
         });
-        walk(c, here);
+        walk(c, here, inCard || c.type === "Card", inSection || c.type === "Section");
       });
-    })(frame2.root, null);
+    })(frame2.root, null, false, false);
     var lv = function(h) {
       var l = Number(h.props && h.props.level);
       return l >= 1 && l <= 6 ? l : 2;
@@ -10348,6 +10420,20 @@
         return f.text;
       }).join(" "),
       a11y.map(function(f) {
+        return f.id;
+      })
+    );
+    var usage = found.filter(function(f) {
+      return f.kind === "usage";
+    });
+    row(
+      "usage",
+      usage.length ? usage.length + (usage.length === 1 ? " component used against its docs" : " components used against their docs") : "Components are used as their docs say",
+      usage.length ? "warn" : "pass",
+      usage.slice(0, 3).map(function(f) {
+        return f.text;
+      }).join(" "),
+      usage.map(function(f) {
         return f.id;
       })
     );
@@ -12412,6 +12498,45 @@
       };
       return { across: side2(across), down: side2(down) };
     };
+    var guideCache = useRef({});
+    var guidelineText = function(g) {
+      var c = guideCache.current;
+      if (!c[g.id]) c[g.id] = fetch("system/guidelines/" + g.file).then(function(r) {
+        if (!r.ok) throw new Error("missing");
+        return r.text();
+      }).then(function(t) {
+        if (/\.md$/.test(g.file)) return t;
+        return t.replace(/<!--[\s\S]*?-->/g, " ").replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#39;|&rsquo;/g, "'").replace(/&quot;|&ldquo;|&rdquo;/g, '"').replace(/\s+/g, " ").trim();
+      }).catch(function(err) {
+        delete c[g.id];
+        throw err;
+      });
+      return c[g.id];
+    };
+    var themeSummary = function() {
+      var P = window.DovetailConfigurePanel;
+      var t = P && P.theme ? P.theme() : null;
+      if (!t || !t.config) return null;
+      var c = t.config;
+      return {
+        brand: t.brand && t.brand.name || "",
+        primary: c.primary + (c.primaryHex ? " (" + c.primaryHex + ")" : ""),
+        secondary: c.secondary + (c.secondaryHex ? " (" + c.secondaryHex + ")" : ""),
+        actions: c.actions === "brand" ? "brand-coloured buttons and links" : "ink buttons and links, brand kept for accents",
+        fonts: { body: c.font, display: c.displayFont || c.font, small: c.secondaryFont || c.font, code: c.codeFont },
+        headlines: c.headlineColor,
+        corners: c.radius,
+        density: c.density ? "compact" : "regular",
+        darkByDefault: !!c.dark,
+        brandFill: c.brandFill,
+        pageTint: c.pageTint,
+        sectionTint: c.sectionTint,
+        texture: c.texture,
+        whitespace: c.whitespace,
+        pageWidth: c.pageWidth,
+        context: t.context ? String(t.context).replace(/^dt-context-/, "") : "none set"
+      };
+    };
     var LOOK_KEY = "dovetail-assistant-look:";
     var canLook = function() {
       try {
@@ -12564,6 +12689,12 @@
         activate(fid);
       },
       /* Edits made inside fn become one history step. */
+      guideline: function(g) {
+        return guidelineText(g);
+      },
+      theme: function() {
+        return themeSummary();
+      },
       runChecks: function(fid) {
         return runChecks(fid);
       },

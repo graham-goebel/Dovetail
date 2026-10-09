@@ -1,0 +1,15 @@
+{
+  "about": "Requests with the components and token values a good answer uses, from the components' own guides. For judging the assistant in live mode: send each to a fresh conversation and compare what it builds. tools/check/unit/agent.test.mjs keeps the names in step with the system.",
+  "cases": [
+    { "ask": "Add a button to delete the project", "expect": { "components": ["Button"], "props": { "Button.variant": "danger" } }, "why": "danger is only for destructive actions, and deleting is one." },
+    { "ask": "Show whether each invoice is paid", "expect": { "components": ["Badge"] }, "why": "Badge reports state; it never does anything." },
+    { "ask": "Let people filter by tag and clear a tag", "expect": { "components": ["Tag"] }, "why": "A removable label is a Tag, not a Badge." },
+    { "ask": "Add a dark band to close the page", "expect": { "components": ["Section"], "props": { "Section.dark": true } }, "why": "Dark areas are a Section's dark tone, so text and controls follow." },
+    { "ask": "Give the features area some presence without shouting", "expect": { "styles": { "surface": "brand-muted" } }, "why": "brand-muted is the soft tint for a band with presence." },
+    { "ask": "Put the settings in a panel that sits above the page", "expect": { "components": ["Card"], "styles": { "surface": "raised" } }, "why": "raised is for cards and anything with elevation." },
+    { "ask": "Note that this step can't be undone, inside the help article", "expect": { "components": ["Callout"] }, "why": "Callout is for editorial asides; Alert is for application state." },
+    { "ask": "Tell them the save failed", "expect": { "components": ["Alert"] }, "why": "Application state is an Alert or a Banner, which announce to assistive technology." },
+    { "ask": "A switch to turn notifications on", "expect": { "components": ["Switch"] }, "why": "A setting that applies instantly is a Switch, not a Button." },
+    { "ask": "Link to the pricing page from the footer", "expect": { "components": ["Link"] }, "why": "Navigation is a Link, not a Button." }
+  ]
+}

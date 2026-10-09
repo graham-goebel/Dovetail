@@ -317,3 +317,62 @@ test("with plans on, the practice build shows a plan first, then builds once app
   assert.equal(script({ messages: msgs, tools: TOOLS }).calls[0].name, "create_frame");
   assert.ok(!toolsFor({ plan: false }).some((t) => t.name === "propose_plan"));
 });
+
+test("the brief says when to use each component and what each token value is for", () => {
+  const b = systemPrompt();
+  assert.match(b, /- Button: The system's action control\. Use: .+ Not: It navigates somewhere/);
+  assert.match(b, /- Badge: .*Not: It is clickable or removable\. Use Tag\./);
+  assert.match(b, /raised \(cards, anything with elevation\)/);
+  assert.match(b, /# Guidelines[\s\S]*Guide: accessibility, theming, tokens/);
+  assert.ok(b.length < 40000, `the brief stays a size the cache carries cheaply, got ${b.length} characters`);
+});
+
+test("list_tokens says what each value is for", () => {
+  const { api } = harness();
+  const s = JSON.parse(runTool(api, { name: "list_tokens", input: { family: "surface" } }).result);
+  assert.equal(s.find((o) => o.value === "sunken").use, "wells, code blocks, inset areas");
+  assert.match(s.find((o) => o.value === "brand-muted").use, /soft tint/);
+});
+
+test("read_component carries the component's guide", async () => {
+  const { api } = harness();
+  const r = await runTool(api, { name: "read_component", input: { name: "Card" } });
+  assert.match(JSON.parse(r.result.split("\n\n# Documentation")[0]).guide.avoid[0], /cards inside cards|Everything on the page is a card/);
+});
+
+test("read_guideline finds a topic by id or title, and lists them when it can't", async () => {
+  const { api } = harness();
+  api.guideline = (g) => Promise.resolve(g.id === "voice" ? "Name the tradeoff. No hype adjectives." : "x");
+  const r = await runTool(api, { name: "read_guideline", input: { topic: "voice" } });
+  assert.equal(r.ok, true);
+  assert.match(r.result, /No hype adjectives/);
+  assert.equal(r.step, "Read the Voice guideline");
+  const miss = runTool(api, { name: "read_guideline", input: { topic: "astrology" } });
+  assert.equal(miss.ok, false);
+  assert.match(miss.result, /Topics: .*accessibility/);
+});
+
+test("read_theme hands back the theme, or says it isn't loaded", () => {
+  const { api } = harness();
+  assert.equal(runTool(api, { name: "read_theme", input: {} }).ok, false);
+  api.theme = () => ({ brand: "Kiln", primary: "terracotta (#eb6834)", context: "marketing" });
+  const r = runTool(api, { name: "read_theme", input: {} });
+  assert.equal(JSON.parse(r.result).context, "marketing");
+});
+
+test("the judgement cases name components and token values the system has", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { DATA, META } = await import("../../../assets/builder/config.js");
+  const set = JSON.parse(readFileSync(new URL("../../evals/assistant-cases.json", import.meta.url), "utf8"));
+  assert.ok(set.cases.length >= 10);
+  for (const c of set.cases) {
+    for (const n of c.expect.components || []) assert.ok(META[n], `${c.ask}: ${n} is a component`);
+    for (const [k, v] of Object.entries(c.expect.styles || {})) assert.ok(DATA.tokens[k].options.some((o) => o.value === v), `${c.ask}: ${k} ${v} is a token value`);
+    for (const [k, v] of Object.entries(c.expect.props || {})) {
+      const [type, prop] = k.split(".");
+      const spec = META[type].props.find((p) => p.name === prop);
+      assert.ok(spec, `${c.ask}: ${type} has ${prop}`);
+      if (spec.kind === "enum") assert.ok(spec.options.includes(v), `${c.ask}: ${v} is one of ${type}.${prop}`);
+    }
+  }
+});

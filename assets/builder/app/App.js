@@ -559,6 +559,37 @@ function App(props) {
     var side = function (v) { return Object.assign({ px: Math.round(Math.max(0, v)), overlap: v < 0 }, v > 0 ? near(v) : {}); };
     return { across: side(across), down: side(down) };
   };
+  /* A guideline as plain text: a prose guide as written, a foundation card
+     with its markup taken away. Fetched once each. */
+  var guideCache = useRef({});
+  var guidelineText = function (g) {
+    var c = guideCache.current;
+    if (!c[g.id]) c[g.id] = fetch("system/guidelines/" + g.file).then(function (r) { if (!r.ok) throw new Error("missing"); return r.text(); }).then(function (t) {
+      if (/\.md$/.test(g.file)) return t;
+      return t.replace(/<!--[\s\S]*?-->/g, " ").replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ").replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#39;|&rsquo;/g, "'").replace(/&quot;|&ldquo;|&rdquo;/g, '"').replace(/\s+/g, " ").trim();
+    }).catch(function (err) { delete c[g.id]; throw err; });
+    return c[g.id];
+  };
+  /* The file's theme in a few words, from Configure: what the assistant
+     needs to choose variants and copy, not every setting. */
+  var themeSummary = function () {
+    var P = window.DovetailConfigurePanel;
+    var t = P && P.theme ? P.theme() : null;
+    if (!t || !t.config) return null;
+    var c = t.config;
+    return {
+      brand: (t.brand && t.brand.name) || "",
+      primary: c.primary + (c.primaryHex ? " (" + c.primaryHex + ")" : ""),
+      secondary: c.secondary + (c.secondaryHex ? " (" + c.secondaryHex + ")" : ""),
+      actions: c.actions === "brand" ? "brand-coloured buttons and links" : "ink buttons and links, brand kept for accents",
+      fonts: { body: c.font, display: c.displayFont || c.font, small: c.secondaryFont || c.font, code: c.codeFont },
+      headlines: c.headlineColor, corners: c.radius, density: c.density ? "compact" : "regular",
+      darkByDefault: !!c.dark, brandFill: c.brandFill, pageTint: c.pageTint, sectionTint: c.sectionTint, texture: c.texture,
+      whitespace: c.whitespace, pageWidth: c.pageWidth,
+      context: t.context ? String(t.context).replace(/^dt-context-/, "") : "none set",
+    };
+  };
   /* Whether the assistant may look at the canvas: on unless turned off for
      this file. */
   var LOOK_KEY = "dovetail-assistant-look:";
@@ -622,6 +653,8 @@ function App(props) {
     createFrame: function (opts) { return frameOps.add(null, false, null, opts); },
     useFrame: function (fid) { activate(fid); },
     /* Edits made inside fn become one history step. */
+    guideline: function (g) { return guidelineText(g); },
+    theme: function () { return themeSummary(); },
     runChecks: function (fid) { return runChecks(fid); },
     measure: function (a, b) { return measureLayers(a, b); },
     batch: function (fn) {
