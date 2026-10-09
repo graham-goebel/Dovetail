@@ -3,7 +3,7 @@
    reorder and a filter. Memoized: it redraws when the document, selection or
    its own state change, not when the canvas pans or the inspector edits. */
 
-import { cx, e, frameSize, hasTitlePart, isContainer, isOwner, nameOf, nodeIsOpen, nodeLabel, typeIcon } from "../config.js";
+import { autoName, cx, e, frameSize, hasTitlePart, isContainer, isOwner, nameOf, nodeIsOpen, nodeLabel, typeIcon } from "../config.js";
 import { locate } from "../model/tree.js";
 import { Icon } from "../ui/icons.js";
 import { Renamable } from "../ui/parts.js";
@@ -124,7 +124,7 @@ var Layers = React.memo(function Layers(p) {
       },
         e(Icon, { name: n.inst ? "component" : typeIcon(n.type) }),
         renameable && mine && isRenaming(n.id, "layer")
-          ? e(Renamable, { value: n.name || n.type, label: "Layer name", startEditing: true, className: "bd-layer-name", onChange: function (v) { p.setRenaming(null); p.setName(n.id, v === n.type ? "" : v); } })
+          ? e(Renamable, { value: nameOf(n), label: "Layer name", startEditing: true, className: "bd-layer-name", onChange: function (v) { p.setRenaming(null); p.setName(n.id, v === n.type || v === autoName(n) ? "" : v); } })
           : e("span", { className: "bd-layer-name" }, nameOf(n)),
         text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null),
       /* Hiding lives in the inspector's Layer section; a hidden row keeps

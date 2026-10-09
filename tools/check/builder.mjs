@@ -666,7 +666,7 @@ try {
     await page.waitForFunction(() => [...document.querySelectorAll(".bd-layer-name")].filter((n) => n.textContent === "Button").length >= 2);
     const names = await layerNames(page);
     const heroAt = names.indexOf("1:HeroBlock");
-    expect(heroAt >= 0 && names[heroAt + 1] === "2:Grid" && names.slice(heroAt).some((n) => /Heading/.test(n)), `the hero should become a named Section holding a Grid of primitives, got ${names.slice(heroAt, heroAt + 6).join(" ")}`);
+    expect(heroAt >= 0 && /^2:(Grid|.+ grid)$/.test(names[heroAt + 1] || "") && names.slice(heroAt).some((n) => /Heading/.test(n)), `the hero should become a named Section holding a Grid of primitives, got ${names.slice(heroAt, heroAt + 6).join(" ")}`);
     /* The canvas commits on its own schedule, after the layers list. */
     await frame().waitForFunction(() => !document.querySelector('[data-bf-type="HeroBlock"]') && !!document.querySelector('[data-bf-type="Section"] [data-bf-type="Heading"]'))
       .catch(() => { throw new Error("the canvas shows the primitives, not the block"); });
@@ -1699,7 +1699,7 @@ try {
     await page.mouse.click(at.x, at.y);
     await page.waitForFunction(() => /Cover/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     const crumbs = await page.locator(".bd-crumbs").first().textContent();
-    expect(/Carousel.*Cover/.test(crumbs), `the item's path runs through the Carousel, got ${crumbs}`);
+    expect(/carousel.*Cover/i.test(crumbs), `the item's path runs through the Carousel, got ${crumbs}`);
     ok("an item is picked on the canvas like any layer, inside its Carousel");
 
     await pickLayer(page, "Carousel");
@@ -5866,7 +5866,8 @@ try {
     await reply(3).locator(".bd-as-look img").waitFor({ timeout: 20000 });
     const src = await reply(3).locator(".bd-as-look img").getAttribute("src");
     expect(/^data:image\/jpeg;base64,/.test(src), "the picture it took shows in the thread");
-    expect(/Looked at Section/.test(await reply(3).locator(".bd-as-look").textContent()), "the step names what it looked at");
+    const looked = await reply(3).locator(".bd-as-look").textContent();
+    expect(/Looked at \S/.test(looked) && !/Looked at (Group|Section)\b/.test(looked), `the step names what it looked at, got ${looked}`);
     await page.waitForFunction(() => { const b = document.querySelectorAll(".bd-as-bot")[3]; return b && /I looked at/.test(b.textContent); });
     await settled();
     ok("asking it to look takes a picture of the selection and shows it");
