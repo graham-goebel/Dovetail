@@ -1973,8 +1973,8 @@
       return o.value === v;
     })[0] || null : null;
   }
-  function note(report, line) {
-    if (report && report.indexOf(line) < 0) report.push(line);
+  function note(report, line2) {
+    if (report && report.indexOf(line2) < 0) report.push(line2);
   }
   var FREE_MAX = 1200;
   var GUIDES_MAX = 60;
@@ -2579,7 +2579,7 @@
     var now = function() {
       return Date.now();
     };
-    var count = function(doc2) {
+    var count2 = function(doc2) {
       return doc2 && Array.isArray(doc2.frames) ? doc2.frames.length : 0;
     };
     var lastVersionAt = {};
@@ -2609,11 +2609,11 @@
           name: (name || "Untitled").slice(0, 80),
           createdAt: now(),
           updatedAt: now(),
-          frames: count(doc2),
+          frames: count2(doc2),
           thumb: null,
           pages: [{ id: MAIN, name: "Page 1" }],
           page: MAIN,
-          pageFrames: { main: count(doc2) }
+          pageFrames: { main: count2(doc2) }
         }, settingsOf(extra));
         if (extra && typeof extra.group === "string" && extra.group) meta.group = extra.group;
         else if (extra && extra.lib === "shared") meta.lib = "shared";
@@ -2630,7 +2630,7 @@
         return b.get("projects", id).then(function(meta) {
           if (!meta) throw new Error("That project is gone.");
           meta.updatedAt = now();
-          tally(meta, page, count(doc2));
+          tally(meta, page, count2(doc2));
           var key = docKey(id, page);
           return b.put("docs", { id: key, doc: doc2 }).then(function() {
             return b.put("projects", meta);
@@ -2657,7 +2657,7 @@
           })) page.folder = fold;
           pages.splice(at2 >= 0 ? at2 + 1 : pages.length, 0, page);
           meta.pages = pages;
-          tally(meta, page.id, count(doc2));
+          tally(meta, page.id, count2(doc2));
           return b.put("docs", { id: docKey(id, page.id), doc: doc2 }).then(function() {
             return b.put("projects", meta);
           }).then(function() {
@@ -2942,7 +2942,7 @@
       addVersion: function(id, doc2, label, page) {
         page = page || MAIN;
         lastVersionAt[docKey(id, page)] = now();
-        return b.put("versions", { project: id, page, at: now(), label: label || "Saved", frames: count(doc2), doc: doc2 }).then(function() {
+        return b.put("versions", { project: id, page, at: now(), label: label || "Saved", frames: count2(doc2), doc: doc2 }).then(function() {
           return api.listVersions(id, page);
         }).then(function(vs) {
           return Promise.all(vs.slice(VERSIONS_MAX).map(function(v) {
@@ -5742,13 +5742,13 @@
     ["hcenter", "h", "Keep to the centre across"],
     ["vcenter", "v", "Keep to the centre down"]
   ];
-  function pinOn(line, h, v) {
-    if (line === "left") return h === "left" || h === "both";
-    if (line === "right") return h === "right" || h === "both";
-    if (line === "top") return v === "top" || v === "both";
-    if (line === "bottom") return v === "bottom" || v === "both";
-    if (line === "hcenter") return h === "center";
-    if (line === "vcenter") return v === "center";
+  function pinOn(line2, h, v) {
+    if (line2 === "left") return h === "left" || h === "both";
+    if (line2 === "right") return h === "right" || h === "both";
+    if (line2 === "top") return v === "top" || v === "both";
+    if (line2 === "bottom") return v === "bottom" || v === "both";
+    if (line2 === "hcenter") return h === "center";
+    if (line2 === "vcenter") return v === "center";
     return false;
   }
   function ConstraintBox(props) {
@@ -6468,8 +6468,8 @@
               "div",
               { className: "bd-import-dropped" },
               e("p", null, read.report.length + (read.report.length === 1 ? " thing will be left out:" : " things will be left out:")),
-              e("ul", null, read.report.slice(0, 12).map(function(line, i) {
-                return e("li", { key: i }, line);
+              e("ul", null, read.report.slice(0, 12).map(function(line2, i) {
+                return e("li", { key: i }, line2);
               })),
               read.report.length > 12 ? e("p", null, "and " + (read.report.length - 12) + " more.") : null
             ) : e("p", { className: "bd-sec-empty" }, "Everything in it comes in.")
@@ -6551,9 +6551,9 @@
     );
   });
   function componentCheck(node) {
-    var issues = [], tokens2 = {}, count = 0;
+    var issues = [], tokens2 = {}, count2 = 0;
     (function walk(n, depth) {
-      count++;
+      count2++;
       var label = nameOf(n);
       if (n.type === "Slot") issues.push({ level: "error", text: "A slot only lives inside its component. Select the component instead." });
       Object.keys(n.style || {}).forEach(function(k) {
@@ -6583,10 +6583,10 @@
       });
     })(node, 0);
     var list = Object.keys(tokens2);
-    if (count > 300) issues.push({ level: "error", text: "It has " + count + " layers; a component takes up to 300." });
+    if (count2 > 300) issues.push({ level: "error", text: "It has " + count2 + " layers; a component takes up to 300." });
     if (!list.length) issues.push({ level: "error", text: "It isn't built on any tokens yet. Give it spacing, a fill, a radius or a gap from the system first." });
-    if (count === 1 && !isContainer(node.type)) issues.push({ level: "warn", text: "It's a single " + node.type + ". As a component it saves its settings, nothing more." });
-    return { issues, tokens: list, count };
+    if (count2 === 1 && !isContainer(node.type)) issues.push({ level: "warn", text: "It's a single " + node.type + ". As a component it saves its settings, nothing more." });
+    return { issues, tokens: list, count: count2 };
   }
   var ComponentDialog = memo(function ComponentDialog2(p) {
     var check = p.node ? componentCheck(p.node) : null;
@@ -6985,7 +6985,7 @@
     var shownFiles = sortList(p.sort, p.currentId, files.filter(function(f) {
       return inGroup ? f.group === inGroup.id && match(f) : q ? match(f) : !f.group;
     }));
-    var count = shownGroups.length + shownFiles.length;
+    var count2 = shownGroups.length + shownFiles.length;
     var section = function(title, list) {
       return e(
         "section",
@@ -7099,10 +7099,10 @@
             e(Segmented, { label: "Sort by", className: "bd-home-sort", value: p.sort, onChange: function(v) {
               if (v) p.setSort(v);
             }, options: HOME_SORTS }),
-            p.projects ? e("span", { className: "bd-home-count", role: "status" }, count + (count === 1 ? " item" : " items")) : null
+            p.projects ? e("span", { className: "bd-home-count", role: "status" }, count2 + (count2 === 1 ? " item" : " items")) : null
           )
         ),
-        !p.projects ? skeleton() : !count ? e("p", { className: "bd-sec-empty bd-projects-empty" }, empty) : e(
+        !p.projects ? skeleton() : !count2 ? e("p", { className: "bd-sec-empty bd-projects-empty" }, empty) : e(
           "div",
           { className: "bd-home-lists" },
           shownGroups.length ? section("Projects", shownGroups.map(function(g) {
@@ -8073,7 +8073,7 @@
         head2,
         e("ul", { className: "bd-kinds bd-asset-kinds", role: "list" }, ASSET_KINDS.map(function(k) {
           var note3 = k[3];
-          var count = k[0] === "containers" ? "Frames and screen sizes" : k[0] === "variables" ? VAR_SETS.length + " sets" : k[0] === "templates" ? STARTERS.length - 1 + " pages" : groupsOf(k[0]).reduce(function(t, g) {
+          var count2 = k[0] === "containers" ? "Frames and screen sizes" : k[0] === "variables" ? VAR_SETS.length + " sets" : k[0] === "templates" ? STARTERS.length - 1 + " pages" : groupsOf(k[0]).reduce(function(t, g) {
             return t + usableIn(p, g).length;
           }, 0) + " to add";
           return e("li", { key: k[0] }, e(
@@ -8082,7 +8082,7 @@
               p.setAssetKind(k[0]);
             } },
             kindPic(k[2]),
-            e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, k[1]), e("span", { className: "bd-kind-count" }, count))
+            e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, k[1]), e("span", { className: "bd-kind-count" }, count2))
           ));
         }))
       );
@@ -8510,12 +8510,12 @@
     var meta = {};
     if (m) {
       var key = null;
-      m[1].split(/\r?\n/).forEach(function(line) {
-        var kv = line.match(/^([A-Za-z_][\w-]*):\s*(.*)$/);
+      m[1].split(/\r?\n/).forEach(function(line2) {
+        var kv = line2.match(/^([A-Za-z_][\w-]*):\s*(.*)$/);
         if (kv) {
           key = kv[1].toLowerCase();
           meta[key] = kv[2].replace(/^["']|["']$/g, "").trim();
-        } else if (key && /^\s+\S/.test(line)) meta[key] = (meta[key] + " " + line.trim()).trim();
+        } else if (key && /^\s+\S/.test(line2)) meta[key] = (meta[key] + " " + line2.trim()).trim();
       });
     }
     return { name: meta.name || "", description: meta.description || "", body: m ? src.slice(m[0].length) : src };
@@ -8633,12 +8633,12 @@
         if (it.kind === "skill" && it.enabled && forPage(it, pageId)) skills.push(Object.assign({ scope }, it));
       });
     });
-    var count = docs.reduce(function(n, d) {
+    var count2 = docs.reduce(function(n, d) {
       return n + tokens(d.title) + tokens(d.body);
     }, 0) + skills.reduce(function(n, s) {
       return n + tokens(s.name) + tokens(s.description);
     }, 0);
-    return { docs, skills, tokens: count };
+    return { docs, skills, tokens: count2 };
   }
   function contextText(ctx) {
     var out = [];
@@ -8810,11 +8810,11 @@
       }
     }
     if (end < 0) return Promise.reject(new Error("That isn't a zip file."));
-    var count = view.getUint16(end + 10, true);
+    var count2 = view.getUint16(end + 10, true);
     var at2 = view.getUint32(end + 16, true);
-    if (count > limits.entries) return Promise.reject(new Error("That zip holds more than " + limits.entries + " files."));
+    if (count2 > limits.entries) return Promise.reject(new Error("That zip holds more than " + limits.entries + " files."));
     var entries = [], total = 0;
-    for (var n = 0; n < count; n++) {
+    for (var n = 0; n < count2; n++) {
       if (at2 + 46 > bytes.length || view.getUint32(at2, true) !== CENTRAL_SIG2) return Promise.reject(new Error("That zip is damaged."));
       var method = view.getUint16(at2 + 10, true), crc = view.getUint32(at2 + 16, true);
       var csize = view.getUint32(at2 + 20, true), usize = view.getUint32(at2 + 24, true);
@@ -9299,7 +9299,9 @@
             "div",
             { key: t.id, className: cx("bd-as-bot", t.status === "error" && "is-error") },
             t.steps.map(function(s, i) {
-              return e("div", { key: i, className: "bd-as-step" }, e("span", { className: "bd-as-ok" }, e(Icon, { name: s.ok ? "check" : "close" })), s.text);
+              if (s.note) return e("p", { key: i, className: "bd-as-note-step" }, s.text);
+              if (s.shot) return e("div", { key: i, className: "bd-as-look" }, e("img", { src: s.shot, alt: "" }), e("span", null, e(Icon, { name: "eye" }), s.text));
+              return e("div", { key: i, className: cx("bd-as-step", !s.ok && "is-failed") }, e("span", { className: "bd-as-ok" }, e(Icon, { name: s.ok ? "check" : "close" })), s.text);
             }),
             t.text ? e("p", { className: "bd-as-text" }, t.text) : t.status === "working" ? e("p", { className: "bd-as-text bd-as-wait" }, "Working…") : null,
             t.error ? e("p", { className: "bd-as-text bd-as-err" }, t.error) : null,
@@ -9372,7 +9374,12 @@
   // assets/builder/model/agent.js
   var FAMILIES = Object.keys(DATA.tokens);
   var TOOLS = [
+    { name: "list_pages", description: "The file's pages (the current one marked), and the frames on the current page with their ids, sizes and layer counts.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+    { name: "read_page", description: "An outline of every layer on a page: one line each, indented by depth, with its id, type, name, text, props and style tokens. Reads the current page unless page names another; frame narrows it to one frame. Read it before changing anything beyond the selection.", input_schema: { type: "object", properties: { page: { type: "string" }, frame: { type: "string" } }, additionalProperties: false } },
     { name: "read_selection", description: "The selected layers (or the frame when nothing is selected): each one's id, type, name, props and style tokens, and its children's ids and types.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+    { name: "screenshot", description: "A picture of a frame or one layer on the current page, as it's drawn now. Look after visible changes and fix what looks wrong: overlaps, cramped spacing, weak contrast, text that wraps badly.", input_schema: { type: "object", properties: { id: { type: "string" } }, additionalProperties: false } },
+    { name: "search_components", description: "Find components by what they're for: each match's name, group and one-line purpose. An empty query lists every component by group.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false } },
+    { name: "read_component", description: "A component's props (kinds, options, defaults and notes) and its documentation: when to use it, examples and accessibility.", input_schema: { type: "object", properties: { name: { type: "string" } }, required: ["name"], additionalProperties: false } },
     { name: "list_tokens", description: "The values a style family accepts. Families: " + FAMILIES.join(", ") + ".", input_schema: { type: "object", properties: { family: { type: "string", enum: FAMILIES } }, required: ["family"], additionalProperties: false } },
     { name: "set_style", description: "Set one style family to one of its token values on layers, or clear it with an empty value. Only token values from list_tokens are allowed.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, family: { type: "string", enum: FAMILIES }, value: { type: "string" } }, required: ["ids", "family", "value"], additionalProperties: false } },
     { name: "set_prop", description: "Set one of a component's own props on layers of that type: its text, or one of the values its enum allows.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, name: { type: "string" }, value: { type: ["string", "number", "boolean"] } }, required: ["ids", "name", "value"], additionalProperties: false } },
@@ -9381,6 +9388,12 @@
     { name: "select", description: "Select layers, so the person sees them.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" } } }, required: ["ids"], additionalProperties: false } },
     { name: "read_skill", description: "Read a skill's files when a request fits its description: its SKILL.md, or another file by path.", input_schema: { type: "object", properties: { name: { type: "string" }, path: { type: "string" } }, required: ["name"], additionalProperties: false } }
   ];
+  function toolsFor(opts) {
+    var look = !opts || opts.look !== false;
+    return TOOLS.filter(function(t) {
+      return look || t.name !== "screenshot";
+    });
+  }
   var LABEL = { surface: "Fill", radius: "Corners", elevation: "Shadow", border: "Border", padding: "Padding", gap: "Gap", blur: "Blur", backdrop: "Behind", opacity: "Opacity", gradient: "Gradient" };
   function familyWord(f) {
     return LABEL[f] || f.replace(/([A-Z])/g, " $1").replace(/^./, function(c) {
@@ -9399,6 +9412,105 @@
       })
     };
   }
+  var TEXT_KEYS2 = ["children", "title", "label", "text", "heading", "description", "alt"];
+  function short2(v, n) {
+    var t = String(v).replace(/\s+/g, " ").trim();
+    return t.length > n ? t.slice(0, n - 1) + "…" : t;
+  }
+  function line(n, depth) {
+    var bits = [n.type + (n.name && n.name !== n.type ? ' "' + short2(n.name, 40) + '"' : ""), n.id];
+    var props = n.props || {};
+    TEXT_KEYS2.forEach(function(k) {
+      if (typeof props[k] === "string" && props[k].trim()) bits.push(k === "children" ? '"' + short2(props[k], 80) + '"' : k + '="' + short2(props[k], 60) + '"');
+    });
+    Object.keys(props).sort().forEach(function(k) {
+      var v = props[k];
+      if (TEXT_KEYS2.indexOf(k) >= 0 || v == null || v === "" || typeof v === "object") return;
+      bits.push(k + "=" + short2(v, 40));
+    });
+    var st = n.style || {};
+    var toks = Object.keys(st).sort().filter(function(k) {
+      return st[k] != null && st[k] !== "" && typeof st[k] !== "object";
+    }).map(function(k) {
+      return k + ":" + st[k];
+    });
+    if (toks.length) bits.push("{" + toks.join(" ") + "}");
+    if (n.hidden) bits.push("hidden");
+    if (n.locked) bits.push("locked");
+    return new Array(depth + 1).join("  ") + "- " + bits.join(" · ");
+  }
+  var OUTLINE_MAX = 400;
+  function count(n) {
+    return 1 + (n.children || []).reduce(function(a, c) {
+      return a + count(c);
+    }, 0);
+  }
+  function outline(doc2, fid) {
+    var out = [], left = 0;
+    (doc2.frames || []).filter(function(f) {
+      return !fid || f.id === fid;
+    }).forEach(function(f) {
+      out.push('Frame "' + f.name + '" ' + f.id + " · " + (f.mode || "free") + " · " + f.width + (f.height ? "×" + f.height : "") + (f.id === doc2.active ? " · active" : "") + (f.dark ? " · dark" : ""));
+      (function walk(n, depth) {
+        (n.children || []).forEach(function(c) {
+          if (out.length >= OUTLINE_MAX) {
+            left += count(c);
+            return;
+          }
+          out.push(line(c, depth));
+          walk(c, depth + 1);
+        });
+      })(f.root, 1);
+    });
+    if (left) out.push("… and " + left + " more layers. Read one frame at a time with frame.");
+    return out.join("\n");
+  }
+  var brief = null;
+  var SIDES = /^(padding|margin|border|radius)(Top|Right|Bottom|Left|TopLeft|TopRight|BottomLeft|BottomRight)$/;
+  function systemPrompt() {
+    if (brief) return brief;
+    var comps = (DATA.groups || []).map(function(g) {
+      return "## " + g.label + "\n" + g.items.filter(function(t) {
+        return META[t];
+      }).map(function(t) {
+        return "- " + t + (META[t].container ? " (holds layers)" : "") + ": " + (META[t].blurb || "");
+      }).join("\n");
+    }).join("\n\n");
+    var fams = FAMILIES.filter(function(f) {
+      return !SIDES.test(f);
+    }).map(function(f) {
+      return "- " + f + ": " + DATA.tokens[f].options.map(function(o) {
+        return o.value;
+      }).join(", ");
+    }).join("\n");
+    var sides = FAMILIES.filter(function(f) {
+      return SIDES.test(f);
+    });
+    brief = [
+      "# Working in the Dovetail Builder",
+      "You design on a canvas made only of the Dovetail design system: its components, laid out in frames, styled only with its tokens. The tools are your hands. Changes land on the canvas as you make them, and the person can undo any of them.",
+      "## How to work",
+      "- Read before you change. read_selection for the selection; read_page before anything wider, or when you need ids.",
+      "- Prefer a component that already does the job (search_components, read_component) over a styled Group or Shape.",
+      "- Write real, short copy in the brand's voice. Never lorem ipsum.",
+      "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish.",
+      "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first.",
+      "- Finish with a sentence or two on what you changed and anything the person should check.",
+      "## The system's rules",
+      "- Tokens only: every colour, size, space, radius and shadow is a token value from list_tokens. Never invent one.",
+      "- Dark areas: use a Section's dark tone (or a frame's dark mode) rather than dark fills on light layers, so text and controls follow.",
+      "- Every layout must work 390px wide, in dark mode, and with reduced motion.",
+      "- Accessibility: headings in order, one primary action per view, labels on every field, alt text on informative images, and text contrast of at least 4.5:1.",
+      "- Structured frames are auto layout: order matters, positions don't. Free frames place layers by x and y.",
+      "# Components",
+      comps,
+      "# Style token families",
+      "A layer's style maps a family to one value.",
+      fams,
+      sides.length ? "Per-side families take the same values as their base family: " + sides.join(", ") + "." : ""
+    ].filter(Boolean).join("\n\n");
+    return brief;
+  }
   function runTool(api, call) {
     var input = call.input || {};
     var fail = function(msg) {
@@ -9415,12 +9527,116 @@
       return at2 ? at2.node.name || at2.node.type : id;
     };
     switch (call.name) {
+      case "list_pages": {
+        var pages = api.pages ? api.pages() : [];
+        var frames = (doc2.frames || []).map(function(f2) {
+          return { id: f2.id, name: f2.name, mode: f2.mode || "free", width: f2.width, height: f2.height || void 0, layers: count(f2.root) - 1, active: f2.id === doc2.active || void 0 };
+        });
+        return { ok: true, result: JSON.stringify({ pages, frames }), step: "Listed " + pages.length + (pages.length === 1 ? " page" : " pages") };
+      }
+      case "read_page": {
+        var pagesNow = api.pages ? api.pages() : [];
+        var here = pagesNow.filter(function(pg) {
+          return pg.current;
+        })[0];
+        var other = input.page && (!here || input.page !== here.id) ? pagesNow.filter(function(pg) {
+          return pg.id === input.page || pg.name === input.page;
+        })[0] : null;
+        if (input.page && !other && !(here && (input.page === here.id || input.page === here.name))) return fail("There's no page called " + input.page + ". Call list_pages for them.");
+        var from = function(d, label) {
+          if (!d) return fail("That page couldn't be read.");
+          if (input.frame && !(d.frames || []).some(function(f2) {
+            return f2.id === input.frame;
+          })) return fail("There's no frame " + input.frame + " on " + label + ".");
+          var n = (d.frames || []).filter(function(f2) {
+            return !input.frame || f2.id === input.frame;
+          }).reduce(function(a, f2) {
+            return a + count(f2.root) - 1;
+          }, 0);
+          return { ok: true, result: outline(d, input.frame || null), step: "Read " + label + " · " + n + (n === 1 ? " layer" : " layers") };
+        };
+        if (other) return Promise.resolve(api.loadPage(other.id)).then(function(d) {
+          return from(d, other.name);
+        }, function() {
+          return fail("That page couldn't be read.");
+        });
+        return from(doc2, here ? here.name : "the page");
+      }
+      case "screenshot": {
+        if (!api.screenshot) return fail("Looking at the canvas is turned off for this file.");
+        var frameOf = (doc2.frames || []).filter(function(f2) {
+          return f2.id === input.id;
+        })[0];
+        var inFrame = null, shotAt = null;
+        if (input.id && !frameOf && input.id !== "root") (doc2.frames || []).some(function(f2) {
+          var at2 = locate(doc2, input.id, f2.id);
+          if (at2) {
+            inFrame = f2;
+            shotAt = at2;
+          }
+          return !!at2;
+        });
+        if (input.id && input.id !== "root" && !shotAt && !frameOf) return fail("There's no layer or frame " + input.id + " on this page.");
+        var fr = frameOf || inFrame || (doc2.frames || []).filter(function(f2) {
+          return f2.id === doc2.active;
+        })[0] || doc2.frames[0];
+        var what = shotAt ? shotAt.node.name || shotAt.node.type : fr.name;
+        return Promise.resolve(api.screenshot(fr.id, shotAt ? input.id : null)).then(function(pic) {
+          if (!pic || !pic.data) return fail("The picture couldn't be made.");
+          return { ok: true, result: [{ type: "image", source: { type: "base64", media_type: pic.media_type, data: pic.data } }, { type: "text", text: what + ", " + pic.width + "×" + pic.height + " pixels." }], step: "Looked at " + what, shot: pic };
+        }, function(err) {
+          return fail(err && err.message || "The picture couldn't be made.");
+        });
+      }
+      case "search_components": {
+        var q = String(input.query || "").toLowerCase().trim();
+        var words3 = q.split(/[^a-z0-9]+/).filter(Boolean);
+        var all = Object.keys(META).filter(function(t) {
+          return !META[t].builder;
+        });
+        if (!words3.length) {
+          var byGroup = (DATA.groups || []).map(function(g) {
+            return g.label + ": " + g.items.filter(function(t) {
+              return META[t];
+            }).join(", ");
+          }).join("\n");
+          return { ok: true, result: byGroup, step: "Listed the components" };
+        }
+        var scored = all.map(function(t) {
+          var hay = (t + " " + (META[t].blurb || "") + " " + (META[t].group || "")).toLowerCase();
+          var sc = words3.reduce(function(a, w) {
+            return a + (t.toLowerCase() === w ? 5 : t.toLowerCase().indexOf(w) >= 0 ? 3 : hay.indexOf(w) >= 0 ? 1 : 0);
+          }, 0);
+          return { t, sc };
+        }).filter(function(x) {
+          return x.sc > 0;
+        }).sort(function(a, b) {
+          return b.sc - a.sc || (a.t < b.t ? -1 : 1);
+        }).slice(0, 12);
+        if (!scored.length) return { ok: true, result: "No component matches " + JSON.stringify(input.query) + ". Try another word, or an empty query for the full list.", step: "Searched components for “" + short2(input.query, 30) + "”" };
+        return { ok: true, result: JSON.stringify(scored.map(function(x) {
+          return { name: x.t, group: META[x.t].group, purpose: META[x.t].blurb, holdsLayers: !!META[x.t].container || void 0 };
+        })), step: "Searched components for “" + short2(input.query, 30) + "”" };
+      }
+      case "read_component": {
+        var m = META[input.name];
+        if (!m) return fail("There's no component called " + input.name + ". Call search_components to find one.");
+        var spec2 = { name: input.name, purpose: m.blurb, group: m.group, holdsLayers: !!m.container, props: (m.props || []).map(function(pp) {
+          return { name: pp.name, kind: pp.kind, options: pp.options, default: pp.default, note: pp.note };
+        }) };
+        return Promise.resolve(api.componentDoc ? api.componentDoc(input.name) : null).then(function(md) {
+          var text2 = JSON.stringify(spec2) + (md ? "\n\n# Documentation\n\n" + String(md).slice(0, 8e3) : "");
+          return { ok: true, result: text2, step: "Read " + input.name + "'s docs" };
+        }, function() {
+          return { ok: true, result: JSON.stringify(spec2), step: "Read " + input.name + "'s props" };
+        });
+      }
       case "read_selection": {
         var sel = known(api.selection());
         var nodes = sel.length ? sel.map(function(id) {
           return locate(doc2, id).node;
         }) : [locate(doc2, "root") && locate(doc2, "root").node].filter(Boolean);
-        return { ok: true, result: JSON.stringify(nodes.map(describe)) };
+        return { ok: true, result: JSON.stringify(nodes.map(describe)), step: sel.length ? "Read " + sel.length + (sel.length === 1 ? " selected layer" : " selected layers") : "Read the frame" };
       }
       case "list_tokens": {
         var fam = DATA.tokens[input.family];
@@ -9495,15 +9711,67 @@
         if (!file) return fail(input.name + " has no file " + path + ". It has: " + skill.files.map(function(x) {
           return x.path;
         }).join(", ") + ".");
-        return { ok: true, result: file.body, skill: skill.name };
+        return { ok: true, result: file.body, skill: skill.name, step: "Read the " + skill.name + " skill" };
       }
       default:
         return fail("There's no tool called " + call.name + ".");
     }
   }
+  function practiceAnswer(request, results) {
+    var prev = request.messages[request.messages.length - 2];
+    var names = prev && Array.isArray(prev.content) ? prev.content.filter(function(b) {
+      return b.type === "tool_use";
+    }).map(function(b) {
+      return b.name;
+    }) : [];
+    var body = function(i) {
+      var c = results[i] && results[i].content;
+      return typeof c === "string" ? c : Array.isArray(c) ? c.filter(function(b) {
+        return b.type === "text";
+      }).map(function(b) {
+        return b.text;
+      }).join(" ") : "";
+    };
+    if (results.some(function(r) {
+      return r.is_error;
+    })) return { text: "Practice mode: " + body(0), calls: [] };
+    if (names[0] === "read_page") {
+      var lines = body(0).split("\n");
+      var frames = lines.filter(function(l) {
+        return /^Frame /.test(l);
+      }).length;
+      var layers = lines.filter(function(l) {
+        return /^\s+- /.test(l);
+      }).length;
+      var top = lines.filter(function(l) {
+        return /^  - /.test(l);
+      }).map(function(l) {
+        var m = /^  - (\w+)(?: "([^"]+)")?/.exec(l);
+        return m ? m[2] ? m[2] + " (" + m[1] + ")" : m[1] : "";
+      }).filter(Boolean);
+      return { text: "Practice mode: this page has " + frames + (frames === 1 ? " frame" : " frames") + " and " + layers + (layers === 1 ? " layer" : " layers") + (top.length ? ". At the top level: " + top.slice(0, 8).join(", ") + (top.length > 8 ? ", and " + (top.length - 8) + " more" : "") : "") + ".", calls: [] };
+    }
+    if (names[0] === "screenshot") return { text: "Practice mode: I looked at " + body(0).replace(/, \d+×\d+ pixels\.$/, "") + ". A model would now check it for overlaps, spacing and contrast, and fix what it finds.", calls: [] };
+    if (names[0] === "search_components") {
+      var found = [];
+      try {
+        found = JSON.parse(body(0)).map(function(x) {
+          return x.name;
+        });
+      } catch (err) {
+        found = [];
+      }
+      return { text: found.length ? "Practice mode: these fit: " + found.slice(0, 5).join(", ") + "." : "Practice mode: " + body(0), calls: [] };
+    }
+    return null;
+  }
   function practiceScript(sel) {
     return function(request) {
       var last = request.messages[request.messages.length - 1];
+      var results = Array.isArray(last.content) ? last.content.filter(function(b) {
+        return b && b.type === "tool_result";
+      }) : [];
+      if (results.length) return practiceAnswer(request, results);
       var text2 = String(typeof last.content === "string" ? last.content : (last.content || []).map(function(b) {
         return b.text || "";
       }).join(" ")).toLowerCase();
@@ -9511,6 +9779,16 @@
         return n.id;
       });
       var calls = [], said = [];
+      var offered = (request.tools || []).map(function(t) {
+        return t.name;
+      });
+      if (/what'?s on|what is on|describe|outline|read the page|summari[sz]e/.test(text2)) return { text: "", calls: [{ name: "read_page", input: {} }] };
+      if (/\blook\b|screenshot|how does it look|check (it|how)/.test(text2)) {
+        if (offered.indexOf("screenshot") < 0) return { text: "Looking at the canvas is turned off for this file.", calls: [] };
+        return { text: "", calls: [{ name: "screenshot", input: ids.length ? { id: ids[0] } : {} }] };
+      }
+      var forWhat = /component (?:for|to)\s+(.+)$/.exec(text2) || /(?:which|find a|is there a) component\s+(?:for\s+)?(.+)$/.exec(text2);
+      if (forWhat) return { text: "", calls: [{ name: "search_components", input: { query: forWhat[1].replace(/[?.!]+$/, "") } }] };
       var surface = DATA.tokens.surface.options.map(function(o) {
         return o.value;
       });
@@ -9581,19 +9859,30 @@
       add: function(ev) {
         if (!ev || typeof ev.type !== "string") return;
         if (ev.type === "content_block_start") {
-          var b = ev.content_block || {};
-          blocks[ev.index] = b.type === "tool_use" ? { type: "tool_use", id: b.id, name: b.name, json: "", input: null } : b.type === "text" ? { type: "text", text: b.text || "" } : { type: b.type || "other" };
+          var b = JSON.parse(JSON.stringify(ev.content_block || {}));
+          if (b.type === "tool_use") {
+            b.json = "";
+            b.input = null;
+          } else if (b.type === "text") b.text = b.text || "";
+          else if (b.type === "thinking") b.thinking = b.thinking || "";
+          blocks[ev.index] = b;
         } else if (ev.type === "content_block_delta") {
           var t = blocks[ev.index], d = ev.delta || {};
           if (!t) return;
           if (d.type === "text_delta") t.text += d.text;
           else if (d.type === "input_json_delta") t.json += d.partial_json;
+          else if (d.type === "thinking_delta") t.thinking += d.thinking;
+          else if (d.type === "signature_delta") t.signature = (t.signature || "") + d.signature;
         } else if (ev.type === "content_block_stop") {
           var u = blocks[ev.index];
           if (u && u.type === "tool_use") {
             try {
               u.input = u.json ? JSON.parse(u.json) : {};
             } catch (err) {
+              u.input = null;
+              u.bad = true;
+            }
+            if (u.input !== null && (typeof u.input !== "object" || Array.isArray(u.input))) {
               u.input = null;
               u.bad = true;
             }
@@ -9607,20 +9896,31 @@
       },
       result: function() {
         var list = blocks.filter(Boolean);
+        var cut = -1;
+        list.forEach(function(b, i) {
+          if (b.type === "fallback") cut = i;
+        });
+        var content = list.filter(function(b, i) {
+          return !(i < cut && (b.type === "thinking" || b.type === "redacted_thinking" || b.type === "tool_use"));
+        }).map(function(b) {
+          if (b.type === "tool_use") return { type: "tool_use", id: b.id, name: b.name, input: b.input || {} };
+          return Object.assign({}, b);
+        });
         return {
           text: list.filter(function(b) {
             return b.type === "text";
           }).map(function(b) {
             return b.text;
           }).join(""),
-          tools: list.filter(function(b) {
-            return b.type === "tool_use";
+          tools: list.filter(function(b, i) {
+            return b.type === "tool_use" && i > cut;
           }),
-          content: list.filter(function(b) {
-            return b.type === "text" || b.type === "tool_use";
+          notes: list.filter(function(b) {
+            return b.type === "thinking" && b.thinking && b.thinking.trim();
           }).map(function(b) {
-            return b.type === "text" ? { type: "text", text: b.text } : { type: "tool_use", id: b.id, name: b.name, input: b.input || {} };
+            return b.thinking.trim();
           }),
+          content,
           stop,
           error,
           usage
@@ -9656,9 +9956,9 @@
     var afterTools = last && Array.isArray(last.content) && last.content.some(function(b) {
       return b && b.type === "tool_result";
     });
-    if (afterTools) return replyEvents("Done. That's practice mode: nothing was sent to a model.", []);
     var turn = script ? script(request) : null;
     if (turn) return replyEvents(turn.text, turn.calls);
+    if (afterTools) return replyEvents("Done. That's practice mode: nothing was sent to a model.", []);
     var asked = last ? typeof last.content === "string" ? last.content : (last.content || []).filter(function(b) {
       return b && b.type === "text";
     }).map(function(b) {
@@ -10025,7 +10325,7 @@
         cols
       ));
     });
-    var line = function(key, f, axis, v, i, b, dragging) {
+    var line2 = function(key, f, axis, v, i, b, dragging) {
       var L = cam.x + b.x * z, T = cam.y + b.y * z;
       var style = axis === "x" ? { left: L + v * z, top: T, height: b.h * z } : { top: T + v * z, left: L, width: b.w * z };
       return e("div", {
@@ -10044,10 +10344,10 @@
       if (!b || !f.guides || !p.canvasView.guides) return;
       f.guides.forEach(function(g, i) {
         if (p.guideDrag && p.guideDrag.fid === f.id && p.guideDrag.i === i) return;
-        parts.push(line(f.id + "-" + i, f, g.x !== void 0 ? "x" : "y", g.x !== void 0 ? g.x : g.y, i, b, false));
+        parts.push(line2(f.id + "-" + i, f, g.x !== void 0 ? "x" : "y", g.x !== void 0 ? g.x : g.y, i, b, false));
       });
     });
-    if (p.guideDrag && !p.guideDrag.off && p.boxes[p.guideDrag.fid]) parts.push(line("drag", frameById(p.doc, p.guideDrag.fid), p.guideDrag.axis, p.guideDrag.v, -1, p.boxes[p.guideDrag.fid], true));
+    if (p.guideDrag && !p.guideDrag.off && p.boxes[p.guideDrag.fid]) parts.push(line2("drag", frameById(p.doc, p.guideDrag.fid), p.guideDrag.axis, p.guideDrag.v, -1, p.boxes[p.guideDrag.fid], true));
     return parts.length ? e("div", { className: "bd-view" }, parts) : null;
   }
   function Rulers(p) {
@@ -10149,10 +10449,10 @@
         if (handles && at2.node.type === "Shape" && at2.node.props && at2.node.props.shape === "line") handles = ["w", "e"];
         var turnable = !!handles && isFree(at2.node.style);
         var markStyle = m.rot ? Object.assign({}, m.box, { transform: "rotate(" + m.rot + "deg)" }) : m.r;
-        var short2 = (m.box || m.r).height < 28, narrow = (m.box || m.r).width < 28;
+        var short3 = (m.box || m.r).height < 28, narrow = (m.box || m.r).width < 28;
         return e(
           "div",
-          { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== p.sel && "is-extra", at2.node.lock && "is-locked", at2.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top", p.sizing && p.sizing.id === m.id && "is-sizing", handles && short2 && "is-short", handles && narrow && "is-narrow"), style: markStyle },
+          { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== p.sel && "is-extra", at2.node.lock && "is-locked", at2.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top", p.sizing && p.sizing.id === m.id && "is-sizing", handles && short3 && "is-short", handles && narrow && "is-narrow"), style: markStyle },
           turnable ? ["nw", "ne", "se", "sw"].map(function(c) {
             return e("span", { key: "rot-" + c, className: "bd-rotate is-" + c, title: "Drag to turn; Shift snaps to 15°", onPointerDown: function(ev) {
               p.startRotate(ev, at2.node.id);
@@ -11333,6 +11633,82 @@
         return drop.indexOf(d.id) < 0;
       }) });
     };
+    var shootForAssistant = function(fid, id) {
+      var wait = function(tries) {
+        var a = api(fid);
+        if (a && a.snapshot) return Promise.resolve(a);
+        if (tries <= 0) return Promise.reject(new Error("That frame isn't drawn yet."));
+        return new Promise(function(r) {
+          setTimeout(r, 150);
+        }).then(function() {
+          return wait(tries - 1);
+        });
+      };
+      if (!api(fid)) showFrame(fid);
+      return wait(20).then(function(a) {
+        var shot = a.snapshot("jpeg", { scale: 1, id: id || null });
+        var late = new Promise(function(resolve2, reject) {
+          setTimeout(function() {
+            reject(new Error("The picture took too long."));
+          }, 15e3);
+        });
+        return Promise.race([shot, late]);
+      }).then(function(url) {
+        return new Promise(function(resolve2, reject) {
+          var img = new Image();
+          img.onload = function() {
+            var k = Math.min(1, 1280 / img.naturalWidth, 2e3 / img.naturalHeight);
+            var w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
+            var c = document.createElement("canvas");
+            c.width = w;
+            c.height = h;
+            var g = c.getContext("2d");
+            g.fillStyle = "#ffffff";
+            g.fillRect(0, 0, w, h);
+            g.drawImage(img, 0, 0, w, h);
+            var out = c.toDataURL("image/jpeg", 0.8);
+            resolve2({ media_type: "image/jpeg", data: out.slice(out.indexOf(",") + 1), width: w, height: h, url: out });
+          };
+          img.onerror = function() {
+            reject(new Error("The picture couldn't be read."));
+          };
+          img.src = url;
+        });
+      });
+    };
+    var docsRef = useRef({ manifest: null, md: {} });
+    var componentDoc = function(name) {
+      var cache = docsRef.current;
+      if (cache.md[name]) return cache.md[name];
+      if (!cache.manifest) cache.manifest = fetch("system/manifest.json").then(function(r) {
+        if (!r.ok) throw new Error("no manifest");
+        return r.json();
+      }).catch(function(err) {
+        cache.manifest = null;
+        throw err;
+      });
+      cache.md[name] = cache.manifest.then(function(m) {
+        var path = (m.files || []).filter(function(f) {
+          return new RegExp("^components/[^/]+/" + name + "\\.md$").test(f);
+        })[0];
+        if (!path) return null;
+        return fetch("system/" + path).then(function(r) {
+          return r.ok ? r.text() : null;
+        });
+      }).catch(function() {
+        delete cache.md[name];
+        return null;
+      });
+      return cache.md[name];
+    };
+    var LOOK_KEY = "dovetail-assistant-look:";
+    var canLook = function() {
+      try {
+        return window.localStorage.getItem(LOOK_KEY + projectRef.current.id) !== "off";
+      } catch (err) {
+        return true;
+      }
+    };
     var toolApi = {
       doc: function() {
         return docRef.current;
@@ -11394,6 +11770,20 @@
       },
       skills: function() {
         return asContext().skills;
+      },
+      pages: function() {
+        return pagesOf(projectRef.current).map(function(pg) {
+          return { id: pg.id, name: pg.name, current: pg.id === pageRef.current || void 0 };
+        });
+      },
+      loadPage: function(pg) {
+        return store.loadDoc(projectRef.current.id, pg);
+      },
+      screenshot: function(fid, id) {
+        return shootForAssistant(fid, id);
+      },
+      componentDoc: function(name) {
+        return componentDoc(name);
       }
     };
     var runAssistant = function(text2) {
@@ -11408,6 +11798,8 @@
         return (n.name || n.type) + " (" + n.id + ")";
       }).join(", ") + ". Change only these unless asked for more." : "Nothing is selected.");
       var system = [contextText(ctx), canvas].filter(Boolean).join("\n\n");
+      var tools2 = toolsFor({ look: canLook() });
+      var api2 = canLook() ? toolApi : Object.assign({}, toolApi, { screenshot: null });
       var me = { id: uid(), role: "user", text: text2 };
       var turn = { id: uid(), role: "assistant", text: "", steps: [], changes: [], status: "working", from: history.current.past.length, prompt: text2 };
       if (ctx.docs.length || ctx.skills.length) turn.steps.push({ ok: true, text: "Read " + (sel2.length ? sel2.length + (sel2.length === 1 ? " layer" : " layers") + ", " : "") + ctx.docs.length + (ctx.docs.length === 1 ? " doc" : " docs") + " and " + ctx.skills.length + (ctx.skills.length === 1 ? " skill" : " skills") });
@@ -11423,7 +11815,7 @@
       var round = function(n) {
         var c = collector();
         var shown2 = "";
-        return sendAssistant({ system, messages: asMsgs.current, tools: TOOLS }, function(ev) {
+        return sendAssistant({ stable: systemPrompt(), system, messages: asMsgs.current, tools: tools2 }, function(ev) {
           c.add(ev);
           if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") {
             shown2 += ev.delta.text;
@@ -11437,24 +11829,36 @@
           asMsgs.current = asMsgs.current.concat([{ role: "assistant", content: r.content.length ? r.content : [{ type: "text", text: r.text || "…" }] }]);
           if (r.error) throw new Error(r.error);
           if (r.stop === "refusal") throw new Error("The model declined that request.");
-          if (r.stop !== "tool_use" || !r.tools.length) return null;
-          var results = [], changes = [], steps = [];
-          r.tools.forEach(function(call) {
-            if (call.bad) {
-              results.push({ type: "tool_result", tool_use_id: call.id, content: "That input didn't parse; send it again.", is_error: true });
-              return;
-            }
-            var res = runTool(toolApi, call);
-            if (res.change) changes.push(res.change);
-            if (call.name === "read_skill" && res.ok) steps.push({ ok: true, text: "Read the " + res.skill + " skill" });
-            if (!res.ok) steps.push({ ok: false, text: res.result });
-            results.push({ type: "tool_result", tool_use_id: call.id, content: res.result, is_error: !res.ok });
+          var noted = r.notes.map(function(t) {
+            return { ok: true, note: true, text: t };
           });
-          patchTurn(turn.id, function(x) {
-            return { changes: x.changes.concat(changes), steps: x.steps.concat(steps), base: x.text ? x.text + " " : "" };
+          if (r.stop !== "tool_use" || !r.tools.length) {
+            if (noted.length) patchTurn(turn.id, function(x) {
+              return { steps: x.steps.concat(noted) };
+            });
+            return null;
+          }
+          var results = [], changes = [], steps = noted.slice();
+          return r.tools.reduce(function(p, call) {
+            return p.then(function() {
+              if (call.bad) {
+                results.push({ type: "tool_result", tool_use_id: call.id, content: "That input didn't parse; send it again.", is_error: true });
+                return;
+              }
+              return Promise.resolve(runTool(api2, call)).then(function(res) {
+                if (res.change) changes.push(res.change);
+                if (res.step && res.ok) steps.push({ ok: true, text: res.step, shot: res.shot ? res.shot.url : void 0 });
+                if (!res.ok) steps.push({ ok: false, text: res.result });
+                results.push({ type: "tool_result", tool_use_id: call.id, content: res.result, is_error: !res.ok });
+              });
+            });
+          }, Promise.resolve()).then(function() {
+            patchTurn(turn.id, function(x) {
+              return { changes: x.changes.concat(changes), steps: x.steps.concat(steps), base: x.text ? x.text + " " : "" };
+            });
+            asMsgs.current = asMsgs.current.concat([{ role: "user", content: results }]);
+            return n < 7 ? round(n + 1) : null;
           });
-          asMsgs.current = asMsgs.current.concat([{ role: "user", content: results }]);
-          return n < 5 ? round(n + 1) : null;
         });
       };
       round(0).then(function() {
@@ -12251,7 +12655,7 @@
         });
       }
     }, [toStage]);
-    var SIDES = [["Top", "top"], ["Right", "right"], ["Bottom", "bottom"], ["Left", "left"]];
+    var SIDES2 = [["Top", "top"], ["Right", "right"], ["Bottom", "bottom"], ["Left", "left"]];
     var sideToken = function(node, base, side2) {
       var key = base + side2, v = node.style[key] || node.style[base];
       return v ? { key: v === node.style[key] ? key : base, value: v } : null;
@@ -12273,7 +12677,7 @@
       var hat = h.id === "root" ? locate(d, "root") : locate(d, h.id);
       if (!hr || !hat) return null;
       var out = [];
-      var line = function(x1, y1, x2, y2, px, name, owner2, sec2) {
+      var line2 = function(x1, y1, x2, y2, px, name, owner2, sec2) {
         if (px < 0.5) return;
         out.push({ x1, y1, x2, y2, label: Math.round(px) + (name ? " " + name : ""), owner: owner2, sec: sec2 });
       };
@@ -12289,10 +12693,10 @@
             return t ? t.value : null;
           };
           var cx0 = sr.left + sr.width / 2, cy0 = sr.top + sr.height / 2;
-          line(cx0, hr.top, cx0, sr.top, sr.top - hr.top, tok("Top"), h.id, "spacing");
-          line(cx0, sr.bottom, cx0, hr.bottom, hr.bottom - sr.bottom, tok("Bottom"), h.id, "spacing");
-          line(hr.left, cy0, sr.left, cy0, sr.left - hr.left, tok("Left"), h.id, "spacing");
-          line(sr.right, cy0, hr.right, cy0, hr.right - sr.right, tok("Right"), h.id, "spacing");
+          line2(cx0, hr.top, cx0, sr.top, sr.top - hr.top, tok("Top"), h.id, "spacing");
+          line2(cx0, sr.bottom, cx0, hr.bottom, hr.bottom - sr.bottom, tok("Bottom"), h.id, "spacing");
+          line2(hr.left, cy0, sr.left, cy0, sr.left - hr.left, tok("Left"), h.id, "spacing");
+          line2(sr.right, cy0, hr.right, cy0, hr.right - sr.right, tok("Right"), h.id, "spacing");
         } else {
           var shared = sat.parent && hat.parent && sat.parent.id === hat.parent.id ? sat.parent : null;
           var gapProp = shared && META[shared.type] ? META[shared.type].props.filter(function(p) {
@@ -12308,22 +12712,22 @@
           var yOver = Math.min(sr.bottom, hr.bottom) > Math.max(sr.top, hr.top);
           var xOver = Math.min(sr.right, hr.right) > Math.max(sr.left, hr.left);
           var yAt = yOver ? midY : sr.top + sr.height / 2, xAt = xOver ? midX : sr.left + sr.width / 2;
-          if (sr.right <= hr.left) line(sr.right, yAt, hr.left, yAt, hr.left - sr.right, gapName(hr.left - sr.right), owner, "flex");
-          else if (hr.right <= sr.left) line(hr.right, yAt, sr.left, yAt, sr.left - hr.right, gapName(sr.left - hr.right), owner, "flex");
-          if (sr.bottom <= hr.top) line(xAt, sr.bottom, xAt, hr.top, hr.top - sr.bottom, gapName(hr.top - sr.bottom), owner, "flex");
-          else if (hr.bottom <= sr.top) line(xAt, hr.bottom, xAt, sr.top, sr.top - hr.bottom, gapName(sr.top - hr.bottom), owner, "flex");
+          if (sr.right <= hr.left) line2(sr.right, yAt, hr.left, yAt, hr.left - sr.right, gapName(hr.left - sr.right), owner, "flex");
+          else if (hr.right <= sr.left) line2(hr.right, yAt, sr.left, yAt, sr.left - hr.right, gapName(sr.left - hr.right), owner, "flex");
+          if (sr.bottom <= hr.top) line2(xAt, sr.bottom, xAt, hr.top, hr.top - sr.bottom, gapName(hr.top - sr.bottom), owner, "flex");
+          else if (hr.bottom <= sr.top) line2(xAt, hr.bottom, xAt, sr.top, sr.top - hr.bottom, gapName(sr.top - hr.bottom), owner, "flex");
         }
       } else if (h.id !== "root") {
-        SIDES.forEach(function(sd) {
+        SIDES2.forEach(function(sd) {
           var t = sideToken(hat.node, "padding", sd[0]);
           if (!t) return;
           var px = pxMap[t.key + "|" + t.value];
           if (px == null) return;
           var cx1 = hr.left + hr.width / 2, cy1 = hr.top + hr.height / 2;
-          if (sd[1] === "top") line(cx1, hr.top, cx1, hr.top + px, px, t.value, h.id, "spacing");
-          if (sd[1] === "bottom") line(cx1, hr.bottom - px, cx1, hr.bottom, px, t.value, h.id, "spacing");
-          if (sd[1] === "left") line(hr.left, cy1, hr.left + px, cy1, px, t.value, h.id, "spacing");
-          if (sd[1] === "right") line(hr.right - px, cy1, hr.right, cy1, px, t.value, h.id, "spacing");
+          if (sd[1] === "top") line2(cx1, hr.top, cx1, hr.top + px, px, t.value, h.id, "spacing");
+          if (sd[1] === "bottom") line2(cx1, hr.bottom - px, cx1, hr.bottom, px, t.value, h.id, "spacing");
+          if (sd[1] === "left") line2(hr.left, cy1, hr.left + px, cy1, px, t.value, h.id, "spacing");
+          if (sd[1] === "right") line2(hr.right - px, cy1, hr.right, cy1, px, t.value, h.id, "spacing");
         });
       }
       return out.length ? { fid: h.f, lines: out } : null;
@@ -12411,16 +12815,16 @@
       if (!targets.length) return res;
       var bestX = null, bestY = null;
       targets.forEach(function(t) {
-        if (t.axis !== "y") [t.l, (t.l + t.r) / 2, t.r].forEach(function(line) {
+        if (t.axis !== "y") [t.l, (t.l + t.r) / 2, t.r].forEach(function(line2) {
           [fx, fx + w / 2, fx + w].forEach(function(edge) {
-            var d = line - edge;
-            if (Math.abs(d) <= reach && (!bestX || Math.abs(d) < Math.abs(bestX.d))) bestX = { d, at: line, t };
+            var d = line2 - edge;
+            if (Math.abs(d) <= reach && (!bestX || Math.abs(d) < Math.abs(bestX.d))) bestX = { d, at: line2, t };
           });
         });
-        if (t.axis !== "x") [t.t, (t.t + t.b) / 2, t.b].forEach(function(line) {
+        if (t.axis !== "x") [t.t, (t.t + t.b) / 2, t.b].forEach(function(line2) {
           [fy, fy + h / 2, fy + h].forEach(function(edge) {
-            var d = line - edge;
-            if (Math.abs(d) <= reach && (!bestY || Math.abs(d) < Math.abs(bestY.d))) bestY = { d, at: line, t };
+            var d = line2 - edge;
+            if (Math.abs(d) <= reach && (!bestY || Math.abs(d) < Math.abs(bestY.d))) bestY = { d, at: line2, t };
           });
         });
       });
@@ -16594,8 +16998,8 @@
         var px = pxMap[key + "|" + o.value];
         var name = o.value === "fill" && def.section === "size" ? "Fill container" : o.label || o.value;
         var group2 = order && o.family ? order.indexOf(o.family) >= 0 ? FAMILY_LABEL[o.family] : more : void 0;
-        var short2 = opts.pxOnly && px != null ? String(Math.round(px)) : opts.short ? opts.short(o, px) : px != null ? Math.round(px) + " " + name : void 0;
-        return { value: o.value, label: name, px: px != null ? Math.round(px) : null, group: group2, short: short2, hint: o.tokens.join(" · ") || (o.value === "hug" ? "As big as what's in it" : o.value === "fill" ? "As big as its parent allows" : "CSS keyword"), tokens: o.tokens };
+        var short3 = opts.pxOnly && px != null ? String(Math.round(px)) : opts.short ? opts.short(o, px) : px != null ? Math.round(px) + " " + name : void 0;
+        return { value: o.value, label: name, px: px != null ? Math.round(px) : null, group: group2, short: short3, hint: o.tokens.join(" · ") || (o.value === "hug" ? "As big as what's in it" : o.value === "fill" ? "As big as its parent allows" : "CSS keyword"), tokens: o.tokens };
       }));
       if (opts.fixed) {
         var lastFit = -1;
@@ -16825,15 +17229,15 @@
         return n.style.cv || "top";
       });
       var h = same3(hs) ? hs[0] : null, v = same3(vs) ? vs[0] : null;
-      var pick2 = function(line, shift) {
-        var axis = /^(left|right|hcenter)$/.test(line) ? "h" : "v";
+      var pick2 = function(line2, shift) {
+        var axis = /^(left|right|hcenter)$/.test(line2) ? "h" : "v";
         var cur = axis === "h" ? h : v, lo = axis === "h" ? "left" : "top", hi = axis === "h" ? "right" : "bottom";
         var next;
-        if (line === "hcenter" || line === "vcenter") next = cur === "center" ? lo : "center";
+        if (line2 === "hcenter" || line2 === "vcenter") next = cur === "center" ? lo : "center";
         else if (shift) {
-          var other = line === lo ? hi : lo;
-          next = cur === other ? "both" : cur === "both" ? other : line;
-        } else next = line;
+          var other = line2 === lo ? hi : lo;
+          next = cur === other ? "both" : cur === "both" ? other : line2;
+        } else next = line2;
         setPins(ids, axis, next);
       };
       var pid = "bd-pins-" + nodes[0].id;
@@ -17064,7 +17468,7 @@
         return e("div", { key }, tokenDropdown(key, nodes, null, { prefix, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: key === "w" || key === "height" }));
       };
       var dim = function(wide2) {
-        var short2 = wide2 ? "W" : "H", label = wide2 ? "Width" : "Height";
+        var short3 = wide2 ? "W" : "H", label = wide2 ? "Width" : "Height";
         var fkey = wide2 ? "fw" : "fh", tkey = wide2 ? "w" : "height", rkey = wide2 ? "rw" : "rh";
         var units = nodes.map(function(n) {
           var r = relSize(n.style[rkey]);
@@ -17123,7 +17527,7 @@
             return relSize(n.style[rkey]).n;
           });
           body = e(NumberField, {
-            short: short2,
+            short: short3,
             label: label + ", in " + (unit === "%" ? "percent of its parent" : unit === "vw" ? "percent of the screen's width" : "percent of the screen's height"),
             value: same3(ns) ? ns[0] : null,
             placeholder: "Mixed",
@@ -17153,7 +17557,7 @@
             }, label + " " + steps * 4 + "px", first === false);
           };
           body = e(NumberField, {
-            short: short2,
+            short: short3,
             label: label + ", in pixels, a multiple of 4",
             value: same3(vs) ? vs[0] : null,
             placeholder: "Mixed",
@@ -17169,7 +17573,7 @@
             }
           });
         } else {
-          body = tokenDropdown(tkey, nodes, null, { prefix: short2, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: true });
+          body = tokenDropdown(tkey, nodes, null, { prefix: short3, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: true });
         }
         return e("div", { key: fkey, className: "bd-size-unit" }, body, picker);
       };
@@ -17357,12 +17761,12 @@
         var fa = api(docRef.current.active);
         var own = first.props[p.name];
         var sample = own !== void 0 ? own : fa && fa.listSample ? fa.listSample(first.type, p.name) : null;
-        var count = Array.isArray(sample) ? sample.length : 0;
+        var count2 = Array.isArray(sample) ? sample.length : 0;
         if (nodes.length > 1) return e(Field, { key: p.name, id, label, note: p.note, hint: "Select one " + first.type + " to edit its " + label.toLowerCase() + "." }, null);
         if (!Array.isArray(sample)) return e(Field, { key: p.name, id, label, note: p.note, hint: "Its sample has parts the builder can't edit here (pictures or elements), so it keeps them." }, null);
         return e(
           Field,
-          { key: p.name, id, label: label + (count ? " (" + count + ")" : ""), note: p.note },
+          { key: p.name, id, label: label + (count2 ? " (" + count2 + ")" : ""), note: p.note },
           e(ListEditor, { key: first.id + p.name, id, label, spec: p, value: sample, pages: pagesOf(projectRef.current), pageNow: pageRef.current, onChange: function(v) {
             setProp([first.id], p.name, v);
           } })

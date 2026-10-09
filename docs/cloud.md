@@ -144,9 +144,12 @@ The Builder's design assistant reads context (docs and skills) and makes changes
 **What the function does with a request:**
 
 - checks the session and the hourly limit, and that a named file is shared with the person;
-- adds a short fixed preamble to the Builder's own system text (the context docs and the selection);
+- puts a short fixed preamble and the Builder's brief first, cached for an hour, then the Builder's text for this request (the context docs and the selection). The brief (`systemPrompt` in `assets/builder/model/agent.js`) holds the system's rules, its components and its token values, and is the same on every request, so it's read once and served from the cache after that;
 - sends it to Claude Opus 5.5 at medium effort, with fallbacks on, so a request a safety check declines is retried on another model in the same call;
+- asks for short progress notes between tool calls, which the panel shows as steps;
 - streams the model's events back unchanged.
+
+**What the assistant can see.** Besides the selection, it can list the file's pages, read any page as an outline (every layer's id, type, text, props and tokens), look up a component's props and documentation, and take a picture of a frame or layer to check its own work. Pictures are JPEGs no larger than 1280 by 2000 pixels and are sent with the conversation. Looking is on by default; to keep a file's canvas from being sent as pictures, set `localStorage["dovetail-assistant-look:<file id>"] = "off"` (a switch for it comes to the panel's menu).
 
 ## What's built and what's next
 

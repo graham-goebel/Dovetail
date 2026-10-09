@@ -23,25 +23,35 @@ function eventReader(onEvent) {
 
 /* A reply put back together from its events: its text and tool calls, in
    order, how it stopped, and any error. A tool call's input is parsed when
-   its block ends; one that doesn't parse is kept as an error, not run. */
+   its block ends; one that doesn't parse is kept as an error, not run.
+   content is the reply as it must go back in the conversation: every block
+   unchanged (thinking blocks with their signatures too), except that after
+   a mid-reply fallback to another model, the thinking and tool calls before
+   the switch are left out, as the API asks. notes: the short progress notes
+   the model writes between tool calls, to show as steps. */
 function collector() {
   var blocks = [], stop = null, error = null, usage = null;
   return {
     add: function (ev) {
       if (!ev || typeof ev.type !== "string") return;
       if (ev.type === "content_block_start") {
-        var b = ev.content_block || {};
-        blocks[ev.index] = b.type === "tool_use" ? { type: "tool_use", id: b.id, name: b.name, json: "", input: null }
-          : b.type === "text" ? { type: "text", text: b.text || "" } : { type: b.type || "other" };
+        var b = JSON.parse(JSON.stringify(ev.content_block || {}));
+        if (b.type === "tool_use") { b.json = ""; b.input = null; }
+        else if (b.type === "text") b.text = b.text || "";
+        else if (b.type === "thinking") b.thinking = b.thinking || "";
+        blocks[ev.index] = b;
       } else if (ev.type === "content_block_delta") {
         var t = blocks[ev.index], d = ev.delta || {};
         if (!t) return;
         if (d.type === "text_delta") t.text += d.text;
         else if (d.type === "input_json_delta") t.json += d.partial_json;
+        else if (d.type === "thinking_delta") t.thinking += d.thinking;
+        else if (d.type === "signature_delta") t.signature = (t.signature || "") + d.signature;
       } else if (ev.type === "content_block_stop") {
         var u = blocks[ev.index];
         if (u && u.type === "tool_use") {
           try { u.input = u.json ? JSON.parse(u.json) : {}; } catch (err) { u.input = null; u.bad = true; }
+          if (u.input !== null && (typeof u.input !== "object" || Array.isArray(u.input))) { u.input = null; u.bad = true; }
         }
       } else if (ev.type === "message_delta") {
         if (ev.delta && ev.delta.stop_reason) stop = ev.delta.stop_reason;
@@ -52,12 +62,19 @@ function collector() {
     },
     result: function () {
       var list = blocks.filter(Boolean);
+      var cut = -1;
+      list.forEach(function (b, i) { if (b.type === "fallback") cut = i; });
+      var content = list.filter(function (b, i) {
+        return !(i < cut && (b.type === "thinking" || b.type === "redacted_thinking" || b.type === "tool_use"));
+      }).map(function (b) {
+        if (b.type === "tool_use") return { type: "tool_use", id: b.id, name: b.name, input: b.input || {} };
+        return Object.assign({}, b);
+      });
       return {
         text: list.filter(function (b) { return b.type === "text"; }).map(function (b) { return b.text; }).join(""),
-        tools: list.filter(function (b) { return b.type === "tool_use"; }),
-        content: list.filter(function (b) { return b.type === "text" || b.type === "tool_use"; }).map(function (b) {
-          return b.type === "text" ? { type: "text", text: b.text } : { type: "tool_use", id: b.id, name: b.name, input: b.input || {} };
-        }),
+        tools: list.filter(function (b, i) { return b.type === "tool_use" && i > cut; }),
+        notes: list.filter(function (b) { return b.type === "thinking" && b.thinking && b.thinking.trim(); }).map(function (b) { return b.thinking.trim(); }),
+        content: content,
         stop: stop, error: error, usage: usage,
       };
     },
@@ -87,16 +104,17 @@ function replyEvents(text, calls, stop) {
 }
 
 /* The practice assistant: answers from a script without sending anything.
-   script(request) returns { text, calls } for this turn; without one, it
-   says what it would do and calls no tools. A turn that follows tool
-   results says it's done. */
+   script(request) returns { text, calls } for this turn, or null; it sees
+   the tool results too, so it can answer from what its tools found. Without
+   an answer, a turn that follows tool results says it's done, and any other
+   says what was asked and calls no tools. */
 function practiceEvents(request, script) {
   var msgs = (request && request.messages) || [];
   var last = msgs[msgs.length - 1];
   var afterTools = last && Array.isArray(last.content) && last.content.some(function (b) { return b && b.type === "tool_result"; });
-  if (afterTools) return replyEvents("Done. That's practice mode: nothing was sent to a model.", []);
   var turn = script ? script(request) : null;
   if (turn) return replyEvents(turn.text, turn.calls);
+  if (afterTools) return replyEvents("Done. That's practice mode: nothing was sent to a model.", []);
   var asked = last ? (typeof last.content === "string" ? last.content : (last.content || []).filter(function (b) { return b && b.type === "text"; }).map(function (b) { return b.text; }).join(" ")) : "";
   return replyEvents("Practice mode: nothing is sent to a model yet. You asked: “" + String(asked).slice(0, 200) + "”.", []);
 }

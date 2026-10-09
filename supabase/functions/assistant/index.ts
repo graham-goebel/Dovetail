@@ -21,7 +21,10 @@ const MODEL = "claude-opus-5-5";
 const MAX_TOKENS = 16000;
 const HOURLY = Number(Deno.env.get("ASSISTANT_HOURLY_LIMIT") ?? "60");
 const ORIGINS = (Deno.env.get("ASSISTANT_ORIGINS") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-const MAX_BODY = 1_500_000;
+// Room for the pictures the assistant takes of the canvas (each at most
+// 1280×2000, as a JPEG) as the conversation goes on.
+const MAX_BODY = 8_000_000;
+const MAX_STABLE = 200_000;
 const MAX_MESSAGES = 120;
 const MAX_TOOLS = 24;
 
@@ -46,11 +49,15 @@ function json(status: number, body: unknown, headers: Record<string, string>): R
 
 type Tool = { name: string; description?: string; input_schema: Record<string, unknown> };
 
-// The request the Builder sends: its own system text (the context docs and
-// the selection), the conversation, its tools, and the file it's working on.
-function readRequest(raw: unknown): { system: string; messages: unknown[]; tools: Tool[]; fileId: string | null } | string {
+// The request the Builder sends: its brief (stable: the system's rules,
+// components and tokens, the same on every request), its system text for
+// this request (the context docs and the selection), the conversation, its
+// tools, and the file it's working on.
+function readRequest(raw: unknown): { stable: string; system: string; messages: unknown[]; tools: Tool[]; fileId: string | null } | string {
   if (!raw || typeof raw !== "object") return "The request isn't JSON.";
   const r = raw as Record<string, unknown>;
+  const stable = typeof r.stable === "string" ? r.stable : "";
+  if (stable.length > MAX_STABLE) return "The brief is too long.";
   const system = typeof r.system === "string" ? r.system : "";
   const messages = Array.isArray(r.messages) ? r.messages : null;
   const tools = Array.isArray(r.tools) ? r.tools : [];
@@ -60,7 +67,7 @@ function readRequest(raw: unknown): { system: string; messages: unknown[]; tools
     if (!t || typeof t !== "object" || typeof (t as Tool).name !== "string" || typeof (t as Tool).input_schema !== "object") return "Each tool needs a name and an input_schema.";
   }
   const fileId = typeof r.file_id === "string" && /^[0-9a-f-]{36}$/.test(r.file_id) ? r.file_id : null;
-  return { system, messages, tools: tools as Tool[], fileId };
+  return { stable, system, messages, tools: tools as Tool[], fileId };
 }
 
 Deno.serve(async (req) => {
@@ -106,14 +113,21 @@ Deno.serve(async (req) => {
       let status = "failed", input = 0, output = 0;
       try {
         // Fallbacks: if a safety check declines, the API retries the request
-        // on another model inside the same call.
+        // on another model inside the same call. Thinking shows as short
+        // progress notes between tool calls, which the Builder shows as steps.
+        // Caching: the tools and the brief never change, so they're cached
+        // for an hour; the conversation so far is cached as it grows.
+        const system = [{ type: "text", text: PREAMBLE + (parsed.stable ? "\n\n" + parsed.stable : ""), cache_control: { type: "ephemeral", ttl: "1h" } }];
+        if (parsed.system) system.push({ type: "text", text: parsed.system } as typeof system[number]);
         const params = {
           model: MODEL,
           max_tokens: MAX_TOKENS,
-          betas: ["server-side-fallback-2026-07-01"],
+          betas: ["server-side-fallback-2026-07-01", "thinking-display-updates-2026-08-18"],
           fallbacks: "default",
+          thinking: { type: "adaptive", display: "updates" },
           output_config: { effort: "medium" },
-          system: PREAMBLE + (parsed.system ? "\n\n" + parsed.system : ""),
+          cache_control: { type: "ephemeral" },
+          system,
           messages: parsed.messages,
           tools: parsed.tools.map((t) => ({ ...t, eager_input_streaming: true })),
         };
