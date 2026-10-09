@@ -22,7 +22,7 @@ function harness() {
     skills: () => [{ name: "brand-review", files: [{ path: "SKILL.md", body: "# Rules" }] }],
     pages: () => [{ id: "main", name: "Home", current: true }, { id: "p2", name: "Pricing" }],
     loadPage: (id) => Promise.resolve(id === "p2" ? other : null),
-    screenshot: (fid, id) => { log.push(["shot", fid, id]); return Promise.resolve({ media_type: "image/jpeg", data: "AAAA", width: 640, height: 900, url: "data:image/jpeg;base64,AAAA" }); },
+    screenshot: (fid, id, opts) => { log.push(["shot", fid, id, opts]); return Promise.resolve({ media_type: "image/jpeg", data: "AAAA", width: 640, height: 900, url: "data:image/jpeg;base64,AAAA" }); },
     componentDoc: (name) => Promise.resolve(name === "Button" ? "# Button\n\nUse one primary button per view." : null),
   };
   const other = emptyDoc();
@@ -135,6 +135,24 @@ test("screenshot returns the picture as an image block, and refuses when looking
   assert.equal(log.at(-1)[2], hero.id, "just that layer");
   assert.equal(runTool(api, { name: "screenshot", input: { id: "nope" } }).ok, false);
   assert.equal(runTool({ ...api, screenshot: null }, { name: "screenshot", input: {} }).ok, false);
+});
+
+test("screenshot draws the frame at another width or in the other mode when asked", async () => {
+  const { doc, hero, api, log } = harness();
+  doc.frames[0].mode = "structured";
+  const r = await runTool(api, { name: "screenshot", input: { width: 390, dark: true } });
+  assert.deepEqual(log.at(-1)[3], { width: 390, dark: true });
+  assert.equal(r.step, "Looked at " + doc.frames[0].name + " at 390 wide in dark mode");
+  assert.match(r.result[1].text, /at 390 wide in dark mode, 640×900 pixels\.$/);
+  await runTool(api, { name: "screenshot", input: { id: hero.id, width: 99999 } });
+  assert.deepEqual(log.at(-1)[3], { width: 2560, dark: null }, "the width is kept in range");
+  await runTool(api, { name: "screenshot", input: {} });
+  assert.equal(log.at(-1)[3], null, "with neither, it's the canvas as drawn");
+  doc.frames[0].mode = "free";
+  assert.match((await runTool(api, { name: "screenshot", input: { width: 390 } })).result[1].text, /isn't reflowed/);
+  const t = practiceScript([])({ messages: [{ role: "user", content: "Does it hold up on a phone?" }], tools: TOOLS });
+  assert.deepEqual(t.calls.map((c) => c.input), [{ width: 390 }, { width: 390, dark: true }]);
+  assert.match(systemPrompt(), /look at 390 wide and in dark mode too/);
 });
 
 test("components can be searched and read, docs and all", async () => {

@@ -9602,7 +9602,7 @@
     { name: "list_pages", description: "The file's pages (the current one marked), and the frames on the current page with their ids, sizes and layer counts.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
     { name: "read_page", description: "An outline of every layer on a page: one line each, indented by depth, with its id, type, name, text, props and style tokens. Reads the current page unless page names another; frame narrows it to one frame. Read it before changing anything beyond the selection.", input_schema: { type: "object", properties: { page: { type: "string" }, frame: { type: "string" } }, additionalProperties: false } },
     { name: "read_selection", description: "The selected layers (or the frame when nothing is selected): each one's id, type, name, props and style tokens, and its children's ids and types.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
-    { name: "screenshot", description: "A picture of a frame or one layer on the current page, as it's drawn now. Look after visible changes and fix what looks wrong: overlaps, cramped spacing, weak contrast, text that wraps badly.", input_schema: { type: "object", properties: { id: { type: "string" } }, additionalProperties: false } },
+    { name: "screenshot", description: "A picture of a frame or one layer on the current page, as it's drawn now. Look after visible changes and fix what looks wrong: overlaps, cramped spacing, weak contrast, text that wraps badly. Give width (390 for a phone, 768 for a tablet) or dark (true for dark mode, false for light) to see it drawn that way, out of sight, without changing the canvas.", input_schema: { type: "object", properties: { id: { type: "string" }, width: { type: "integer", minimum: 320, maximum: 2560 }, dark: { type: "boolean" } }, additionalProperties: false } },
     { name: "read_guideline", description: "Read one of the system's guidelines, by topic id from the brief's Guidelines list (accessibility, tokens, theming, voice, colour, space, type…), when a choice depends on it.", input_schema: { type: "object", properties: { topic: { type: "string" } }, required: ["topic"], additionalProperties: false } },
     { name: "read_theme", description: "The file's theme: its brand name and colours, whether actions are ink or brand, fonts, corner style, density, page and section tints, texture, whitespace, page width, and its context (product, marketing or social). Read it before a choice that depends on the brand or the context, such as a component's product or marketing variant.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
     { name: "lint", description: "Check a frame (the one you're in unless frame names another): text contrast as drawn, anything spilling past the edge at 390px wide, contrast in dark mode, labels, alt text, heading order, primary buttons and placeholder copy. Each finding names its layers. Run it after you change something and fix what fails.", input_schema: { type: "object", properties: { frame: { type: "string" } }, additionalProperties: false } },
@@ -9755,7 +9755,7 @@
       "- A new page starts with create_frame (structured for web pages, a social preset for posts), then fills its Content group.",
       "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
       "- Write real, short copy in the brand's voice. Never lorem ipsum.",
-      "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish.",
+      "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish. For a page, look at 390 wide and in dark mode too (screenshot with width or dark) when the change touches layout or colour, or the checks flag them.",
       "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
       "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first. When it leaves a real choice of direction open (two good answers with a different tone), call ask_user with the options rather than guessing.",
       "- A message may start with what the person changed on the canvas since your last reply. Keep those changes unless they ask otherwise, and build on them.",
@@ -9870,9 +9870,14 @@
           return f2.id === doc2.active;
         })[0] || doc2.frames[0];
         var what = shotAt ? shotAt.node.name || shotAt.node.type : fr.name;
-        return Promise.resolve(api.screenshot(fr.id, shotAt ? input.id : null)).then(function(pic) {
+        var width = typeof input.width === "number" ? Math.max(320, Math.min(2560, Math.round(input.width))) : null;
+        var dark = typeof input.dark === "boolean" ? input.dark : null;
+        var how = [width ? "at " + width + " wide" : "", dark === true ? "in dark mode" : dark === false ? "in light mode" : ""].filter(Boolean).join(" ");
+        var opts = width || dark !== null ? { width, dark } : null;
+        var note3 = width && fr.mode !== "structured" ? " A freeform frame places layers by position, so it isn't reflowed at another width." : "";
+        return Promise.resolve(api.screenshot(fr.id, shotAt ? input.id : null, opts)).then(function(pic) {
           if (!pic || !pic.data) return fail("The picture couldn't be made.");
-          return { ok: true, result: [{ type: "image", source: { type: "base64", media_type: pic.media_type, data: pic.data } }, { type: "text", text: what + ", " + pic.width + "×" + pic.height + " pixels." }], step: "Looked at " + what, shot: pic };
+          return { ok: true, result: [{ type: "image", source: { type: "base64", media_type: pic.media_type, data: pic.data } }, { type: "text", text: what + (how ? " " + how : "") + ", " + pic.width + "×" + pic.height + " pixels." + note3 }], step: "Looked at " + what + (how ? " " + how : ""), shot: pic };
         }, function(err) {
           return fail(err && err.message || "The picture couldn't be made.");
         });
@@ -10228,7 +10233,12 @@
       }).filter(Boolean);
       return { text: "Practice mode: this page has " + frames + (frames === 1 ? " frame" : " frames") + " and " + layers + (layers === 1 ? " layer" : " layers") + (top.length ? ". At the top level: " + top.slice(0, 8).join(", ") + (top.length > 8 ? ", and " + (top.length - 8) + " more" : "") : "") + ".", calls: [] };
     }
-    if (names[0] === "screenshot") return { text: "Practice mode: I looked at " + body(0).replace(/, \d+×\d+ pixels\.$/, "") + ". A model would now check it for overlaps, spacing and contrast, and fix what it finds.", calls: [] };
+    if (names[0] === "screenshot") {
+      var seen = results.map(function(r, i) {
+        return body(i).replace(/, \d+×\d+ pixels\..*$/, "");
+      });
+      return { text: "Practice mode: I looked at " + seen.join(", then ") + ". A model would now check " + (seen.length > 1 ? "them" : "it") + " for overlaps, spacing and contrast, and fix what it finds.", calls: [] };
+    }
     if (names[0] === "propose_plan") {
       if (!/^Approved/.test(body(0))) return { text: "Practice mode: tell me what to change in the plan, and I'll propose it again.", calls: [] };
       var fr = (prev.content.filter(function(b) {
@@ -10341,6 +10351,11 @@
         return t.name;
       });
       if (/what'?s on|what is on|describe|outline|read the page|summari[sz]e/.test(text2)) return { text: "", calls: [{ name: "read_page", input: {} }] };
+      if (/\b(phone|mobile|390|narrow|small screens?|dark mode)\b/.test(text2) && /look|hold up|work|check|see/.test(text2)) {
+        if (offered.indexOf("screenshot") < 0) return { text: "Looking at the canvas is turned off for this file.", calls: [] };
+        var at0 = ids.length ? { id: ids[0] } : {};
+        return { text: "", calls: [{ name: "screenshot", input: Object.assign({ width: 390 }, at0) }, { name: "screenshot", input: Object.assign({ width: 390, dark: true }, at0) }] };
+      }
       if (/\blook\b|screenshot|how does it look|check (it|how)/.test(text2)) {
         if (offered.indexOf("screenshot") < 0) return { text: "Looking at the canvas is turned off for this file.", calls: [] };
         return { text: "", calls: [{ name: "screenshot", input: ids.length ? { id: ids[0] } : {} }] };
@@ -12592,28 +12607,41 @@
           }, 15e3);
         });
         return Promise.race([shot, late]);
-      }).then(function(url) {
-        return new Promise(function(resolve2, reject) {
-          var img = new Image();
-          img.onload = function() {
-            var k = Math.min(1, 1280 / img.naturalWidth, 2e3 / img.naturalHeight);
-            var w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
-            var c = document.createElement("canvas");
-            c.width = w;
-            c.height = h;
-            var g = c.getContext("2d");
-            g.fillStyle = "#ffffff";
-            g.fillRect(0, 0, w, h);
-            g.drawImage(img, 0, 0, w, h);
-            var out = c.toDataURL("image/jpeg", 0.8);
-            resolve2({ media_type: "image/jpeg", data: out.slice(out.indexOf(",") + 1), width: w, height: h, url: out });
-          };
-          img.onerror = function() {
-            reject(new Error("The picture couldn't be read."));
-          };
-          img.src = url;
-        });
+      }).then(fitJpeg);
+    };
+    var fitJpeg = function(url) {
+      return new Promise(function(resolve2, reject) {
+        var img = new Image();
+        img.onload = function() {
+          var k = Math.min(1, 1280 / img.naturalWidth, 2e3 / img.naturalHeight);
+          var w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
+          var c = document.createElement("canvas");
+          c.width = w;
+          c.height = h;
+          var g = c.getContext("2d");
+          g.fillStyle = "#ffffff";
+          g.fillRect(0, 0, w, h);
+          g.drawImage(img, 0, 0, w, h);
+          var out = c.toDataURL("image/jpeg", 0.8);
+          resolve2({ media_type: "image/jpeg", data: out.slice(out.indexOf(",") + 1), width: w, height: h, url: out });
+        };
+        img.onerror = function() {
+          reject(new Error("The picture couldn't be read."));
+        };
+        img.src = url;
       });
+    };
+    var shootDrawn = function(fid, id, width, dark2) {
+      var f = frameById(docRef.current, fid);
+      if (!f) return Promise.reject(new Error("That frame is gone."));
+      var late = new Promise(function(resolve2, reject) {
+        setTimeout(function() {
+          reject(new Error("The picture took too long."));
+        }, 2e4);
+      });
+      return Promise.race([drawAndAudit(f, width || f.width, dark2 == null ? !!f.dark : !!dark2, function(a) {
+        return a.snapshot("jpeg", { scale: 1, id: id || null });
+      }), late]).then(fitJpeg);
     };
     var docsRef = useRef({ manifest: null, md: {} });
     var componentDoc = function(name) {
@@ -12645,7 +12673,7 @@
     var pageProps = function(f) {
       return { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale, pageWidth: f.pageWidth, gutter: f.gutter, flow: f.flow, clip: f.clip, scroll: f.scroll };
     };
-    var drawAndAudit = function(f, width, dark2) {
+    var drawAndAudit = function(f, width, dark2, read) {
       var run = function() {
         return new Promise(function(resolve2, reject) {
           var el = auditEl.current;
@@ -12681,7 +12709,7 @@
               requestAnimationFrame(function() {
                 setTimeout(function() {
                   try {
-                    resolve2(a.audit());
+                    resolve2(read ? read(a) : a.audit());
                   } catch (err) {
                     reject(err);
                   }
@@ -12877,8 +12905,9 @@
       loadPage: function(pg) {
         return store.loadDoc(projectRef.current.id, pg);
       },
-      screenshot: function(fid, id) {
-        return shootForAssistant(fid, id);
+      /* opts.width or opts.dark: drawn out of sight that way, not as it's on the canvas. */
+      screenshot: function(fid, id, opts) {
+        return opts && (opts.width || opts.dark != null) ? shootDrawn(fid, id, opts.width, opts.dark) : shootForAssistant(fid, id);
       },
       componentDoc: function(name) {
         return componentDoc(name);
