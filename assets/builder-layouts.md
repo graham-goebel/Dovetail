@@ -68,6 +68,7 @@ Group is the builder's own flex container (a `div`), and Shape its rectangle, el
 | `position` | Position | `sticky`, `pinned`, `floating` |
 | `anchor` | Pin to | `top-left`, `top`, `top-right`, `left`, `center`, `right`, `bottom-left`, `bottom`, `bottom-right`, `top-stretch`, `bottom-stretch` |
 | `offset` | Offset | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` |
+| `z` | Layer order | `behind`, `base`, `raised`, `front` |
 | `surface` | Fill | `base`, `subtle`, `raised`, `sunken`, `brand`, `brand-muted`, `brand-secondary`, `brand-secondary-muted`, `success-subtle`, `warning-subtle`, `danger-subtle`, `info-subtle` |
 | `blend` | Blend mode | `multiply`, `screen`, `overlay`, `darken`, `lighten`, `color-dodge`, `color-burn`, `hard-light`, `soft-light`, `difference`, `exclusion`, `hue`, `saturation`, `color`, `luminosity` |
 | `invert` | Invert | `on` |
@@ -111,7 +112,7 @@ Options that read differently from their names:
 
 - `w: fill` is the whole width of the parent, not a share of a row: three of them in a row with `wrap` stack. For columns that share the width and reflow on a phone, use a Grid with `minColumnWidth`.
 - `height: fill` takes the parent's height and grows into spare room in a column.
-- `position: floating` takes the item out of the flow and places it inside its parent (the parent becomes the reference), at `anchor`, moved in by `offset`. It paints over the parent's other children.
+- `position: floating` takes the item out of the flow and places it inside its parent (the parent becomes the reference), at `anchor`, moved in by `offset`. It paints over the parent's other children; set `z: front` on copy that should stay above it, or `z: behind` on the item to put it under its siblings.
 - `position: pinned` stays put in the frame as it scrolls; `sticky` sticks to the top of its scrolling parent.
 - `gradient` and `surface` on one layer: the gradient paints over the fill. A layer takes one gradient; nest a layer for a second.
 - `blur` blurs the layer itself (a soft glow from a Shape); `backdrop` blurs what shows through it.
@@ -263,7 +264,7 @@ The finished components carry their own layout and sample copy. For an expressiv
 
 - **Columns that reflow:** a Grid with `minColumnWidth` `calc(var(--dt-size-control-lg) * 6)` sits as many tiles as fit side by side and one per row on a phone. Rows of Groups don't reflow; keep them to content that fits at 390px.
 - **Tiles:** a column Group with `padding: lg`, `radius: overlay`, `border: subtle` and a `surface`; add `gradient: pattern-dots` or `brand-duotone` for texture.
-- **A soft glow:** an ellipse Shape (`w` and `height` `x4` to `x8`) with `surface: brand` and `blur: glass`, floating in a Group that has a `height` of its own. On a dark page, `blend: screen` keeps white text white where the glow passes behind it, but grey text loses contrast. Keep glows clear of copy, or float the copy above them.
+- **A soft glow:** an ellipse Shape (`w` and `height` `x4` to `x8`) with `surface: brand` and `blur: glass`, floating in a Group that has a `height` of its own. On a dark page, `blend: screen` keeps white text white where the glow passes behind it, but grey text loses contrast. Keep glows clear of copy, or set the glow `z: behind` so the copy stays on top.
 - **A ring:** a Group with `radius: pill`, equal `w` and `height`, `padding: sm` and `gradient: brand-gradient`, holding a Group with `height: fill`, `radius: pill` and `surface: sunken` that centres a Heading.
 - **A bar chart:** a row Group with a `height` (say `x6`) and `align: stretch`; in it, column Groups with `w: fill` and `justify: flex-end`, each holding a rectangle Shape with `w: fill`, `radius: control`, a `surface` and a `height` from `x1` up to the row's.
 - **Chips and pill buttons:** a row Group with `radius: pill`, `padding: xs`, `paddingLeft` and `paddingRight` `sm` or `md`, a `border` or `surface`, holding a Text `variant: label`.

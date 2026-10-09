@@ -5809,6 +5809,16 @@ function App(props) {
         e("span", { className: "bd-field-label" }, "Pin to"),
         e(PinPad, { value: anchor, onChange: function (v) { setStyle(ids, "anchor", v); } },
           tokenDropdown("offset", nodes, null, { label: "Offset from the edge", prefix: "Offset", noneLabel: "Flush to the edge", noneShort: "0", className: "bd-dd-field", noPreview: true }))) : null,
+      (function () {
+        /* Which layer paints over which: the stacking ladder's steps. */
+        var zv = nodes.map(function (n) { return n.style.z || ""; });
+        var zid = "bd-z-" + nodes[0].id;
+        var z = same(zv) ? zv[0] : null;
+        return e(Field, { key: "z", id: zid, label: "Layer order", hint: z === "behind" ? "Under its siblings, above its parent's fill." : z === "front" ? "Over raised and floating layers, such as copy above a shape." : z === "raised" ? "Over the flow, level with floating layers." : null },
+          e(Segmented, { labelledBy: zid, wide: true, value: z,
+            onChange: function (v) { setStyle(ids, "z", v || undefined); },
+            options: [{ value: "", label: "Auto" }, { value: "behind", label: "Behind" }, { value: "raised", label: "Raised" }, { value: "front", label: "Front" }] }));
+      })(),
     ];
   };
 
@@ -6029,7 +6039,7 @@ function App(props) {
       styleRows.length ? sec("props-style", "Style", styleRows, null, propsSet(nodes, propNames("appearance"))) : null,
       arrange ? sec("props-arrange", "Arrangement", arrange, null, propsSet(nodes, propNames("layout"))) : null,
       meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
-      sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "x", "y"].concat(placedFree ? ["fw", "fh", "rw", "rh", "rot"] : []))),
+      sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "z", "x", "y"].concat(placedFree ? ["fw", "fh", "rw", "rh", "rot"] : []))),
       sec("size", "Size", placedFree ? [textBoxRow(nodes), sizeGrid(nodes, "mins")] : [textBoxRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, placedFree ? ["minW", "h"] : ["w", "minW", "height", "h", "self", "fw", "fh", "rw", "rh"])),
     ].concat(lookSections(nodes, null), [
       sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),

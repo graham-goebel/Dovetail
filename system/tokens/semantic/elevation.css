@@ -18,8 +18,10 @@
 
   /* Stacking order. Keep every fixed-position layer on this ladder —
      hand-picked z-index values are how overlay bugs start. */
+  --dt-z-behind: -1; /* @kind other */ /* under its siblings, inside a parent that isolates */
   --dt-z-base: 0; /* @kind other */
   --dt-z-raised: 10; /* @kind other */
+  --dt-z-front: 20; /* @kind other */ /* content set over raised layers, such as copy above a floating shape */
   --dt-z-sticky: 100; /* @kind other */
   --dt-z-dropdown: 200; /* @kind other */
   --dt-z-overlay: 300; /* @kind other */

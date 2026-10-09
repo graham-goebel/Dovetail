@@ -2301,6 +2301,13 @@ const BUILDER_TOKENS = {
     ].map(([v, css, label]) => tokenOption(v, [], css, label)) },
   offset: { label: "Offset", section: "position", preview: "space",
     options: BUILDER_SPACE.map((o) => fam("inset", tokenOption(o, [`--dt-space-inset-${o}`], { "--bd-offset": inset(o) }))) },
+  /* Which layer paints over which, from the stacking ladder. Behind sits
+     under its siblings, and its parent isolates so it stays above the
+     parent's own fill (builder-frame.js); front sits over raised layers,
+     such as copy above a floating shape. */
+  z: { label: "Layer order", section: "position", preview: "text",
+    options: [["behind", "Behind its siblings"], ["base", "Base"], ["raised", "Raised"], ["front", "In front"]]
+      .map(([v, label]) => tokenOption(v, [`--dt-z-${v}`], { zIndex: cssVar(`--dt-z-${v}`) }, label)) },
   /* A brand fill re-points the text roles on itself, the way Section's tones
      do, so a Heading or Text inside it reads on the fill without a prop. */
   surface: { label: "Fill", section: "appearance", preview: "color",
@@ -2669,7 +2676,7 @@ function buildBuilderFormat(meta, groups, tokens) {
     ``,
     `- ${code("w: fill")} is the whole width of the parent, not a share of a row: three of them in a row with ${code("wrap")} stack. For columns that share the width and reflow on a phone, use a Grid with ${code("minColumnWidth")}.`,
     `- ${code("height: fill")} takes the parent's height and grows into spare room in a column.`,
-    `- ${code("position: floating")} takes the item out of the flow and places it inside its parent (the parent becomes the reference), at ${code("anchor")}, moved in by ${code("offset")}. It paints over the parent's other children.`,
+    `- ${code("position: floating")} takes the item out of the flow and places it inside its parent (the parent becomes the reference), at ${code("anchor")}, moved in by ${code("offset")}. It paints over the parent's other children; set ${code("z: front")} on copy that should stay above it, or ${code("z: behind")} on the item to put it under its siblings.`,
     `- ${code("position: pinned")} stays put in the frame as it scrolls; ${code("sticky")} sticks to the top of its scrolling parent.`,
     `- ${code("gradient")} and ${code("surface")} on one layer: the gradient paints over the fill. A layer takes one gradient; nest a layer for a second.`,
     `- ${code("blur")} blurs the layer itself (a soft glow from a Shape); ${code("backdrop")} blurs what shows through it.`,
@@ -2695,7 +2702,7 @@ function buildBuilderFormat(meta, groups, tokens) {
     ``,
     `- **Columns that reflow:** a Grid with ${code("minColumnWidth")} ${code(BUILDER_COLUMN_WIDTHS[BUILDER_COLUMN_WIDTHS.length - 1].value)} sits as many tiles as fit side by side and one per row on a phone. Rows of Groups don't reflow; keep them to content that fits at 390px.`,
     `- **Tiles:** a column Group with ${code("padding: lg")}, ${code("radius: overlay")}, ${code("border: subtle")} and a ${code("surface")}; add ${code("gradient: pattern-dots")} or ${code("brand-duotone")} for texture.`,
-    `- **A soft glow:** an ellipse Shape (${code("w")} and ${code("height")} ${code("x4")} to ${code("x8")}) with ${code("surface: brand")} and ${code("blur: glass")}, floating in a Group that has a ${code("height")} of its own. On a dark page, ${code("blend: screen")} keeps white text white where the glow passes behind it, but grey text loses contrast. Keep glows clear of copy, or float the copy above them.`,
+    `- **A soft glow:** an ellipse Shape (${code("w")} and ${code("height")} ${code("x4")} to ${code("x8")}) with ${code("surface: brand")} and ${code("blur: glass")}, floating in a Group that has a ${code("height")} of its own. On a dark page, ${code("blend: screen")} keeps white text white where the glow passes behind it, but grey text loses contrast. Keep glows clear of copy, or set the glow ${code("z: behind")} so the copy stays on top.`,
     `- **A ring:** a Group with ${code("radius: pill")}, equal ${code("w")} and ${code("height")}, ${code("padding: sm")} and ${code("gradient: brand-gradient")}, holding a Group with ${code("height: fill")}, ${code("radius: pill")} and ${code("surface: sunken")} that centres a Heading.`,
     `- **A bar chart:** a row Group with a ${code("height")} (say ${code("x6")}) and ${code("align: stretch")}; in it, column Groups with ${code("w: fill")} and ${code("justify: flex-end")}, each holding a rectangle Shape with ${code("w: fill")}, ${code("radius: control")}, a ${code("surface")} and a ${code("height")} from ${code("x1")} up to the row's.`,
     `- **Chips and pill buttons:** a row Group with ${code("radius: pill")}, ${code("padding: xs")}, ${code("paddingLeft")} and ${code("paddingRight")} ${code("sm")} or ${code("md")}, a ${code("border")} or ${code("surface")}, holding a Text ${code("variant: label")}.`,

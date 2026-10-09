@@ -1764,6 +1764,26 @@ try {
     await pg.page.close();
   });
 
+  await step("Layer order: behind its siblings stays above the parent's fill, front sits over a raised shape, and both export", async () => {
+    const pg = await open({ width: 1440, height: 900 });
+    await startFrom(pg.page, "Paste a layout");
+    await pg.page.locator(".bd-import-text").fill(JSON.stringify({"frames": [{"name": "Z", "width": 800, "mode": "structured", "hug": true, "dark": true, "root": {"children": [{"type": "Group", "name": "Hero", "props": {"direction": "column", "gap": "md"}, "style": {"padding": "xl", "surface": "raised", "radius": "overlay"}, "children": [{"type": "Shape", "name": "Glow", "props": {"shape": "ellipse"}, "style": {"position": "floating", "anchor": "top-left", "w": "x6", "height": "x3", "surface": "brand", "blur": "glass", "z": "behind"}}, {"type": "Heading", "props": {"size": "display-lg", "children": "$284,120"}}, {"type": "Text", "props": {"children": "Copy in front of a raised shape"}, "style": {"z": "front"}}, {"type": "Shape", "name": "Spark", "props": {"shape": "ellipse"}, "style": {"position": "floating", "anchor": "bottom-left", "w": "x2", "height": "x2", "surface": "brand-secondary"}}]}]}}]}));
+    await pg.page.locator(".bd-import-actions button", { hasText: "Replace" }).click();
+    await pg.frame().waitForSelector('[data-bf-type="Shape"]');
+    const got = await pg.frame().evaluate(() => {
+      const g = document.querySelector('[data-bf-type="Group"] > div');
+      const glow = document.querySelector('[data-bf-type="Shape"] > *');
+      const t = [...document.querySelectorAll("[data-bf-type=Text] > *")].find((el) => /in front/.test(el.textContent));
+      return { iso: getComputedStyle(g).isolation, glow: getComputedStyle(glow).zIndex, text: getComputedStyle(t).zIndex, pos: getComputedStyle(t).position };
+    });
+    expect(got.iso === "isolate" && got.glow === "-1" && got.text === "20" && got.pos === "relative", `the Group isolates, the glow is behind and the copy in front, got ${JSON.stringify(got)}`);
+    ok("a shape set behind sits under its siblings inside a Group that isolates; copy set in front stacks over raised layers");
+    const code = await pg.frame().evaluate(() => { const f = parent.__builder.doc().frames[0]; return window.BuilderFrame.jsx({ page: f, root: f.root }, "Z"); });
+    expect(/isolation: "isolate"/.test(code) && /zIndex: "var\(--dt-z-behind\)"/.test(code) && /zIndex: "var\(--dt-z-front\)", position: "relative"/.test(code), `the code carries the order and the isolation, got ${code.slice(0, 300)}`);
+    ok("Code writes the layer order from the --dt-z ladder, and isolation on the parent");
+    await pg.page.close();
+  });
+
   await step("Layouts from elsewhere: the reference's example opens whole, and a pasted layout lists what it left out", async () => {
     const md = fs.readFileSync(path.join(ROOT, "assets/builder-layouts.md"), "utf8");
     const m = /\]\(https:\/\/[^)]*builder\.html(#b=[\w-]+)\)/.exec(md);

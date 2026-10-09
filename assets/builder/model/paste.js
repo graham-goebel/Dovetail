@@ -216,6 +216,15 @@ function tokensFromCss(css, who, report) {
       keys.forEach(function (p) { delete left[p]; });
     }
   });
+  /* A layer order of its own replaces the z-index its position carries,
+     and a box in the flow is made relative to stack: read the position back
+     without it. A parent isolates for a layer set behind; that follows. */
+  if (style.z && !style.position) {
+    if (left.position === "relative") delete left.position;
+    else if (left.position === "absolute") { style.position = "floating"; delete left.position; }
+    else if (left.position === "fixed") { style.position = "pinned"; delete left.position; }
+  }
+  if (left.isolation === "isolate") delete left.isolation;
   Object.keys(left).forEach(function (p) { note(report, who + ": style " + p + ": " + JSON.stringify(left[p]) + " isn't a token the builder sets"); });
   return style;
 }
@@ -299,7 +308,9 @@ function jsxNodes(els, report) {
           var gm = GROUP_GAP_VAR.exec(String(css.gap || "").replace(/\s+/g, ""));
           if (gm) node.props.gap = gm[1];
           else if (css.display === "flex" && css.gap === undefined) node.props.gap = "none";
-          ["display", "flexDirection", "flexWrap", "alignItems", "justifyContent", "position"].forEach(function (p) { delete css[p]; });
+          ["display", "flexDirection", "flexWrap", "alignItems", "justifyContent"].forEach(function (p) { delete css[p]; });
+          /* Every Group is relative; any other position is the layer's own. */
+          if (css.position === "relative") delete css.position;
           if (gm) delete css.gap;
         }
         Object.assign(node.style, tokensFromCss(css, type, report));
