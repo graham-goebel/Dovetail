@@ -426,7 +426,7 @@ try {
     await page.waitForFunction(() => /Heading/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     expect((await page.locator(".bd-itab").allTextContents()).join(",") === "Properties,Appearance,Layout", "the inspector has Properties, Appearance and Layout tabs, in that order");
     expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Properties" && await page.locator(".bd-ipanel .bd-field-label", { hasText: /^Text$/ }).count() === 1, "Properties opens first, with the Text field");
-    expect(await page.locator(".bd-inspect-head .bd-head-actions > *").count() === 1, "the head has one menu beside the name, not a row of buttons");
+    expect(await page.locator(".bd-inspect-head .bd-head-actions > :not(.bd-about)").count() === 1, "the head has one menu beside the name, not a row of buttons");
     await page.locator(".bd-inspect-head .bd-layer-menu").click();
     const actions = await page.locator(".bd-dd-opt .bd-dd-opt-label").allTextContents();
     await page.keyboard.press("Escape");
@@ -2399,7 +2399,7 @@ try {
     await page.waitForFunction(() => /Group/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Layout" && await page.locator(".bd-right .bd-sec-h", { hasText: /Flex layout|Arrangement/ }).count() === 1, `Structured selects the Group everything went into, on its Layout tab with the flex controls, got tab ${await page.locator(".bd-itab[aria-selected=true]").textContent()}`);
     ok("switching the frame to Structured opens the Layout tab on the Group its Heading went into, flex controls in view");
-    expect(await page.locator(".bd-inspect-head .bd-layer-menu").count() === 1 && await page.locator(".bd-inspect-head .bd-head-actions > *").count() === 1, "the head has one menu beside the name");
+    expect(await page.locator(".bd-inspect-head .bd-layer-menu").count() === 1 && await page.locator(".bd-inspect-head .bd-head-actions > :not(.bd-about)").count() === 1, "the head has one menu beside the name");
     const stuck = await page.evaluate(() => { const r = document.querySelector(".bd-right"), h = document.querySelector(".bd-inspect-head"); r.scrollTop = 400; return { position: getComputedStyle(h).position, scrolled: r.scrollTop, top: Math.round(h.getBoundingClientRect().top - r.getBoundingClientRect().top) }; });
     expect(stuck.position === "sticky" && (stuck.scrolled === 0 || Math.abs(stuck.top) <= 2), `the head stays at the top of the panel while it scrolls, got ${JSON.stringify(stuck)}`);
     ok(`the name and its menu stay at the top while the inspector scrolls (${stuck.scrolled}px down)`);
@@ -5205,6 +5205,10 @@ try {
     expect(st.ch === "right" && st.cv === "bottom", `the square pins it right and bottom, got ${st.ch} ${st.cv}`);
     const hint = await page.locator(".bd-right .bd-field-hint", { hasText: "frame changes size" }).first().textContent();
     expect(/right and bottom edges/.test(hint), `the hint says what it keeps to, got ${hint}`);
+    const tip = await page.locator(".bd-right .bd-field-label.has-tip", { hasText: "Constraints" }).first().evaluate((el) => el.getAttribute("title") || el.getAttribute("data-tip"));
+    expect(/right and bottom edges/.test(tip || ""), `the hint is the label's tooltip, not a line under it, got ${tip}`);
+    const hintBox = await page.locator(".bd-right .bd-field-hint", { hasText: "frame changes size" }).first().boundingBox();
+    expect(!hintBox || hintBox.height <= 1, `the hint isn't shown under the control, got a box ${JSON.stringify(hintBox)}`);
     expect(await page.locator(".bd-pin-mark").count() === 2, "two dashed lines run from it to the right and bottom edges");
     await pins.locator(".bd-pin-line.is-left").click({ modifiers: ["Shift"] });
     st = await poll(() => node("bt"), (s) => s.ch === "both");

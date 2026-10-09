@@ -4678,6 +4678,7 @@
     pipette: ["m3 21 1.5-1.5h2.5l8-8", "M4.5 19.5V17l8-8", "m14.5 6.5 2.8-2.8a2.1 2.1 0 1 1 3 3l-2.8 2.8", "m12 5 7 7"],
     exportOut: ["M12 15V3", "m7 8 5-5 5 5", "M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"],
     variable: ["M8 4c-2 2.5-3 5-3 8s1 5.5 3 8", "M16 4c2 2.5 3 5 3 8s-1 5.5-3 8", "m9.5 9 5 6", "m14.5 9-5 6"],
+    info: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z", "M12 11v5", "M12 8h.01"],
     shapes: ["M8.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M13 13h8v8h-8z", "M7 14l4 7H3z"],
     card: ["M4 5h16v14H4z", "M4 10h16", "M7 14h6"],
     /* A shape's kind, a line's caps, and a border's width and style. */
@@ -5722,12 +5723,13 @@
     })), document.body);
   }
   function Field(props) {
+    var tip = [props.note, typeof props.hint === "string" ? kbd(props.hint) : null].filter(Boolean).join(" ");
     return e(
       "div",
       { className: cx("bd-field", props.inline && "bd-field-inline") },
-      e("span", { className: "bd-field-label", id: props.id, title: props.note || void 0 }, props.label),
+      e("span", { className: cx("bd-field-label", tip && "has-tip"), id: props.id, title: tip || void 0 }, props.label),
       props.children,
-      props.hint ? e("span", { className: "bd-field-hint" }, kbd(props.hint)) : null
+      props.hint ? e("span", { className: "bd-field-hint visually-hidden" }, typeof props.hint === "string" ? kbd(props.hint) : props.hint) : null
     );
   }
   var PIN_LINES = [
@@ -17477,6 +17479,13 @@
             e(
               "div",
               { className: "bd-head-actions" },
+              /* What it is, as a tooltip, and its docs when it has them. */
+              (function() {
+                var about = many ? sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them." : meta.blurb ? meta.blurb + "." : "";
+                if (!about) return null;
+                var href = !many && meta.href;
+                return e(href ? "a" : "span", { className: "bd-act bd-act-ghost bd-about", href: href || void 0, title: about + (href ? " Open the docs." : ""), "aria-label": href ? about + " Docs" : about, role: href ? void 0 : "img" }, e(Icon, { name: "info" }));
+              })(),
               e(Dropdown, {
                 menu: true,
                 label: "Actions for " + (many ? title : nameOf(first)),
@@ -17525,7 +17534,6 @@
             )
           ),
           !many && first.inst ? instanceRow(first) : null,
-          many ? e("p", { className: "bd-inspect-sub" }, sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them.") : meta.blurb ? e("p", { className: "bd-inspect-sub" }, meta.blurb + ".", meta.href ? e(React.Fragment, null, " ", e("a", { href: meta.href }, "Docs")) : null) : null,
           arrangeTools
         ),
         tabBar(have, current2),

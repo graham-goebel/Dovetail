@@ -967,8 +967,11 @@ html.bd-configure-docked .configure-open-btn {
 }
 
 .bd-right .bd-dd[aria-expanded="true"],
-.bd-right .bd-input:focus,
-.bd-right /* Opacity in a free frame: a slider, and the percent beside it. */
+.bd-right .bd-input:focus {
+  border-color: var(--dt-border-strong);
+}
+
+/* Opacity in a free frame: a slider, and the percent beside it. */
 .bd-opacity {
   display: flex;
   align-items: center;
@@ -6553,4 +6556,95 @@ input.bd-folder-name {
   left: 0;
   right: 0;
   height: 1px;
+}
+
+/* The inspector, quiet: every control the same short filled field, labels
+   small and muted, numbers in even figures, section titles as small as the
+   labels but heavier, and hints as tooltips on their labels. The pictures
+   that say more than a menu would (the pin square, the align matrix, the
+   box model) keep their size. */
+.bd-right {
+  font-variant-numeric: tabular-nums;
+}
+.bd-right .bd-sec {
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm) var(--dt-space-inset-sm);
+}
+.bd-right .bd-sec-head {
+  min-height: var(--dt-dim-6);
+}
+.bd-right .bd-sec-h {
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
+}
+.bd-right .bd-sec.is-closed .bd-sec-h {
+  color: var(--dt-text-tertiary);
+  font-weight: var(--dt-font-weight-medium);
+}
+.bd-right .bd-sec-dot {
+  width: 5px;
+  height: 5px;
+}
+.bd-right .bd-sec-empty {
+  font-size: var(--dt-font-size-2xs, 11px);
+}
+.bd-right .bd-field {
+  gap: var(--dt-space-stack-2xs);
+  margin-top: var(--dt-space-stack-xs);
+}
+.bd-right .bd-field-label {
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-2xs, 11px);
+  font-weight: var(--dt-font-weight-regular, 400);
+}
+.bd-right .bd-field-label.has-tip {
+  cursor: help;
+}
+.bd-right .bd-field-inline .bd-field-label {
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
+}
+.bd-right .bd-dd,
+.bd-right .bd-num,
+.bd-right .bd-input {
+  min-height: var(--dt-size-control-sm);
+  border-radius: var(--dt-radius-control);
+  font-size: var(--dt-font-size-xs);
+}
+.bd-right .bd-dd {
+  padding: 0 var(--dt-space-inset-2xs, 4px) 0 var(--dt-space-inset-xs);
+}
+.bd-right .bd-num input {
+  font-size: var(--dt-font-size-xs);
+}
+.bd-right .bd-num-l {
+  font-family: inherit;
+  font-size: var(--dt-font-size-2xs, 11px);
+}
+.bd-right .bd-dd-prefix {
+  font-size: var(--dt-font-size-2xs, 11px);
+}
+.bd-right .bd-size-row {
+  gap: var(--dt-space-inline-xs);
+}
+.bd-right .bd-seg {
+  min-height: var(--dt-size-control-sm);
+}
+.bd-right .bd-seg-btn {
+  font-size: var(--dt-font-size-xs);
+}
+.bd-right .bd-inspect-head {
+  padding: var(--dt-space-inset-sm) var(--dt-space-inset-sm) var(--dt-space-inset-xs);
+}
+.bd-right .bd-inspect-title {
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-semibold, 600);
+}
+.bd-right .bd-arrange .bd-act,
+.bd-right .bd-arrange .bd-dd-icon.bd-dd {
+  border-color: transparent;
+  background: none;
+}
+.bd-right .bd-arrange .bd-act:not([disabled]):hover,
+.bd-right .bd-arrange .bd-dd-icon.bd-dd:hover {
+  background: var(--bd-field);
 }

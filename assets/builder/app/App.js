@@ -5311,6 +5311,13 @@ function App(props) {
           /* Everything a selection can do, in one menu, so a long name has
              the row to itself. */
           e("div", { className: "bd-head-actions" },
+            /* What it is, as a tooltip, and its docs when it has them. */
+            (function () {
+              var about = many ? (sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them.") : meta.blurb ? meta.blurb + "." : "";
+              if (!about) return null;
+              var href = !many && meta.href;
+              return e(href ? "a" : "span", { className: "bd-act bd-act-ghost bd-about", href: href || undefined, title: about + (href ? " Open the docs." : ""), "aria-label": href ? about + " Docs" : about, role: href ? undefined : "img" }, e(Icon, { name: "info" }));
+            })(),
             e(Dropdown, { menu: true, label: "Actions for " + (many ? title : nameOf(first)), placeholder: "Actions", icon: "more", iconOnly: true, compact: true, narrow: true, alignEnd: true, className: "bd-dd-icon bd-layer-menu",
               options: [!many && first.type === "Group" ? { value: "ungroup", label: "Ungroup", hint: "Ctrl+Shift+G", icon: "group" } : { value: "group", label: "Group", hint: "Ctrl+G", icon: "group" }]
                 .concat(WRAPS.filter(function (w) { return placeable == null || placeable[w]; }).map(function (w) { return { value: "wrap:" + w, label: "Wrap in " + w, icon: typeIcon(w) }; }))
@@ -5339,8 +5346,6 @@ function App(props) {
                 else if (v === "pasteStyle") pasteStyle();
               } }))),
         !many && first.inst ? instanceRow(first) : null,
-        many ? e("p", { className: "bd-inspect-sub" }, sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them.")
-          : meta.blurb ? e("p", { className: "bd-inspect-sub" }, meta.blurb + ".", meta.href ? e(React.Fragment, null, " ", e("a", { href: meta.href }, "Docs")) : null) : null,
         arrangeTools),
       tabBar(have, current),
       tabPanel(current, body));
