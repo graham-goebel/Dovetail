@@ -463,7 +463,10 @@ function App(props) {
       var shot = a.snapshot("jpeg", { scale: 1, id: id || null });
       var late = new Promise(function (resolve, reject) { setTimeout(function () { reject(new Error("The picture took too long.")); }, 15000); });
       return Promise.race([shot, late]);
-    }).then(function (url) {
+    }).then(fitJpeg);
+  };
+  /* A picture as the assistant gets it: a JPEG no larger than 1280 by 2000. */
+  var fitJpeg = function (url) {
       return new Promise(function (resolve, reject) {
         var img = new Image();
         img.onload = function () {
@@ -480,7 +483,15 @@ function App(props) {
         img.onerror = function () { reject(new Error("The picture couldn't be read.")); };
         img.src = url;
       });
-    });
+  };
+  /* A picture of a frame (or one layer in it) drawn out of sight at another
+     width or in the other mode, the way the checks draw it, so the canvas
+     is left as it is. */
+  var shootDrawn = function (fid, id, width, dark) {
+    var f = frameById(docRef.current, fid);
+    if (!f) return Promise.reject(new Error("That frame is gone."));
+    var late = new Promise(function (resolve, reject) { setTimeout(function () { reject(new Error("The picture took too long.")); }, 20000); });
+    return Promise.race([drawAndAudit(f, width || f.width, dark == null ? !!f.dark : !!dark, function (a) { return a.snapshot("jpeg", { scale: 1, id: id || null }); }), late]).then(fitJpeg);
   };
   /* A component's documentation (its .md beside the code), found through
      the system's manifest; both are fetched once. */
@@ -503,7 +514,7 @@ function App(props) {
   var auditEl = useRef(null);
   var auditQueue = useRef(Promise.resolve());
   var pageProps = function (f) { return { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale, pageWidth: f.pageWidth, gutter: f.gutter, flow: f.flow, clip: f.clip, scroll: f.scroll }; };
-  var drawAndAudit = function (f, width, dark) {
+  var drawAndAudit = function (f, width, dark, read) {
     var run = function () {
       return new Promise(function (resolve, reject) {
         var el = auditEl.current;
@@ -524,7 +535,7 @@ function App(props) {
           try { a = el.contentWindow && el.contentWindow.BuilderFrame; } catch (err) { a = null; }
           if (!a || !a.audit) { if (++tries > 80) { reject(new Error("The checks couldn't draw the frame.")); return; } setTimeout(wait, 100); return; }
           a.render({ page: Object.assign(pageProps(f), { dark: dark }), root: f.root }, { preview: true, hug: true, screen: { w: width, h: f.height || 900 } });
-          requestAnimationFrame(function () { requestAnimationFrame(function () { setTimeout(function () { try { resolve(a.audit()); } catch (err) { reject(err); } }, 120); }); });
+          requestAnimationFrame(function () { requestAnimationFrame(function () { setTimeout(function () { try { resolve(read ? read(a) : a.audit()); } catch (err) { reject(err); } }, 120); }); });
         })();
       });
     };
@@ -628,7 +639,8 @@ function App(props) {
     skills: function () { return asContext().skills; },
     pages: function () { return pagesOf(projectRef.current).map(function (pg) { return { id: pg.id, name: pg.name, current: pg.id === pageRef.current || undefined }; }); },
     loadPage: function (pg) { return store.loadDoc(projectRef.current.id, pg); },
-    screenshot: function (fid, id) { return shootForAssistant(fid, id); },
+    /* opts.width or opts.dark: drawn out of sight that way, not as it's on the canvas. */
+    screenshot: function (fid, id, opts) { return opts && (opts.width || opts.dark != null) ? shootDrawn(fid, id, opts.width, opts.dark) : shootForAssistant(fid, id); },
     componentDoc: function (name) { return componentDoc(name); },
     replace: function (id, nodes) {
       var made = [];
