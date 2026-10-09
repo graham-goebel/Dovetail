@@ -611,11 +611,14 @@ function ContextMenu(props) {
   })), document.body);
 }
 
+/* A labelled control. Its hint is a tooltip on the label, and stays in
+   the page, unseen, for screen readers. */
 function Field(props) {
+  var tip = [props.note, typeof props.hint === "string" ? kbd(props.hint) : null].filter(Boolean).join(" ");
   return e("div", { className: cx("bd-field", props.inline && "bd-field-inline") },
-    e("span", { className: "bd-field-label", id: props.id, title: props.note || undefined }, props.label),
+    e("span", { className: cx("bd-field-label", tip && "has-tip"), id: props.id, title: tip || undefined }, props.label),
     props.children,
-    props.hint ? e("span", { className: "bd-field-hint" }, kbd(props.hint)) : null);
+    props.hint ? e("span", { className: "bd-field-hint visually-hidden" }, typeof props.hint === "string" ? kbd(props.hint) : props.hint) : null);
 }
 
 /* Constraints as a pin square: a square for the frame, a smaller one
