@@ -87,6 +87,17 @@
 <h2 id="live-editing">Live editing</h2>
 <p>Each edit in the Builder is already a small list of changes (the same ones its undo history keeps). Once live editing is on, on a shared page the Builder sends each list to everyone else on that page's channel, and applies theirs as they arrive, without adding them to its own undo history. Changes to different things all survive, in any order; on the very same field, the last to arrive wins. Undo takes back only your own edits. A change too big for one message (a large uploaded image, say) is saved with the page instead, and everyone else loads it.</p>
 <p><code>npm run check:unit</code> runs the sync engine against an in-memory channel: <code>tools/check/unit/sync.test.mjs</code>.</p>
+<h2 id="the-assistant">The assistant</h2>
+<p>The Builder's design assistant reads context (docs and skills) and makes changes on the canvas through tools that run in the browser. The model is called from a Supabase Edge Function, so its key never reaches a browser or this repository.</p>
+<p><strong>Practice mode is the default.</strong> Until live mode is turned on, every request is answered in the browser by a scripted practice assistant (<code>assets/builder/model/assistant.js</code>). Nothing is sent anywhere and nothing is charged, so the panels can be tried with no account or cloud. Live mode needs the cloud connected, a signed-in person, and one of:</p>
+<ul><li><code>window.DovetailAssistant = { mode: &quot;live&quot; }</code> set before <code>builder.js</code> loads;</li><li><code>localStorage[&quot;dovetail-assistant&quot;] = &quot;live&quot;</code> in that browser.</li></ul>
+<p><strong>Setting it up:</strong></p>
+<ol><li>Run <code>supabase/assistant.sql</code> in the SQL editor, after <code>schema.sql</code>. Like <code>schema.sql</code>, it's safe to run again. It adds:<ul><li>teams and their members (owner, editor, viewer);</li><li>project groups (what Home calls projects);</li><li>context docs, skills and skill files, each kept for exactly one team, project group or file;</li><li>a run log the function writes.</li></ul></li><li>Deploy the function: <code>supabase functions deploy assistant</code>.</li><li>Set its secrets in the dashboard (Edge Functions &gt; Secrets) or with <code>supabase secrets set</code>:<ul><li><strong><code>ANTHROPIC_API_KEY</code></strong>: required. Set it there only; never put it in the repository, a page or a chat.</li><li><strong><code>ASSISTANT_HOURLY_LIMIT</code></strong>: optional, 60 requests per person per hour by default.</li><li><strong><code>ASSISTANT_ORIGINS</code></strong>: optional, the sites allowed to call the function, comma-separated (for example <code>https://graham-goebel.github.io</code>).</li></ul></li></ol>
+<p><strong>Who reads what:</strong></p>
+<ul><li>A team's docs and skills: its members read them; owners and editors change them.</li><li>A project group's: its owner and, if it has a team, that team, with viewers reading only.</li><li>A file's: the file's members.</li><li>The run log: written only by the function, with the service key on the server. Each person reads their own lines.</li></ul>
+<p><code>sh supabase/tests/run.sh</code> tries all of this on a local Postgres, as each kind of person.</p>
+<p><strong>What the function does with a request:</strong></p>
+<ul><li>checks the session and the hourly limit, and that a named file is shared with the person;</li><li>adds a short fixed preamble to the Builder's own system text (the context docs and the selection);</li><li>sends it to Claude Opus 5.5 at medium effort, with fallbacks on, so a request a safety check declines is retried on another model in the same call;</li><li>streams the model's events back unchanged.</li></ul>
 <h2 id="what-s-built-and-what-s-next">What's built and what's next</h2>
 <p>Built: the schema and its tests, signing in and out, new accounts with a confirmed email, password resets, invites accepted on sign-in, and the sync engine. The Builder fetches nothing until the address and key are set.</p>
 <p>Next, once a project is connected: keeping projects in the cloud (and listing them on Home beside the ones in this browser), inviting people, and turning on live editing and presence for shared pages.</p>
@@ -101,6 +112,7 @@
     <li><a href="#connecting-a-supabase-project">Connecting a Supabase project</a></li>
     <li><a href="#how-it-keeps-things-private">How it keeps things private</a></li>
     <li><a href="#live-editing">Live editing</a></li>
+    <li><a href="#the-assistant">The assistant</a></li>
     <li><a href="#what-s-built-and-what-s-next">What's built and what's next</a></li>
   </ol>
 </aside>

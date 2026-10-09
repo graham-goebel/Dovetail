@@ -110,6 +110,44 @@ is saved with the page instead, and everyone else loads it.
 `npm run check:unit` runs the sync engine against an in-memory channel:
 `tools/check/unit/sync.test.mjs`.
 
+## The assistant
+
+The Builder's design assistant reads context (docs and skills) and makes changes on the canvas through tools that run in the browser. The model is called from a Supabase Edge Function, so its key never reaches a browser or this repository.
+
+**Practice mode is the default.** Until live mode is turned on, every request is answered in the browser by a scripted practice assistant (`assets/builder/model/assistant.js`). Nothing is sent anywhere and nothing is charged, so the panels can be tried with no account or cloud. Live mode needs the cloud connected, a signed-in person, and one of:
+
+- `window.DovetailAssistant = { mode: "live" }` set before `builder.js` loads;
+- `localStorage["dovetail-assistant"] = "live"` in that browser.
+
+**Setting it up:**
+
+1. Run `supabase/assistant.sql` in the SQL editor, after `schema.sql`. Like `schema.sql`, it's safe to run again. It adds:
+   - teams and their members (owner, editor, viewer);
+   - project groups (what Home calls projects);
+   - context docs, skills and skill files, each kept for exactly one team, project group or file;
+   - a run log the function writes.
+2. Deploy the function: `supabase functions deploy assistant`.
+3. Set its secrets in the dashboard (Edge Functions > Secrets) or with `supabase secrets set`:
+   - **`ANTHROPIC_API_KEY`**: required. Set it there only; never put it in the repository, a page or a chat.
+   - **`ASSISTANT_HOURLY_LIMIT`**: optional, 60 requests per person per hour by default.
+   - **`ASSISTANT_ORIGINS`**: optional, the sites allowed to call the function, comma-separated (for example `https://graham-goebel.github.io`).
+
+**Who reads what:**
+
+- A team's docs and skills: its members read them; owners and editors change them.
+- A project group's: its owner and, if it has a team, that team, with viewers reading only.
+- A file's: the file's members.
+- The run log: written only by the function, with the service key on the server. Each person reads their own lines.
+
+`sh supabase/tests/run.sh` tries all of this on a local Postgres, as each kind of person.
+
+**What the function does with a request:**
+
+- checks the session and the hourly limit, and that a named file is shared with the person;
+- adds a short fixed preamble to the Builder's own system text (the context docs and the selection);
+- sends it to Claude Opus 5.5 at medium effort, with fallbacks on, so a request a safety check declines is retried on another model in the same call;
+- streams the model's events back unchanged.
+
 ## What's built and what's next
 
 Built: the schema and its tests, signing in and out, new accounts with a
