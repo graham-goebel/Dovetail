@@ -279,32 +279,6 @@ function Segmented(props) {
     }));
 }
 
-/* Tabs that slide like a segmented row. Arrow keys move between the ones that
-   are on; each tab is `bd-itab-<id>` and controls `panel`. */
-function TabStrip(props) {
-  var tabs = props.tabs;
-  var slide = useSlide(function (i) { var t = tabs[i]; if (t && !t.disabled && t.id !== props.current) props.onPick(t.id); });
-  return e("div", Object.assign({ ref: slide.ref, className: cx("bd-itabs", slide.sliding && "is-sliding", slide.dragging && "is-dragging"), role: "tablist", "aria-label": props.label }, slide.handlers),
-    slide.thumb,
-    tabs.map(function (t) {
-      var on = props.current === t.id;
-      return e("button", {
-        key: t.id, type: "button", role: "tab", id: "bd-itab-" + t.id, className: "bd-itab", "aria-selected": String(on), "aria-controls": props.panel,
-        disabled: t.disabled, tabIndex: on ? 0 : -1,
-        onClick: function () { props.onPick(t.id); },
-        onKeyDown: function (ev) {
-          if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
-          ev.preventDefault();
-          var list = tabs.filter(function (x) { return !x.disabled; }).map(function (x) { return x.id; });
-          var i = list.indexOf(props.current) + (ev.key === "ArrowRight" ? 1 : -1);
-          var next = list[(i + list.length) % list.length];
-          props.onPick(next);
-          setTimeout(function () { var b = document.getElementById("bd-itab-" + next); if (b) b.focus(); }, 0);
-        },
-      }, t.label);
-    }));
-}
-
 function Switch(props) {
   return e("button", {
     type: "button", role: "switch", className: cx("bd-switch", props.mixed && "is-mixed"), "aria-checked": props.mixed ? "mixed" : String(!!props.value), "aria-labelledby": props.labelledBy,
@@ -1040,4 +1014,4 @@ function playHeights(w) {
 }
 function playDefault(w) { return w <= 500 ? 812 : w <= 1100 ? 1180 : 900; }
 
-export { ALIGN_POS, ALIGN_WORD, AlignMatrix, ConstraintBox, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, ID_FIELD, LinkTo, PAGE_LINK, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, OpacityField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, PictureField, Segmented, SwatchField, Switch, TabStrip, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };
+export { ALIGN_POS, ALIGN_WORD, AlignMatrix, ConstraintBox, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, ID_FIELD, LinkTo, PAGE_LINK, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, OpacityField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, PictureField, Segmented, SwatchField, Switch, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };

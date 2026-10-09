@@ -427,25 +427,21 @@ html.bd-configure-docked .configure-open-btn {
   pointer-events: none;
 }
 
-.bd-seg > .bd-seg-btn,
-.bd-itabs > .bd-itab {
+.bd-seg > .bd-seg-btn {
   position: relative;
   z-index: 1;
 }
 
-.bd-seg.is-sliding > .bd-seg-btn[aria-pressed="true"],
-.bd-itabs.is-sliding > .bd-itab[aria-selected="true"] {
+.bd-seg.is-sliding > .bd-seg-btn[aria-pressed="true"] {
   background: transparent;
   box-shadow: none;
 }
 
-.bd-seg.is-dragging,
-.bd-itabs.is-dragging {
+.bd-seg.is-dragging {
   cursor: grabbing;
 }
 
-.bd-seg.is-dragging > .bd-seg-btn,
-.bd-itabs.is-dragging > .bd-itab {
+.bd-seg.is-dragging > .bd-seg-btn {
   cursor: inherit;
 }
 
@@ -942,7 +938,6 @@ html.bd-configure-docked .configure-open-btn {
 .bd-input:focus-visible,
 .bd-search input:focus-visible,
 .bd-search-clear:focus-visible,
-.bd-itab:focus-visible,
 .bd-num input:focus-visible,
 .bd-flabel-btn:focus-visible,
 .bd-float:focus-visible,
@@ -2799,54 +2794,6 @@ span.bd-layer-twisty.is-open .bd-ic {
   margin-top: var(--dt-space-stack-sm);
 }
 
-/* The inspector's tabs: a segmented row that stays in view as its controls
-   scroll. */
-.bd-itabs {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  display: flex;
-  touch-action: pan-y;
-  gap: 2px;
-  margin: 0;
-  padding: var(--dt-space-inset-xs) var(--dt-space-inset-md);
-  border-bottom: var(--dt-border-width-default) solid var(--dt-border-default);
-  background: var(--dt-surface-subtle);
-}
-
-.bd-itab {
-  flex: 1;
-  min-height: calc(var(--dt-size-control-sm) - 4px);
-  padding: 0 var(--dt-space-inset-xs);
-  border: 0;
-  border-radius: var(--dt-radius-control);
-  background: transparent;
-  color: var(--dt-text-secondary);
-  font: inherit;
-  font-size: var(--dt-font-size-xs);
-  font-weight: var(--dt-font-weight-medium);
-  cursor: pointer;
-}
-
-.bd-itabs .bd-seg-thumb {
-  border-radius: var(--dt-radius-control);
-}
-
-.bd-itab:hover:not(:disabled) {
-  color: var(--dt-text-primary);
-}
-
-.bd-itab[aria-selected="true"] {
-  background: var(--bd-field-on);
-  color: var(--dt-text-primary);
-  box-shadow: var(--dt-elevation-1);
-}
-
-.bd-itab:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
 .bd-size-row {
   display: flex;
   gap: var(--dt-space-inline-2xs);
@@ -3364,7 +3311,6 @@ span.bd-layer-twisty.is-open .bd-ic {
   }
 
   .bd-tab,
-  .bd-itab,
   .bd-seg-btn,
   .bd-cat,
   .bd-tile,
