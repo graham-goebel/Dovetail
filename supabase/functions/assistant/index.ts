@@ -26,7 +26,7 @@ const ORIGINS = (Deno.env.get("ASSISTANT_ORIGINS") ?? "").split(",").map((s) => 
 const MAX_BODY = 8_000_000;
 const MAX_STABLE = 200_000;
 const MAX_MESSAGES = 120;
-const MAX_TOOLS = 24;
+const MAX_TOOLS = 32;
 
 // What the assistant is, whatever the Builder sends after it.
 const PREAMBLE = "You edit designs in the Dovetail Builder through the tools you're given. " +

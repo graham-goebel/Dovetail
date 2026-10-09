@@ -5764,7 +5764,7 @@ try {
     await page.evaluate(async () => {
       await window.__builder.flush();
       const d = JSON.parse(JSON.stringify(window.__builder.doc()));
-      d.frames[0].root.children.push({ id: "ah", type: "Section", props: {}, style: {}, children: [{ id: "ahh", type: "Heading", props: { children: "Hello" }, style: {} }] });
+      d.frames[0].root.children.push({ id: "ah", type: "Section", props: {}, style: {}, children: [{ id: "ahh", type: "Heading", props: { children: "Hello" }, style: {} }, { id: "ahi", type: "Input", props: {}, style: {} }] });
       await window.__builder.store.saveDoc(window.__builder.project().id, d);
     });
     await page.waitForTimeout(400);
@@ -5785,6 +5785,14 @@ try {
     const node = () => page.evaluate(() => { const d = window.__builder.doc(); return d.frames[0].root.children.find((c) => c.id === "ah"); });
     const changed = await node();
     expect(changed.style.surface === "brand-muted" && changed.style.elevation, `the Section takes a token fill and shadow, got ${JSON.stringify(changed.style)}`);
+    await page.locator(".bd-as-bot").first().locator(".bd-as-check").first().waitFor({ timeout: 20000 });
+    const checks = await page.locator(".bd-as-bot").first().locator(".bd-as-check").evaluateAll((els) => els.map((el) => ({ cls: el.className, text: el.textContent })));
+    expect(checks.length === 5, `five checks run after the reply, got ${JSON.stringify(checks)}`);
+    expect(checks.some((c) => /is-fail/.test(c.cls) && /accessibility issue/.test(c.text)), `the Input without a label fails the accessibility check, got ${JSON.stringify(checks)}`);
+    expect(checks.some((c) => /390px|reflowed/.test(c.text)), `the 390px check ran, or says why a freeform frame isn't reflowed, got ${JSON.stringify(checks)}`);
+    expect(checks.some((c) => /contrast/i.test(c.text) && /is-(pass|fail)/.test(c.cls)), "the contrast check read the frame as drawn");
+    expect(checks.some((c) => /mode/.test(c.text) && /is-(pass|fail)/.test(c.cls)), "the dark mode check ran");
+    ok("the checks run after the reply: contrast, 390px, dark mode, accessibility and copy, and the unlabelled Input fails");
     const rows = await page.locator(".bd-as-row .bd-as-n").allTextContents();
     expect(rows.includes("Fill") && rows.includes("Shadow"), `the change card lists what changed, got ${rows}`);
     expect((await page.evaluate(() => window.__builder.history())).past === before + 2, "each change is its own history step");
@@ -5792,6 +5800,7 @@ try {
     await page.waitForFunction(() => { const d = window.__builder.doc(); const n = d.frames[0].root.children.find((c) => c.id === "ah"); return !n.style.surface && !n.style.elevation; });
     expect(await page.locator(".bd-as-card-h .bd-as-note", { hasText: "Undone" }).count() === 1, "the card says it was undone");
     ok("practice mode changes the selection with tokens, the card lists Fill and Shadow, and Undo all takes both back");
+    expect(await page.locator(".bd-as-bot").first().locator(".bd-as-check").count() === 0, "an undone reply's checks go, as they no longer describe the canvas");
     await page.locator(".bd-as-input").fill("Add a button");
     await page.keyboard.press("Enter");
     await page.locator(".bd-as-bot").nth(1).locator(".bd-as-acts").waitFor();
@@ -5830,6 +5839,15 @@ try {
     expect(rows4[0] === "New frame" && rows4.filter((r) => r === "Added").length === 3, `the card lists the new frame and the three sections, got ${rows4}`);
     await reply(4).locator(".bd-as-acts button", { hasText: "Undo all" }).click();
     await page.waitForFunction((n) => window.__builder.doc().frames.length === n, framesBefore);
+    const fixRow = reply(1).locator(".bd-as-check.is-fail", { hasText: "accessibility" });
+    await fixRow.waitFor({ timeout: 20000 });
+    await fixRow.locator("button", { hasText: "Fix" }).click();
+    await page.waitForFunction(() => { const b = document.querySelectorAll(".bd-as-bot")[5]; return b && /want/.test(b.textContent); }, null, { timeout: 20000 });
+    await settled();
+    const fixSteps = await reply(5).locator(".bd-as-step").allTextContents();
+    expect(fixSteps.some((t) => /^Checked /.test(t)), `Fix asks the assistant, which runs the checks, got ${fixSteps}`);
+    expect(/no label/.test(await page.locator(".bd-as-me").last().textContent()), "the Fix message names what failed");
+    ok("a failing check's Fix sends what failed to the assistant, which runs the checks again");
     expect(sent.length === 0, `nothing goes to a model or the cloud in practice mode, got ${sent.join(", ")}`);
     ok("asking for a pricing page makes a structured frame and fills it in one batch; Undo all takes the frame away; no request leaves the page");
     await page.close();

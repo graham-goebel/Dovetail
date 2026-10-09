@@ -1469,6 +1469,103 @@
       .then(done, function (err) { done(); throw err; });
   }
 
+  /* What the assistant's checks read off the page as drawn: text that's
+     too faint against what's behind it, and anything that spills past the
+     frame's edge. Each finding names the layer it belongs to. Text over a
+     picture or a gradient is left out, as its contrast can't be read from
+     colours alone. */
+  function rgba(c) {
+    var m = /rgba?\(([^)]+)\)/.exec(c || "");
+    if (!m) return null;
+    var p = m[1].split(/[\s,\/]+/).filter(Boolean).map(parseFloat);
+    return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
+  }
+  function over(top, under) {
+    var a = top.a;
+    return { r: top.r * a + under.r * (1 - a), g: top.g * a + under.g * (1 - a), b: top.b * a + under.b * (1 - a), a: 1 };
+  }
+  function lum(c) {
+    var f = function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b);
+  }
+  function ratio(a, b) { var x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+  /* What's behind an element: its first ancestor with a fill, or null when
+     a picture or gradient is behind it. */
+  function behind(el) {
+    var layers = [];
+    for (var n = el; n && n.nodeType === 1; n = n.parentElement) {
+      var cs = getComputedStyle(n);
+      if (cs.backgroundImage && cs.backgroundImage !== "none") return null;
+      if (n.tagName === "IMG" || n.tagName === "VIDEO") return null;
+      var bg = rgba(cs.backgroundColor);
+      if (bg && bg.a > 0) { layers.push(bg); if (bg.a >= 1) break; }
+    }
+    var base = { r: 255, g: 255, b: 255, a: 1 };
+    for (var i = layers.length - 1; i >= 0; i--) base = over(layers[i], base);
+    return base;
+  }
+  function visible(el, cs) {
+    if (cs.display === "none" || cs.visibility === "hidden" || parseFloat(cs.opacity) === 0) return false;
+    var r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  }
+  function audit() {
+    var root = mount.firstElementChild;
+    var out = { width: document.documentElement.clientWidth, scrolls: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1, contrast: [], overflow: [] };
+    if (!root) return out;
+    var seen = {};
+    var idOf = function (el) { var w = el.closest("[data-bf-id]"); return w ? w.getAttribute("data-bf-id") : "root"; };
+    var all = root.querySelectorAll("*");
+    for (var i = 0; i < all.length && out.contrast.length < 40; i++) {
+      var el = all[i];
+      if (el.closest(".bf-empty")) continue;
+      var own = Array.prototype.some.call(el.childNodes, function (t) { return t.nodeType === 3 && t.textContent.trim(); });
+      if (!own) continue;
+      var cs = getComputedStyle(el);
+      if (!visible(el, cs)) continue;
+      var bg = behind(el);
+      var fg = rgba(cs.color);
+      if (!bg || !fg) continue;
+      var k = ratio(over(fg, bg), bg);
+      var size = parseFloat(cs.fontSize), bold = parseInt(cs.fontWeight, 10) >= 700;
+      var need = size >= 24 || (size >= 18.66 && bold) ? 3 : 4.5;
+      var id = idOf(el);
+      if (k + 0.005 < need && !seen["c" + id]) {
+        seen["c" + id] = true;
+        out.contrast.push({ id: id, ratio: Math.round(k * 100) / 100, need: need, text: el.textContent.trim().slice(0, 40) });
+      }
+    }
+    var edge = out.width + 1;
+    for (var j = 0; j < all.length && out.overflow.length < 20; j++) {
+      var e2 = all[j];
+      var r = e2.getBoundingClientRect();
+      if (r.width === 0 || r.right <= edge) continue;
+      /* Inside something that clips or scrolls sideways (a carousel, a
+         scrolling row), it's meant to run on. */
+      var clipped = false;
+      for (var a = e2.parentElement; a && a !== root.parentElement; a = a.parentElement) {
+        var ox = getComputedStyle(a).overflowX;
+        if (ox !== "visible") { clipped = true; break; }
+      }
+      if (clipped) continue;
+      var id2 = idOf(e2);
+      if (seen["o" + id2]) continue;
+      seen["o" + id2] = true;
+      out.overflow.push({ id: id2, by: Math.round(r.right - out.width) });
+    }
+    return out;
+  }
+  /* The spacing tokens in pixels, as this page resolves them. */
+  function tokenPx(names) {
+    var probe = document.createElement("div");
+    probe.style.position = "absolute"; probe.style.visibility = "hidden";
+    document.body.appendChild(probe);
+    var out = {};
+    names.forEach(function (n) { probe.style.width = "var(" + n + ")"; out[n] = probe.getBoundingClientRect().width; });
+    probe.remove();
+    return out;
+  }
+
   window.BuilderFrame = {
     render: render,
     detach: detach,
@@ -1507,6 +1604,8 @@
     },
     anatomy: anatomy,
     snapshot: snapshot,
+    audit: audit,
+    tokenPx: tokenPx,
     /* The padding and margin a node has as drawn, in pixels: what it was
        given, what its component brings, or what it picks up around it. Its
        wrapper is display: contents, so that's its first element. */

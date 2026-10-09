@@ -82,7 +82,7 @@ test("the practice script turns plain requests into real tool calls", () => {
 test("the tool list keeps one order, and leaves out screenshot when looking is off", () => {
   const names = TOOLS.map((t) => t.name);
   assert.equal(new Set(names).size, names.length, "no tool twice");
-  assert.ok(names.length <= 24, "within what the assistant function takes");
+  assert.ok(names.length <= 32, "within what the assistant function takes");
   assert.deepEqual(toolsFor({ look: true }).map((t) => t.name), names);
   assert.ok(!toolsFor({ look: false }).some((t) => t.name === "screenshot"));
 });
@@ -270,4 +270,18 @@ test("the practice script builds a page in two rounds: a frame, then its section
   const r2 = runTool(api, t2.calls[0]);
   assert.equal(r2.ok, true, r2.result);
   assert.equal(api.doc().frames[1].root.children[0].children.length, 3, "three sections in the new frame's Content group");
+});
+
+test("lint and measure hand back what the builder reports", async () => {
+  const { hero, api } = harness();
+  api.runChecks = () => Promise.resolve({ rows: [{ id: "contrast", status: "pass", title: "ok", detail: "", ids: [] }], text: "Checks on Frame:\n- PASS ok" });
+  api.measure = () => ({ across: { px: 0, overlap: true }, down: { px: 24, token: "--dt-space-inset-lg", tokenPx: 24 } });
+  const l = await runTool(api, { name: "lint", input: {} });
+  assert.equal(l.ok, true);
+  assert.match(l.result, /PASS ok/);
+  assert.equal(l.checks.length, 1);
+  assert.equal(runTool(api, { name: "lint", input: { frame: "nope" } }).ok, false);
+  const m = await runTool(api, { name: "measure", input: { a: hero.id, b: hero.children[0].id } });
+  assert.equal(JSON.parse(m.result).down.token, "--dt-space-inset-lg");
+  assert.equal(runTool(api, { name: "measure", input: { a: hero.id, b: "nope" } }).ok, false);
 });
