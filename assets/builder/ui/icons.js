@@ -1,5 +1,6 @@
 /* The builder's icon set. */
 
+import { CI_CSS, CI_MARKUP, CI_USE } from "../icons/canvas-icons.js";
 import { cx, e } from "../config.js";
 
 /* --------------------------------------------------------------- icons */
@@ -210,7 +211,21 @@ var HERO = {
   shapes: ["m21 7.5-2.25-1.313M21 7.5v2.25m0-2.25-2.25 1.313M3 7.5l2.25-1.313M3 7.5l2.25 1.313M3 7.5v2.25m9 3 2.25-1.313M12 12.75l-2.25-1.313M12 12.75V15m0 6.75 2.25-1.313M12 21.75V19.5m0 2.25-2.25-1.313m0-16.875L12 2.25l2.25 1.313M21 14.25v2.25l-2.25 1.313m-13.5 0L3 16.5v-2.25"],
 };
 Object.keys(HERO).forEach(function (k) { PATHS[k] = HERO[k]; });
+/* The canvas icons (assets/builder/icons): drawn from their own markup, with
+   their CSS added to the page once. They move only while their control is
+   hovered or focused. A name with no canvas icon falls back to PATHS. */
+if (CI_CSS && typeof document !== "undefined" && document.head && !document.getElementById("bd-ci-css")) {
+  var ciStyle = document.createElement("style");
+  ciStyle.id = "bd-ci-css";
+  ciStyle.textContent = CI_CSS;
+  document.head.appendChild(ciStyle);
+}
 function Icon(props) {
+  var ci = CI_USE[props.name];
+  if (ci && CI_MARKUP[ci]) {
+    return e("svg", { className: cx("bd-ic", "ci", props.className), "data-ci": ci, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false",
+      dangerouslySetInnerHTML: { __html: CI_MARKUP[ci] } });
+  }
   return e("svg", { className: cx("bd-ic", props.className), viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false" },
     (PATHS[props.name] || PATHS.box).map(function (d, i) { return e("path", { key: i, d: d }); }));
 }

@@ -1,0 +1,1154 @@
+{
+  "cursor": {
+    "category": "Tools",
+    "motion": "context-v2",
+    "description": "The pointer presses at its tip and releases.",
+    "file": "svg/tools/cursor.svg"
+  },
+  "direct-select": {
+    "category": "Tools",
+    "motion": "context-v2",
+    "description": "The pointer presses at its tip and releases.",
+    "file": "svg/tools/direct-select.svg"
+  },
+  "pen": {
+    "category": "Tools",
+    "motion": "context-v2",
+    "description": "The nib dips at its point, then lifts from the canvas.",
+    "file": "svg/tools/pen.svg"
+  },
+  "pencil": {
+    "category": "Tools",
+    "motion": "context-v2",
+    "description": "The pencil makes two short writing strokes.",
+    "file": "svg/tools/pencil.svg"
+  },
+  "line": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The stroke traces its drawing direction.",
+    "file": "svg/tools/line.svg"
+  },
+  "arrow": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The stroke traces its drawing direction.",
+    "file": "svg/tools/arrow.svg"
+  },
+  "triangle": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The shape traces into place.",
+    "file": "svg/tools/triangle.svg"
+  },
+  "diamond": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The shape traces into place.",
+    "file": "svg/tools/diamond.svg"
+  },
+  "polygon": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The shape traces into place.",
+    "file": "svg/tools/polygon.svg"
+  },
+  "star": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The shape traces into place.",
+    "file": "svg/tools/star.svg"
+  },
+  "text": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The shape traces into place.",
+    "file": "svg/tools/text.svg"
+  },
+  "frame": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The shape traces into place.",
+    "file": "svg/tools/frame.svg"
+  },
+  "crop": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The shape traces into place.",
+    "file": "svg/tools/crop.svg"
+  },
+  "slice": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The shape traces into place.",
+    "file": "svg/tools/slice.svg"
+  },
+  "lasso": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The shape traces into place.",
+    "file": "svg/tools/lasso.svg"
+  },
+  "hand": {
+    "category": "Tools",
+    "motion": "context-v2",
+    "description": "A friendly wave pivots naturally from the wrist.",
+    "file": "svg/tools/hand.svg"
+  },
+  "connector": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The stroke traces its drawing direction.",
+    "file": "svg/tools/connector.svg"
+  },
+  "vector-path": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The stroke traces its drawing direction.",
+    "file": "svg/tools/vector-path.svg"
+  },
+  "paint-bucket": {
+    "category": "Tools",
+    "motion": "context-v2",
+    "description": "The bucket tips to pour and returns upright.",
+    "file": "svg/tools/paint-bucket.svg"
+  },
+  "eyedropper": {
+    "category": "Tools",
+    "motion": "context-v2",
+    "description": "The pipette dips down to take a sample.",
+    "file": "svg/tools/eyedropper.svg"
+  },
+  "rectangle": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The shape traces into place.",
+    "file": "svg/tools/rectangle.svg"
+  },
+  "ellipse": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The shape traces into place.",
+    "file": "svg/tools/ellipse.svg"
+  },
+  "rounded-rectangle": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The shape traces into place.",
+    "file": "svg/tools/rounded-rectangle.svg"
+  },
+  "artboard": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The shape traces into place.",
+    "file": "svg/tools/artboard.svg"
+  },
+  "node-edit": {
+    "category": "Tools",
+    "motion": "draw",
+    "description": "The shape traces into place.",
+    "file": "svg/tools/node-edit.svg"
+  },
+  "align-left": {
+    "category": "Alignment",
+    "motion": "original-study",
+    "description": "Objects move away, then snap back to the alignment guide.",
+    "file": "svg/alignment/align-left.svg"
+  },
+  "align-top": {
+    "category": "Alignment",
+    "motion": "snap",
+    "description": "Objects move away, then snap back to the alignment guide.",
+    "file": "svg/alignment/align-top.svg"
+  },
+  "align-center-horizontal": {
+    "category": "Alignment",
+    "motion": "snap",
+    "description": "Objects move away, then snap back to the alignment guide.",
+    "file": "svg/alignment/align-center-horizontal.svg"
+  },
+  "align-center-vertical": {
+    "category": "Alignment",
+    "motion": "snap",
+    "description": "Objects move away, then snap back to the alignment guide.",
+    "file": "svg/alignment/align-center-vertical.svg"
+  },
+  "align-right": {
+    "category": "Alignment",
+    "motion": "snap",
+    "description": "Objects move away, then snap back to the alignment guide.",
+    "file": "svg/alignment/align-right.svg"
+  },
+  "align-bottom": {
+    "category": "Alignment",
+    "motion": "snap",
+    "description": "Objects move away, then snap back to the alignment guide.",
+    "file": "svg/alignment/align-bottom.svg"
+  },
+  "distribute-horizontal": {
+    "category": "Alignment",
+    "motion": "distribute",
+    "description": "Objects separate and return to their even spacing.",
+    "file": "svg/alignment/distribute-horizontal.svg"
+  },
+  "distribute-vertical": {
+    "category": "Alignment",
+    "motion": "distribute",
+    "description": "Objects separate and return to their even spacing.",
+    "file": "svg/alignment/distribute-vertical.svg"
+  },
+  "space-horizontal": {
+    "category": "Alignment",
+    "motion": "geometry-and-state-v3",
+    "description": "The gutter expands as the neighboring blocks shrink; their outer edges stay fixed.",
+    "file": "svg/alignment/space-horizontal.svg"
+  },
+  "space-vertical": {
+    "category": "Alignment",
+    "motion": "geometry-and-state-v3",
+    "description": "The gutter expands as the neighboring blocks shrink; their outer edges stay fixed.",
+    "file": "svg/alignment/space-vertical.svg"
+  },
+  "stretch-horizontal": {
+    "category": "Alignment",
+    "motion": "geometry-and-state-v3",
+    "description": "The block grows toward its sizing guides without crossing them.",
+    "file": "svg/alignment/stretch-horizontal.svg"
+  },
+  "stretch-vertical": {
+    "category": "Alignment",
+    "motion": "geometry-and-state-v3",
+    "description": "The block grows toward its sizing guides without crossing them.",
+    "file": "svg/alignment/stretch-vertical.svg"
+  },
+  "pin-left": {
+    "category": "Constraints",
+    "motion": "pin",
+    "description": "The constraint anchor briefly emphasizes its fixed position.",
+    "file": "svg/constraints/pin-left.svg"
+  },
+  "pin-top": {
+    "category": "Constraints",
+    "motion": "pin",
+    "description": "The constraint anchor briefly emphasizes its fixed position.",
+    "file": "svg/constraints/pin-top.svg"
+  },
+  "pin-right": {
+    "category": "Constraints",
+    "motion": "pin",
+    "description": "The constraint anchor briefly emphasizes its fixed position.",
+    "file": "svg/constraints/pin-right.svg"
+  },
+  "pin-bottom": {
+    "category": "Constraints",
+    "motion": "pin",
+    "description": "The constraint anchor briefly emphasizes its fixed position.",
+    "file": "svg/constraints/pin-bottom.svg"
+  },
+  "pin-center": {
+    "category": "Constraints",
+    "motion": "pin",
+    "description": "The constraint anchor briefly emphasizes its fixed position.",
+    "file": "svg/constraints/pin-center.svg"
+  },
+  "pin-all": {
+    "category": "Constraints",
+    "motion": "pin",
+    "description": "The constraint anchor briefly emphasizes its fixed position.",
+    "file": "svg/constraints/pin-all.svg"
+  },
+  "layout-free": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "Rows and columns resize with a constant four-unit gutter.",
+    "file": "svg/layout/layout-free.svg"
+  },
+  "layout-row": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "Blocks resize and reflow while preserving clear gutters.",
+    "file": "svg/layout/layout-row.svg"
+  },
+  "layout-column": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "Blocks resize and reflow while preserving clear gutters.",
+    "file": "svg/layout/layout-column.svg"
+  },
+  "layout-grid": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "Rows and columns resize with a constant four-unit gutter.",
+    "file": "svg/layout/layout-grid.svg"
+  },
+  "auto-layout": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "Content resizes within the auto-layout bounds.",
+    "file": "svg/layout/auto-layout.svg"
+  },
+  "wrap": {
+    "category": "Layout",
+    "motion": "flow",
+    "description": "A short movement follows the layout direction.",
+    "file": "svg/layout/wrap.svg"
+  },
+  "no-wrap": {
+    "category": "Layout",
+    "motion": "flow",
+    "description": "A short movement follows the layout direction.",
+    "file": "svg/layout/no-wrap.svg"
+  },
+  "gap-horizontal": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "The gutter expands as the neighboring blocks shrink; their outer edges stay fixed.",
+    "file": "svg/layout/gap-horizontal.svg"
+  },
+  "gap-vertical": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "The gutter expands as the neighboring blocks shrink; their outer edges stay fixed.",
+    "file": "svg/layout/gap-vertical.svg"
+  },
+  "padding-all": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "The inner block resizes as the inset changes; the outer boundary stays fixed.",
+    "file": "svg/layout/padding-all.svg"
+  },
+  "margin-all": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "The inner block resizes as the inset changes; the outer boundary stays fixed.",
+    "file": "svg/layout/margin-all.svg"
+  },
+  "position-absolute": {
+    "category": "Layout",
+    "motion": "position",
+    "description": "The reference stays fixed while the positioned element moves.",
+    "file": "svg/layout/position-absolute.svg"
+  },
+  "position-relative": {
+    "category": "Layout",
+    "motion": "position",
+    "description": "The reference stays fixed while the positioned element moves.",
+    "file": "svg/layout/position-relative.svg"
+  },
+  "position-sticky": {
+    "category": "Layout",
+    "motion": "context-v2",
+    "description": "The content scrolls, but the top bar stays pinned.",
+    "file": "svg/layout/position-sticky.svg"
+  },
+  "position-fixed": {
+    "category": "Layout",
+    "motion": "context-v2",
+    "description": "The surrounding guides move; the fixed object stays still.",
+    "file": "svg/layout/position-fixed.svg"
+  },
+  "overflow-hidden": {
+    "category": "Layout",
+    "motion": "context-v2",
+    "description": "Content scrolls within a steady container.",
+    "file": "svg/layout/overflow-hidden.svg"
+  },
+  "overflow-scroll": {
+    "category": "Layout",
+    "motion": "context-v2",
+    "description": "Content scrolls within a steady container.",
+    "file": "svg/layout/overflow-scroll.svg"
+  },
+  "hug-width": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "The block contracts to its smaller content size inside fixed guides.",
+    "file": "svg/layout/hug-width.svg"
+  },
+  "fill-width": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "The block grows toward its sizing guides without crossing them.",
+    "file": "svg/layout/fill-width.svg"
+  },
+  "fixed-width": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "The fixed dimension stays constant while the cross-axis size changes.",
+    "file": "svg/layout/fixed-width.svg"
+  },
+  "aspect-ratio": {
+    "category": "Layout",
+    "motion": "context-v2",
+    "description": "Width and height grow together at a locked ratio.",
+    "file": "svg/layout/aspect-ratio.svg"
+  },
+  "hug-height": {
+    "category": "Sizing",
+    "motion": "geometry-and-state-v3",
+    "description": "The block contracts to its smaller content size inside fixed guides.",
+    "file": "svg/sizing/hug-height.svg"
+  },
+  "fill-height": {
+    "category": "Sizing",
+    "motion": "geometry-and-state-v3",
+    "description": "The block grows toward its sizing guides without crossing them.",
+    "file": "svg/sizing/fill-height.svg"
+  },
+  "fixed-height": {
+    "category": "Sizing",
+    "motion": "geometry-and-state-v3",
+    "description": "The fixed dimension stays constant while the cross-axis size changes.",
+    "file": "svg/sizing/fixed-height.svg"
+  },
+  "padding-left": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "The inner block resizes as the inset changes; the outer boundary stays fixed.",
+    "file": "svg/layout/padding-left.svg"
+  },
+  "padding-top": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "The inner block resizes as the inset changes; the outer boundary stays fixed.",
+    "file": "svg/layout/padding-top.svg"
+  },
+  "padding-right": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "The inner block resizes as the inset changes; the outer boundary stays fixed.",
+    "file": "svg/layout/padding-right.svg"
+  },
+  "padding-bottom": {
+    "category": "Layout",
+    "motion": "geometry-and-state-v3",
+    "description": "The inner block resizes as the inset changes; the outer boundary stays fixed.",
+    "file": "svg/layout/padding-bottom.svg"
+  },
+  "flow-right": {
+    "category": "Layout",
+    "motion": "flow",
+    "description": "A short movement follows the layout direction.",
+    "file": "svg/layout/flow-right.svg"
+  },
+  "flow-down": {
+    "category": "Layout",
+    "motion": "flow",
+    "description": "A short movement follows the layout direction.",
+    "file": "svg/layout/flow-down.svg"
+  },
+  "flow-left": {
+    "category": "Layout",
+    "motion": "flow",
+    "description": "A short movement follows the layout direction.",
+    "file": "svg/layout/flow-left.svg"
+  },
+  "flow-up": {
+    "category": "Layout",
+    "motion": "flow",
+    "description": "A short movement follows the layout direction.",
+    "file": "svg/layout/flow-up.svg"
+  },
+  "min-width": {
+    "category": "Sizing",
+    "motion": "geometry-and-state-v3",
+    "description": "The block contracts to its smaller content size inside fixed guides.",
+    "file": "svg/sizing/min-width.svg"
+  },
+  "min-height": {
+    "category": "Sizing",
+    "motion": "geometry-and-state-v3",
+    "description": "The block contracts to its smaller content size inside fixed guides.",
+    "file": "svg/sizing/min-height.svg"
+  },
+  "max-width": {
+    "category": "Sizing",
+    "motion": "geometry-and-state-v3",
+    "description": "The block grows toward its sizing guides without crossing them.",
+    "file": "svg/sizing/max-width.svg"
+  },
+  "max-height": {
+    "category": "Sizing",
+    "motion": "geometry-and-state-v3",
+    "description": "The block grows toward its sizing guides without crossing them.",
+    "file": "svg/sizing/max-height.svg"
+  },
+  "plus": {
+    "category": "Actions",
+    "motion": "confirm",
+    "description": "The action mark resolves into its final form.",
+    "file": "svg/actions/plus.svg"
+  },
+  "minus": {
+    "category": "Actions",
+    "motion": "confirm",
+    "description": "The action mark resolves into its final form.",
+    "file": "svg/actions/minus.svg"
+  },
+  "close": {
+    "category": "Actions",
+    "motion": "confirm",
+    "description": "The action mark resolves into its final form.",
+    "file": "svg/actions/close.svg"
+  },
+  "check": {
+    "category": "Actions",
+    "motion": "original-study",
+    "description": "The action mark resolves into its final form.",
+    "file": "svg/actions/check.svg"
+  },
+  "undo": {
+    "category": "Actions",
+    "motion": "return",
+    "description": "A short arc follows the return direction.",
+    "file": "svg/actions/undo.svg"
+  },
+  "redo": {
+    "category": "Actions",
+    "motion": "return",
+    "description": "A short arc follows the return direction.",
+    "file": "svg/actions/redo.svg"
+  },
+  "trash": {
+    "category": "Actions",
+    "motion": "context-v2",
+    "description": "The lid hinges open, then closes on the bin.",
+    "file": "svg/actions/trash.svg"
+  },
+  "download": {
+    "category": "Actions",
+    "motion": "original-study",
+    "description": "A short directional gesture indicates transfer.",
+    "file": "svg/actions/download.svg"
+  },
+  "upload": {
+    "category": "Actions",
+    "motion": "transfer",
+    "description": "A short directional gesture indicates transfer.",
+    "file": "svg/actions/upload.svg"
+  },
+  "external-link": {
+    "category": "Actions",
+    "motion": "transfer",
+    "description": "A short directional gesture indicates transfer.",
+    "file": "svg/actions/external-link.svg"
+  },
+  "link": {
+    "category": "Actions",
+    "motion": "context-v2",
+    "description": "The two chain halves interlock.",
+    "file": "svg/actions/link.svg"
+  },
+  "unlink": {
+    "category": "Actions",
+    "motion": "context-v2",
+    "description": "The severed chain halves pull away from the cut.",
+    "file": "svg/actions/unlink.svg"
+  },
+  "refresh": {
+    "category": "Actions",
+    "motion": "original-study",
+    "description": "A rotational cue marks refresh or history navigation.",
+    "file": "svg/actions/refresh.svg"
+  },
+  "share": {
+    "category": "Actions",
+    "motion": "transfer",
+    "description": "A short directional gesture indicates transfer.",
+    "file": "svg/actions/share.svg"
+  },
+  "save": {
+    "category": "Actions",
+    "motion": "context-v2",
+    "description": "The disk label drops into its storage slot.",
+    "file": "svg/actions/save.svg"
+  },
+  "history": {
+    "category": "Actions",
+    "motion": "rotate",
+    "description": "A rotational cue marks refresh or history navigation.",
+    "file": "svg/actions/history.svg"
+  },
+  "code": {
+    "category": "Actions",
+    "motion": "action",
+    "description": "A compact acknowledgement emphasizes the control.",
+    "file": "svg/actions/code.svg"
+  },
+  "command": {
+    "category": "Actions",
+    "motion": "action",
+    "description": "A compact acknowledgement emphasizes the control.",
+    "file": "svg/actions/command.svg"
+  },
+  "filter": {
+    "category": "Actions",
+    "motion": "context-v2",
+    "description": "A small input travels through the filter funnel.",
+    "file": "svg/actions/filter.svg"
+  },
+  "sort": {
+    "category": "Actions",
+    "motion": "context-v2",
+    "description": "The descending bars reorder beside the direction arrow.",
+    "file": "svg/actions/sort.svg"
+  },
+  "help": {
+    "category": "Actions",
+    "motion": "context-v2",
+    "description": "The question mark tilts as if asking a question.",
+    "file": "svg/actions/help.svg"
+  },
+  "search": {
+    "category": "Actions",
+    "motion": "context-v2",
+    "description": "The lens scans left and right before returning.",
+    "file": "svg/actions/search.svg"
+  },
+  "copy": {
+    "category": "Actions",
+    "motion": "geometry-and-state-v3",
+    "description": "A foreground sheet shifts without showing hidden edges through it.",
+    "file": "svg/actions/copy.svg"
+  },
+  "duplicate": {
+    "category": "Actions",
+    "motion": "geometry-and-state-v3",
+    "description": "Two clean offset squares; the copy pulls away from its source.",
+    "file": "svg/actions/duplicate.svg"
+  },
+  "more-horizontal": {
+    "category": "Actions",
+    "motion": "sequence",
+    "description": "The dots respond in sequence.",
+    "file": "svg/actions/more-horizontal.svg"
+  },
+  "more-vertical": {
+    "category": "Actions",
+    "motion": "sequence",
+    "description": "The dots respond in sequence.",
+    "file": "svg/actions/more-vertical.svg"
+  },
+  "chevron-right": {
+    "category": "Navigation",
+    "motion": "navigate",
+    "description": "The chevron nudges toward its destination.",
+    "file": "svg/navigation/chevron-right.svg"
+  },
+  "chevron-down": {
+    "category": "Navigation",
+    "motion": "navigate",
+    "description": "The chevron nudges toward its destination.",
+    "file": "svg/navigation/chevron-down.svg"
+  },
+  "chevron-left": {
+    "category": "Navigation",
+    "motion": "navigate",
+    "description": "The chevron nudges toward its destination.",
+    "file": "svg/navigation/chevron-left.svg"
+  },
+  "chevron-up": {
+    "category": "Navigation",
+    "motion": "navigate",
+    "description": "The chevron nudges toward its destination.",
+    "file": "svg/navigation/chevron-up.svg"
+  },
+  "layers": {
+    "category": "Layers",
+    "motion": "original-study",
+    "description": "The planes separate to reveal their order.",
+    "file": "svg/layers/layers.svg"
+  },
+  "group": {
+    "category": "Layers",
+    "motion": "assemble",
+    "description": "The component pieces gather and release.",
+    "file": "svg/layers/group.svg"
+  },
+  "ungroup": {
+    "category": "Layers",
+    "motion": "assemble",
+    "description": "The component pieces gather and release.",
+    "file": "svg/layers/ungroup.svg"
+  },
+  "component": {
+    "category": "Layers",
+    "motion": "assemble",
+    "description": "The component pieces gather and release.",
+    "file": "svg/layers/component.svg"
+  },
+  "component-set": {
+    "category": "Layers",
+    "motion": "original-study",
+    "description": "The component pieces gather and release.",
+    "file": "svg/layers/component-set.svg"
+  },
+  "instance": {
+    "category": "Layers",
+    "motion": "assemble",
+    "description": "The component pieces gather and release.",
+    "file": "svg/layers/instance.svg"
+  },
+  "detach-instance": {
+    "category": "Layers",
+    "motion": "assemble",
+    "description": "The component pieces gather and release.",
+    "file": "svg/layers/detach-instance.svg"
+  },
+  "variants": {
+    "category": "Layers",
+    "motion": "assemble",
+    "description": "The component pieces gather and release.",
+    "file": "svg/layers/variants.svg"
+  },
+  "folder": {
+    "category": "Layers",
+    "motion": "context-v2",
+    "description": "The folder front folds open to reveal its contents.",
+    "file": "svg/layers/folder.svg"
+  },
+  "page": {
+    "category": "Layers",
+    "motion": "document",
+    "description": "The document shape separates slightly and settles.",
+    "file": "svg/layers/page.svg"
+  },
+  "lock": {
+    "category": "Layers",
+    "motion": "geometry-and-state-v3",
+    "description": "The shackle reshapes between closed and open states while the body remains fixed.",
+    "file": "svg/layers/lock.svg"
+  },
+  "unlock": {
+    "category": "Layers",
+    "motion": "geometry-and-state-v3",
+    "description": "The shackle reshapes between closed and open states while the body remains fixed.",
+    "file": "svg/layers/unlock.svg"
+  },
+  "visible": {
+    "category": "Layers",
+    "motion": "geometry-and-state-v3",
+    "description": "The open eye morphs into a closed, slashed eye and back.",
+    "file": "svg/layers/visible.svg"
+  },
+  "hidden": {
+    "category": "Layers",
+    "motion": "geometry-and-state-v3",
+    "description": "The hidden eye opens as its slash retracts.",
+    "file": "svg/layers/hidden.svg"
+  },
+  "mask": {
+    "category": "Layers",
+    "motion": "context-v2",
+    "description": "The masked texture slides behind a stationary circle.",
+    "file": "svg/layers/mask.svg"
+  },
+  "bring-front": {
+    "category": "Layers",
+    "motion": "stack",
+    "description": "The planes separate to reveal their order.",
+    "file": "svg/layers/bring-front.svg"
+  },
+  "send-back": {
+    "category": "Layers",
+    "motion": "stack",
+    "description": "The planes separate to reveal their order.",
+    "file": "svg/layers/send-back.svg"
+  },
+  "union": {
+    "category": "Boolean",
+    "motion": "boolean",
+    "description": "The resulting geometry traces into place.",
+    "file": "svg/boolean/union.svg"
+  },
+  "subtract": {
+    "category": "Boolean",
+    "motion": "boolean",
+    "description": "The resulting geometry traces into place.",
+    "file": "svg/boolean/subtract.svg"
+  },
+  "intersect": {
+    "category": "Boolean",
+    "motion": "boolean",
+    "description": "The resulting geometry traces into place.",
+    "file": "svg/boolean/intersect.svg"
+  },
+  "exclude": {
+    "category": "Boolean",
+    "motion": "boolean",
+    "description": "The resulting geometry traces into place.",
+    "file": "svg/boolean/exclude.svg"
+  },
+  "fill": {
+    "category": "Appearance",
+    "motion": "fill",
+    "description": "The appearance control changes emphasis.",
+    "file": "svg/appearance/fill.svg"
+  },
+  "opacity": {
+    "category": "Appearance",
+    "motion": "fill",
+    "description": "The appearance control changes emphasis.",
+    "file": "svg/appearance/opacity.svg"
+  },
+  "stroke": {
+    "category": "Appearance",
+    "motion": "outline",
+    "description": "A traced outline emphasizes the stroke treatment.",
+    "file": "svg/appearance/stroke.svg"
+  },
+  "stroke-inside": {
+    "category": "Appearance",
+    "motion": "outline",
+    "description": "A traced outline emphasizes the stroke treatment.",
+    "file": "svg/appearance/stroke-inside.svg"
+  },
+  "stroke-center": {
+    "category": "Appearance",
+    "motion": "outline",
+    "description": "A traced outline emphasizes the stroke treatment.",
+    "file": "svg/appearance/stroke-center.svg"
+  },
+  "stroke-outside": {
+    "category": "Appearance",
+    "motion": "outline",
+    "description": "A traced outline emphasizes the stroke treatment.",
+    "file": "svg/appearance/stroke-outside.svg"
+  },
+  "radius-all": {
+    "category": "Appearance",
+    "motion": "context-v2",
+    "description": "Square corners soften into a rounded rectangle.",
+    "file": "svg/appearance/radius-all.svg"
+  },
+  "radius-independent": {
+    "category": "Appearance",
+    "motion": "context-v2",
+    "description": "One corner rounds independently from the other three.",
+    "file": "svg/appearance/radius-independent.svg"
+  },
+  "shadow": {
+    "category": "Appearance",
+    "motion": "context-v2",
+    "description": "The shadow offset grows while the object stays fixed.",
+    "file": "svg/appearance/shadow.svg"
+  },
+  "inner-shadow": {
+    "category": "Appearance",
+    "motion": "context-v2",
+    "description": "The shaded inset travels within the fixed object.",
+    "file": "svg/appearance/inner-shadow.svg"
+  },
+  "blur": {
+    "category": "Appearance",
+    "motion": "blur",
+    "description": "Concentric rings breathe out from the center.",
+    "file": "svg/appearance/blur.svg"
+  },
+  "gradient-linear": {
+    "category": "Appearance",
+    "motion": "context-v2",
+    "description": "The gradient handle slides along its diagonal axis.",
+    "file": "svg/appearance/gradient-linear.svg"
+  },
+  "gradient-radial": {
+    "category": "Appearance",
+    "motion": "context-v2",
+    "description": "The gradient falloff expands from its center.",
+    "file": "svg/appearance/gradient-radial.svg"
+  },
+  "blend": {
+    "category": "Appearance",
+    "motion": "context-v2",
+    "description": "Two color regions overlap more deeply.",
+    "file": "svg/appearance/blend.svg"
+  },
+  "image": {
+    "category": "Appearance",
+    "motion": "context-v2",
+    "description": "The sun rises above the still landscape.",
+    "file": "svg/appearance/image.svg"
+  },
+  "clip-content": {
+    "category": "Appearance",
+    "motion": "clip",
+    "description": "The content shifts slightly inside its boundary.",
+    "file": "svg/appearance/clip-content.svg"
+  },
+  "border-dashed": {
+    "category": "Appearance",
+    "motion": "outline",
+    "description": "A traced outline emphasizes the stroke treatment.",
+    "file": "svg/appearance/border-dashed.svg"
+  },
+  "stroke-cap-round": {
+    "category": "Appearance",
+    "motion": "outline",
+    "description": "A traced outline emphasizes the stroke treatment.",
+    "file": "svg/appearance/stroke-cap-round.svg"
+  },
+  "stroke-cap-butt": {
+    "category": "Appearance",
+    "motion": "outline",
+    "description": "A traced outline emphasizes the stroke treatment.",
+    "file": "svg/appearance/stroke-cap-butt.svg"
+  },
+  "stroke-join-round": {
+    "category": "Appearance",
+    "motion": "outline",
+    "description": "A traced outline emphasizes the stroke treatment.",
+    "file": "svg/appearance/stroke-join-round.svg"
+  },
+  "stroke-join-miter": {
+    "category": "Appearance",
+    "motion": "outline",
+    "description": "A traced outline emphasizes the stroke treatment.",
+    "file": "svg/appearance/stroke-join-miter.svg"
+  },
+  "type-bold": {
+    "category": "Typography",
+    "motion": "context-v2",
+    "description": "The letter gains weight, then returns to regular.",
+    "file": "svg/typography/type-bold.svg"
+  },
+  "type-italic": {
+    "category": "Typography",
+    "motion": "context-v2",
+    "description": "The letter leans into its italic angle.",
+    "file": "svg/typography/type-italic.svg"
+  },
+  "type-underline": {
+    "category": "Typography",
+    "motion": "context-v2",
+    "description": "The formatting rule sweeps across a stationary letter.",
+    "file": "svg/typography/type-underline.svg"
+  },
+  "type-strikethrough": {
+    "category": "Typography",
+    "motion": "context-v2",
+    "description": "The formatting rule sweeps across a stationary letter.",
+    "file": "svg/typography/type-strikethrough.svg"
+  },
+  "font-size": {
+    "category": "Typography",
+    "motion": "context-v2",
+    "description": "The large letter grows while the size reference stays fixed.",
+    "file": "svg/typography/font-size.svg"
+  },
+  "letter-spacing": {
+    "category": "Typography",
+    "motion": "context-v2",
+    "description": "The two letters move apart while retaining their shape.",
+    "file": "svg/typography/letter-spacing.svg"
+  },
+  "line-height": {
+    "category": "Typography",
+    "motion": "context-v2",
+    "description": "The outer lines separate around a fixed middle line.",
+    "file": "svg/typography/line-height.svg"
+  },
+  "paragraph": {
+    "category": "Typography",
+    "motion": "type",
+    "description": "The letterform traces into place.",
+    "file": "svg/typography/paragraph.svg"
+  },
+  "text-uppercase": {
+    "category": "Typography",
+    "motion": "type",
+    "description": "The letterform traces into place.",
+    "file": "svg/typography/text-uppercase.svg"
+  },
+  "text-lowercase": {
+    "category": "Typography",
+    "motion": "type",
+    "description": "The letterform traces into place.",
+    "file": "svg/typography/text-lowercase.svg"
+  },
+  "text-list": {
+    "category": "Typography",
+    "motion": "context-v2",
+    "description": "List items arrive one row at a time.",
+    "file": "svg/typography/text-list.svg"
+  },
+  "text-link": {
+    "category": "Typography",
+    "motion": "type",
+    "description": "The letterform traces into place.",
+    "file": "svg/typography/text-link.svg"
+  },
+  "text-align-left": {
+    "category": "Typography",
+    "motion": "context-v2",
+    "description": "Text rows settle against their intended alignment.",
+    "file": "svg/typography/text-align-left.svg"
+  },
+  "text-align-center": {
+    "category": "Typography",
+    "motion": "context-v2",
+    "description": "Text rows settle against their intended alignment.",
+    "file": "svg/typography/text-align-center.svg"
+  },
+  "text-align-right": {
+    "category": "Typography",
+    "motion": "context-v2",
+    "description": "Text rows settle against their intended alignment.",
+    "file": "svg/typography/text-align-right.svg"
+  },
+  "text-align-justify": {
+    "category": "Typography",
+    "motion": "context-v2",
+    "description": "Text rows settle against their intended alignment.",
+    "file": "svg/typography/text-align-justify.svg"
+  },
+  "zoom-in": {
+    "category": "Canvas & workflow",
+    "motion": "context-v2",
+    "description": "The magnification mark changes scale inside a steady lens.",
+    "file": "svg/canvas-workflow/zoom-in.svg"
+  },
+  "zoom-out": {
+    "category": "Canvas & workflow",
+    "motion": "context-v2",
+    "description": "The magnification mark changes scale inside a steady lens.",
+    "file": "svg/canvas-workflow/zoom-out.svg"
+  },
+  "zoom-fit": {
+    "category": "Canvas & workflow",
+    "motion": "inspect",
+    "description": "The lens makes a small inspection movement.",
+    "file": "svg/canvas-workflow/zoom-fit.svg"
+  },
+  "fullscreen": {
+    "category": "Canvas & workflow",
+    "motion": "canvas",
+    "description": "The canvas control contracts and settles.",
+    "file": "svg/canvas-workflow/fullscreen.svg"
+  },
+  "ruler": {
+    "category": "Canvas & workflow",
+    "motion": "canvas",
+    "description": "The canvas control contracts and settles.",
+    "file": "svg/canvas-workflow/ruler.svg"
+  },
+  "guides": {
+    "category": "Canvas & workflow",
+    "motion": "canvas",
+    "description": "The canvas control contracts and settles.",
+    "file": "svg/canvas-workflow/guides.svg"
+  },
+  "snap": {
+    "category": "Canvas & workflow",
+    "motion": "context-v2",
+    "description": "The magnet attracts a small target toward its poles.",
+    "file": "svg/canvas-workflow/snap.svg"
+  },
+  "desktop": {
+    "category": "Canvas & workflow",
+    "motion": "context-v2",
+    "description": "The viewport changes along its responsive dimension.",
+    "file": "svg/canvas-workflow/desktop.svg"
+  },
+  "tablet": {
+    "category": "Canvas & workflow",
+    "motion": "context-v2",
+    "description": "The viewport changes along its responsive dimension.",
+    "file": "svg/canvas-workflow/tablet.svg"
+  },
+  "mobile": {
+    "category": "Canvas & workflow",
+    "motion": "context-v2",
+    "description": "The viewport changes along its responsive dimension.",
+    "file": "svg/canvas-workflow/mobile.svg"
+  },
+  "breakpoint": {
+    "category": "Canvas & workflow",
+    "motion": "context-v2",
+    "description": "The viewport changes along its responsive dimension.",
+    "file": "svg/canvas-workflow/breakpoint.svg"
+  },
+  "play": {
+    "category": "Canvas & workflow",
+    "motion": "geometry-and-state-v3",
+    "description": "Play reshapes into pause bars and back without crossfading.",
+    "file": "svg/canvas-workflow/play.svg"
+  },
+  "pause": {
+    "category": "Canvas & workflow",
+    "motion": "geometry-and-state-v3",
+    "description": "Play reshapes into pause bars and back without crossfading.",
+    "file": "svg/canvas-workflow/pause.svg"
+  },
+  "stop": {
+    "category": "Canvas & workflow",
+    "motion": "context-v2",
+    "description": "A short firm press marks stopping playback.",
+    "file": "svg/canvas-workflow/stop.svg"
+  },
+  "interaction": {
+    "category": "Canvas & workflow",
+    "motion": "context-v2",
+    "description": "Tap rays flare as the pointer presses.",
+    "file": "svg/canvas-workflow/interaction.svg"
+  },
+  "transition": {
+    "category": "Canvas & workflow",
+    "motion": "timeline",
+    "description": "Motion progresses across the timeline.",
+    "file": "svg/canvas-workflow/transition.svg"
+  },
+  "timeline": {
+    "category": "Canvas & workflow",
+    "motion": "context-v2",
+    "description": "The playhead scrubs across stationary timeline tracks.",
+    "file": "svg/canvas-workflow/timeline.svg"
+  },
+  "easing": {
+    "category": "Canvas & workflow",
+    "motion": "context-v2",
+    "description": "A marker follows the easing curve from start to finish.",
+    "file": "svg/canvas-workflow/easing.svg"
+  },
+  "comment": {
+    "category": "Canvas & workflow",
+    "motion": "context-v2",
+    "description": "Three typing dots appear in sequence inside the bubble.",
+    "file": "svg/canvas-workflow/comment.svg"
+  },
+  "publish": {
+    "category": "Canvas & workflow",
+    "motion": "context-v2",
+    "description": "The rocket anticipates launch, then lifts diagonally.",
+    "file": "svg/canvas-workflow/publish.svg"
+  },
+  "database": {
+    "category": "Canvas & workflow",
+    "motion": "context-v2",
+    "description": "A new record travels down through the database tiers.",
+    "file": "svg/canvas-workflow/database.svg"
+  },
+  "variable": {
+    "category": "Canvas & workflow",
+    "motion": "data",
+    "description": "The data symbol acknowledges a value update.",
+    "file": "svg/canvas-workflow/variable.svg"
+  },
+  "token": {
+    "category": "Canvas & workflow",
+    "motion": "data",
+    "description": "The data symbol acknowledges a value update.",
+    "file": "svg/canvas-workflow/token.svg"
+  },
+  "branch": {
+    "category": "Canvas & workflow",
+    "motion": "context-v2",
+    "description": "The upper branch tip moves away from the trunk.",
+    "file": "svg/canvas-workflow/branch.svg"
+  },
+  "export-selection": {
+    "category": "Canvas & workflow",
+    "motion": "transfer",
+    "description": "A short directional gesture indicates transfer.",
+    "file": "svg/canvas-workflow/export-selection.svg"
+  }
+}
