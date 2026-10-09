@@ -4449,7 +4449,9 @@ function App(props) {
      a share of the parent (%) or of the screen (vw, vh); switching the unit
      keeps the size the layer has now, converted. */
   var SIZE_UNITS = [{ value: "px", label: "px" }, { value: "%", label: "%" }, { value: "vw", label: "vw" }, { value: "vh", label: "vh" }];
-  var sizeGrid = function (nodes) {
+  /* part: "dims" for just W and H (a free layer's, in its Position block),
+     "mins" for just the minimums; the whole grid otherwise. */
+  var sizeGrid = function (nodes, part) {
     var ids = nodes.map(function (n) { return n.id; });
     var a = api();
     var free = frame.mode !== "structured" && nodes.every(function (n) { return isFree(n.style); });
@@ -4532,6 +4534,8 @@ function App(props) {
       }
       return e("div", { key: fkey, className: "bd-size-unit" }, body, picker);
     };
+    if (part === "dims") return [dim(true), dim(false)];
+    if (part === "mins") return e("div", { key: "mins", className: "bd-grid2" }, field("minW", "Min W"), field("h", "Min H"));
     return e("div", { className: "bd-grid2" }, dim(true), dim(false), field("minW", "Min W"), field("h", "Min H"));
   };
 
@@ -4950,9 +4954,6 @@ function App(props) {
             onChange: function (v) { setStyle(ids, "bool", v || undefined); } })) : null,
         nodes.every(function (n) { return n.type === "Group"; }) ? e(Field, { key: "clip", id: lid + "-clip", label: "Clip content", hint: "Cuts off what reaches past its edge" },
           tokenDropdown("clip", nodes, lid + "-clip", { noneLabel: "Off", className: "bd-dd-field", noPreview: true })) : null,
-        e("div", { key: "blurs", className: "bd-size-row bd-border-look" },
-          tokenDropdown("blur", nodes, null, { label: "Layer blur", prefix: "Blur", noneLabel: "None", className: "bd-dd-field", noPreview: true, narrow: true }),
-          tokenDropdown("backdrop", nodes, null, { label: "Background blur", prefix: "Behind", noneLabel: "None", className: "bd-dd-field", noPreview: true, narrow: true })),
         picturesOnly ? e(Field, { key: "invert", id: lid + "-inv", label: "Invert colours", inline: true, note: "Flips the picture to its negative" },
           e(Switch, { labelledBy: lid + "-inv", value: !!invValues[0], mixed: !same(invValues), onChange: function (v) { setStyle(ids, "invert", v ? "on" : undefined); } })) : null,
         free ? (function () {
@@ -4968,7 +4969,7 @@ function App(props) {
       ], (function () {
         var hidden = nodes.every(function (n) { return n.hide; });
         return headAction(hidden ? "eyeOff" : "eye", hidden ? "Hidden: press to show (Ctrl+Shift+H)" : "Visible: press to hide (Ctrl+Shift+H)", actions.hide, hidden);
-      })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "blur", "backdrop", "clip", "bool"])),
+      })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "clip", "bool"])),
       sec("fill", "Fill", [extra || null,
         e(SwatchField, { key: "fill", id: "bd-fill-" + first.id, label: "Fill", groups: surfaceGroups(), value: surfaceNow, mixed: surfaceNow === null, custom: free && !surfaceNow && fillHex ? fillHex : null,
           noneHint: "Takes the surface around it",
@@ -4993,13 +4994,19 @@ function App(props) {
         : null,
         hasRadius ? headAction("minus", "Remove the corners", function () { var p = { radius: undefined }; cornersOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
           : headAction("plusSm", "Add corners", function () { setStyle(ids, "radius", DATA.tokens.radius.options.some(function (o) { return o.value === "container"; }) ? "container" : DATA.tokens.radius.options[1].value); }), hasRadius),
-      sec("shadow", "Shadow", hasShadow
+      /* Blurs and the shadow together. The shadow waits behind its +, as a
+         border does. */
+      sec("effects", "Effects", [
+        e("div", { key: "blurs", className: "bd-size-row bd-border-look" },
+          tokenDropdown("blur", nodes, null, { label: "Layer blur", prefix: "Blur", noneLabel: "None", className: "bd-dd-field", noPreview: true, narrow: true }),
+          tokenDropdown("backdrop", nodes, null, { label: "Background blur", prefix: "Behind", noneLabel: "None", className: "bd-dd-field", noPreview: true, narrow: true })),
+        hasShadow
         ? e(Field, { key: "shadow", id: sid, label: "Elevation" },
             e(Segmented, { labelledBy: sid, wide: true, className: "bd-seg-pics", value: same(shadowValues) ? shadowValues[0] || undefined : null, onChange: function (v) { if (v) setStyle(ids, "elevation", v); },
               options: DATA.tokens.elevation.options.map(function (o) { return { value: o.value, label: "Elevation " + o.value + " (" + o.tokens[0] + ")", picture: e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + o.tokens[0] + ")" } }) }; }) }))
-        : null,
+        : null],
         hasShadow ? headAction("minus", "Remove the shadow", function () { setStyle(ids, "elevation", undefined); })
-          : headAction("plusSm", "Add a shadow", function () { var opts = DATA.tokens.elevation.options; setStyle(ids, "elevation", (opts[1] || opts[0]).value); }), hasShadow),
+          : headAction("plusSm", "Add a shadow", function () { var opts = DATA.tokens.elevation.options; setStyle(ids, "elevation", (opts[1] || opts[0]).value); }), hasShadow || styled(nodes, ["blur", "backdrop"])),
     ];
   };
 
@@ -5015,9 +5022,11 @@ function App(props) {
       var fid2 = "bd-free-" + nodes[0].id;
       return [
         e(Field, { key: "free", id: fid2, label: "On the canvas", hint: "Placed where it was dropped, in steps of --dt-space-inset-2xs (" + Math.round(unit) + "px). Drag it to move it, or drop it into a stack to join the flow." },
-          e("div", { className: "bd-size-row" },
+          /* Where and how big, in one grid: X and Y, W and H, then the turn. */
+          e("div", { className: "bd-grid2 bd-place-grid" },
             e(NumberField, { short: "X", label: "X position", value: same(xs) ? Math.round(xs[0] * unit) : "", onChange: function (v) { setStyles(ids, { x: Math.max(0, Math.min(FREE_MAX, Math.round(v / unit))) }); } }),
             e(NumberField, { short: "Y", label: "Y position", value: same(ys) ? Math.round(ys[0] * unit) : "", onChange: function (v) { setStyles(ids, { y: Math.max(0, Math.min(FREE_MAX, Math.round(v / unit))) }); } }),
+            sizeGrid(nodes, "dims"),
             (function () {
               /* Its turn, in whole degrees: arrows step 1, Shift 15. */
               var rs = nodes.map(function (n) { return n.style.rot || 0; });
@@ -5259,14 +5268,16 @@ function App(props) {
     var arrange = !meta.container && flex && flex.filter(Boolean).length ? flex : null;
     var propNames = function (t) { return byTab(t).map(function (p) { return p.name; }).concat(t === "content" && hasText ? ["children"] : []).concat(t === "layout" && first.type === "Grid" ? ["minColumnWidth"] : []); };
     /* One panel, top to bottom: what it is and says, how it's laid out and
-       placed, how it looks, then its spacing. */
+       placed, how it looks, then its spacing. A free layer's W and H sit
+       with its X and Y. */
+    var placedFree = frame.mode !== "structured" && nodes.every(function (n) { return isFree(n.style); });
     var body = [
       contentRows.length ? sec("content", "Content", contentRows, null, propsSet(nodes, propNames("content"))) : null,
       styleRows.length ? sec("props-style", "Style", styleRows, null, propsSet(nodes, propNames("appearance"))) : null,
       arrange ? sec("props-arrange", "Arrangement", arrange, null, propsSet(nodes, propNames("layout"))) : null,
       meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
-      sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "x", "y"])),
-      sec("size", "Size", [textBoxRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self", "fw", "fh", "rw", "rh"])),
+      sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "x", "y"].concat(placedFree ? ["fw", "fh", "rw", "rh", "rot"] : []))),
+      sec("size", "Size", placedFree ? [textBoxRow(nodes), sizeGrid(nodes, "mins")] : [textBoxRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, placedFree ? ["minW", "h"] : ["w", "minW", "height", "h", "self", "fw", "fh", "rw", "rh"])),
     ].concat(lookSections(nodes, null), [
       sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
     ]);

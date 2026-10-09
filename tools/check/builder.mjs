@@ -5185,6 +5185,9 @@ try {
     const pins = page.locator(".bd-right .bd-pins");
     await pins.waitFor();
     expect(await pins.locator(".bd-pin-line.is-on").count() === 2, "a free layer starts pinned left and top");
+    const place = await page.locator(".bd-right .bd-place-grid input").evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
+    expect(place.length === 5 && /^X/.test(place[0]) && /^Y/.test(place[1]) && /^Width/.test(place[2]) && /^Height/.test(place[3]) && /^Rotation/.test(place[4]), `a free layer's X, Y, W, H and turn sit in one grid under Position, got ${place.join(" | ")}`);
+    expect(await page.locator('.bd-right .bd-sec[data-sec="effects"] .bd-dd[aria-label="Layer blur"]').count() === 1 && await page.locator('.bd-right .bd-sec[data-sec="layer"] .bd-dd[aria-label="Layer blur"]').count() === 0, "blur sits under Effects, with the shadow, not under Layer");
     await pins.locator(".bd-pin-line.is-right").click();
     await pins.locator(".bd-pin-line.is-bottom").click();
     let st = await poll(() => node("bt"), (s) => s.ch === "right" && s.cv === "bottom");
