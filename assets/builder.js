@@ -9381,7 +9381,54 @@
           e("span", { className: "bd-as-opt-t" }, e("b", null, o.label), o.detail ? e("span", null, o.detail) : null)
         );
       }),
-      q.answer ? e("p", { className: "bd-as-ask-said" }, e(Icon, { name: "chat" }), e("span", null, q.answer)) : open ? e("button", { type: "button", className: "bd-as-opt bd-as-opt-other", onClick: p.otherAsk }, e("span", { className: "bd-as-opt-k", "aria-hidden": "true" }, e(Icon, { name: "pencil" })), e("span", { className: "bd-as-opt-t" }, e("span", null, "Something else? Type it below."))) : null
+      q.answer ? e("p", { className: "bd-as-ask-said" }, e(Icon, { name: "chat" }), e("span", null, q.answer)) : open ? e(
+        "div",
+        { className: "bd-as-acts" },
+        e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+          p.answerAskAll(turn.id);
+        }, title: "One copy of the frame per option, side by side" }, e(Icon, { name: "layers2" }), "Try them all")
+      ) : null,
+      !q.answer && open ? e("button", { type: "button", className: "bd-as-opt bd-as-opt-other", onClick: p.otherAsk }, e("span", { className: "bd-as-opt-k", "aria-hidden": "true" }, e(Icon, { name: "pencil" })), e("span", { className: "bd-as-opt-t" }, e("span", null, "Something else? Type it below."))) : null
+    );
+  }
+  function variantsCard(p, turn) {
+    var vs = turn.variants;
+    if (!vs) return null;
+    var done = vs.kept != null;
+    var can = turn.status === "done" && !done && !turn.undone && !p.busy;
+    return e(
+      "div",
+      { className: "bd-as-card bd-as-variants" },
+      e(
+        "div",
+        { className: "bd-as-card-h" },
+        e("span", null, e(Icon, { name: "layers2" }), vs.items.length + " variants of " + vs.sourceName),
+        e("span", { className: "bd-as-note" }, done ? vs.kept >= 0 ? "Kept " + vs.items[vs.kept].label : "Kept the original" : "Side by side")
+      ),
+      vs.items.map(function(v, i) {
+        return e(
+          "div",
+          { key: v.frame, className: cx("bd-as-row", done && vs.kept === i && "is-kept") },
+          e("span", { className: "bd-as-n bd-as-vk" }, String.fromCharCode(65 + i)),
+          e("span", { className: "bd-as-v" }, v.label),
+          !done ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+            p.showVariant(v.frame);
+          }, "aria-label": "Show " + v.label }, "Show") : null
+        );
+      }),
+      can ? e(
+        "div",
+        { className: "bd-as-acts bd-as-keeps" },
+        vs.items.map(function(v, i) {
+          return e("button", { key: v.frame, type: "button", className: cx("bd-btn bd-btn-sm", i === 0 && "bd-btn-primary"), onClick: function() {
+            p.keepVariant(turn.id, i);
+          }, "aria-label": "Keep " + v.label }, "Keep " + String.fromCharCode(65 + i));
+        }),
+        e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+          p.keepVariant(turn.id, -1);
+        } }, "Keep the original")
+      ) : null,
+      can ? e("p", { className: "bd-as-variants-n" }, "Keeping one puts it where " + vs.sourceName + " is and removes the rest. Undo brings them back.") : null
     );
   }
   function editLines(lines, count2, max) {
@@ -9507,6 +9554,7 @@
             t.text ? e("p", { className: "bd-as-text" }, t.text) : t.status === "working" ? e("p", { className: "bd-as-text bd-as-wait" }, "Working…") : null,
             planCard(p, t),
             askCard(p, t),
+            variantsCard(p, t),
             t.error ? e("p", { className: "bd-as-text bd-as-err" }, t.error) : null,
             changeCard(p, t)
           );
@@ -9624,6 +9672,7 @@
     }).join(", ") + ".", input_schema: { type: "object", properties: { name: { type: "string" }, preset: { type: "string", enum: PRESETS.map(function(f) {
       return f.id;
     }) }, mode: { type: "string", enum: ["structured", "free"] } }, required: ["name", "preset", "mode"], additionalProperties: false } },
+    { name: "make_variants", description: "Try a few directions side by side: copies a frame (the one you're in unless you name another) once per label, beside it, named after the label, and hands back each copy's id. Then use_frame into each copy and make its change. The person compares them on the canvas and keeps one, which takes the original's place. Use it when they ask to see options, or pick Try them all on a question.", input_schema: { type: "object", properties: { frame: { type: "string" }, labels: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } } }, required: ["labels"], additionalProperties: false } },
     { name: "use_frame", description: "Work in another frame on this page: the edit tools act on the frame you're in.", input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false } },
     { name: "propose_plan", description: "Before a new page or frame, or any change that adds more than about 10 layers, show the person a short plan and wait for their answer: the frame it goes in (when it's a new one), the steps in order (a title and a line each), and anything they should know (missing content you'll stand in for, a choice you made). It comes back approved, or with what they want changed.", input_schema: { type: "object", properties: { title: { type: "string" }, frame: { type: "object", properties: { name: { type: "string" }, preset: { type: "string" }, mode: { type: "string", enum: ["structured", "free"] } }, additionalProperties: false }, steps: { type: "array", minItems: 1, maxItems: 12, items: { type: "object", properties: { title: { type: "string" }, detail: { type: "string" } }, required: ["title"], additionalProperties: false } }, notes: { type: "array", maxItems: 4, items: { type: "string" } } }, required: ["title", "steps"], additionalProperties: false } },
     { name: "ask_user", description: "Ask the person to choose when the request leaves a real choice open: two to four ways that would set a different tone or direction, which the request, the docs and the theme don't settle. Each option is a short label and a line on what it means (the components and tokens it would use). The answer comes back as the option they picked, or what they wrote instead. Don't ask about what you can decide yourself.", input_schema: { type: "object", properties: { question: { type: "string" }, options: { type: "array", minItems: 2, maxItems: 4, items: { type: "object", properties: { label: { type: "string" }, detail: { type: "string" } }, required: ["label"], additionalProperties: false } } }, required: ["question", "options"], additionalProperties: false } },
@@ -9758,6 +9807,7 @@
       "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish. For a page, look at 390 wide and in dark mode too (screenshot with width or dark) when the change touches layout or colour, or the checks flag them.",
       "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
       "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first. When it leaves a real choice of direction open (two good answers with a different tone), call ask_user with the options rather than guessing.",
+      "- When the person wants to see options, make_variants copies the frame once per option, side by side; build each in its copy and say how they differ. They keep one.",
       "- A message may start with what the person changed on the canvas since your last reply. Keep those changes unless they ask otherwise, and build on them.",
       "- Before a new page or frame, or a change that adds more than about 10 layers, call propose_plan and wait for the answer, unless the canvas notes say plans are off. Building without one is refused.",
       "- Finish with a sentence or two on what you changed and anything the person should check.",
@@ -10102,6 +10152,32 @@
         if (!made3) return fail("The frame couldn't be added.");
         return { ok: true, result: JSON.stringify(made3), change: { ids: [], label: "New frame", value: short2(String(input.name || "Frame"), 60), on: preset.label + ", " + input.mode } };
       }
+      case "make_variants": {
+        if (!api.makeVariants) return fail("Variants can't be made here.");
+        var src = input.frame ? (doc2.frames || []).filter(function(f2) {
+          return f2.id === input.frame;
+        })[0] : (doc2.frames || []).filter(function(f2) {
+          return f2.id === doc2.active;
+        })[0] || doc2.frames[0];
+        if (!src) return fail("There's no frame " + input.frame + " on this page.");
+        var labels = (input.labels || []).map(function(l) {
+          return short2(String(l || ""), 40);
+        }).filter(Boolean).slice(0, 4);
+        if (labels.length < 2) return fail("Give at least two labels.");
+        var made4 = api.makeVariants(src.id, labels);
+        if (!made4 || !made4.length) return fail("The variants couldn't be made.");
+        return {
+          ok: true,
+          result: JSON.stringify({ variants: made4.map(function(v2, i) {
+            return { label: labels[i], frame: v2 };
+          }) }) + " Now use_frame into each and make its change.",
+          step: "Copied " + src.name + " into " + labels.length + " variants",
+          change: { ids: [], label: "Variants", value: labels.length + " copies", on: src.name },
+          variants: { source: src.id, sourceName: src.name, items: made4.map(function(v2, i) {
+            return { label: labels[i], frame: v2 };
+          }) }
+        };
+      }
       case "use_frame": {
         var to = (doc2.frames || []).filter(function(f2) {
           return f2.id === input.id;
@@ -10199,6 +10275,11 @@
         return fail("There's no tool called " + call.name + ".");
     }
   }
+  var PRACTICE_CLOSES = {
+    "Dark band, one button": '<Section dark><Stack gap="md" align="center"><Heading>Ready when you are</Heading><Button variant="primary">Start free</Button></Stack></Section>',
+    "Soft tint, two buttons": '<Section tone="brand-muted"><Stack gap="md" align="center"><Heading>Ready when you are</Heading><Inline gap="sm"><Button variant="primary">Start free</Button><Button variant="secondary">Talk to us</Button></Inline></Stack></Section>',
+    "Quiet line and a link": `<Section><Stack gap="sm" align="center"><Text>Questions first? We're happy to help.</Text><Link href="#">Talk to us</Link></Stack></Section>`
+  };
   function practiceAnswer(request, results) {
     var prev = request.messages[request.messages.length - 2];
     var names = prev && Array.isArray(prev.content) ? prev.content.filter(function(b) {
@@ -10293,16 +10374,34 @@
     if (names[0] === "ask_user") {
       var said0 = body(0);
       var pick = /^They chose: (.+)\.$/.exec(said0);
+      if (/own words: Try (them )?all/i.test(said0)) {
+        var asked0 = (prev.content.filter(function(b) {
+          return b.type === "tool_use";
+        })[0].input || {}).options || [];
+        return { text: "", calls: [{ name: "make_variants", input: { labels: asked0.map(function(o) {
+          return o.label;
+        }) } }] };
+      }
       if (!pick) return { text: /own words/.test(said0) ? "Practice mode: a model would build what you described. Pick an option to see the practice version." : "Practice mode: pick an option whenever you're ready.", calls: [] };
-      var CLOSES = {
-        "Dark band, one button": '<Section dark><Stack gap="md" align="center"><Heading>Ready when you are</Heading><Button variant="primary">Start free</Button></Stack></Section>',
-        "Soft tint, two buttons": '<Section tone="brand-muted"><Stack gap="md" align="center"><Heading>Ready when you are</Heading><Inline gap="sm"><Button variant="primary">Start free</Button><Button variant="secondary">Talk to us</Button></Inline></Stack></Section>',
-        "Quiet line and a link": `<Section><Stack gap="sm" align="center"><Text>Questions first? We're happy to help.</Text><Link href="#">Talk to us</Link></Stack></Section>`
-      };
-      var jsx = CLOSES[pick[1]];
+      var jsx = PRACTICE_CLOSES[pick[1]];
       if (!jsx) return { text: "Practice mode: you chose " + pick[1] + ".", calls: [] };
       return { text: "", calls: [{ name: "insert_jsx", input: { jsx } }] };
     }
+    if (names[0] === "make_variants") {
+      var got = {};
+      try {
+        got = JSON.parse(body(0).replace(/ Now use_frame.*$/, ""));
+      } catch (err) {
+        got = {};
+      }
+      var calls = [];
+      (got.variants || []).forEach(function(v) {
+        calls.push({ name: "use_frame", input: { id: v.frame } });
+        if (PRACTICE_CLOSES[v.label]) calls.push({ name: "insert_jsx", input: { jsx: PRACTICE_CLOSES[v.label] } });
+      });
+      return { text: "", calls };
+    }
+    if (names[0] === "use_frame" && names.length > 1) return { text: "Practice mode, with the real tools: one copy for each close, side by side. Compare them on the canvas and keep one; it takes the original's place.", calls: [] };
     if (names[0] === "insert_jsx") return { text: "Practice mode, with the real tools: the close you picked is at the foot of the frame.", calls: [] };
     if (names[0] === "read_guideline") return { text: "Practice mode: " + body(0).split("\n")[0].replace(/^# /, "") + " read. A model would apply it to the next change.", calls: [] };
     if (names[0] === "search_components") {
@@ -10372,6 +10471,7 @@
           { title: "Close", detail: "A dark band with one button" }
         ], notes: ["Practice mode writes stand-in copy; a model would use your context docs."] } }] };
       }
+      if (/\btry (all |them all|a few|three|3|some)\b.*\b(closes|closings|endings|options|versions|variants|ways)\b/.test(text2) && offered.indexOf("make_variants") >= 0) return { text: "", calls: [{ name: "make_variants", input: { labels: Object.keys(PRACTICE_CLOSES) } }] };
       if (/\b(add|give it|needs?|want) (a |an )?(close|closing|ending|final call to action)\b/.test(text2) && offered.indexOf("ask_user") >= 0) return { text: "There are a few good ways to close a page, and they set different tones. Which fits?", calls: [{ name: "ask_user", input: { question: "How should it close?", options: [
         { label: "Dark band, one button", detail: "Section dark · Button primary · a strong end" },
         { label: "Soft tint, two buttons", detail: "Section brand-muted · primary and secondary" },
@@ -12979,6 +13079,39 @@
       useFrame: function(fid) {
         activate(fid);
       },
+      /* A copy of a frame per label, beside it, in one step; their ids. */
+      makeVariants: function(fid, labels) {
+        var made = [];
+        var boxesNow = layoutRef.current.boxes;
+        change(function(d) {
+          var src = frameById(d, fid);
+          if (!src) return null;
+          var box2 = typeof src.x === "number" ? { x: src.x, y: src.y } : boxesNow[src.id] ? { x: Math.round(boxesNow[src.id].x), y: Math.round(boxesNow[src.id].y) } : null;
+          var w = boxesNow[src.id] && boxesNow[src.id].w || src.width;
+          if (box2) d.frames.forEach(function(fr) {
+            if (typeof fr.x !== "number" && boxesNow[fr.id]) {
+              fr.x = Math.round(boxesNow[fr.id].x);
+              fr.y = Math.round(boxesNow[fr.id].y);
+            }
+          });
+          var at2 = d.frames.indexOf(src);
+          labels.forEach(function(label2, i) {
+            var c = copy(src);
+            c.id = uid();
+            c.name = src.name + " · " + label2;
+            c.root = fresh(src.root);
+            c.root.id = "root";
+            if (box2) {
+              c.x = Math.round(box2.x + (i + 1) * (w + FRAME_GAP));
+              c.y = box2.y;
+            }
+            d.frames.splice(at2 + 1 + i, 0, c);
+            made.push(c.id);
+          });
+          return [];
+        }, "Made variants");
+        return made;
+      },
       /* Edits made inside fn become one history step. */
       guideline: function(g) {
         return guidelineText(g);
@@ -13107,6 +13240,7 @@
                 var mine2 = [].concat(res.change ? [res.change] : [], res.changes || []).map(function(ch) {
                   return Object.assign({}, ch, { at: at2 });
                 });
+                if (res.variants && res.ok) patchTurn(turn.id, { variants: res.variants });
                 changes.push.apply(changes, mine2);
                 if (res.step && res.ok) steps.push({ ok: true, text: res.step, shot: res.shot ? res.shot.url : void 0 });
                 if (!res.ok) steps.push({ ok: false, text: res.result });
@@ -13219,6 +13353,64 @@
         });
         asDraftState[1]("");
       },
+      /* Every option, as variants side by side. */
+      answerAskAll: function(id) {
+        if (!askWait.current || askWait.current.turn !== id) return;
+        patchTurn(id, function(x) {
+          return { ask: Object.assign({}, x.ask, { status: "answered", answer: "Try them all" }) };
+        });
+        askWait.current.resolve({ text: "Try them all, as variants side by side, so I can compare." });
+      },
+      /* A variant on the canvas, in view. */
+      showVariant: function(fid) {
+        if (!frameById(docRef.current, fid)) {
+          announce("That variant isn't on this page any more.");
+          return;
+        }
+        activate(fid);
+        showFrameRef.current(fid, true);
+      },
+      /* Keep one variant (index), or the original (-1): the kept one takes
+         the original's place and name, and the rest go, in one step. */
+      keepVariant: function(id, index2) {
+        var t = asThread.filter(function(x) {
+          return x.id === id;
+        })[0];
+        var vs = t && t.variants;
+        if (!vs || vs.kept != null) return;
+        var keep = index2 >= 0 ? vs.items[index2] : null;
+        var gone = vs.items.filter(function(v, i) {
+          return i !== index2;
+        }).map(function(v) {
+          return v.frame;
+        });
+        var ok = change(function(d) {
+          var src = frameById(d, vs.source);
+          var pick2 = keep ? frameById(d, keep.frame) : null;
+          if (keep && !pick2) return null;
+          if (pick2 && src) {
+            pick2.name = src.name;
+            if (typeof src.x === "number") {
+              pick2.x = src.x;
+              pick2.y = src.y;
+            }
+            d.frames.splice(d.frames.indexOf(pick2), 1);
+            d.frames.splice(d.frames.indexOf(src), 1, pick2);
+          }
+          d.frames = d.frames.filter(function(f) {
+            return gone.indexOf(f.id) < 0;
+          });
+          if (!d.frames.length) return null;
+          if (!frameById(d, d.active)) d.active = pick2 ? pick2.id : src ? src.id : d.frames[0].id;
+          return [];
+        }, keep ? "Kept " + keep.label : "Kept the original");
+        if (ok === false) {
+          announce("That variant isn't on this page any more.");
+          return;
+        }
+        patchTurn(id, { variants: Object.assign({}, vs, { kept: index2 }) });
+        announce(keep ? "Kept " + keep.label + "; the other variants are gone. Undo brings them back." : "Kept the original; the variants are gone. Undo brings them back.");
+      },
       /* A click on one of a question's options. */
       answerAsk: function(id, index2) {
         if (!askWait.current || askWait.current.turn !== id) return;
@@ -13330,6 +13522,12 @@
               lines.push("", "Changes:");
               t.changes.forEach(function(c) {
                 lines.push("- " + c.label + ": " + c.value + (c.on ? " · " + c.on : "") + (c.undone ? " (undone)" : ""));
+              });
+            }
+            if (t.variants) {
+              lines.push("", "Variants of " + t.variants.sourceName + ":");
+              t.variants.items.forEach(function(v, i) {
+                lines.push("- " + v.label + (t.variants.kept === i ? " (kept)" : ""));
               });
             }
             if (t.checks) {
@@ -22020,6 +22218,9 @@
                   return t.ask && t.ask.status === "pending";
                 }),
                 answerAsk: asApi.answerAsk,
+                answerAskAll: asApi.answerAskAll,
+                showVariant: asApi.showVariant,
+                keepVariant: asApi.keepVariant,
                 otherAsk: asApi.otherAsk,
                 edits: asEditsNow,
                 dropEdits: asApi.dropEdits,

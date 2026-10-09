@@ -7526,3 +7526,32 @@ input.bd-folder-name {
 .bd-as-acts .bd-btn {
   white-space: nowrap;
 }
+/* Variants of a frame: a row each with Show, and Keep buttons that wrap. */
+.bd-as-variants .bd-as-card-h > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs);
+  min-width: 0;
+}
+.bd-as-variants .bd-as-card-h .bd-ic {
+  width: 14px;
+  height: 14px;
+}
+.bd-as-variants .bd-as-row {
+  align-items: center;
+}
+.bd-as-variants .bd-as-vk {
+  min-width: 14px;
+}
+.bd-as-variants .bd-as-row.is-kept .bd-as-v {
+  font-weight: var(--dt-font-weight-medium, 500);
+}
+.bd-as-keeps {
+  flex-wrap: wrap;
+}
+.bd-as-variants-n {
+  margin: 0;
+  padding: 0 var(--dt-space-inset-sm) var(--dt-space-inset-xs);
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-xs);
+}

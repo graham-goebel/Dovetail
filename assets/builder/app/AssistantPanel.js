@@ -76,7 +76,31 @@ function askCard(p, turn) {
         e("span", { className: "bd-as-opt-t" }, e("b", null, o.label), o.detail ? e("span", null, o.detail) : null));
     }),
     q.answer ? e("p", { className: "bd-as-ask-said" }, e(Icon, { name: "chat" }), e("span", null, q.answer))
-      : open ? e("button", { type: "button", className: "bd-as-opt bd-as-opt-other", onClick: p.otherAsk }, e("span", { className: "bd-as-opt-k", "aria-hidden": "true" }, e(Icon, { name: "pencil" })), e("span", { className: "bd-as-opt-t" }, e("span", null, "Something else? Type it below."))) : null);
+      : open ? e("div", { className: "bd-as-acts" },
+        e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { p.answerAskAll(turn.id); }, title: "One copy of the frame per option, side by side" }, e(Icon, { name: "layers2" }), "Try them all")) : null,
+    !q.answer && open ? e("button", { type: "button", className: "bd-as-opt bd-as-opt-other", onClick: p.otherAsk }, e("span", { className: "bd-as-opt-k", "aria-hidden": "true" }, e(Icon, { name: "pencil" })), e("span", { className: "bd-as-opt-t" }, e("span", null, "Something else? Type it below."))) : null);
+}
+
+/* Copies of a frame, one per direction: each can be shown on the canvas,
+   and keeping one puts it in the original's place. */
+function variantsCard(p, turn) {
+  var vs = turn.variants;
+  if (!vs) return null;
+  var done = vs.kept != null;
+  var can = turn.status === "done" && !done && !turn.undone && !p.busy;
+  return e("div", { className: "bd-as-card bd-as-variants" },
+    e("div", { className: "bd-as-card-h" }, e("span", null, e(Icon, { name: "layers2" }), vs.items.length + " variants of " + vs.sourceName),
+      e("span", { className: "bd-as-note" }, done ? (vs.kept >= 0 ? "Kept " + vs.items[vs.kept].label : "Kept the original") : "Side by side")),
+    vs.items.map(function (v, i) {
+      return e("div", { key: v.frame, className: cx("bd-as-row", done && vs.kept === i && "is-kept") },
+        e("span", { className: "bd-as-n bd-as-vk" }, String.fromCharCode(65 + i)),
+        e("span", { className: "bd-as-v" }, v.label),
+        !done ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { p.showVariant(v.frame); }, "aria-label": "Show " + v.label }, "Show") : null);
+    }),
+    can ? e("div", { className: "bd-as-acts bd-as-keeps" },
+      vs.items.map(function (v, i) { return e("button", { key: v.frame, type: "button", className: cx("bd-btn bd-btn-sm", i === 0 && "bd-btn-primary"), onClick: function () { p.keepVariant(turn.id, i); }, "aria-label": "Keep " + v.label }, "Keep " + String.fromCharCode(65 + i)); }),
+      e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { p.keepVariant(turn.id, -1); } }, "Keep the original")) : null,
+    can ? e("p", { className: "bd-as-variants-n" }, "Keeping one puts it where " + vs.sourceName + " is and removes the rest. Undo brings them back.") : null);
 }
 
 /* What the person changed since the last reply: in the thread once sent,
@@ -148,6 +172,7 @@ function AssistantPanel(p) {
           t.text ? e("p", { className: "bd-as-text" }, t.text) : t.status === "working" ? e("p", { className: "bd-as-text bd-as-wait" }, "Working…") : null,
           planCard(p, t),
           askCard(p, t),
+          variantsCard(p, t),
           t.error ? e("p", { className: "bd-as-text bd-as-err" }, t.error) : null,
           changeCard(p, t));
       })),
