@@ -248,7 +248,7 @@ const cardMenu = async (page, name, what) => { await homeCard(page, name).locato
    the tab that's open, look there. */
 async function choose(page, fieldText, optionText) {
   const field = () => page.locator(".bd-right .bd-field", { hasText: fieldText }).first();
-  if (!(await field().count()) && await page.locator(".bd-itab", { hasText: "Properties" }).count()) await tab(page, "Properties");
+  if (!(await field().count())) await tab(page, "Properties");
   await field().locator(".bd-dd").first().click();
   await option(page, optionText).click();
 }
@@ -268,13 +268,11 @@ async function pressButton(page, text, i = 0) {
   await page.mouse.click(at.x, at.y);
 }
 const row = (page, name) => page.locator(`.bd-layer[data-layer]:has(.bd-layer-name:text-is("${name}")) .bd-layer-main`);
-/* The inspector's tabs. Properties (once Content) opens with its Style and
-   Arrangement folded; this unfolds them, so their fields can be found. */
+/* The inspector is one panel; it once had tabs, and steps still name the
+   one they work in. Style, Arrangement and Spacing start folded; this
+   unfolds them, so their fields can be found. */
 const tab = async (page, name) => {
-  if (name === "Content") name = "Properties";
-  await page.locator(".bd-itab", { hasText: name }).click();
-  if (name !== "Properties") return;
-  for (const key of ["props-style", "props-arrange"]) {
+  for (const key of ["props-style", "props-arrange", "spacing"]) {
     const head = page.locator(`.bd-right .bd-sec.is-closed[data-sec="${key}"] .bd-sec-h`);
     if (await head.count()) await head.click();
   }
@@ -424,8 +422,10 @@ try {
     const at = await canvasPoint(page, '[data-bf-type="Heading"]', "right");
     await page.mouse.click(at.x, at.y);
     await page.waitForFunction(() => /Heading/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect((await page.locator(".bd-itab").allTextContents()).join(",") === "Properties,Appearance,Layout", "the inspector has Properties, Appearance and Layout tabs, in that order");
-    expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Properties" && await page.locator(".bd-ipanel .bd-field-label", { hasText: /^Text$/ }).count() === 1, "Properties opens first, with the Text field");
+    const secs = await page.locator(".bd-ipanel > .bd-sec").evaluateAll((els) => els.map((el) => el.dataset.sec));
+    expect(!(await page.locator('.bd-right [role="tablist"]').count()) && secs[0] === "content" && ["position", "size", "fill", "border", "spacing"].every((k) => secs.includes(k)), `the inspector is one panel, its content first and then layout and looks, got ${secs.join(",")}`);
+    expect(await page.locator(".bd-ipanel .bd-field-label", { hasText: /^Text$/ }).count() === 1, "the Text field is in it");
+    expect(secs.indexOf("spacing") === secs.length - 1 && await page.locator('.bd-ipanel .bd-sec[data-sec="spacing"].is-closed').count() === 1, "spacing comes last, folded while nothing in it is set");
     expect(await page.locator(".bd-inspect-head .bd-head-actions > :not(.bd-about)").count() === 1, "the head has one menu beside the name, not a row of buttons");
     await page.locator(".bd-inspect-head .bd-layer-menu").click();
     const actions = await page.locator(".bd-dd-opt .bd-dd-opt-label").allTextContents();
@@ -778,7 +778,7 @@ try {
   await step("The bar's nav button, trays that drag and close, smart tabs, context sizes, pinning, tooltips and brand buttons", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
-    const current = () => page.locator(".bd-itab[aria-selected=true]").textContent();
+    const current = () => page.locator(".bd-ipanel > .bd-sec").first().getAttribute("data-sec");
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
 
@@ -816,27 +816,27 @@ try {
     await page.mouse.up();
     await frame().waitForSelector('[data-bf-type="Image"]', { timeout: 4000 }).catch(() => { throw new Error("an Image dropped from its tray doesn't land on the frame"); });
     await page.waitForFunction(() => /Image/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect(await current() === "Properties", `an Image opens on Properties, got ${await current()}`);
-    ok("an Image dragged from its tray lands on the frame, selected, with the inspector on Content");
+    expect(await current() === "content", `an Image's inspector starts with its content, got ${await current()}`);
+    ok("an Image dragged from its tray lands on the frame, selected, with its content at the top of the inspector");
 
     await category(page, "Layout");
     await page.locator('.bd-tile[data-type="Shape"]').click();
     await page.waitForFunction(() => /Shape/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect(await current() === "Appearance", `a Shape opens on Appearance, got ${await current()}`);
-    ok("a Shape from the assets panel opens on Appearance");
+    expect(await page.locator('.bd-ipanel .bd-sec[data-sec="fill"]:not(.is-closed)').count() === 1, "a Shape's Fill is in the same panel, open");
+    ok("a Shape from the assets panel shows its Fill in the one panel");
 
     await page.mouse.click(stage.x + 30, stage.y + 30);
     await category(page, "Layout");
     await page.locator('.bd-tile[data-type="Section"]').click();
     await page.waitForFunction(() => /Section/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect(await current() === "Layout", `a Section opens on Layout, got ${await current()}`);
+    await tab(page, "Layout");
     await page.locator(".bd-box-p > .bd-box-all").click();
     const padGroups = await page.$$eval(".bd-dd-list .bd-dd-group", (g) => g.map((x) => x.textContent));
     const padPx = await page.$$eval(".bd-dd-list .bd-dd-px", (g) => g.map((x) => x.textContent));
     expect(padGroups[0] === "Sections and page" && padGroups[1] === "Layout layers", `a Section's padding starts with section padding, then the layout layers, got ${padGroups.join(", ")}`);
     expect(padPx.length > 4 && padPx.every((v) => /^\d+$/.test(v)), `each padding option shows its px, got ${padPx.slice(0, 6).join(", ")}`);
     await page.keyboard.press("Escape");
-    ok(`a Section opens on Layout, and its padding offers ${padGroups.join(", ")}, each with its px`);
+    ok(`a Section's padding offers ${padGroups.join(", ")}, each with its px`);
 
     await tab(page, "Appearance");
     await choose(page, "Tone", "brand-muted");
@@ -844,7 +844,7 @@ try {
     await page.locator('.bd-tile[data-type="Button"]').click();
     await frame().waitForSelector('[data-bf-type="Section"] [data-bf-type="Button"]');
     await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect(await current() === "Properties", `a Button opens on Properties, got ${await current()}`);
+    expect(await current() === "content", `a Button's inspector starts with its content, got ${await current()}`);
     const tint = await frame().evaluate(() => {
       const btn = document.querySelector('[data-bf-type="Button"] button, [data-bf-type="Button"] a, button');
       const probe = document.createElement("div");
@@ -998,7 +998,8 @@ try {
     expect(/^\d+ gap \w+$/.test(said), `Shift shows the gap between the Heading and the Text with its token, got ${said}`);
     await tag.click();
     await page.waitForFunction(() => /Stack/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Layout", "the label opens the Stack's Layout tab");
+    await page.waitForFunction(() => document.querySelector('.bd-right .bd-sec[data-sec="spacing"]:not(.is-closed), .bd-right .bd-sec[data-sec="flex"]:not(.is-closed)'));
+    ok("the label selects the Stack, with its layout open in the inspector");
     await page.keyboard.up("Shift");
     await page.waitForFunction(() => !document.querySelector(".bd-spacing-tag"));
     /* Alt (Option) measures too: the frame around the Stack, now picked,
@@ -2397,8 +2398,8 @@ try {
     await page.waitForFunction(() => document.querySelector('.bd-right [aria-labelledby="bd-fr-kind"]'));
     await page.locator('.bd-right [aria-labelledby="bd-fr-kind"] .bd-seg-btn', { hasText: "Structured" }).click();
     await page.waitForFunction(() => /Group/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Layout" && await page.locator(".bd-right .bd-sec-h", { hasText: /Flex layout|Arrangement/ }).count() === 1, `Structured selects the Group everything went into, on its Layout tab with the flex controls, got tab ${await page.locator(".bd-itab[aria-selected=true]").textContent()}`);
-    ok("switching the frame to Structured opens the Layout tab on the Group its Heading went into, flex controls in view");
+    expect(await page.locator(".bd-right .bd-sec-h", { hasText: /Auto layout|Arrangement/ }).count() === 1, "Structured selects the Group everything went into, with its auto layout");
+    ok("switching the frame to Structured selects the Group its Heading went into, auto layout in view");
     expect(await page.locator(".bd-inspect-head .bd-layer-menu").count() === 1 && await page.locator(".bd-inspect-head .bd-head-actions > :not(.bd-about)").count() === 1, "the head has one menu beside the name");
     const stuck = await page.evaluate(() => { const r = document.querySelector(".bd-right"), h = document.querySelector(".bd-inspect-head"); r.scrollTop = 400; return { position: getComputedStyle(h).position, scrolled: r.scrollTop, top: Math.round(h.getBoundingClientRect().top - r.getBoundingClientRect().top) }; });
     expect(stuck.position === "sticky" && (stuck.scrolled === 0 || Math.abs(stuck.top) <= 2), `the head stays at the top of the panel while it scrolls, got ${JSON.stringify(stuck)}`);
@@ -2406,39 +2407,22 @@ try {
     await page.close();
   });
 
-  await step("Sliding choices: tabs and segmented rows slide a thumb to the chosen one, and a drag along the row picks once", async () => {
+  await step("Sliding choices: segmented rows slide a thumb to the chosen one, and a drag along the row picks once", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
     await category(page, "Typography");
     await page.locator('.bd-tile[data-type="Heading"]').click();
     await frame().waitForSelector('[data-bf-type="Heading"]');
-    /* The thumb sits on the selected tab. */
+    /* Where the thumb sits against the pressed choice. */
     const under = (row, on) => page.evaluate(({ row, on }) => {
       const r = document.querySelector(row), t = r && r.querySelector(".bd-seg-thumb"), b = r && r.querySelector(on);
       if (!t || !b) return null;
       const a = t.getBoundingClientRect(), c = b.getBoundingClientRect();
       return { dx: Math.round(Math.abs(a.left - c.left)), dw: Math.round(Math.abs(a.width - c.width)), sliding: r.classList.contains("is-sliding") };
     }, { row, on });
-    await tab(page, "Layout");
-    await page.waitForFunction(() => document.querySelector(".bd-itab[aria-selected=true]")?.textContent === "Layout");
-    await page.waitForTimeout(100);
-    let at = await under(".bd-itabs", ".bd-itab[aria-selected=true]");
-    expect(at && at.dx <= 1 && at.dw <= 1 && at.sliding, `the tab thumb covers the selected tab, got ${JSON.stringify(at)}`);
-    /* Drag from Layout to Appearance: one change, made on letting go. */
+    let at;
     const box = async (sel) => { const b = await page.locator(sel).boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; };
-    const from = await box(".bd-itab#bd-itab-layout"), to = await box(".bd-itab#bd-itab-appearance");
-    await page.mouse.move(from.x, from.y);
-    await page.mouse.down();
-    await page.mouse.move((from.x + to.x) / 2, from.y, { steps: 4 });
-    await page.mouse.move(to.x, to.y, { steps: 6 });
-    expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Layout", "the tab does not change until the drag lets go");
-    await page.mouse.up();
-    await page.waitForFunction(() => document.querySelector(".bd-itab[aria-selected=true]")?.textContent === "Appearance");
-    await page.waitForTimeout(100);
-    at = await under(".bd-itabs", ".bd-itab[aria-selected=true]");
-    expect(at && at.dx <= 1, `the thumb follows to Appearance, got ${JSON.stringify(at)}`);
-    ok("the tab thumb sits on the selected tab, and dragging it from Layout to Appearance changes the tab once, on letting go");
     /* A segmented row: the frame's kind. */
     await page.locator(".bd-flabel-btn").first().click();
     const kind = '.bd-right [aria-labelledby="bd-fr-kind"]';
@@ -4145,6 +4129,8 @@ try {
     expect(await topCell.evaluate((b) => b.classList.contains("is-inherited")) && /card padding \(--dt-card-padding\)/.test(await topCell.getAttribute("title")), `the unset top side shows ${drawnPad} in grey, from the card padding token, got title ${await topCell.getAttribute("title")}`);
     const opcStyle = async () => (await page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())))).frames[0].root.children.find((c) => c.id === "opc").style;
     const stepsBefore = (await steps(page)).past;
+    /* Spacing is the last section, so bring it into view to drag on it. */
+    await topCell.scrollIntoViewIfNeeded();
     const tb = await topCell.boundingBox();
     await page.mouse.move(tb.x + tb.width / 2, tb.y + tb.height / 2);
     await page.mouse.down();

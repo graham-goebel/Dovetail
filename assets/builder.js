@@ -191,7 +191,6 @@
     ["Components", [["Swap for another", "Cmd-drag"], ["Step a heading's size", "Shift+Up, Shift+Down"]]]
   ];
   var STYLE_KEYS = Object.keys(DATA.tokens);
-  var TABS = [["content", "Properties"], ["appearance", "Appearance"], ["layout", "Layout"]];
   var TOOLBAR = [
     { nav: true },
     null,
@@ -334,12 +333,6 @@
     if (SIDE_KEYS[key] && /^module($|-(sm|lg|xl)$)/.test(o.value)) return false;
     var list = def.section === "size" ? scope.size : scope.space;
     return list.indexOf(o.family) >= 0;
-  }
-  function smartTab(type) {
-    if (type === "__frame" || type === "__mixed") return "layout";
-    if (type === "Shape") return "appearance";
-    if (type === "Group" || type === "Section" || type === "Stack" || type === "Inline" || type === "Grid") return "layout";
-    return "content";
   }
   var MEDIA_URL = /^(https?:\/\/|data:(image|video)\/)/;
   var MEDIA_LIMIT = 15e5;
@@ -5268,51 +5261,6 @@
       })
     );
   }
-  function TabStrip(props) {
-    var tabs = props.tabs;
-    var slide = useSlide(function(i) {
-      var t = tabs[i];
-      if (t && !t.disabled && t.id !== props.current) props.onPick(t.id);
-    });
-    return e(
-      "div",
-      Object.assign({ ref: slide.ref, className: cx("bd-itabs", slide.sliding && "is-sliding", slide.dragging && "is-dragging"), role: "tablist", "aria-label": props.label }, slide.handlers),
-      slide.thumb,
-      tabs.map(function(t) {
-        var on = props.current === t.id;
-        return e("button", {
-          key: t.id,
-          type: "button",
-          role: "tab",
-          id: "bd-itab-" + t.id,
-          className: "bd-itab",
-          "aria-selected": String(on),
-          "aria-controls": props.panel,
-          disabled: t.disabled,
-          tabIndex: on ? 0 : -1,
-          onClick: function() {
-            props.onPick(t.id);
-          },
-          onKeyDown: function(ev) {
-            if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
-            ev.preventDefault();
-            var list = tabs.filter(function(x) {
-              return !x.disabled;
-            }).map(function(x) {
-              return x.id;
-            });
-            var i = list.indexOf(props.current) + (ev.key === "ArrowRight" ? 1 : -1);
-            var next = list[(i + list.length) % list.length];
-            props.onPick(next);
-            setTimeout(function() {
-              var b = document.getElementById("bd-itab-" + next);
-              if (b) b.focus();
-            }, 0);
-          }
-        }, t.label);
-      })
-    );
-  }
   function Switch(props) {
     return e("button", {
       type: "button",
@@ -9899,8 +9847,6 @@
     var assetKind = assetKindState[0], setAssetKind = assetKindState[1];
     var viewState = useState(prefs.view);
     var view = viewState[0], setView = viewState[1];
-    var tabsState = useState(prefs.tabs);
-    var tabByType = tabsState[0], setTabByType = tabsState[1];
     var pxState = useState({});
     var pxMap = pxState[0], setPxMap = pxState[1];
     var tintState = useState({});
@@ -10357,9 +10303,9 @@
     }, []);
     useEffect(function() {
       storage(function(s) {
-        s.setItem(PREFS_KEY, JSON.stringify({ category, kind: assetKind, view, tabs: tabByType, closed: closedSecs, left, canvas: canvasView, panels }));
+        s.setItem(PREFS_KEY, JSON.stringify({ category, kind: assetKind, view, closed: closedSecs, left, canvas: canvasView, panels }));
       });
-    }, [category, assetKind, view, tabByType, closedSecs, left, canvasView, panels]);
+    }, [category, assetKind, view, closedSecs, left, canvasView, panels]);
     useEffect(function() {
       var meta = projectRef.current;
       if (meta.stage === stageColor) return;
@@ -10940,17 +10886,11 @@
     var openToken = function(owner, sec2) {
       var d = docRef.current;
       var at2 = owner && owner !== "root" ? locate(d, owner) : null;
-      var key = at2 ? at2.node.type : "__frame";
       select(at2 ? [owner] : []);
-      setTabByType(function(m) {
-        var n = Object.assign({}, m);
-        n[key] = "layout";
-        return n;
-      });
       setClosedSecs(function(c) {
-        if (!c[sec2]) return c;
         var n = Object.assign({}, c);
-        delete n[sec2];
+        if (FOLDED_FIRST[sec2]) n[sec2] = false;
+        else delete n[sec2];
         return n;
       });
       setFocusSec(sec2);
@@ -13560,13 +13500,10 @@
       if (mode !== "structured") return;
       var f = active(docRef.current);
       var g = f.root.children.length === 1 && f.root.children[0].type === "Group" ? f.root.children[0] : null;
-      setTabByType(function(m) {
-        var n = Object.assign({}, m);
-        n.Group = "layout";
-        n[tabKey()] = "layout";
-        return n;
-      });
-      if (g) select([g.id]);
+      if (g) {
+        select([g.id]);
+        setFocusSec("flex");
+      } else setFocusSec("frame-auto");
     };
     var setName = function(id, name) {
       change(function(d) {
@@ -16396,61 +16333,23 @@
         })(f.root);
       });
     };
-    var tabBar = function(have, current2) {
-      return e(TabStrip, {
-        label: "Inspector",
-        panel: "bd-ipanel",
-        current: current2,
-        onPick: setTab,
-        tabs: TABS.filter(function(t) {
-          return have[t[0]] !== void 0;
-        }).map(function(t) {
-          return { id: t[0], label: t[1], disabled: !have[t[0]] };
-        })
-      });
-    };
-    var tabPanel = function(current2, children) {
-      return e("div", { id: "bd-ipanel", role: "tabpanel", className: "bd-ipanel", "aria-labelledby": "bd-itab-" + current2 }, children);
-    };
-    var tabKey = function() {
-      var ns = nodesOf2(selection);
-      if (!ns.length) return "__frame";
-      return ns.every(function(n) {
-        return n.type === ns[0].type;
-      }) ? ns[0].type : "__mixed";
-    };
-    var setTab = function(t) {
-      var k = tabKey();
-      setTabByType(function(m) {
-        var n = Object.assign({}, m);
-        n[k] = t;
-        return n;
-      });
-    };
-    var pickTab = function(have) {
-      var k = tabKey();
-      var want = tabByType[k] || smartTab(k);
-      return have[want] ? want : have.layout ? "layout" : TABS.filter(function(t) {
-        return have[t[0]];
-      }).map(function(t) {
-        return t[0];
-      })[0];
-    };
-    var FOLDED_FIRST = { "props-style": true, "props-arrange": true };
-    var isClosed = function(key) {
-      return FOLDED_FIRST[key] ? closedSecs[key] !== false : !!closedSecs[key];
+    var FOLDED_FIRST = { "props-style": true, "props-arrange": true, spacing: true };
+    var isClosed = function(key, changed) {
+      if (!FOLDED_FIRST[key]) return !!closedSecs[key];
+      return closedSecs[key] === void 0 ? !changed : closedSecs[key] !== false;
     };
     var sec = function(key, title, children, action, changed) {
+      var empty = children == null;
       return e(Section, {
         key,
         id: key,
         title,
         action,
         changed,
-        closed: isClosed(key),
-        onToggle: function() {
+        closed: empty || isClosed(key, changed),
+        onToggle: empty ? void 0 : function() {
           setClosedSecs(function(c) {
-            var n = Object.assign({}, c), was = isClosed(key);
+            var n = Object.assign({}, c), was = isClosed(key, changed);
             if (FOLDED_FIRST[key]) n[key] = !was;
             else if (was) delete n[key];
             else n[key] = true;
@@ -16574,51 +16473,6 @@
         setStyle(ids, "dark", darkOn ? void 0 : true);
       }, !!darkOn);
       return [
-        sec("fill", "Fill", [
-          extra || null,
-          e(SwatchField, {
-            key: "fill",
-            id: "bd-fill-" + first.id,
-            label: "Fill",
-            groups: surfaceGroups(),
-            value: surfaceNow,
-            mixed: surfaceNow === null,
-            custom: free && !surfaceNow && fillHex ? fillHex : null,
-            noneHint: "Takes the surface around it",
-            onChange: function(v) {
-              if (free) setStyles(ids, { surface: v || void 0, fill: void 0 });
-              else setStyle(ids, "surface", v || void 0);
-            }
-          }),
-          /* A gradient or a texture, over the fill. */
-          e(
-            Field,
-            { key: "gradient", id: "bd-grad-" + first.id, label: "Gradient", hint: (function() {
-              var g = tokenOption("gradient", nodes[0].style.gradient);
-              return g ? g.tokens[0] : null;
-            })() },
-            tokenDropdown("gradient", nodes, "bd-grad-" + first.id, {
-              noneLabel: "None",
-              className: "bd-dd-field",
-              noPreview: true,
-              onPreview: function(v) {
-                previewStyle(ids, "gradient", v);
-              }
-            })
-          ),
-          free && textOnly ? e(
-            Field,
-            { key: "ink", id: "bd-ink-" + first.id, label: "Text colour", hint: inkHex ? "A custom colour, outside the system's text roles." : "From the system's text roles." },
-            e(
-              "div",
-              { className: "bd-canvas-row" },
-              picker("color", inkHex, "Custom text colour"),
-              inkHex ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
-                setStyle(ids, "color", void 0);
-              } }, "Use the system's") : null
-            )
-          ) : null
-        ], free ? e("span", { className: "bd-sec-acts" }, picker("fill", fillHex, "Custom fill colour", "surface"), darkToggle) : darkToggle, styled(nodes, ["surface", "fill", "color", "dark", "gradient"])),
         sec("layer", "Layer", [
           e(
             "div",
@@ -16709,10 +16563,55 @@
           });
           return headAction(hidden ? "eyeOff" : "eye", hidden ? "Hidden: press to show (Ctrl+Shift+H)" : "Visible: press to hide (Ctrl+Shift+H)", actions.hide, hidden);
         })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "blur", "backdrop", "clip", "bool"])),
+        sec("fill", "Fill", [
+          extra || null,
+          e(SwatchField, {
+            key: "fill",
+            id: "bd-fill-" + first.id,
+            label: "Fill",
+            groups: surfaceGroups(),
+            value: surfaceNow,
+            mixed: surfaceNow === null,
+            custom: free && !surfaceNow && fillHex ? fillHex : null,
+            noneHint: "Takes the surface around it",
+            onChange: function(v) {
+              if (free) setStyles(ids, { surface: v || void 0, fill: void 0 });
+              else setStyle(ids, "surface", v || void 0);
+            }
+          }),
+          /* A gradient or a texture, over the fill. */
+          e(
+            Field,
+            { key: "gradient", id: "bd-grad-" + first.id, label: "Gradient", hint: (function() {
+              var g = tokenOption("gradient", nodes[0].style.gradient);
+              return g ? g.tokens[0] : null;
+            })() },
+            tokenDropdown("gradient", nodes, "bd-grad-" + first.id, {
+              noneLabel: "None",
+              className: "bd-dd-field",
+              noPreview: true,
+              onPreview: function(v) {
+                previewStyle(ids, "gradient", v);
+              }
+            })
+          ),
+          free && textOnly ? e(
+            Field,
+            { key: "ink", id: "bd-ink-" + first.id, label: "Text colour", hint: inkHex ? "A custom colour, outside the system's text roles." : "From the system's text roles." },
+            e(
+              "div",
+              { className: "bd-canvas-row" },
+              picker("color", inkHex, "Custom text colour"),
+              inkHex ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+                setStyle(ids, "color", void 0);
+              } }, "Use the system's") : null
+            )
+          ) : null
+        ], free ? e("span", { className: "bd-sec-acts" }, picker("fill", fillHex, "Custom fill colour", "surface"), darkToggle) : darkToggle, styled(nodes, ["surface", "fill", "color", "dark", "gradient"])),
         sec(
           "border",
           "Border",
-          hasBorder || lines ? [hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : null, borderLookRow(nodes, first.id)] : e("p", { className: "bd-sec-empty" }, "None"),
+          hasBorder || lines ? [hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : null, borderLookRow(nodes, first.id)] : null,
           hasBorder ? headAction("minus", "Remove the border", function() {
             var p = { border: void 0, borderWidth: void 0, borderStyle: void 0 };
             sidesOf.forEach(function(k) {
@@ -16730,7 +16629,7 @@
         sec(
           "corners",
           "Corners",
-          hasRadius ? tokenControl("radius", nodes, rid, "Radius") : e("p", { className: "bd-sec-empty" }, "None"),
+          hasRadius ? tokenControl("radius", nodes, rid, "Radius") : null,
           hasRadius ? headAction("minus", "Remove the corners", function() {
             var p = { radius: void 0 };
             cornersOf.forEach(function(k) {
@@ -16762,7 +16661,7 @@
                 return { value: o.value, label: "Elevation " + o.value + " (" + o.tokens[0] + ")", picture: e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + o.tokens[0] + ")" } }) };
               })
             })
-          ) : e("p", { className: "bd-sec-empty" }, "None"),
+          ) : null,
           hasShadow ? headAction("minus", "Remove the shadow", function() {
             setStyle(ids, "elevation", void 0);
           }) : headAction("plusSm", "Add a shadow", function() {
@@ -17019,9 +16918,7 @@
       });
       var b = boxes[frame2.id] || { h: frame2.height };
       var preset = presetOf(frame2);
-      var have = { appearance: true, layout: true };
-      var current2 = pickTab(have);
-      var body = current2 === "appearance" ? [sec("frame-look", "Frame", [
+      var look = [sec("frame-look", "Frame", [
         e(
           Field,
           { key: "fill", id: "bd-pg-surface", label: "Canvas", hint: frame2.canvas ? "A custom colour, outside the system's surfaces. Pick a surface to go back." : frame2.mode === "structured" ? "A structured page takes the system's surfaces only." : null },
@@ -17049,7 +16946,8 @@
             } })
           )
         )
-      ])] : [
+      ])];
+      var body = [
         sec("frame-mode", "Kind", e(
           Field,
           { key: "mode", id: "bd-fr-kind", label: "Frame kind", hint: frame2.mode === "structured" ? "Everything sits in auto-layout Groups, in the flow, with tokens only." : "Place things anywhere, in any colour." },
@@ -17063,7 +16961,8 @@
             options: [{ value: "free", label: "Freeform" }, { value: "structured", label: "Structured" }]
           })
         )),
-        frame2.typeScale === "social" ? frameRatio() : null,
+        frame2.typeScale === "social" ? frameRatio() : null
+      ].concat(look, [
         sec("frame-flow", "Page layout", [
           e(
             Field,
@@ -17141,7 +17040,7 @@
         ]),
         frameAuto(),
         frameOverflow()
-      ];
+      ]);
       return e(
         "div",
         { className: "bd-inspect" },
@@ -17251,8 +17150,7 @@
             })
           )
         ),
-        tabBar(have, current2),
-        tabPanel(current2, body)
+        e("div", { className: "bd-ipanel" }, body)
       );
     };
     var slotInspector = function(node) {
@@ -17431,29 +17329,21 @@
         return propControl(p, nodes);
       }).filter(Boolean);
       var arrange2 = !meta.container && flex && flex.filter(Boolean).length ? flex : null;
-      var have = { content: contentRows.length > 0 || styleRows.length > 0 || !!arrange2, appearance: true, layout: true };
-      var current2 = pickTab(have);
-      var body;
       var propNames = function(t) {
         return byTab(t).map(function(p) {
           return p.name;
         }).concat(t === "content" && hasText ? ["children"] : []).concat(t === "layout" && first.type === "Grid" ? ["minColumnWidth"] : []);
       };
-      if (current2 === "content") body = [
+      var body = [
         contentRows.length ? sec("content", "Content", contentRows, null, propsSet(nodes, propNames("content"))) : null,
         styleRows.length ? sec("props-style", "Style", styleRows, null, propsSet(nodes, propNames("appearance"))) : null,
-        arrange2 ? sec("props-arrange", "Arrangement", arrange2, null, propsSet(nodes, propNames("layout"))) : null
-      ];
-      else if (current2 === "layout") {
-        body = [
-          meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Flex layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
-          sec("size", "Size", [textBoxRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self", "fw", "fh", "rw", "rh"])),
-          sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
-          sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "x", "y"]))
-        ];
-      } else {
-        body = lookSections(nodes, null);
-      }
+        arrange2 ? sec("props-arrange", "Arrangement", arrange2, null, propsSet(nodes, propNames("layout"))) : null,
+        meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
+        sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "x", "y"])),
+        sec("size", "Size", [textBoxRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self", "fw", "fh", "rw", "rh"]))
+      ].concat(lookSections(nodes, null), [
+        sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS))
+      ]);
       var title = many ? nodes.length + " " + (sameType ? first.type + (first.type.endsWith("s") ? "" : "s") : "items") : null;
       var arrangeTools = arrangeRow(nodes);
       return e(
@@ -17536,8 +17426,7 @@
           !many && first.inst ? instanceRow(first) : null,
           arrangeTools
         ),
-        tabBar(have, current2),
-        tabPanel(current2, body)
+        e("div", { className: "bd-ipanel" }, body)
       );
     };
     var selectedNodes = nodesOf2(selection);

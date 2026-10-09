@@ -1,6 +1,6 @@
 /* The builder itself: the canvas, the panels, the inspector, history and every action. */
 
-import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, useEvent, allSame, VIRTUAL_AFTER, LIVE_MAX, nodeLabel, typeIcon, hasTitlePart, nodeIsOpen, frameSize, IS_MAC, PANELS, SHORTCUTS } from "../config.js";
+import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, useEvent, allSame, VIRTUAL_AFTER, LIVE_MAX, nodeLabel, typeIcon, hasTitlePart, nodeIsOpen, frameSize, IS_MAC, PANELS, SHORTCUTS } from "../config.js";
 import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
@@ -24,7 +24,7 @@ import { projectFiles } from "../model/projectcode.js";
 import { themeCss } from "../model/theme.js";
 import { zip } from "../model/zip.js";
 import { ENUM_ICONS, ENUM_LABEL, ENUM_MENU, Icon, PROP_LABEL } from "../ui/icons.js";
-import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PictureField, PinPad, Renamable, SearchField, Section, Segmented, SwatchField, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, snapSide, ConstraintBox } from "../ui/parts.js";
+import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PictureField, PinPad, Renamable, SearchField, Section, Segmented, SwatchField, Switch, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, snapSide, ConstraintBox } from "../ui/parts.js";
 
 /* How Home orders projects and files, remembered in this browser. */
 var HOME_SORT_KEY = "dovetail-builder-home-sort";
@@ -91,8 +91,6 @@ function App(props) {
   var assetKind = assetKindState[0], setAssetKind = assetKindState[1];
   var viewState = useState(prefs.view);
   var view = viewState[0], setView = viewState[1];
-  var tabsState = useState(prefs.tabs);
-  var tabByType = tabsState[0], setTabByType = tabsState[1];
   var pxState = useState({});
   var pxMap = pxState[0], setPxMap = pxState[1];
   var tintState = useState({});
@@ -529,8 +527,8 @@ function App(props) {
       saved: function () { return savedRef.current; } };
   }, []);
   useEffect(function () {
-    storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, kind: assetKind, view: view, tabs: tabByType, closed: closedSecs, left: left, canvas: canvasView, panels: panels })); });
-  }, [category, assetKind, view, tabByType, closedSecs, left, canvasView, panels]);
+    storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, kind: assetKind, view: view, closed: closedSecs, left: left, canvas: canvasView, panels: panels })); });
+  }, [category, assetKind, view, closedSecs, left, canvasView, panels]);
   useEffect(function () {
     var meta = projectRef.current;
     if (meta.stage === stageColor) return;
@@ -1043,10 +1041,8 @@ function App(props) {
   var openToken = function (owner, sec) {
     var d = docRef.current;
     var at = owner && owner !== "root" ? locate(d, owner) : null;
-    var key = at ? at.node.type : "__frame";
     select(at ? [owner] : []);
-    setTabByType(function (m) { var n = Object.assign({}, m); n[key] = "layout"; return n; });
-    setClosedSecs(function (c) { if (!c[sec]) return c; var n = Object.assign({}, c); delete n[sec]; return n; });
+    setClosedSecs(function (c) { var n = Object.assign({}, c); if (FOLDED_FIRST[sec]) n[sec] = false; else delete n[sec]; return n; });
     setFocusSec(sec);
   };
 
@@ -2958,12 +2954,12 @@ function App(props) {
       return [];
     }, mode === "structured" ? "Structured: everything is in Groups now" : "Freeform: place things anywhere");
     if (mode !== "structured") return;
-    /* The auto layout is the point of it: the Layout tab opens, on the
-       one Group everything went into when there is one. */
+    /* The auto layout is the point of it: it comes into view, on the one
+       Group everything went into when there is one. */
     var f = active(docRef.current);
     var g = f.root.children.length === 1 && f.root.children[0].type === "Group" ? f.root.children[0] : null;
-    setTabByType(function (m) { var n = Object.assign({}, m); n.Group = "layout"; n[tabKey()] = "layout"; return n; });
-    if (g) select([g.id]);
+    if (g) { select([g.id]); setFocusSec("flex"); }
+    else setFocusSec("frame-auto");
   };
   var setName = function (id, name) { change(function (d) { var at = locate(d, id); if (!at) return null; if (name) at.node.name = name; else delete at.node.name; return undefined; }); };
 
@@ -4865,37 +4861,20 @@ function App(props) {
   var anatomyOf = function (fid, id) { try { var a = api(fid); return a && a.anatomy ? a.anatomy(id) : null; } catch (err) { return null; } };
   var everyNode = function (fn) { doc.frames.forEach(function (f) { (function walk(n) { (n.children || []).forEach(function (c) { fn(c); walk(c); }); })(f.root); }); };
 
-  /* The inspector's tabs. One with nothing to set for this selection is off,
-     and the inspector shows Layout instead. */
-  var tabBar = function (have, current) {
-    return e(TabStrip, { label: "Inspector", panel: "bd-ipanel", current: current, onPick: setTab,
-      tabs: TABS.filter(function (t) { return have[t[0]] !== undefined; }).map(function (t) { return { id: t[0], label: t[1], disabled: !have[t[0]] }; }) });
-  };
-  var tabPanel = function (current, children) {
-    return e("div", { id: "bd-ipanel", role: "tabpanel", className: "bd-ipanel", "aria-labelledby": "bd-itab-" + current }, children);
-  };
-  /* The tab follows the kind of layer: what suits it the first time, then
-     whatever was last chosen for that kind. */
-  var tabKey = function () {
-    var ns = nodesOf(selection);
-    if (!ns.length) return "__frame";
-    return ns.every(function (n) { return n.type === ns[0].type; }) ? ns[0].type : "__mixed";
-  };
-  var setTab = function (t) { var k = tabKey(); setTabByType(function (m) { var n = Object.assign({}, m); n[k] = t; return n; }); };
-  var pickTab = function (have) {
-    var k = tabKey();
-    var want = tabByType[k] || smartTab(k);
-    return have[want] ? want : have.layout ? "layout" : TABS.filter(function (t) { return have[t[0]]; }).map(function (t) { return t[0]; })[0];
-  };
-
   /* A section that remembers whether it's folded, per title. A few start
      folded until opened once: a component's style options and arrangement,
-     under Properties, below its content. */
-  var FOLDED_FIRST = { "props-style": true, "props-arrange": true };
-  var isClosed = function (key) { return FOLDED_FIRST[key] ? closedSecs[key] !== false : !!closedSecs[key]; };
+     below its content, and spacing, unless something in them is set. One
+     with nothing in it (no children) is just its title and its action, as
+     a border is until one is added. */
+  var FOLDED_FIRST = { "props-style": true, "props-arrange": true, spacing: true };
+  var isClosed = function (key, changed) {
+    if (!FOLDED_FIRST[key]) return !!closedSecs[key];
+    return closedSecs[key] === undefined ? !changed : closedSecs[key] !== false;
+  };
   var sec = function (key, title, children, action, changed) {
-    return e(Section, { key: key, id: key, title: title, action: action, changed: changed, closed: isClosed(key),
-      onToggle: function () { setClosedSecs(function (c) { var n = Object.assign({}, c), was = isClosed(key); if (FOLDED_FIRST[key]) n[key] = !was; else if (was) delete n[key]; else n[key] = true; return n; }); } }, children);
+    var empty = children == null;
+    return e(Section, { key: key, id: key, title: title, action: action, changed: changed, closed: empty || isClosed(key, changed),
+      onToggle: empty ? undefined : function () { setClosedSecs(function (c) { var n = Object.assign({}, c), was = isClosed(key, changed); if (FOLDED_FIRST[key]) n[key] = !was; else if (was) delete n[key]; else n[key] = true; return n; }); } }, children);
   };
   /* Whether a section holds anything set on these items, for its dot. */
   var SPACING_KEYS = Object.keys(DATA.tokens).filter(function (k) { return DATA.tokens[k].section === "spacing"; });
@@ -4959,19 +4938,6 @@ function App(props) {
     var surfaceNow = same(surfaces) ? surfaces[0] : null;
     var darkToggle = headAction("moon", darkOn ? "Dark band: everything inside resolves dark. Press for inherit." : "Make this a dark band", function () { setStyle(ids, "dark", darkOn ? undefined : true); }, !!darkOn);
     return [
-      sec("fill", "Fill", [extra || null,
-        e(SwatchField, { key: "fill", id: "bd-fill-" + first.id, label: "Fill", groups: surfaceGroups(), value: surfaceNow, mixed: surfaceNow === null, custom: free && !surfaceNow && fillHex ? fillHex : null,
-          noneHint: "Takes the surface around it",
-          onChange: function (v) { if (free) setStyles(ids, { surface: v || undefined, fill: undefined }); else setStyle(ids, "surface", v || undefined); } }),
-        /* A gradient or a texture, over the fill. */
-        e(Field, { key: "gradient", id: "bd-grad-" + first.id, label: "Gradient", hint: (function () { var g = tokenOption("gradient", nodes[0].style.gradient); return g ? g.tokens[0] : null; })() },
-          tokenDropdown("gradient", nodes, "bd-grad-" + first.id, { noneLabel: "None", className: "bd-dd-field", noPreview: true,
-            onPreview: function (v) { previewStyle(ids, "gradient", v); } })),
-        free && textOnly ? e(Field, { key: "ink", id: "bd-ink-" + first.id, label: "Text colour", hint: inkHex ? "A custom colour, outside the system's text roles." : "From the system's text roles." },
-          e("div", { className: "bd-canvas-row" },
-            picker("color", inkHex, "Custom text colour"),
-            inkHex ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setStyle(ids, "color", undefined); } }, "Use the system's") : null)) : null,
-      ], free ? e("span", { className: "bd-sec-acts" }, picker("fill", fillHex, "Custom fill colour", "surface"), darkToggle) : darkToggle, styled(nodes, ["surface", "fill", "color", "dark", "gradient"])),
       sec("layer", "Layer", [
         e("div", { key: "blend", className: "bd-blend-row" },
           e("span", { className: "bd-field-label", id: lid }, "Blend"),
@@ -5003,7 +4969,20 @@ function App(props) {
         var hidden = nodes.every(function (n) { return n.hide; });
         return headAction(hidden ? "eyeOff" : "eye", hidden ? "Hidden: press to show (Ctrl+Shift+H)" : "Visible: press to hide (Ctrl+Shift+H)", actions.hide, hidden);
       })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "blur", "backdrop", "clip", "bool"])),
-      sec("border", "Border", hasBorder || lines ? [hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : null, borderLookRow(nodes, first.id)] : e("p", { className: "bd-sec-empty" }, "None"),
+      sec("fill", "Fill", [extra || null,
+        e(SwatchField, { key: "fill", id: "bd-fill-" + first.id, label: "Fill", groups: surfaceGroups(), value: surfaceNow, mixed: surfaceNow === null, custom: free && !surfaceNow && fillHex ? fillHex : null,
+          noneHint: "Takes the surface around it",
+          onChange: function (v) { if (free) setStyles(ids, { surface: v || undefined, fill: undefined }); else setStyle(ids, "surface", v || undefined); } }),
+        /* A gradient or a texture, over the fill. */
+        e(Field, { key: "gradient", id: "bd-grad-" + first.id, label: "Gradient", hint: (function () { var g = tokenOption("gradient", nodes[0].style.gradient); return g ? g.tokens[0] : null; })() },
+          tokenDropdown("gradient", nodes, "bd-grad-" + first.id, { noneLabel: "None", className: "bd-dd-field", noPreview: true,
+            onPreview: function (v) { previewStyle(ids, "gradient", v); } })),
+        free && textOnly ? e(Field, { key: "ink", id: "bd-ink-" + first.id, label: "Text colour", hint: inkHex ? "A custom colour, outside the system's text roles." : "From the system's text roles." },
+          e("div", { className: "bd-canvas-row" },
+            picker("color", inkHex, "Custom text colour"),
+            inkHex ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setStyle(ids, "color", undefined); } }, "Use the system's") : null)) : null,
+      ], free ? e("span", { className: "bd-sec-acts" }, picker("fill", fillHex, "Custom fill colour", "surface"), darkToggle) : darkToggle, styled(nodes, ["surface", "fill", "color", "dark", "gradient"])),
+      sec("border", "Border", hasBorder || lines ? [hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : null, borderLookRow(nodes, first.id)] : null,
         hasBorder ? headAction("minus", "Remove the border", function () { var p = { border: undefined, borderWidth: undefined, borderStyle: undefined }; sidesOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
           : headAction("plusSm", "Add a border", function () { setStyle(ids, "border", lines ? "strong" : "default"); }), hasBorder),
       /* Corners and shadow stay out of the way until they're added, as a
@@ -5011,14 +4990,14 @@ function App(props) {
       /* Every corner from one menu, or each corner from its own. */
       sec("corners", "Corners", hasRadius
         ? tokenControl("radius", nodes, rid, "Radius")
-        : e("p", { className: "bd-sec-empty" }, "None"),
+        : null,
         hasRadius ? headAction("minus", "Remove the corners", function () { var p = { radius: undefined }; cornersOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
           : headAction("plusSm", "Add corners", function () { setStyle(ids, "radius", DATA.tokens.radius.options.some(function (o) { return o.value === "container"; }) ? "container" : DATA.tokens.radius.options[1].value); }), hasRadius),
       sec("shadow", "Shadow", hasShadow
         ? e(Field, { key: "shadow", id: sid, label: "Elevation" },
             e(Segmented, { labelledBy: sid, wide: true, className: "bd-seg-pics", value: same(shadowValues) ? shadowValues[0] || undefined : null, onChange: function (v) { if (v) setStyle(ids, "elevation", v); },
               options: DATA.tokens.elevation.options.map(function (o) { return { value: o.value, label: "Elevation " + o.value + " (" + o.tokens[0] + ")", picture: e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + o.tokens[0] + ")" } }) }; }) }))
-        : e("p", { className: "bd-sec-empty" }, "None"),
+        : null,
         hasShadow ? headAction("minus", "Remove the shadow", function () { setStyle(ids, "elevation", undefined); })
           : headAction("plusSm", "Add a shadow", function () { var opts = DATA.tokens.elevation.options; setStyle(ids, "elevation", (opts[1] || opts[0]).value); }), hasShadow),
     ];
@@ -5131,20 +5110,18 @@ function App(props) {
     var surfaceOptions = DATA.tokens.surface.options.map(function (o) { return { value: o.value, label: o.value, hint: o.tokens[0], tokens: o.tokens }; });
     var b = boxes[frame.id] || { h: frame.height };
     var preset = presetOf(frame);
-    var have = { appearance: true, layout: true };
-    var current = pickTab(have);
-    var body = current === "appearance"
-      ? [sec("frame-look", "Frame", [
+    /* One panel: what kind of frame it is, how it looks, then its layout. */
+    var look = [sec("frame-look", "Frame", [
           e(Field, { key: "fill", id: "bd-pg-surface", label: "Canvas", hint: frame.canvas ? "A custom colour, outside the system's surfaces. Pick a surface to go back." : frame.mode === "structured" ? "A structured page takes the system's surfaces only." : null },
             e("div", { className: "bd-canvas-row" + (frame.mode === "structured" && !frame.canvas ? " is-tokens" : "") },
               e(Dropdown, { labelledBy: "bd-pg-surface", value: frame.canvas ? "" : frame.surface, placeholder: "Custom", preview: "color", className: "bd-dd-field bd-dd-swatch",
                 onChange: function (v) { change(function (d) { var f = active(d); f.surface = v || "base"; delete f.canvas; return undefined; }); }, options: surfaceOptions }),
               e(ColorPick, { value: frame.canvas, on: !!frame.canvas, label: "Custom canvas colour", onChange: function (v) { setFrame("canvas", v); } }))),
-        ])]
-      : [          sec("frame-mode", "Kind", e(Field, { key: "mode", id: "bd-fr-kind", label: "Frame kind", hint: frame.mode === "structured" ? "Everything sits in auto-layout Groups, in the flow, with tokens only." : "Place things anywhere, in any colour." },
+        ])];
+    var body = [sec("frame-mode", "Kind", e(Field, { key: "mode", id: "bd-fr-kind", label: "Frame kind", hint: frame.mode === "structured" ? "Everything sits in auto-layout Groups, in the flow, with tokens only." : "Place things anywhere, in any colour." },
           e(Segmented, { labelledBy: "bd-fr-kind", wide: true, value: frame.mode === "structured" ? "structured" : "free", onChange: function (v) { if (v) setMode(v); },
             options: [{ value: "free", label: "Freeform" }, { value: "structured", label: "Structured" }] }))),
-        frame.typeScale === "social" ? frameRatio() : null,
+        frame.typeScale === "social" ? frameRatio() : null].concat(look, [
         sec("frame-flow", "Page layout", [
           e(Field, { key: "char", id: "bd-pg-char", label: "Layout character", hint: "Sets data-layout, which moves every layout layer token together." },
             e(Dropdown, { labelledBy: "bd-pg-char", value: frame.spacing, className: "bd-dd-field", onChange: function (v) { setFrame("spacing", v || ""); }, options: SPACINGS.map(function (s) { return { value: s[0], label: s[1] }; }) })),
@@ -5164,7 +5141,7 @@ function App(props) {
               e("button", { type: "button", className: cx("bd-act", canvasView.columns && "is-on"), "aria-pressed": String(!!canvasView.columns), title: (canvasView.columns ? "Hide" : "Show") + " layout columns (Shift+G)", onClick: function () { toggleView("columns"); } }, e(Icon, { name: canvasView.columns ? "eye" : "eyeOff" })))),
         ]),
         frameAuto(),
-        frameOverflow()];
+        frameOverflow()]);
     return e("div", { className: "bd-inspect" },
       e("div", { className: "bd-inspect-head" },
         e("div", { className: "bd-head-row" },
@@ -5189,8 +5166,7 @@ function App(props) {
           e(Dropdown, { label: "Resizing", prefix: "Resizing", value: frame.hug ? "hug" : "fixed", className: "bd-dd-field",
             onChange: function (v) { change(function (d) { var f = active(d); f.hug = v === "hug"; if (!f.hug) f.height = side(Math.round(b.h), MAX_HEIGHT, f.height); return undefined; }, v === "hug" ? frame.name + " hugs its contents" : frame.name + " has a fixed height"); },
             options: [{ value: "fixed", label: "Fixed width and height", short: "Fixed", hint: "Stays the size you set, like a device screen", icon: "fit" }, { value: "hug", label: "Hug contents", short: "Hug contents", hint: "Fixed width; the height grows with what's in it", icon: "column" }] }))),
-      tabBar(have, current),
-      tabPanel(current, body));
+      e("div", { className: "bd-ipanel" }, body));
   };
 
   /* One node, or several: the same kind edits every prop together; a mix
@@ -5281,24 +5257,19 @@ function App(props) {
        content, its style options and its arrangement. A container's auto
        layout is the same on every container, so it stays under Layout. */
     var arrange = !meta.container && flex && flex.filter(Boolean).length ? flex : null;
-    var have = { content: contentRows.length > 0 || styleRows.length > 0 || !!arrange, appearance: true, layout: true };
-    var current = pickTab(have);
-    var body;
     var propNames = function (t) { return byTab(t).map(function (p) { return p.name; }).concat(t === "content" && hasText ? ["children"] : []).concat(t === "layout" && first.type === "Grid" ? ["minColumnWidth"] : []); };
-    if (current === "content") body = [
+    /* One panel, top to bottom: what it is and says, how it's laid out and
+       placed, how it looks, then its spacing. */
+    var body = [
       contentRows.length ? sec("content", "Content", contentRows, null, propsSet(nodes, propNames("content"))) : null,
       styleRows.length ? sec("props-style", "Style", styleRows, null, propsSet(nodes, propNames("appearance"))) : null,
-      arrange ? sec("props-arrange", "Arrangement", arrange, null, propsSet(nodes, propNames("layout"))) : null];
-    else if (current === "layout") {
-      body = [
-        meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Flex layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
-        sec("size", "Size", [textBoxRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self", "fw", "fh", "rw", "rh"])),
-        sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
-        sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "x", "y"])),
-      ];
-    } else {
-      body = lookSections(nodes, null);
-    }
+      arrange ? sec("props-arrange", "Arrangement", arrange, null, propsSet(nodes, propNames("layout"))) : null,
+      meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
+      sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "x", "y"])),
+      sec("size", "Size", [textBoxRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self", "fw", "fh", "rw", "rh"])),
+    ].concat(lookSections(nodes, null), [
+      sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
+    ]);
     var title = many ? nodes.length + " " + (sameType ? first.type + (first.type.endsWith("s") ? "" : "s") : "items") : null;
     var arrangeTools = arrangeRow(nodes);
     return e("div", { className: "bd-inspect" },
@@ -5347,8 +5318,7 @@ function App(props) {
               } }))),
         !many && first.inst ? instanceRow(first) : null,
         arrangeTools),
-      tabBar(have, current),
-      tabPanel(current, body));
+      e("div", { className: "bd-ipanel" }, body));
   };
 
   /* ------------------------------------------------- layout */
