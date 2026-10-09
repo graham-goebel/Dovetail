@@ -22,6 +22,8 @@ var TOOLS = [
   { name: "read_page", description: "An outline of every layer on a page: one line each, indented by depth, with its id, type, name, text, props and style tokens. Reads the current page unless page names another; frame narrows it to one frame. Read it before changing anything beyond the selection.", input_schema: { type: "object", properties: { page: { type: "string" }, frame: { type: "string" } }, additionalProperties: false } },
   { name: "read_selection", description: "The selected layers (or the frame when nothing is selected): each one's id, type, name, props and style tokens, and its children's ids and types.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "screenshot", description: "A picture of a frame or one layer on the current page, as it's drawn now. Look after visible changes and fix what looks wrong: overlaps, cramped spacing, weak contrast, text that wraps badly.", input_schema: { type: "object", properties: { id: { type: "string" } }, additionalProperties: false } },
+  { name: "read_guideline", description: "Read one of the system's guidelines, by topic id from the brief's Guidelines list (accessibility, tokens, theming, voice, colour, space, type…), when a choice depends on it.", input_schema: { type: "object", properties: { topic: { type: "string" } }, required: ["topic"], additionalProperties: false } },
+  { name: "read_theme", description: "The file's theme: its brand name and colours, whether actions are ink or brand, fonts, corner style, density, page and section tints, texture, whitespace, page width, and its context (product, marketing or social). Read it before a choice that depends on the brand or the context, such as a component's product or marketing variant.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "lint", description: "Check a frame (the one you're in unless frame names another): text contrast as drawn, anything spilling past the edge at 390px wide, contrast in dark mode, labels, alt text, heading order, primary buttons and placeholder copy. Each finding names its layers. Run it after you change something and fix what fails.", input_schema: { type: "object", properties: { frame: { type: "string" } }, additionalProperties: false } },
   { name: "measure", description: "The space between two layers as drawn, across and down, in pixels and as the nearest spacing token.", input_schema: { type: "object", properties: { a: { type: "string" }, b: { type: "string" } }, required: ["a", "b"], additionalProperties: false } },
   { name: "search_components", description: "Find components by what they're for: each match's name, group and one-line purpose. An empty query lists every component by group.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false } },
@@ -110,19 +112,34 @@ var brief = null;
 var SIDES = /^(padding|margin|border|radius)(Top|Right|Bottom|Left|TopLeft|TopRight|BottomLeft|BottomRight)$/;
 function systemPrompt() {
   if (brief) return brief;
+  /* Each component with when to use it and when not, from its own guide. */
+  var first = function (t) { var m = /^.*?[.!?](?=\s|$)/.exec(String(t || "")); return m ? m[0] : String(t || ""); };
+  var line2 = function (t) {
+    var m = META[t], g = m.guide || {};
+    var out = "- " + t + (m.container ? " (holds layers)" : "") + ": " + short(first(g.lead || m.blurb), 120);
+    if (g.use && g.use.length) out += " Use: " + short(g.use[0], 90);
+    if (g.avoid && g.avoid.length) out += " Not: " + short(g.avoid[0], 90);
+    else if (g.rules && g.rules.length) out += " Rule: " + short(g.rules[0], 90);
+    return out;
+  };
   var comps = (DATA.groups || []).map(function (g) {
-    return "## " + g.label + "\n" + g.items.filter(function (t) { return META[t]; }).map(function (t) { return "- " + t + (META[t].container ? " (holds layers)" : "") + ": " + (META[t].blurb || ""); }).join("\n");
+    return "## " + g.label + "\n" + g.items.filter(function (t) { return META[t]; }).map(line2).join("\n");
   }).join("\n\n");
+  /* Each token value with what it's for, where the system says. */
   var fams = FAMILIES.filter(function (f) { return !SIDES.test(f); }).map(function (f) {
-    return "- " + f + ": " + DATA.tokens[f].options.map(function (o) { return o.value; }).join(", ");
+    return "- " + f + ": " + DATA.tokens[f].options.map(function (o) { return o.use ? o.value + " (" + short(first(o.use), 48) + ")" : o.value; }).join(", ");
   }).join("\n");
+  var guides = {};
+  (DATA.guidelines || []).forEach(function (x) { (guides[x.group] = guides[x.group] || []).push(x.id); });
   var sides = FAMILIES.filter(function (f) { return SIDES.test(f); });
   brief = [
     "# Working in the Dovetail Builder",
     "You design on a canvas made only of the Dovetail design system: its components, laid out in frames, styled only with its tokens. The tools are your hands. Changes land on the canvas as you make them, and the person can undo any of them.",
     "## How to work",
     "- Read before you change. read_selection for the selection; read_page before anything wider, or when you need ids.",
-    "- Prefer a component that already does the job (search_components, read_component) over a styled Group or Shape.",
+    "- Prefer a component that already does the job over a styled Group or Shape. Its Use and Not lines below say when; read_component for its variants, props and examples before you use one you haven't read in this conversation.",
+    "- Choose token values by what they're for (each family below says), not by how they look: raised for cards, subtle for a quiet band, brand-muted for a band with presence.",
+    "- When the brand or the context matters (a component's product or marketing variant, the voice of copy), read_theme first; read_guideline for the rules on a topic.",
     "- A new page starts with create_frame (structured for web pages, a social preset for posts), then fills its Content group.",
     "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
     "- Write real, short copy in the brand's voice. Never lorem ipsum.",
@@ -143,6 +160,9 @@ function systemPrompt() {
     "A layer's style maps a family to one value.",
     fams,
     sides.length ? "Per-side families take the same values as their base family: " + sides.join(", ") + "." : "",
+    "# Guidelines",
+    "Read any of these with read_guideline:",
+    Object.keys(guides).map(function (k) { return "- " + k + ": " + guides[k].join(", "); }).join("\n"),
   ].filter(Boolean).join("\n\n");
   return brief;
 }
@@ -172,7 +192,8 @@ function fromJsx(jsx) {
    componentDoc(name), replace(id, nodes), move(ids, parent, index),
    wrap(id, type), group(ids), duplicate(ids), rename(id, name),
    createFrame(opts), useFrame(fid), batch(fn), runChecks(fid),
-   measure(a, b), proposePlan(plan), needsPlan() }. Returns { ok, result,
+   measure(a, b), proposePlan(plan), needsPlan(), guideline(entry),
+   theme() }. Returns { ok, result,
    change, changes, step }, or a promise
    of one for the tools that wait (another page, a picture, a component's
    docs). change, for one that edited the canvas, says what in a line for
@@ -217,6 +238,24 @@ function runTool(api, call) {
         return { ok: true, result: [{ type: "image", source: { type: "base64", media_type: pic.media_type, data: pic.data } }, { type: "text", text: what + ", " + pic.width + "×" + pic.height + " pixels." }], step: "Looked at " + what, shot: pic };
       }, function (err) { return fail((err && err.message) || "The picture couldn't be made."); });
     }
+    case "read_guideline": {
+      var list = DATA.guidelines || [];
+      var want = String(input.topic || "").toLowerCase().trim();
+      var g = list.filter(function (x) { return x.id === want; })[0] ||
+        list.filter(function (x) { return x.title.toLowerCase() === want; })[0] ||
+        list.filter(function (x) { return want && (x.id.indexOf(want) >= 0 || x.title.toLowerCase().indexOf(want) >= 0); })[0];
+      if (!g) return fail("There's no guideline " + JSON.stringify(input.topic) + ". Topics: " + list.map(function (x) { return x.id; }).join(", ") + ".");
+      if (!api.guideline) return fail("Guidelines can't be read here.");
+      return Promise.resolve(api.guideline(g)).then(function (text) {
+        if (!text) return fail("The " + g.title + " guideline couldn't be read.");
+        return { ok: true, result: "# " + g.title + (g.about ? "\n" + g.about : "") + "\n\n" + String(text).slice(0, 12000), step: "Read the " + g.title + " guideline" };
+      }, function () { return fail("The " + g.title + " guideline couldn't be read."); });
+    }
+    case "read_theme": {
+      var th = api.theme ? api.theme() : null;
+      if (!th) return fail("The theme isn't loaded yet.");
+      return { ok: true, result: JSON.stringify(th), step: "Read the theme" };
+    }
     case "lint": {
       var lf = input.frame ? (doc.frames || []).filter(function (f) { return f.id === input.frame; })[0] : (doc.frames || []).filter(function (f) { return f.id === doc.active; })[0] || doc.frames[0];
       if (!lf) return fail("There's no frame " + input.frame + " on this page.");
@@ -252,7 +291,7 @@ function runTool(api, call) {
     case "read_component": {
       var m = META[input.name];
       if (!m) return fail("There's no component called " + input.name + ". Call search_components to find one.");
-      var spec2 = { name: input.name, purpose: m.blurb, group: m.group, holdsLayers: !!m.container, props: (m.props || []).map(function (pp) { return { name: pp.name, kind: pp.kind, options: pp.options, default: pp.default, note: pp.note }; }) };
+      var spec2 = { name: input.name, purpose: m.blurb, group: m.group, holdsLayers: !!m.container, guide: m.guide || undefined, props: (m.props || []).map(function (pp) { return { name: pp.name, kind: pp.kind, options: pp.options, default: pp.default, note: pp.note }; }) };
       return Promise.resolve(api.componentDoc ? api.componentDoc(input.name) : null).then(function (md) {
         var text = JSON.stringify(spec2) + (md ? "\n\n# Documentation\n\n" + String(md).slice(0, 8000) : "");
         return { ok: true, result: text, step: "Read " + input.name + "'s docs" };
@@ -266,7 +305,7 @@ function runTool(api, call) {
     case "list_tokens": {
       var fam = DATA.tokens[input.family];
       if (!fam) return fail("There's no style family called " + input.family + ".");
-      return { ok: true, result: JSON.stringify(fam.options.map(function (o) { return { value: o.value, token: o.tokens && o.tokens[0] }; })) };
+      return { ok: true, result: JSON.stringify(fam.options.map(function (o) { return { value: o.value, token: o.tokens && o.tokens[0], use: o.use || undefined }; })) };
     }
     case "set_style": {
       var f = DATA.tokens[input.family];
@@ -466,6 +505,12 @@ function practiceAnswer(request, results) {
     return { text: "Practice mode: I ran the checks. " + (open.length ? open.length + (open.length === 1 ? " wants" : " want") + " attention: " + open.join("; ") + "." : "Everything passes.") + (asked && open.length ? " A model would now fix them with the edit tools and check again." : ""), calls: [] };
   }
   if (names[0] === "batch") return { text: "Practice mode, with the real tools: a new structured frame with a hero, three plan cards and a dark closing band, as one step you can undo at once.", calls: [] };
+  if (names[0] === "read_theme") {
+    var th = {};
+    try { th = JSON.parse(body(0)); } catch (err) { th = {}; }
+    return { text: "Practice mode: this file's brand is " + (th.brand || "unnamed") + ", primary " + (th.primary || "?") + ", " + (th.context ? th.context + " context" : "no context set") + ", " + (th.fonts && th.fonts.body ? th.fonts.body + " type" : "the default type") + ". A model would use that to pick variants and copy.", calls: [] };
+  }
+  if (names[0] === "read_guideline") return { text: "Practice mode: " + body(0).split("\n")[0].replace(/^# /, "") + " read. A model would apply it to the next change.", calls: [] };
   if (names[0] === "search_components") {
     var found = [];
     try { found = JSON.parse(body(0)).map(function (x) { return x.name; }); } catch (err) { found = []; }
@@ -503,6 +548,9 @@ function practiceScript(sel) {
         { title: "Close", detail: "A dark band with one button" },
       ], notes: ["Practice mode writes stand-in copy; a model would use your context docs."] } }] };
     }
+    if (/\btheme\b|brand colou?r|which fonts?/.test(text)) return { text: "", calls: [{ name: "read_theme", input: {} }] };
+    var topic = /\b(voice|accessibility|tokens|theming)\b/.exec(text);
+    if (topic && /guideline|guide|rule|say|how/.test(text)) return { text: "", calls: [{ name: "read_guideline", input: { topic: topic[1] } }] };
     var forWhat = /component (?:for|to)\s+(.+)$/.exec(text) || /(?:which|find a|is there a) component\s+(?:for\s+)?(.+)$/.exec(text);
     if (forWhat) return { text: "", calls: [{ name: "search_components", input: { query: forWhat[1].replace(/[?.!]+$/, "") } }] };
     var surface = DATA.tokens.surface.options.map(function (o) { return o.value; });

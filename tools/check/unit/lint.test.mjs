@@ -59,6 +59,7 @@ test("the rows put the drawn checks and the findings together", () => {
   assert.equal(by.a11y.status, "fail");
   assert.equal(by.copy.status, "pass");
   assert.equal(needsWork(rows), 2);
+  assert.equal(by.usage.status, "pass");
   assert.match(checksText(f, rows), /- FAIL Text contrast is too low in 1 place: .* \[layers: a\]/);
 });
 
@@ -69,4 +70,23 @@ test("a view that couldn't be drawn is skipped with its reason", () => {
   assert.equal(narrow.status, "skip");
   assert.match(narrow.detail, /freeform/);
   assert.equal(needsWork(rows), 0);
+});
+
+test("the components' own rules: danger only for destructive actions, no card in a card, no section in a section, one callout per section", () => {
+  const f = frameWith([
+    make("Section", {}, [
+      make("Button", { variant: "danger", children: "Learn more" }),
+      make("Button", { variant: "danger", children: "Delete project" }),
+      make("Card", {}, [make("Card", {})]),
+      make("Section", {}),
+      make("Callout", {}), make("Callout", {}),
+    ]),
+  ]);
+  const t = lintFrame(f).filter((x) => x.kind === "usage").map((x) => x.text);
+  assert.equal(t.filter((x) => /isn't a destructive action/.test(x)).length, 1, "Delete project is fine");
+  assert.ok(t.some((x) => /card inside a card/.test(x)));
+  assert.ok(t.some((x) => /Section inside a Section/.test(x)));
+  assert.ok(t.some((x) => /More than one Callout/.test(x)));
+  const rows = checksFrom(f, lintFrame(f), {});
+  assert.equal(rows.find((r) => r.id === "usage").status, "warn");
 });

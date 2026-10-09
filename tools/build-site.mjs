@@ -2654,14 +2654,139 @@ function buildBuilderFormat(meta, groups, tokens) {
   write("assets/builder-layouts.md", lines.join("\n"));
 }
 
+/* What the builder's assistant knows about each component beyond its
+   name: when to reach for it and when not, read from the component's own
+   guide (its "Use it when" and "Don't use it when" lists, or its Rules,
+   or the rules its headings state). Short, so all of them fit in the brief
+   it starts every conversation with. */
+const GUIDE_SKIP = /^(example|examples|tokens|accessibility|props|variants|tradeoffs|anatomy|api|usage|surfaces|as a link)\b/i;
+function plainMd(t) { return String(t).replace(/\\`/g, "`").replace(/`([^`]*)`/g, "$1").replace(/\*\*([^*]*)\*\*/g, "$1").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\s+/g, " ").trim(); }
+function clip(t, n) { t = plainMd(t); return t.length > n ? t.slice(0, n - 1).replace(/\s+\S*$/, "") + "…" : t; }
+function componentGuide(md) {
+  if (!md) return null;
+  const lines = md.replace(/```[\s\S]*?```/g, "").split("\n");
+  const sections = [];
+  let cur = { title: "", lines: [] };
+  for (const l of lines) {
+    const h = /^##\s+(.+)/.exec(l);
+    if (h) { sections.push(cur); cur = { title: h[1].trim(), lines: [] }; continue; }
+    if (/^#\s/.test(l)) continue;
+    cur.lines.push(l);
+  }
+  sections.push(cur);
+  /* A bullet runs on over the indented lines under it. */
+  const bullets = (sec) => {
+    const out = [];
+    if (!sec) return out;
+    for (const l of sec.lines) {
+      if (/^\s*[-*]\s+/.test(l)) out.push(l.replace(/^\s*[-*]\s+/, ""));
+      else if (out.length && /^\s+\S/.test(l)) out[out.length - 1] += " " + l.trim();
+      else if (!l.trim() && out.length) out.push(null);
+    }
+    return out.filter(Boolean);
+  };
+  const firstPara = (sec) => { const out = []; for (const l of sec.lines) { if (!l.trim()) { if (out.length) break; continue; } if (/^\s*[-*|>]/.test(l)) { if (out.length) break; continue; } out.push(l); } return out.join(" "); };
+  const find = (re) => sections.find((x) => re.test(x.title));
+  const lead = clip(firstPara(sections[0]), 220);
+  const use = bullets(find(/^use it when/i)).slice(0, 3).map((b) => clip(b, 150));
+  const avoid = bullets(find(/^don.t use it when/i)).slice(0, 3).map((b) => clip(b, 150));
+  let rules = bullets(find(/^rules?$/i)).slice(0, 3).map((b) => clip(b, 150));
+  if (!rules.length && !use.length) {
+    rules = sections.slice(1).filter((x) => x.title && !GUIDE_SKIP.test(x.title) && !/^(use it when|don.t use it when)/i.test(x.title)).slice(0, 3)
+      .map((x) => clip(x.title + (firstPara(x) ? ": " + firstPara(x) : ""), 150));
+  }
+  const g = { lead };
+  if (use.length) g.use = use;
+  if (avoid.length) g.avoid = avoid;
+  if (rules.length) g.rules = rules;
+  return g;
+}
+
+/* What each semantic token is for, in a phrase: from the token reference's
+   tables, the token source's descriptions, and the comment written above a
+   token where it's declared. The assistant reads it beside each option, so
+   brand and brand-muted, or raised and sunken, aren't just names. */
+function tokenMeanings() {
+  const out = {};
+  const put = (name, text) => { if (!name || !text || out[name]) return; out[name] = clip(text.split(/(?<=[.;])\s/)[0], 140); };
+  for (const f of fs.readdirSync(path.join(SYS, "guidelines")).filter((x) => x.endsWith(".md"))) {
+    for (const m of read(path.join(SYS, "guidelines", f)).matchAll(/^\|\s*`(--dt-[a-z0-9-]+)`\s*\|[ \t]*(?![ \t`])([^|]+)\|/gm)) {
+      if (!/^(Primitive|Semantic|Component)\b/.test(m[2].trim()) && !/^\d/.test(m[2].trim())) put(m[1], m[2].trim());
+    }
+  }
+  const dtcg = JSON.parse(read(path.join(SYS, "tokens", "dovetail.tokens.json")));
+  (function walk(o, p) {
+    for (const k of Object.keys(o)) {
+      const v = o[k];
+      if (!v || typeof v !== "object" || k.startsWith("$")) continue;
+      if (v.$description && p.length) put("--dt-" + p.slice(1).concat(k).join("-"), v.$description);
+      walk(v, p.concat(k));
+    }
+  })(dtcg, []);
+  /* A comment after a declaration on its line describes that token; a
+     comment on lines of its own describes the one under it, unless it's a
+     section heading ("TIER 2 — …", "---- Focus ----"). Tool markers like
+     "@kind other" aren't meanings. */
+  const semDir = path.join(SYS, "tokens", "semantic");
+  const words = (t) => t.replace(/^.*-{3,}.*$/gm, "").replace(/@\w+(\s+\w+)?/g, "").replace(/\s*\*\s*/g, " ").replace(/-{3,}|={3,}/g, "").trim();
+  for (const f of fs.readdirSync(semDir).filter((x) => x.endsWith(".css"))) {
+    const css = read(path.join(semDir, f));
+    for (const m of css.matchAll(/^[ \t]*(--dt-[a-z0-9-]+)\s*:[^;\n]*;[ \t]*\/\*(.*?)\*\//gm)) {
+      const text = words(m[2]);
+      if (text.length > 3) put(m[1], text);
+    }
+    for (const m of css.matchAll(/^[ \t]*\/\*([\s\S]*?)\*\/[ \t]*\n[ \t]*(--dt-[a-z0-9-]+)\s*:/gm)) {
+      const text = words(m[1]);
+      if (text.length > 12 && !/^(TIER\b|[A-Z][A-Z ]{6,})/.test(text)) put(m[2], text);
+    }
+  }
+  /* Where the docs describe a family as a whole rather than token by token
+     (the layout layers, borders, status fills), the reference's own words. */
+  const family = {
+    "--dt-layout-stack-related": "parts of one thing", "--dt-layout-stack-group": "members of a set",
+    "--dt-layout-stack-block": "one unit from the next", "--dt-layout-stack-section": "a theme from the next",
+    "--dt-border-subtle": "a quiet divider", "--dt-border-default": "the ordinary edge of a control or card",
+    "--dt-border-strong": "an edge that must be seen", "--dt-border-brand": "an edge in the brand's hue",
+    "--dt-surface-success-subtle": "a soft fill for success", "--dt-surface-warning-subtle": "a soft fill for a warning",
+    "--dt-surface-danger-subtle": "a soft fill for an error", "--dt-surface-info-subtle": "a soft fill for information",
+    "--dt-surface-brand-secondary-muted": "a soft tint of the secondary hue, for a section with presence",
+  };
+  Object.keys(family).forEach((k) => put(k, family[k]));
+  for (const k of ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"]) put("--dt-space-inset-" + k, "padding inside a container, " + k + " on the scale");
+  return out;
+}
+
+/* The guidelines the assistant can read on demand: the prose guides
+   (accessibility, tokens, theming) and the foundation cards (colour, space,
+   type, voice…), each with its title and a line on what it covers. */
+function guidelineIndex() {
+  const dir = path.join(SYS, "guidelines");
+  const out = [];
+  for (const f of fs.readdirSync(dir).sort()) {
+    const id = f.replace(/\.(md|html)$/, "");
+    const src = read(path.join(dir, f));
+    if (f.endsWith(".md")) {
+      if (/^(contributing|headless-integration)$/.test(id)) continue;
+      out.push({ id, file: f, group: "Guide", title: plainMd((/^#\s+(.+)/m.exec(src) || [, id])[1]) });
+    } else if (f.endsWith(".html")) {
+      const card = /@dsCard\s+group="([^"]*)"[^>]*?name="([^"]*)"(?:[^>]*?subtitle="([^"]*)")?/.exec(src);
+      if (!card) continue;
+      out.push({ id, file: f, group: card[1], title: card[2], about: card[3] || undefined });
+    }
+  }
+  return out;
+}
+
 function buildBuilder() {
   const declared = declaredTokens();
   const missing = [];
   const need = (t) => { if (!declared.has(t)) missing.push(t); return t; };
   const tokens = {};
+  const meanings = tokenMeanings();
   for (const [key, def] of Object.entries(BUILDER_TOKENS)) {
     def.options.forEach((o) => o.tokens.forEach(need));
-    tokens[key] = def;
+    /* Each option says what it's for, when its token does. */
+    tokens[key] = { ...def, options: def.options.map((o) => (meanings[o.tokens[0]] ? { ...o, use: meanings[o.tokens[0]] } : o)) };
   }
   BUILDER_SPACE.forEach((g) => { need(`--dt-space-inline-${g}`); need(`--dt-space-stack-${g}`); });
   BUILDER_COLUMN_WIDTHS.forEach((w) => need(w.token));
@@ -2722,6 +2847,8 @@ function buildBuilder() {
       href: `components/${c.name}.html`,
       props,
     };
+    const guide = componentGuide(c.guide);
+    if (guide) meta[c.name].guide = guide;
     const own = ownPadding(c);
     if (own) meta[c.name].ownPadding = own;
     return c.name;
@@ -2737,7 +2864,7 @@ function buildBuilder() {
 
   write("assets/builder-data.js",
     "/* GENERATED by tools/build-site.mjs (buildBuilder): what the builder can place and the tokens it may offer. Do not edit. */\n" +
-    `window.DovetailBuilderData = ${JSON.stringify({ groups, components: meta, tokens, columnWidths: BUILDER_COLUMN_WIDTHS, rootGaps: BUILDER_ROOT_GAPS, frames: BUILDER_FRAMES })};\n`);
+    `window.DovetailBuilderData = ${JSON.stringify({ groups, components: meta, tokens, columnWidths: BUILDER_COLUMN_WIDTHS, rootGaps: BUILDER_ROOT_GAPS, frames: BUILDER_FRAMES, guidelines: guidelineIndex() })};\n`);
   buildBuilderFormat(meta, groups, tokens);
 
   /* The canvas loads its own copies of the bundle, the specimens and its
