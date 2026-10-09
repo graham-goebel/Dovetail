@@ -53,7 +53,9 @@ type Tool = { name: string; description?: string; input_schema: Record<string, u
 // components and tokens, the same on every request), its system text for
 // this request (the context docs and the selection), the conversation, its
 // tools, and the file it's working on.
-function readRequest(raw: unknown): { stable: string; system: string; messages: unknown[]; tools: Tool[]; fileId: string | null } | string {
+const EFFORTS = ["low", "medium", "high"];
+
+function readRequest(raw: unknown): { stable: string; system: string; messages: unknown[]; tools: Tool[]; fileId: string | null; effort: string } | string {
   if (!raw || typeof raw !== "object") return "The request isn't JSON.";
   const r = raw as Record<string, unknown>;
   const stable = typeof r.stable === "string" ? r.stable : "";
@@ -67,7 +69,9 @@ function readRequest(raw: unknown): { stable: string; system: string; messages: 
     if (!t || typeof t !== "object" || typeof (t as Tool).name !== "string" || typeof (t as Tool).input_schema !== "object") return "Each tool needs a name and an input_schema.";
   }
   const fileId = typeof r.file_id === "string" && /^[0-9a-f-]{36}$/.test(r.file_id) ? r.file_id : null;
-  return { stable, system, messages, tools: tools as Tool[], fileId };
+  // Quick or Careful in the panel: how hard the model thinks.
+  const effort = typeof r.effort === "string" && EFFORTS.includes(r.effort) ? r.effort : "medium";
+  return { stable, system, messages, tools: tools as Tool[], fileId, effort };
 }
 
 Deno.serve(async (req) => {
@@ -125,7 +129,7 @@ Deno.serve(async (req) => {
           betas: ["server-side-fallback-2026-07-01", "thinking-display-updates-2026-08-18"],
           fallbacks: "default",
           thinking: { type: "adaptive", display: "updates" },
-          output_config: { effort: "medium" },
+          output_config: { effort: parsed.effort },
           cache_control: { type: "ephemeral" },
           system,
           messages: parsed.messages,

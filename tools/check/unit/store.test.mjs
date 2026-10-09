@@ -244,3 +244,15 @@ test("files made before libraries were kept apart go on sharing the one library,
   const copy = await s.duplicateProject(before.id);
   assert.equal(copy.lib, "shared", "a copy of an older file keeps sharing");
 });
+
+test("a file's assistant thread is kept, read back, and cleared", async () => {
+  const s = fresh();
+  assert.equal(await s.loadThread("f1"), null);
+  await s.saveThread("f1", { thread: [{ id: "a", role: "user", text: "Hi" }], msgs: [{ role: "user", content: "Hi" }] });
+  const back = await s.loadThread("f1");
+  assert.equal(back.thread[0].text, "Hi");
+  assert.equal(back.msgs.length, 1);
+  assert.equal(await s.loadThread("f2"), null, "each file has its own");
+  await s.saveThread("f1", null);
+  assert.equal(await s.loadThread("f1"), null);
+});

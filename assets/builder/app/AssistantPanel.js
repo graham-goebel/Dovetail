@@ -5,9 +5,9 @@
    message as chips (the selection, the docs, the skills), each removable.
    The App runs the conversation; this draws it. */
 
-import { cx, e, useEffect, useRef } from "../config.js";
+import { cx, e, useEffect, useRef, useState } from "../config.js";
 import { Icon } from "../ui/icons.js";
-import { Segmented } from "../ui/parts.js";
+import { Segmented, Switch } from "../ui/parts.js";
 
 function changeCard(p, turn) {
   if (!turn.changes.length) return null;
@@ -15,9 +15,11 @@ function changeCard(p, turn) {
     e("div", { className: "bd-as-card-h" }, e("span", null, turn.changes.length + (turn.changes.length === 1 ? " change" : " changes")),
       turn.kept ? e("span", { className: "bd-as-note" }, "Kept") : turn.undone ? e("span", { className: "bd-as-note" }, "Undone") : null),
     turn.changes.map(function (c, i) {
-      return e("div", { key: i, className: "bd-as-row" },
+      var can = turn.status === "done" && !turn.kept && !turn.undone && !c.undone && !p.busy;
+      return e("div", { key: i, className: cx("bd-as-row", c.undone && "is-undone") },
         e("span", { className: "bd-as-n" }, c.label),
-        e("span", { className: "bd-as-v" }, c.value, c.on ? e("span", { className: "bd-as-on" }, " · " + c.on) : null));
+        e("span", { className: "bd-as-v" }, c.value, c.on ? e("span", { className: "bd-as-on" }, " · " + c.on) : null),
+        can ? e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-row-undo", title: "Undo this and the changes after it", "aria-label": "Undo " + c.label + " and the changes after it", onClick: function () { p.undoFrom(turn.id, i); } }, e(Icon, { name: "undo" })) : null);
     }),
     turn.undone ? null : turn.checking ? e("div", { className: "bd-as-checks" }, e("div", { className: "bd-as-checks-h" }, e("span", null, "Checks"), e("span", { className: "bd-as-note" }, "Checking…")))
       : turn.checks ? e("div", { className: "bd-as-checks" },
@@ -37,24 +39,75 @@ function changeCard(p, turn) {
       e("button", { type: "button", className: "bd-btn bd-btn-sm bd-as-retry", onClick: function () { p.retry(turn.id); } }, "Retry")) : null);
 }
 
+/* A plan the assistant wants approved before a big change. */
+function planCard(p, turn) {
+  var pl = turn.plan;
+  if (!pl) return null;
+  return e("div", { className: "bd-as-card bd-as-plan" },
+    e("div", { className: "bd-as-card-h" },
+      e("span", null, e(Icon, { name: "frame" }), pl.title),
+      pl.status === "approved" ? e("span", { className: "bd-as-note" }, "Approved") : pl.status === "changing" ? e("span", { className: "bd-as-note" }, "Changing") : pl.frame ? e("span", { className: "bd-as-note" }, [pl.frame.preset, pl.frame.mode].filter(Boolean).join(" · ")) : null),
+    e("ol", { className: "bd-as-plan-steps" }, pl.steps.map(function (st, i) {
+      return e("li", { key: i }, e("b", null, st.title), st.detail ? e("span", null, st.detail) : null);
+    })),
+    pl.notes && pl.notes.length ? e("div", { className: "bd-as-plan-notes" }, pl.notes.map(function (n, i) { return e("p", { key: i }, e(Icon, { name: "alert" }), e("span", null, n)); })) : null,
+    pl.status === "pending" ? e("div", { className: "bd-as-acts" },
+      e("button", { type: "button", className: "bd-btn bd-btn-sm bd-btn-primary", onClick: function () { p.approvePlan(turn.id); } }, e(Icon, { name: "play" }), "Build it"),
+      e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { p.changePlan(turn.id); } }, e(Icon, { name: "pencil" }), "Change plan")) : null,
+    pl.status === "pending" ? e("label", { className: "bd-as-plan-skip" },
+      e("input", { type: "checkbox", checked: !p.plans, onChange: function (ev) { p.setPlans(!ev.target.checked); } }),
+      "Don't ask before big changes") : null);
+}
+
+/* The panel's menu: its settings and the thread's actions. */
+function AsMenu(p) {
+  var openState = useState(false), open = openState[0], setOpen = openState[1];
+  var ref = useRef(null);
+  useEffect(function () {
+    if (!open) return undefined;
+    var away = function (ev) { if (ref.current && !ref.current.contains(ev.target)) setOpen(false); };
+    var key = function (ev) { if (ev.key === "Escape") { setOpen(false); var b = ref.current && ref.current.querySelector(".bd-as-menu-btn"); if (b) b.focus(); } };
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", key);
+    return function () { document.removeEventListener("pointerdown", away); document.removeEventListener("keydown", key); };
+  }, [open]);
+  var row = function (id, title, help, value, onChange) {
+    return e("div", { className: "bd-as-mrow" },
+      e("span", { className: "bd-as-mrow-t" }, e("b", { id: id }, title), e("span", null, help)),
+      e(Switch, { value: value, onChange: onChange, labelledBy: id }));
+  };
+  return e("div", { className: "bd-as-menu", ref: ref },
+    e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-menu-btn", "aria-label": "Assistant settings", "aria-expanded": open, "aria-haspopup": "true", onClick: function () { setOpen(!open); } }, e(Icon, { name: "more" })),
+    open ? e("div", { className: "bd-as-pop", role: "group", "aria-label": "Assistant settings" },
+      row("bd-as-m-plan", "Plan before big changes", "New pages, or more than about 10 layers. Small edits just happen.", p.plans, p.setPlans),
+      row("bd-as-m-look", "Look at the canvas", "Sends a picture of what it built so it can check and fix it. Off keeps this file's canvas private.", p.look, p.setLook),
+      e("p", { className: "bd-as-mnote" }, "Checks run after every change."),
+      e("hr"),
+      e("button", { type: "button", className: "bd-as-mbtn", disabled: !p.thread.length, onClick: function () { setOpen(false); p.exportThread(); } }, e(Icon, { name: "download" }), "Export thread as .md"),
+      e("button", { type: "button", className: "bd-as-mbtn", disabled: !p.thread.length || p.busy, onClick: function () { setOpen(false); p.clear(); } }, e(Icon, { name: "trash" }), "Clear this thread")) : null);
+}
+
 function AssistantPanel(p) {
   var listRef = useRef(null);
   /* The thread follows what's new at its foot: text, steps, the change card, its checks. */
   var last = p.thread[p.thread.length - 1];
   var tail = last ? [p.thread.length, last.text, (last.steps || []).length, (last.changes || []).length, last.checking ? 1 : 0, last.checks ? last.checks.length : 0, last.status].join("|") : "";
   useEffect(function () { var el = listRef.current; if (el) el.scrollTop = el.scrollHeight; }, [tail]);
-  var send = function () { var t = p.draft.trim(); if (t && !p.busy) p.send(t); };
+  var send = function () { var t = p.draft.trim(); if (!t) return; if (p.busy) p.note(t); else p.send(t); };
   return e("div", { className: "bd-as" },
     e("div", { className: "bd-as-head" },
       e("span", { className: "bd-as-title" }, "Assistant"),
       p.mode === "practice" ? e("span", { className: "bd-as-badge", title: "Answers come from a script in this browser; nothing is sent or charged" }, "Practice") : null,
-      e("button", { type: "button", className: "bd-act bd-act-ghost", title: "New conversation", "aria-label": "New conversation", onClick: p.clear, disabled: !p.thread.length || p.busy }, e(Icon, { name: "plus" }))),
+      e("button", { type: "button", className: "bd-act bd-act-ghost", title: "New conversation", "aria-label": "New conversation", onClick: p.clear, disabled: !p.thread.length || p.busy }, e(Icon, { name: "plus" })),
+      e(AsMenu, p)),
     e("div", { className: "bd-as-thread", ref: listRef, "aria-live": "polite" },
       !p.thread.length ? e("div", { className: "bd-as-empty" },
         e("p", null, "Ask for a change to what's selected, or describe a section to add. It works with the design system's tokens and components only."),
         e("div", { className: "bd-as-sugg" }, p.suggestions.map(function (s) { return e("button", { key: s, type: "button", onClick: function () { p.send(s); }, disabled: p.busy }, s); }))) : null,
       p.thread.map(function (t) {
-        if (t.role === "user") return e("div", { key: t.id, className: "bd-as-me" }, t.text);
+        if (t.role === "divider") return e("p", { key: t.id, className: "bd-as-divider" }, t.text);
+        if (t.role === "user") return t.queued ? e("div", { key: t.id, className: "bd-as-me-wrap" }, e("div", { className: "bd-as-me is-queued" }, t.text), e("span", { className: "bd-as-queued" }, e(Icon, { name: "chat" }), "Lands after this step"))
+          : e("div", { key: t.id, className: "bd-as-me" }, t.text);
         return e("div", { key: t.id, className: cx("bd-as-bot", t.status === "error" && "is-error") },
           t.steps.map(function (s, i) {
             if (s.note) return e("p", { key: i, className: "bd-as-note-step" }, s.text);
@@ -62,6 +115,7 @@ function AssistantPanel(p) {
             return e("div", { key: i, className: cx("bd-as-step", !s.ok && "is-failed") }, e("span", { className: "bd-as-ok" }, e(Icon, { name: s.ok ? "check" : "close" })), s.text);
           }),
           t.text ? e("p", { className: "bd-as-text" }, t.text) : t.status === "working" ? e("p", { className: "bd-as-text bd-as-wait" }, "Working…") : null,
+          planCard(p, t),
           t.error ? e("p", { className: "bd-as-text bd-as-err" }, t.error) : null,
           changeCard(p, t));
       })),
@@ -75,14 +129,17 @@ function AssistantPanel(p) {
             e("button", { type: "button", "aria-label": "Leave out " + d.title, onClick: function () { p.dropDoc(d.id); } }, "×"));
         }),
         p.skills.map(function (s) { return e("span", { key: s.id, className: "bd-as-chip is-skill", title: s.description }, e(Icon, { name: "bolt" }), s.name); })),
-      e("textarea", { className: "bd-as-input", rows: 2, value: p.draft, placeholder: "Ask for a change, or describe a new section…", "aria-label": "Message the assistant",
+      e("textarea", { className: "bd-as-input", rows: 2, value: p.draft, placeholder: p.busy ? "Add a note while it works…" : "Ask for a change, or describe a new page…", "aria-label": p.busy ? "Add a note for the assistant" : "Message the assistant",
         onChange: function (ev) { p.setDraft(ev.target.value); },
         onKeyDown: function (ev) { if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); send(); } } }),
       e("div", { className: "bd-as-bar" },
         e(Segmented, { label: "What it may change", value: p.reach, onChange: function (v) { if (v) p.setReach(v); },
           options: [{ value: "selection", label: "Selection" }, { value: "page", label: "Page" }] }),
+        e(Segmented, { label: "How hard it thinks", value: p.effort, onChange: function (v) { if (v) p.setEffort(v); },
+          options: [{ value: "low", label: "Quick", title: "Quicker, for small edits" }, { value: "high", label: "Careful", title: "Thinks it through, for pages and redesigns" }] }),
         e("span", { className: "bd-as-sp" }),
-        p.busy ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Stop", onClick: p.stop }, e(Icon, { name: "close" }))
+        p.busy && p.draft.trim() ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Add the note", onClick: send }, e(Icon, { name: "up" }))
+          : p.busy ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Stop", onClick: p.stop }, e(Icon, { name: "close" }))
           : e("button", { type: "button", className: "bd-as-send", "aria-label": "Send", disabled: !p.draft.trim(), onClick: send }, e(Icon, { name: "up" })))));
 }
 

@@ -261,7 +261,7 @@ test("the practice script builds a page in two rounds: a frame, then its section
   const { api } = builder();
   const script = practiceScript([]);
   const ask = [{ role: "user", content: "Build a pricing page" }];
-  const t1 = script({ messages: ask, tools: TOOLS });
+  const t1 = script({ messages: ask, tools: toolsFor({ plan: false }) });
   assert.equal(t1.calls[0].name, "create_frame");
   const r1 = runTool(api, t1.calls[0]);
   const msgs = ask.concat([{ role: "assistant", content: [{ type: "tool_use", id: "a", name: "create_frame", input: t1.calls[0].input }] }, { role: "user", content: [{ type: "tool_result", tool_use_id: "a", content: r1.result }] }]);
@@ -284,4 +284,36 @@ test("lint and measure hand back what the builder reports", async () => {
   const m = await runTool(api, { name: "measure", input: { a: hero.id, b: hero.children[0].id } });
   assert.equal(JSON.parse(m.result).down.token, "--dt-space-inset-lg");
   assert.equal(runTool(api, { name: "measure", input: { a: hero.id, b: "nope" } }).ok, false);
+});
+
+test("a big change waits for an approved plan", async () => {
+  const { api } = builder();
+  let owed = true;
+  api.needsPlan = () => owed;
+  const big = "<Section>" + "<Text>x</Text>".repeat(11) + "</Section>";
+  const r = runTool(api, { name: "insert_jsx", input: { jsx: big } });
+  assert.equal(r.ok, false);
+  assert.match(r.result, /propose_plan first/);
+  assert.equal(runTool(api, { name: "insert_jsx", input: { jsx: "<Button>Go</Button>" } }).ok, true, "a small change goes ahead");
+  assert.equal(runTool(api, { name: "create_frame", input: { name: "P", preset: "desktop", mode: "structured" } }).ok, false, "a new frame always wants a plan");
+  assert.equal(runTool(api, { name: "batch", input: { calls: [{ name: "insert_jsx", input: { jsx: big } }] } }).ok, false, "a batch is judged as a whole");
+  let shown = null;
+  api.proposePlan = (plan) => { shown = plan; owed = false; return Promise.resolve({ approved: true }); };
+  const p = await runTool(api, { name: "propose_plan", input: { title: "Pricing", frame: { name: "Pricing", preset: "desktop", mode: "structured" }, steps: [{ title: "Hero" }, { title: "Plans", detail: "Three cards" }], notes: ["No Team price yet."] } });
+  assert.match(p.result, /^Approved/);
+  assert.equal(shown.steps.length, 2);
+  assert.equal(shown.frame.name, "Pricing");
+  assert.equal(runTool(api, { name: "insert_jsx", input: { jsx: big } }).ok, true, "once approved, it builds");
+  api.proposePlan = () => Promise.resolve({ approved: false, note: "two plans, not three" });
+  assert.match((await runTool(api, { name: "propose_plan", input: { title: "x", steps: [{ title: "y" }] } })).result, /wants to change the plan: two plans, not three/);
+});
+
+test("with plans on, the practice build shows a plan first, then builds once approved", () => {
+  const script = practiceScript([]);
+  const ask = [{ role: "user", content: "Build a pricing page" }];
+  const t1 = script({ messages: ask, tools: TOOLS });
+  assert.equal(t1.calls[0].name, "propose_plan");
+  const msgs = ask.concat([{ role: "assistant", content: [{ type: "tool_use", id: "p", name: "propose_plan", input: t1.calls[0].input }] }, { role: "user", content: [{ type: "tool_result", tool_use_id: "p", content: "Approved. Build it now, as planned." }] }]);
+  assert.equal(script({ messages: msgs, tools: TOOLS }).calls[0].name, "create_frame");
+  assert.ok(!toolsFor({ plan: false }).some((t) => t.name === "propose_plan"));
 });

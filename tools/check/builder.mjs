@@ -5755,7 +5755,7 @@ try {
     await page.close();
   });
 
-  await step("Assistant: in practice mode a request changes the selection with system tokens, lists what changed, and Undo all takes it back; it reads the page, looks at the canvas and builds a page; nothing is sent", async () => {
+  await step("Assistant: in practice mode a request changes the selection with system tokens, lists what changed, and Undo all takes it back; it reads the page, looks at the canvas, plans and builds a page, and keeps the thread; nothing is sent", async () => {
     const { page } = await open({ width: 1440, height: 900 });
     const sent = [];
     page.on("request", (r) => { if (/functions\/v1\/assistant|anthropic/.test(r.url())) sent.push(r.url()); });
@@ -5830,15 +5830,33 @@ try {
     const stepsBefore = (await page.evaluate(() => window.__builder.history())).past;
     await page.locator(".bd-as-input").fill("Build a pricing page");
     await page.keyboard.press("Enter");
+    const plan = reply(4).locator(".bd-as-plan");
+    await plan.locator("button", { hasText: "Build it" }).waitFor({ timeout: 20000 });
+    expect(await plan.locator(".bd-as-plan-steps li").count() === 3, "the plan lists its three steps");
+    expect(await page.evaluate(() => window.__builder.doc().frames.length) === framesBefore, "nothing is built before the plan is approved");
+    await page.locator(".bd-as-input").fill("Make the Pro card darker");
+    await page.keyboard.press("Enter");
+    await page.locator(".bd-as-me.is-queued", { hasText: "Pro card" }).waitFor();
+    expect(await page.locator(".bd-as-queued", { hasText: "Lands after this step" }).count() === 1, "a note typed while it works says when it lands");
+    await plan.locator("button", { hasText: "Build it" }).click();
     await reply(4).locator(".bd-as-acts").waitFor({ timeout: 20000 });
+    expect(await page.locator(".bd-as-me.is-queued").count() === 0, "the note went with the next step");
+    expect(await plan.locator(".bd-as-note", { hasText: "Approved" }).count() === 1, "the plan says it was approved");
     const built = await page.evaluate(() => { const d = window.__builder.doc(); const f = d.frames[d.frames.length - 1]; return { n: d.frames.length, name: f.name, mode: f.mode, active: d.active === f.id, sections: (f.root.children[0].children || []).map((c) => c.type) }; });
     expect(built.n === framesBefore + 1 && built.name === "Pricing" && built.mode === "structured" && built.active, `a new structured Pricing frame to work in, got ${JSON.stringify(built)}`);
     expect(built.sections.join() === "Section,Section,Section", `its Content group holds three sections, got ${built.sections}`);
     expect((await page.evaluate(() => window.__builder.history())).past === stepsBefore + 2, "the frame is one step and the batch of sections another");
     const rows4 = await reply(4).locator(".bd-as-row .bd-as-n").allTextContents();
     expect(rows4[0] === "New frame" && rows4.filter((r) => r === "Added").length === 3, `the card lists the new frame and the three sections, got ${rows4}`);
+    ok("asking for a pricing page shows a plan and waits; a note typed meanwhile lands with the next step; once approved it makes a structured frame and fills it in one batch");
+    const firstAdded = reply(4).locator(".bd-as-row", { hasText: "Added" }).first();
+    await firstAdded.hover();
+    await firstAdded.locator(".bd-as-row-undo").click();
+    await page.waitForFunction(() => { const d = window.__builder.doc(); const f = d.frames[d.frames.length - 1]; return f.name === "Pricing" && f.root.children[0].children.length === 0; });
+    expect(await reply(4).locator(".bd-as-row.is-undone").count() === 3 && await reply(4).locator(".bd-as-row:not(.is-undone)", { hasText: "New frame" }).count() === 1, "the three sections are struck through and the frame stays");
     await reply(4).locator(".bd-as-acts button", { hasText: "Undo all" }).click();
     await page.waitForFunction((n) => window.__builder.doc().frames.length === n, framesBefore);
+    ok("undoing back to a change takes it and the ones after it, and Undo all takes the rest");
     const fixRow = reply(1).locator(".bd-as-check.is-fail", { hasText: "accessibility" });
     await fixRow.waitFor({ timeout: 20000 });
     await fixRow.locator("button", { hasText: "Fix" }).click();
@@ -5848,8 +5866,33 @@ try {
     expect(fixSteps.some((t) => /^Checked /.test(t)), `Fix asks the assistant, which runs the checks, got ${fixSteps}`);
     expect(/no label/.test(await page.locator(".bd-as-me").last().textContent()), "the Fix message names what failed");
     ok("a failing check's Fix sends what failed to the assistant, which runs the checks again");
+    await page.locator(".bd-as-menu-btn").click();
+    const lookSwitch = page.locator(".bd-as-pop [role=switch][aria-labelledby=bd-as-m-look]");
+    expect(await lookSwitch.getAttribute("aria-checked") === "true", "looking at the canvas is on by default");
+    expect(await page.locator(".bd-as-pop [role=switch][aria-labelledby=bd-as-m-plan]").getAttribute("aria-checked") === "true", "plans come first by default");
+    await lookSwitch.click();
+    await page.keyboard.press("Escape");
+    await page.locator(".bd-as-input").fill("Take a look");
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => { const b = document.querySelectorAll(".bd-as-bot")[6]; return b && /turned off/.test(b.textContent); }, null, { timeout: 20000 });
+    await settled();
+    expect(await reply(6).locator(".bd-as-look").count() === 0, "with looking off, no picture is taken");
+    await page.locator(".bd-as-menu-btn").click();
+    await lookSwitch.click();
+    await page.keyboard.press("Escape");
+    await page.locator(".bd-as-bar .bd-seg-btn", { hasText: "Quick" }).click();
+    expect(await page.evaluate(() => localStorage.getItem("dovetail-assistant-effort")) === "low", "Quick is remembered");
+    ok("the menu turns looking off for this file, and Quick is remembered");
+    const said = await page.locator(".bd-as-me").count();
+    await page.waitForTimeout(400);
+    await page.reload();
+    await page.waitForFunction(() => window.__builder && window.__builder.saved && window.__builder.saved().ok);
+    await page.locator(".bd-rail .bd-tab", { hasText: "Assistant" }).click();
+    await page.locator(".bd-as").waitFor();
+    await page.waitForFunction((n) => document.querySelectorAll(".bd-as-me").length === n, said, { timeout: 10000 });
+    ok("the conversation is still there after a reload");
     expect(sent.length === 0, `nothing goes to a model or the cloud in practice mode, got ${sent.join(", ")}`);
-    ok("asking for a pricing page makes a structured frame and fills it in one batch; Undo all takes the frame away; no request leaves the page");
+    ok("no request leaves the page");
     await page.close();
   });
 

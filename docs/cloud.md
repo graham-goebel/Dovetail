@@ -149,7 +149,9 @@ The Builder's design assistant reads context (docs and skills) and makes changes
 - asks for short progress notes between tool calls, which the panel shows as steps;
 - streams the model's events back unchanged.
 
-**What the assistant can see.** Besides the selection, it can list the file's pages, read any page as an outline (every layer's id, type, text, props and tokens), look up a component's props and documentation, and take a picture of a frame or layer to check its own work. Pictures are JPEGs no larger than 1280 by 2000 pixels and are sent with the conversation. Looking is on by default; to keep a file's canvas from being sent as pictures, set `localStorage["dovetail-assistant-look:<file id>"] = "off"` (a switch for it comes to the panel's menu).
+**What the assistant can see.** Besides the selection, it can list the file's pages, read any page as an outline (every layer's id, type, text, props and tokens), look up a component's props and documentation, and take a picture of a frame or layer to check its own work. Pictures are JPEGs no larger than 1280 by 2000 pixels and are sent with the conversation. Looking is on by default; **Look at the canvas** in the panel's ⋯ menu turns it off for a file, so its canvas is never sent as pictures.
+
+**How it works with you.** Before a new page or frame, or a change that adds more than about 10 layers, it shows a plan and waits for **Build it** (or **Change plan**); the Builder refuses such changes until one is approved. **Plan before big changes** in the ⋯ menu turns this off. After every reply that changes the canvas, the checks run and show under the change card. **Quick** or **Careful** under the message box sets how hard it thinks (low or high effort; the function uses medium if neither is sent). Each file keeps its conversation in this browser, so it picks up where it left off.
 
 ## What's built and what's next
 
