@@ -423,7 +423,8 @@
     ["pages", "Pages", "The project's pages, each its own canvas", "file"],
     ["layers", "Layers", "Everything in each frame", "layers2"],
     ["content", "Content", "Images, illustrations and icons", "folder"],
-    ["configure", "Configure", "The system's brand, colour, type and layout", "sliders"]
+    ["configure", "Configure", "The system's brand, colour, type and layout", "sliders"],
+    ["context", "Context", "Docs and skills the assistant reads", "book"]
   ];
   var TEXT_STYLES = [
     ["display-lg", "Display large"],
@@ -2365,6 +2366,7 @@
   var VERSIONS_MAX = 30;
   var VERSION_EVERY = 10 * 60 * 1e3;
   var LAST_KEY = "dovetail-builder-last";
+  var CONTEXT_KEY = "dovetail-builder-context";
   var LIBS_DONE_KEY = "dovetail-builder-libs-kept-apart";
   var MAIN = "main";
   function docKey(id, page) {
@@ -2993,6 +2995,26 @@
           return Promise.resolve();
         }
         return b.del("library", "lib:" + scope);
+      },
+      /* Context docs and skills for the assistant, by scope key: "f:<file
+         id>", "g:<project id>" or "t:<team>". Kept beside the libraries. */
+      loadContext: function(scope) {
+        if (b.kind !== "indexeddb") return Promise.resolve(storage(function(s) {
+          return JSON.parse(s.getItem(CONTEXT_KEY + ":" + scope) || "null");
+        }) || []);
+        return b.get("library", "ctx:" + scope).then(function(rec) {
+          return rec && Array.isArray(rec.value) ? rec.value : [];
+        });
+      },
+      saveContext: function(scope, items) {
+        if (b.kind !== "indexeddb") {
+          var ok = storage(function(s) {
+            s.setItem(CONTEXT_KEY + ":" + scope, JSON.stringify(items));
+            return true;
+          });
+          return ok ? Promise.resolve() : Promise.reject(new Error("This browser is out of room."));
+        }
+        return b.put("library", { id: "ctx:" + scope, value: items });
       },
       /* What one library holds, added to another (when a file moves). */
       mergeLibrary: function(from, to) {
@@ -4406,7 +4428,7 @@
         }
         parts.push(c);
       });
-      var words2 = parts.filter(function(p) {
+      var words3 = parts.filter(function(p) {
         return p.text !== void 0;
       }).map(function(p) {
         return p.text;
@@ -4424,7 +4446,7 @@
         });
         node.children = slots.concat(kids);
       } else {
-        if (words2 && node.props.children === void 0) node.props.children = words2;
+        if (words3 && node.props.children === void 0) node.props.children = words3;
         if (tags.length) {
           note(report, type + ": the elements inside it (" + tags.map(function(t) {
             return "<" + (t.made ? t.made[0].type : t.tag || "") + ">";
@@ -4676,6 +4698,8 @@
     pipette: ["m3 21 1.5-1.5h2.5l8-8", "M4.5 19.5V17l8-8", "m14.5 6.5 2.8-2.8a2.1 2.1 0 1 1 3 3l-2.8 2.8", "m12 5 7 7"],
     exportOut: ["M12 15V3", "m7 8 5-5 5 5", "M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"],
     variable: ["M8 4c-2 2.5-3 5-3 8s1 5.5 3 8", "M16 4c2 2.5 3 5 3 8s-1 5.5-3 8", "m9.5 9 5 6", "m14.5 9-5 6"],
+    book: ["M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5z", "M20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"],
+    bolt: ["M13 3 5 13h6l-1 8 8-10h-6z"],
     info: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z", "M12 11v5", "M12 8h.01"],
     shapes: ["M8.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M13 13h8v8h-8z", "M7 14l4 7H3z"],
     card: ["M4 5h16v14H4z", "M4 10h16", "M7 14h6"],
@@ -5296,6 +5320,7 @@
       className: cx("bd-switch", props.mixed && "is-mixed"),
       "aria-checked": props.mixed ? "mixed" : String(!!props.value),
       "aria-labelledby": props.labelledBy,
+      "aria-label": props.labelledBy ? void 0 : props.label,
       onClick: function() {
         props.onChange(!props.value);
       }
@@ -6525,7 +6550,7 @@
     );
   });
   function componentCheck(node) {
-    var issues = [], tokens = {}, count = 0;
+    var issues = [], tokens2 = {}, count = 0;
     (function walk(n, depth) {
       count++;
       var label = nameOf(n);
@@ -6545,10 +6570,10 @@
           return x.value === v;
         })[0] : null;
         if (o) o.tokens.forEach(function(t) {
-          tokens[t] = 1;
+          tokens2[t] = 1;
         });
       });
-      if (n.type === "Group" && n.props.gap && n.props.gap !== "none") tokens["--dt-space-" + (n.props.direction === "row" ? "inline" : "stack") + "-" + n.props.gap] = 1;
+      if (n.type === "Group" && n.props.gap && n.props.gap !== "none") tokens2["--dt-space-" + (n.props.direction === "row" ? "inline" : "stack") + "-" + n.props.gap] = 1;
       Object.keys(n.props || {}).forEach(function(k) {
         if (typeof n.props[k] === "string" && /^data:/.test(n.props[k])) issues.push({ level: "warn", text: label + " carries an uploaded file. It stays in this browser and isn't in share links." });
       });
@@ -6556,7 +6581,7 @@
         walk(c, depth + 1);
       });
     })(node, 0);
-    var list = Object.keys(tokens);
+    var list = Object.keys(tokens2);
     if (count > 300) issues.push({ level: "error", text: "It has " + count + " layers; a component takes up to 300." });
     if (!list.length) issues.push({ level: "error", text: "It isn't built on any tokens yet. Give it spacing, a fill, a radius or a gap from the system first." });
     if (count === 1 && !isContainer(node.type)) issues.push({ level: "warn", text: "It's a single " + node.type + ". As a component it saves its settings, nothing more." });
@@ -8467,6 +8492,728 @@
     );
   });
 
+  // assets/builder/model/context.js
+  var SCOPES = ["file", "project", "team"];
+  var DOC_USES = ["always", "attach", "off"];
+  var LIMIT = { body: 2e5, title: 120, files: 60, description: 1024 };
+  function words2(text2) {
+    var m = String(text2 || "").match(/\S+/g);
+    return m ? m.length : 0;
+  }
+  function tokens(text2) {
+    return Math.ceil(String(text2 || "").length / 4);
+  }
+  function readSkillMd(text2) {
+    var src = String(text2 || "").replace(/^﻿/, "");
+    var m = src.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+    var meta = {};
+    if (m) {
+      var key = null;
+      m[1].split(/\r?\n/).forEach(function(line) {
+        var kv = line.match(/^([A-Za-z_][\w-]*):\s*(.*)$/);
+        if (kv) {
+          key = kv[1].toLowerCase();
+          meta[key] = kv[2].replace(/^["']|["']$/g, "").trim();
+        } else if (key && /^\s+\S/.test(line)) meta[key] = (meta[key] + " " + line.trim()).trim();
+      });
+    }
+    return { name: meta.name || "", description: meta.description || "", body: m ? src.slice(m[0].length) : src };
+  }
+  function skillName(s) {
+    return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 64) || "skill";
+  }
+  function skillFromFiles(files, fallbackName) {
+    var list = (files || []).filter(function(f) {
+      return f && typeof f.path === "string";
+    });
+    var md = list.filter(function(f) {
+      return /(^|\/)SKILL\.md$/i.test(f.path);
+    }).sort(function(a, b) {
+      return a.path.split("/").length - b.path.split("/").length;
+    })[0];
+    if (!md) return { error: "There's no SKILL.md in it. A skill is a folder with a SKILL.md at its top." };
+    var root = md.path.replace(/SKILL\.md$/i, "");
+    var kept = list.filter(function(f) {
+      return f.path.indexOf(root) === 0;
+    }).map(function(f) {
+      return { path: f.path.slice(root.length), body: String(f.body) };
+    });
+    if (kept.length > LIMIT.files) return { error: "A skill can hold up to " + LIMIT.files + " files." };
+    if (kept.some(function(f) {
+      return f.body.length > LIMIT.body;
+    })) return { error: "One of its files is too large." };
+    var meta = readSkillMd(md.body);
+    kept.sort(function(a, b) {
+      return a.path === md.path.slice(root.length) ? -1 : b.path === md.path.slice(root.length) ? 1 : a.path < b.path ? -1 : 1;
+    });
+    return {
+      id: uid(),
+      kind: "skill",
+      source: "uploaded",
+      enabled: true,
+      pages: [],
+      name: skillName(meta.name || root.replace(/\/$/, "").split("/").pop() || fallbackName),
+      description: meta.description.slice(0, LIMIT.description),
+      files: kept.map(function(f) {
+        return /^skill\.md$/i.test(f.path) ? { path: "SKILL.md", body: f.body } : f;
+      }),
+      updatedAt: Date.now()
+    };
+  }
+  function docFromMarkdown(fileName, text2) {
+    var body = String(text2 || "").slice(0, LIMIT.body);
+    var h = body.match(/^#\s+(.+)$/m);
+    var title = (h ? h[1] : String(fileName || "Doc").replace(/\.(md|markdown|txt)$/i, "")).trim().slice(0, LIMIT.title) || "Doc";
+    return { id: uid(), kind: "doc", source: "uploaded", use: "always", pages: [], title, body, updatedAt: Date.now() };
+  }
+  function newDoc(title) {
+    return { id: uid(), kind: "doc", source: "written", use: "always", pages: [], title: title || "Untitled doc", body: "", updatedAt: Date.now() };
+  }
+  function newSkill(name) {
+    var n = skillName(name || "new-skill");
+    return {
+      id: uid(),
+      kind: "skill",
+      source: "written",
+      enabled: true,
+      pages: [],
+      name: n,
+      description: "",
+      files: [{ path: "SKILL.md", body: "---\nname: " + n + "\ndescription: \n---\n\n# " + n + "\n\nWhat to do, step by step.\n" }],
+      updatedAt: Date.now()
+    };
+  }
+  function cleanItem(it) {
+    if (!it || typeof it !== "object" || typeof it.id !== "string") return null;
+    var pages = Array.isArray(it.pages) ? it.pages.filter(function(p) {
+      return typeof p === "string";
+    }).slice(0, 200) : [];
+    if (it.kind === "doc") {
+      return {
+        id: it.id,
+        kind: "doc",
+        source: it.source === "uploaded" || it.source === "generated" ? it.source : "written",
+        use: DOC_USES.indexOf(it.use) >= 0 ? it.use : "always",
+        pages,
+        title: String(it.title || "Untitled doc").slice(0, LIMIT.title),
+        body: String(it.body || "").slice(0, LIMIT.body),
+        updatedAt: Number(it.updatedAt) || 0
+      };
+    }
+    if (it.kind === "skill") {
+      var files = (Array.isArray(it.files) ? it.files : []).filter(function(f) {
+        return f && typeof f.path === "string";
+      }).slice(0, LIMIT.files).map(function(f) {
+        return { path: String(f.path).slice(0, 200), body: String(f.body || "").slice(0, LIMIT.body) };
+      });
+      return {
+        id: it.id,
+        kind: "skill",
+        source: it.source === "uploaded" ? "uploaded" : "written",
+        enabled: it.enabled !== false,
+        pages,
+        name: skillName(it.name),
+        description: String(it.description || "").slice(0, LIMIT.description),
+        files,
+        updatedAt: Number(it.updatedAt) || 0
+      };
+    }
+    return null;
+  }
+  function forPage(it, pageId) {
+    return !it.pages.length || it.pages.indexOf(pageId) >= 0;
+  }
+  function contextFor(byScope, pageId, attached) {
+    var docs = [], skills = [];
+    attached = attached || [];
+    SCOPES.forEach(function(scope) {
+      (byScope && byScope[scope] || []).forEach(function(it) {
+        if (it.kind === "doc" && it.use !== "off" && forPage(it, pageId) && (it.use === "always" || attached.indexOf(it.id) >= 0)) docs.push(Object.assign({ scope }, it));
+        if (it.kind === "skill" && it.enabled && forPage(it, pageId)) skills.push(Object.assign({ scope }, it));
+      });
+    });
+    var count = docs.reduce(function(n, d) {
+      return n + tokens(d.title) + tokens(d.body);
+    }, 0) + skills.reduce(function(n, s) {
+      return n + tokens(s.name) + tokens(s.description);
+    }, 0);
+    return { docs, skills, tokens: count };
+  }
+
+  // assets/builder/model/zip.js
+  var LOCAL_SIG = 67324752;
+  var CENTRAL_SIG = 33639248;
+  var END_SIG = 101010256;
+  var VERSION = 20;
+  var MADE_BY = 3 << 8 | VERSION;
+  var UTF8_FLAG = 2048;
+  var FILE_ATTRS = 2175008768;
+  var MAX_U32 = 4294967295;
+  var crcTable = null;
+  function crc32(bytes) {
+    if (!crcTable) {
+      crcTable = new Uint32Array(256);
+      for (var n = 0; n < 256; n++) {
+        var c = n;
+        for (var k = 0; k < 8; k++) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
+        crcTable[n] = c >>> 0;
+      }
+    }
+    var crc = 4294967295;
+    for (var i = 0; i < bytes.length; i++) crc = crcTable[(crc ^ bytes[i]) & 255] ^ crc >>> 8;
+    return (crc ^ 4294967295) >>> 0;
+  }
+  function dosTime(date) {
+    if (!(date instanceof Date) || isNaN(date.getTime()) || date.getFullYear() < 1980) return { time: 0, date: 1 << 5 | 1 };
+    var year = Math.min(date.getFullYear(), 2107);
+    return {
+      time: date.getHours() << 11 | date.getMinutes() << 5 | date.getSeconds() >> 1,
+      date: year - 1980 << 9 | date.getMonth() + 1 << 5 | date.getDate()
+    };
+  }
+  function checkName(name) {
+    if (typeof name !== "string" || !name) throw new Error("zip: every entry needs a name");
+    if (/[\\\0]/.test(name)) throw new Error("zip: " + JSON.stringify(name) + " has a backslash or a null character");
+    if (/^[a-z]:/i.test(name)) throw new Error("zip: " + JSON.stringify(name) + " names a drive");
+    name.split("/").forEach(function(seg) {
+      if (seg === "") throw new Error("zip: " + JSON.stringify(name) + " is absolute or has an empty segment");
+      if (seg === "." || seg === "..") throw new Error("zip: " + JSON.stringify(name) + " steps out of its folder");
+    });
+  }
+  function zip(entries, options) {
+    var utf8 = new TextEncoder();
+    var stamp = dosTime(options && options.date);
+    var seen = {};
+    var files = (entries || []).map(function(e2) {
+      if (!e2 || typeof e2 !== "object") throw new Error("zip: an entry must be { name, data }");
+      checkName(e2.name);
+      if (Object.prototype.hasOwnProperty.call(seen, e2.name)) throw new Error("zip: " + JSON.stringify(e2.name) + " appears twice");
+      seen[e2.name] = true;
+      var data = typeof e2.data === "string" ? utf8.encode(e2.data) : e2.data == null ? new Uint8Array(0) : e2.data;
+      if (!(data instanceof Uint8Array)) throw new Error("zip: the data for " + JSON.stringify(e2.name) + " must be a string or a Uint8Array");
+      var name = utf8.encode(e2.name);
+      if (name.length > 65535) throw new Error("zip: " + JSON.stringify(e2.name.slice(0, 40)) + "... is too long a name");
+      return { name, data, crc: crc32(data) };
+    });
+    if (files.length > 65535) throw new Error("zip: more entries than an archive without 64-bit records holds");
+    var localSize = 0, centralSize = 0;
+    files.forEach(function(f) {
+      f.offset = localSize;
+      localSize += 30 + f.name.length + f.data.length;
+      centralSize += 46 + f.name.length;
+    });
+    if (localSize + centralSize + 22 > MAX_U32) throw new Error("zip: too large for an archive without 64-bit records");
+    var out = new Uint8Array(localSize + centralSize + 22);
+    var view = new DataView(out.buffer);
+    var at2 = 0;
+    var u16 = function(v) {
+      view.setUint16(at2, v, true);
+      at2 += 2;
+    };
+    var u32 = function(v) {
+      view.setUint32(at2, v >>> 0, true);
+      at2 += 4;
+    };
+    var bytes = function(b) {
+      out.set(b, at2);
+      at2 += b.length;
+    };
+    files.forEach(function(f) {
+      u32(LOCAL_SIG);
+      u16(VERSION);
+      u16(UTF8_FLAG);
+      u16(0);
+      u16(stamp.time);
+      u16(stamp.date);
+      u32(f.crc);
+      u32(f.data.length);
+      u32(f.data.length);
+      u16(f.name.length);
+      u16(0);
+      bytes(f.name);
+      bytes(f.data);
+    });
+    files.forEach(function(f) {
+      u32(CENTRAL_SIG);
+      u16(MADE_BY);
+      u16(VERSION);
+      u16(UTF8_FLAG);
+      u16(0);
+      u16(stamp.time);
+      u16(stamp.date);
+      u32(f.crc);
+      u32(f.data.length);
+      u32(f.data.length);
+      u16(f.name.length);
+      u16(0);
+      u16(0);
+      u16(0);
+      u16(0);
+      u32(FILE_ATTRS);
+      u32(f.offset);
+      bytes(f.name);
+    });
+    u32(END_SIG);
+    u16(0);
+    u16(0);
+    u16(files.length);
+    u16(files.length);
+    u32(centralSize);
+    u32(localSize);
+    u16(0);
+    return out;
+  }
+
+  // assets/builder/model/unzip.js
+  var LOCAL_SIG2 = 67324752;
+  var CENTRAL_SIG2 = 33639248;
+  var END_SIG2 = 101010256;
+  var LIMITS = { entries: 200, entryBytes: 4e5, totalBytes: 4e6 };
+  function inflate(bytes) {
+    if (typeof DecompressionStream === "undefined") return Promise.reject(new Error("This browser can't open compressed zips."));
+    var stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+    return new Response(stream).arrayBuffer().then(function(b) {
+      return new Uint8Array(b);
+    });
+  }
+  function safePath(name) {
+    var p = String(name).replace(/\\/g, "/");
+    if (!p || p.slice(-1) === "/" || p.charAt(0) === "/" || /^[A-Za-z]:/.test(p)) return null;
+    var parts = p.split("/");
+    if (parts.some(function(s) {
+      return !s || s === "." || s === ".." || !/^[\w.@ -]+$/.test(s);
+    })) return null;
+    if (parts.some(function(s) {
+      return s === "__MACOSX" || s === ".DS_Store";
+    })) return null;
+    return parts.join("/");
+  }
+  function unzip(bytes, limits) {
+    limits = Object.assign({}, LIMITS, limits || {});
+    var view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    var end = -1;
+    for (var i = bytes.length - 22; i >= Math.max(0, bytes.length - 65557); i--) {
+      if (view.getUint32(i, true) === END_SIG2) {
+        end = i;
+        break;
+      }
+    }
+    if (end < 0) return Promise.reject(new Error("That isn't a zip file."));
+    var count = view.getUint16(end + 10, true);
+    var at2 = view.getUint32(end + 16, true);
+    if (count > limits.entries) return Promise.reject(new Error("That zip holds more than " + limits.entries + " files."));
+    var entries = [], total = 0;
+    for (var n = 0; n < count; n++) {
+      if (at2 + 46 > bytes.length || view.getUint32(at2, true) !== CENTRAL_SIG2) return Promise.reject(new Error("That zip is damaged."));
+      var method = view.getUint16(at2 + 10, true), crc = view.getUint32(at2 + 16, true);
+      var csize = view.getUint32(at2 + 20, true), usize = view.getUint32(at2 + 24, true);
+      var nlen = view.getUint16(at2 + 28, true), xlen = view.getUint16(at2 + 30, true), clen = view.getUint16(at2 + 32, true);
+      var local = view.getUint32(at2 + 42, true);
+      var name = new TextDecoder().decode(bytes.subarray(at2 + 46, at2 + 46 + nlen));
+      at2 += 46 + nlen + xlen + clen;
+      var path = safePath(name);
+      if (!path) continue;
+      if (usize > limits.entryBytes) return Promise.reject(new Error(path + " is too large."));
+      total += usize;
+      if (total > limits.totalBytes) return Promise.reject(new Error("That zip is too large."));
+      if (method !== 0 && method !== 8) return Promise.reject(new Error(path + " is packed in a way this can't open."));
+      if (local + 30 > bytes.length || view.getUint32(local, true) !== LOCAL_SIG2) return Promise.reject(new Error("That zip is damaged."));
+      var start = local + 30 + view.getUint16(local + 26, true) + view.getUint16(local + 28, true);
+      entries.push({ path, method, crc, usize, data: bytes.subarray(start, start + csize) });
+    }
+    return Promise.all(entries.map(function(en) {
+      return (en.method === 8 ? inflate(en.data) : Promise.resolve(en.data)).then(function(raw) {
+        if (raw.length !== en.usize || crc32(raw) !== en.crc) throw new Error(en.path + " didn't unpack cleanly.");
+        return { path: en.path, body: new TextDecoder("utf-8", { fatal: false }).decode(raw) };
+      });
+    }));
+  }
+
+  // assets/builder/app/ContextPanel.js
+  var SCOPE_WORD = { file: "This file", project: "Project", team: "Team" };
+  var SCOPE_NOTE = { file: "Only this file", project: "Every file in its project", team: "Everyone on the team" };
+  var USE_WORD = { always: "Always", attach: "When attached", off: "Off" };
+  function readText(file) {
+    return file.text ? file.text() : new Response(file).text();
+  }
+  function readBytes(file) {
+    return (file.arrayBuffer ? file.arrayBuffer() : new Response(file).arrayBuffer()).then(function(b) {
+      return new Uint8Array(b);
+    });
+  }
+  function readUpload(files) {
+    var list = Array.prototype.slice.call(files || []);
+    var out = { docs: [], skills: [], errors: [] };
+    var folder = list.filter(function(f) {
+      return f.webkitRelativePath;
+    });
+    var steps = [];
+    if (folder.length) {
+      steps.push(Promise.all(folder.filter(function(f) {
+        return f.size < 4e5 && /\.(md|markdown|txt|json|ya?ml|css|html|js|ts|tsx|jsx|svg|csv)$/i.test(f.name);
+      }).map(function(f) {
+        return readText(f).then(function(body) {
+          return { path: f.webkitRelativePath, body };
+        });
+      })).then(function(got) {
+        var s = skillFromFiles(got, folder[0].webkitRelativePath.split("/")[0]);
+        if (s.error) out.errors.push(s.error);
+        else out.skills.push(s);
+      }));
+    }
+    list.filter(function(f) {
+      return !f.webkitRelativePath;
+    }).forEach(function(f) {
+      if (/\.zip$/i.test(f.name)) {
+        steps.push(readBytes(f).then(unzip).then(function(got) {
+          var s = skillFromFiles(got, f.name.replace(/\.zip$/i, ""));
+          if (s.error) out.errors.push(f.name + ": " + s.error);
+          else out.skills.push(s);
+        }, function(err) {
+          out.errors.push(f.name + ": " + err.message);
+        }));
+      } else if (/^SKILL\.md$/i.test(f.name)) {
+        steps.push(readText(f).then(function(body) {
+          var s = skillFromFiles([{ path: "SKILL.md", body }], "skill");
+          if (s.error) out.errors.push(s.error);
+          else out.skills.push(s);
+        }));
+      } else if (/\.(md|markdown|txt)$/i.test(f.name)) {
+        if (f.size > 4e5) out.errors.push(f.name + " is too large.");
+        else steps.push(readText(f).then(function(body) {
+          out.docs.push(docFromMarkdown(f.name, body));
+        }));
+      } else out.errors.push(f.name + " isn't markdown, a zip or a folder.");
+    });
+    return Promise.all(steps).then(function() {
+      return out;
+    });
+  }
+  function scopeChips(p, it) {
+    if (!it.pages.length) return null;
+    var names = it.pages.map(function(id) {
+      var pg = p.pages.filter(function(x) {
+        return x.id === id;
+      })[0];
+      return pg ? pg.name : null;
+    }).filter(Boolean);
+    return names.length ? e("div", { className: "bd-cx-chips" }, names.map(function(n) {
+      return e("span", { key: n, className: "bd-cx-chip is-page" }, n);
+    })) : null;
+  }
+  function itemRow(p, scope, it, open) {
+    var isDoc = it.kind === "doc";
+    var on = isDoc ? it.use !== "off" : it.enabled;
+    var sub = isDoc ? (it.source === "uploaded" ? "Uploaded" : it.source === "generated" ? "Drafted" : "Written here") + " · " + words2(it.body) + " words" + (it.use === "attach" ? " · when attached" : "") : (it.source === "uploaded" ? "Uploaded" : "Written here") + " · " + it.files.length + (it.files.length === 1 ? " file" : " files");
+    return e(
+      "div",
+      { key: it.id, className: cx("bd-cx-item", !on && "is-off"), "data-ctx": it.id },
+      e(
+        "button",
+        { type: "button", className: "bd-cx-open", onClick: open, "aria-label": "Open " + (isDoc ? it.title : it.name) },
+        e("span", { className: cx("bd-cx-icon", !isDoc && "is-skill") }, e(Icon, { name: isDoc ? "file" : "bolt" })),
+        e(
+          "span",
+          { className: "bd-cx-main" },
+          e("span", { className: "bd-cx-title" }, isDoc ? it.title : it.name),
+          !isDoc && it.description ? e("span", { className: "bd-cx-when" }, it.description) : null,
+          e("span", { className: "bd-cx-sub" }, sub),
+          scopeChips(p, it)
+        )
+      ),
+      e(Switch, {
+        label: (on ? "Turn off " : "Turn on ") + (isDoc ? it.title : it.name),
+        value: on,
+        onChange: function(v) {
+          p.update(scope, it.id, isDoc ? { use: v ? "always" : "off" } : { enabled: v });
+        }
+      })
+    );
+  }
+  function editor(p, scope, it, close, fileSel, setFileSel) {
+    var isDoc = it.kind === "doc";
+    var set2 = function(patch) {
+      p.update(scope, it.id, patch);
+    };
+    var fileIdx = Math.min(fileSel, Math.max(0, (it.files || []).length - 1));
+    var file = !isDoc ? it.files[fileIdx] : null;
+    return e(
+      "div",
+      { className: "bd-cx-edit" },
+      e(
+        "div",
+        { className: "bd-cx-edit-head" },
+        e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to all context", onClick: close }, e(Icon, { name: "left" })),
+        e("input", {
+          className: "bd-input bd-cx-name",
+          "aria-label": isDoc ? "Doc title" : "Skill name",
+          value: isDoc ? it.title : it.name,
+          onChange: function(ev) {
+            set2(isDoc ? { title: ev.target.value.slice(0, 120) } : { name: skillName(ev.target.value) });
+          }
+        }),
+        e(Switch, { label: isDoc ? "Use this doc" : "Use this skill", value: isDoc ? it.use !== "off" : it.enabled, onChange: function(v) {
+          set2(isDoc ? { use: v ? "always" : "off" } : { enabled: v });
+        } })
+      ),
+      !isDoc ? e(
+        "label",
+        { className: "bd-cx-field" },
+        e("span", { className: "bd-field-label" }, "Use when"),
+        e("input", {
+          className: "bd-input",
+          value: it.description,
+          placeholder: "a request fits this skill",
+          onChange: function(ev) {
+            set2({ description: ev.target.value.slice(0, 1024) });
+          }
+        })
+      ) : null,
+      e(
+        "div",
+        { className: "bd-cx-field" },
+        e("span", { className: "bd-field-label" }, "Kept for"),
+        e(Segmented, {
+          label: "Kept for",
+          wide: true,
+          value: scope,
+          onChange: function(v) {
+            if (v && v !== scope) p.move(scope, v, it.id);
+          },
+          options: SCOPES.map(function(s) {
+            return { value: s, label: SCOPE_WORD[s], title: SCOPE_NOTE[s] + (s === "project" && !p.hasProject ? " (put this file in a project first)" : ""), disabled: s === "project" && !p.hasProject };
+          }).filter(function(o) {
+            return !o.disabled;
+          })
+        })
+      ),
+      isDoc ? e(
+        "div",
+        { className: "bd-cx-field" },
+        e("span", { className: "bd-field-label" }, "Use"),
+        e(Segmented, {
+          label: "Use",
+          wide: true,
+          value: it.use,
+          onChange: function(v) {
+            if (v) set2({ use: v });
+          },
+          options: ["always", "attach", "off"].map(function(u) {
+            return { value: u, label: USE_WORD[u] };
+          })
+        })
+      ) : null,
+      scope === "file" && p.pages.length > 1 ? e(
+        "div",
+        { className: "bd-cx-field" },
+        e("span", { className: "bd-field-label" }, "Pages"),
+        e(
+          "div",
+          { className: "bd-cx-chips" },
+          e("button", { type: "button", className: cx("bd-cx-chip", !it.pages.length && "is-on"), "aria-pressed": String(!it.pages.length), onClick: function() {
+            set2({ pages: [] });
+          } }, "All pages"),
+          p.pages.map(function(pg) {
+            var on = it.pages.indexOf(pg.id) >= 0;
+            return e("button", {
+              key: pg.id,
+              type: "button",
+              className: cx("bd-cx-chip", on && "is-on"),
+              "aria-pressed": String(on),
+              onClick: function() {
+                set2({ pages: on ? it.pages.filter(function(x) {
+                  return x !== pg.id;
+                }) : it.pages.concat([pg.id]) });
+              }
+            }, pg.name);
+          })
+        )
+      ) : null,
+      !isDoc ? e(
+        "div",
+        { className: "bd-cx-files", role: "list", "aria-label": "Skill files" },
+        it.files.map(function(f, i) {
+          return e(
+            "button",
+            { key: f.path, type: "button", role: "listitem", className: cx("bd-cx-file", i === fileIdx && "is-on"), onClick: function() {
+              setFileSel(i);
+            } },
+            e(Icon, { name: "file" }),
+            e("span", null, f.path),
+            e("span", { className: "bd-cx-sub" }, i === 0 ? "instructions" : "read when needed")
+          );
+        })
+      ) : null,
+      e("textarea", {
+        className: "bd-input bd-cx-body",
+        "aria-label": isDoc ? "Doc text, in markdown" : file ? file.path : "File",
+        spellCheck: true,
+        value: isDoc ? it.body : file ? file.body : "",
+        onChange: function(ev) {
+          var v = ev.target.value.slice(0, 2e5);
+          if (isDoc) {
+            set2({ body: v });
+            return;
+          }
+          var patch = { files: it.files.map(function(f, i) {
+            return i === fileIdx ? { path: f.path, body: v } : f;
+          }) };
+          if (file && file.path === "SKILL.md") {
+            var meta = readSkillMd(v);
+            if (meta.description) patch.description = meta.description.slice(0, 1024);
+            if (meta.name) patch.name = skillName(meta.name);
+          }
+          set2(patch);
+        }
+      }),
+      e(
+        "div",
+        { className: "bd-cx-foot" },
+        e("span", { className: "bd-cx-sub" }, isDoc ? words2(it.body) + " words · about " + tokens(it.body) + " tokens" : it.files.length + (it.files.length === 1 ? " file" : " files") + " · about " + tokens(it.files.map(function(f) {
+          return f.body;
+        }).join("")) + " tokens"),
+        e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+          p.remove(scope, it.id);
+          close();
+        } }, e(Icon, { name: "trash" }), "Delete")
+      )
+    );
+  }
+  function ContextPanel(p) {
+    var filterState = useState("all");
+    var filter = filterState[0], setFilter = filterState[1];
+    var openState = useState(null);
+    var open = openState[0], setOpen = openState[1];
+    var fileSelState = useState(0);
+    var upScopeState = useState("file");
+    var upScope = upScopeState[0];
+    var fileInput = useRef(null), folderInput = useRef(null);
+    var take = function(files) {
+      if (!files || !files.length) return;
+      readUpload(files).then(function(got) {
+        if (got.docs.length || got.skills.length) p.add(upScope, got.docs.concat(got.skills));
+        var made = got.docs.length + got.skills.length;
+        p.announce((made ? "Added " + (got.docs.length ? got.docs.length + (got.docs.length === 1 ? " doc" : " docs") : "") + (got.docs.length && got.skills.length ? " and " : "") + (got.skills.length ? got.skills.length + (got.skills.length === 1 ? " skill" : " skills") : "") + " to " + SCOPE_WORD[upScope].toLowerCase() + ". " : "") + got.errors.join(" "));
+      });
+    };
+    if (open) {
+      var list = p.items[open.scope] || [];
+      var it = list.filter(function(x) {
+        return x.id === open.id;
+      })[0];
+      var follow = Object.assign({}, p, { move: function(from, to, id) {
+        p.move(from, to, id);
+        setOpen({ scope: to, id });
+      } });
+      if (it) return e("div", { className: "bd-cx" }, editor(follow, open.scope, it, function() {
+        setOpen(null);
+      }, fileSelState[0], fileSelState[1]));
+    }
+    var ctx = contextFor(p.items, p.pageId);
+    var shown = function(it2) {
+      return (filter === "all" || (filter === "docs" ? it2.kind === "doc" : it2.kind === "skill")) && (!p.query || (it2.title || it2.name || "").toLowerCase().indexOf(p.query.toLowerCase()) >= 0);
+    };
+    return e(
+      "div",
+      {
+        className: "bd-cx",
+        onDragOver: function(ev) {
+          if (ev.dataTransfer && Array.prototype.indexOf.call(ev.dataTransfer.types || [], "Files") >= 0) ev.preventDefault();
+        },
+        onDrop: function(ev) {
+          if (ev.dataTransfer && ev.dataTransfer.files.length) {
+            ev.preventDefault();
+            take(ev.dataTransfer.files);
+          }
+        }
+      },
+      e(
+        "div",
+        { className: "bd-cx-top" },
+        e(Segmented, {
+          label: "Show",
+          wide: true,
+          value: filter,
+          onChange: function(v) {
+            if (v) setFilter(v);
+          },
+          options: [{ value: "all", label: "All" }, { value: "docs", label: "Docs" }, { value: "skills", label: "Skills" }]
+        })
+      ),
+      SCOPES.map(function(scope) {
+        var items = (p.items[scope] || []).filter(shown);
+        if (scope === "project" && !p.hasProject) return e(
+          "section",
+          { key: scope, className: "bd-cx-group" },
+          e("h3", { className: "bd-cx-h" }, "Project"),
+          e("p", { className: "bd-cx-empty" }, "Put this file in a project on Home to share docs and skills across its files.")
+        );
+        return e(
+          "section",
+          { key: scope, className: "bd-cx-group", "data-scope": scope },
+          e("h3", { className: "bd-cx-h" }, e("span", null, scope === "file" ? p.fileName || "This file" : scope === "project" ? p.projectName || "Project" : "Team"), e("span", { className: "bd-cx-sub" }, SCOPE_NOTE[scope])),
+          items.length ? items.map(function(x) {
+            return itemRow(p, scope, x, function() {
+              fileSelState[1](0);
+              setOpen({ scope, id: x.id });
+            });
+          }) : e("p", { className: "bd-cx-empty" }, filter === "skills" ? "No skills here yet." : filter === "docs" ? "No docs here yet." : "Nothing here yet.")
+        );
+      }),
+      e(
+        "div",
+        { className: "bd-cx-meter", role: "status" },
+        e("span", null, "On " + (p.pageName || "this page") + ": " + ctx.docs.length + (ctx.docs.length === 1 ? " doc" : " docs") + " sent, " + ctx.skills.length + (ctx.skills.length === 1 ? " skill" : " skills") + " on call · about " + (ctx.tokens >= 1e3 ? (ctx.tokens / 1e3).toFixed(1) + "k" : ctx.tokens) + " tokens"),
+        e("span", { className: "bd-cx-bar", "aria-hidden": true }, e("i", { style: { width: Math.min(100, Math.round(ctx.tokens / 400)) + "%" } }))
+      ),
+      e(
+        "div",
+        { className: "bd-cx-actions" },
+        e(Segmented, {
+          label: "Add to",
+          value: upScope,
+          onChange: function(v) {
+            if (v) upScopeState[1](v);
+          },
+          options: SCOPES.filter(function(s) {
+            return s !== "project" || p.hasProject;
+          }).map(function(s) {
+            return { value: s, label: s === "file" ? "File" : SCOPE_WORD[s], title: "New docs and skills go to: " + SCOPE_NOTE[s].toLowerCase() };
+          })
+        }),
+        e(
+          "div",
+          { className: "bd-cx-buttons" },
+          e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+            fileInput.current && fileInput.current.click();
+          }, title: "Markdown becomes a doc; a zip with a SKILL.md becomes a skill" }, e(Icon, { name: "upload" }), "Upload"),
+          e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+            folderInput.current && folderInput.current.click();
+          }, title: "A skill folder: SKILL.md and the files beside it" }, e(Icon, { name: "folder" }), "Skill folder"),
+          e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+            var d = newDoc();
+            p.add(upScope, [d]);
+            setOpen({ scope: upScope, id: d.id });
+          } }, e(Icon, { name: "pencil" }), "New doc"),
+          e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+            var s = newSkill();
+            fileSelState[1](0);
+            p.add(upScope, [s]);
+            setOpen({ scope: upScope, id: s.id });
+          } }, e(Icon, { name: "bolt" }), "New skill")
+        ),
+        e("input", { ref: fileInput, type: "file", hidden: true, multiple: true, accept: ".md,.markdown,.txt,.zip", "aria-label": "Upload docs or a skill zip", onChange: function(ev) {
+          take(ev.target.files);
+          ev.target.value = "";
+        } }),
+        e("input", { ref: folderInput, type: "file", hidden: true, webkitdirectory: "", multiple: true, "aria-label": "Upload a skill folder", onChange: function(ev) {
+          take(ev.target.files);
+          ev.target.value = "";
+        } })
+      )
+    );
+  }
+
   // assets/builder/app/Stage.js
   var camNow = { x: STAGE_PAD, y: STAGE_PAD + LABEL_ROOM, z: 1 };
   var camListeners = [];
@@ -9485,7 +10232,7 @@
     };
     roots.forEach(collect);
     Object.keys(found).forEach(function(id) {
-      var f = found[id], master = f.comp.node, params = [], keys2 = {}, words2 = {};
+      var f = found[id], master = f.comp.node, params = [], keys2 = {}, words3 = {};
       f.instances.forEach(function(inst) {
         overrides(inst, master).forEach(function(o) {
           if (!o.props) return;
@@ -9495,8 +10242,8 @@
             var key = o.path + "\0" + k;
             if (keys2[key]) return;
             var w = propWord(node, k), name = w, i = 2;
-            while (words2[name] || name === "style") name = w + i++;
-            words2[name] = true;
+            while (words3[name] || name === "style") name = w + i++;
+            words3[name] = true;
             keys2[key] = name;
             params.push({ name, path: o.path, key: k, def: typeof (node.props || {})[k] === "string" ? node.props[k] : void 0 });
           });
@@ -9699,130 +10446,6 @@
     return source.themeCss(theme);
   }
 
-  // assets/builder/model/zip.js
-  var LOCAL_SIG = 67324752;
-  var CENTRAL_SIG = 33639248;
-  var END_SIG = 101010256;
-  var VERSION = 20;
-  var MADE_BY = 3 << 8 | VERSION;
-  var UTF8_FLAG = 2048;
-  var FILE_ATTRS = 2175008768;
-  var MAX_U32 = 4294967295;
-  var crcTable = null;
-  function crc32(bytes) {
-    if (!crcTable) {
-      crcTable = new Uint32Array(256);
-      for (var n = 0; n < 256; n++) {
-        var c = n;
-        for (var k = 0; k < 8; k++) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
-        crcTable[n] = c >>> 0;
-      }
-    }
-    var crc = 4294967295;
-    for (var i = 0; i < bytes.length; i++) crc = crcTable[(crc ^ bytes[i]) & 255] ^ crc >>> 8;
-    return (crc ^ 4294967295) >>> 0;
-  }
-  function dosTime(date) {
-    if (!(date instanceof Date) || isNaN(date.getTime()) || date.getFullYear() < 1980) return { time: 0, date: 1 << 5 | 1 };
-    var year = Math.min(date.getFullYear(), 2107);
-    return {
-      time: date.getHours() << 11 | date.getMinutes() << 5 | date.getSeconds() >> 1,
-      date: year - 1980 << 9 | date.getMonth() + 1 << 5 | date.getDate()
-    };
-  }
-  function checkName(name) {
-    if (typeof name !== "string" || !name) throw new Error("zip: every entry needs a name");
-    if (/[\\\0]/.test(name)) throw new Error("zip: " + JSON.stringify(name) + " has a backslash or a null character");
-    if (/^[a-z]:/i.test(name)) throw new Error("zip: " + JSON.stringify(name) + " names a drive");
-    name.split("/").forEach(function(seg) {
-      if (seg === "") throw new Error("zip: " + JSON.stringify(name) + " is absolute or has an empty segment");
-      if (seg === "." || seg === "..") throw new Error("zip: " + JSON.stringify(name) + " steps out of its folder");
-    });
-  }
-  function zip(entries, options) {
-    var utf8 = new TextEncoder();
-    var stamp = dosTime(options && options.date);
-    var seen = {};
-    var files = (entries || []).map(function(e2) {
-      if (!e2 || typeof e2 !== "object") throw new Error("zip: an entry must be { name, data }");
-      checkName(e2.name);
-      if (Object.prototype.hasOwnProperty.call(seen, e2.name)) throw new Error("zip: " + JSON.stringify(e2.name) + " appears twice");
-      seen[e2.name] = true;
-      var data = typeof e2.data === "string" ? utf8.encode(e2.data) : e2.data == null ? new Uint8Array(0) : e2.data;
-      if (!(data instanceof Uint8Array)) throw new Error("zip: the data for " + JSON.stringify(e2.name) + " must be a string or a Uint8Array");
-      var name = utf8.encode(e2.name);
-      if (name.length > 65535) throw new Error("zip: " + JSON.stringify(e2.name.slice(0, 40)) + "... is too long a name");
-      return { name, data, crc: crc32(data) };
-    });
-    if (files.length > 65535) throw new Error("zip: more entries than an archive without 64-bit records holds");
-    var localSize = 0, centralSize = 0;
-    files.forEach(function(f) {
-      f.offset = localSize;
-      localSize += 30 + f.name.length + f.data.length;
-      centralSize += 46 + f.name.length;
-    });
-    if (localSize + centralSize + 22 > MAX_U32) throw new Error("zip: too large for an archive without 64-bit records");
-    var out = new Uint8Array(localSize + centralSize + 22);
-    var view = new DataView(out.buffer);
-    var at2 = 0;
-    var u16 = function(v) {
-      view.setUint16(at2, v, true);
-      at2 += 2;
-    };
-    var u32 = function(v) {
-      view.setUint32(at2, v >>> 0, true);
-      at2 += 4;
-    };
-    var bytes = function(b) {
-      out.set(b, at2);
-      at2 += b.length;
-    };
-    files.forEach(function(f) {
-      u32(LOCAL_SIG);
-      u16(VERSION);
-      u16(UTF8_FLAG);
-      u16(0);
-      u16(stamp.time);
-      u16(stamp.date);
-      u32(f.crc);
-      u32(f.data.length);
-      u32(f.data.length);
-      u16(f.name.length);
-      u16(0);
-      bytes(f.name);
-      bytes(f.data);
-    });
-    files.forEach(function(f) {
-      u32(CENTRAL_SIG);
-      u16(MADE_BY);
-      u16(VERSION);
-      u16(UTF8_FLAG);
-      u16(0);
-      u16(stamp.time);
-      u16(stamp.date);
-      u32(f.crc);
-      u32(f.data.length);
-      u32(f.data.length);
-      u16(f.name.length);
-      u16(0);
-      u16(0);
-      u16(0);
-      u16(0);
-      u32(FILE_ATTRS);
-      u32(f.offset);
-      bytes(f.name);
-    });
-    u32(END_SIG);
-    u16(0);
-    u16(0);
-    u16(files.length);
-    u16(files.length);
-    u32(centralSize);
-    u32(localSize);
-    u16(0);
-    return out;
-  }
-
   // assets/builder/app/App.js
   var HOME_SORT_KEY = "dovetail-builder-home-sort";
   var DARK_KEY = "dovetail-builder-dark";
@@ -9862,6 +10485,14 @@
     var layerQueryState = useState("");
     var layerQuery = layerQueryState[0], setLayerQuery = layerQueryState[1];
     var contentQueryState = useState("");
+    var contextQueryState = useState("");
+    var contextQuery = contextQueryState[0], setContextQuery = contextQueryState[1];
+    var ctxState = useState({ file: [], project: [], team: [] });
+    var ctxItems = ctxState[0], setCtxItems = ctxState[1];
+    var ctxRef = useRef(ctxItems);
+    ctxRef.current = ctxItems;
+    var groupNameState = useState("");
+    var groupName = groupNameState[0], setGroupName = groupNameState[1];
     var pageQueryState = useState("");
     var configQueryState = useState("");
     var configQuery = configQueryState[0], setConfigQuery = configQueryState[1];
@@ -10093,6 +10724,72 @@
         setLibrary(loadLibrary(v));
         setLibTab(null);
       });
+    };
+    var ctxKey = function(scope, meta) {
+      meta = meta || projectRef.current;
+      return scope === "team" ? "t:local" : scope === "project" ? meta && meta.group ? "g:" + meta.group : null : meta ? "f:" + meta.id : null;
+    };
+    var groupOfFile = project ? project.group || "" : "";
+    useEffect(function() {
+      var meta = projectRef.current, live = true;
+      if (!meta) return void 0;
+      var read = function(scope) {
+        var k = ctxKey(scope, meta);
+        return k ? store.loadContext(k).then(function(list) {
+          return (list || []).map(cleanItem).filter(Boolean);
+        }, function() {
+          return [];
+        }) : Promise.resolve([]);
+      };
+      Promise.all([read("file"), read("project"), read("team")]).then(function(got) {
+        if (live) setCtxItems({ file: got[0], project: got[1], team: got[2] });
+      });
+      if (meta.group && store.getGroup) store.getGroup(meta.group).then(function(g) {
+        if (live) setGroupName(g ? g.name : "");
+      }, function() {
+      });
+      else setGroupName("");
+      return function() {
+        live = false;
+      };
+    }, [project ? project.id : null, groupOfFile]);
+    var putCtx = function(scope, items) {
+      var k = ctxKey(scope);
+      if (!k) return;
+      setCtxItems(function(c) {
+        var n = Object.assign({}, c);
+        n[scope] = items;
+        return n;
+      });
+      store.saveContext(k, items).catch(function() {
+        announce("This browser is out of room for context. Remove something, or use smaller files.");
+      });
+    };
+    var ctxApi = {
+      add: function(scope, list) {
+        putCtx(scope, (ctxRef.current[scope] || []).concat(list));
+      },
+      update: function(scope, id, patch) {
+        putCtx(scope, (ctxRef.current[scope] || []).map(function(it) {
+          return it.id === id ? cleanItem(Object.assign({}, it, patch, { updatedAt: Date.now() })) || it : it;
+        }));
+      },
+      remove: function(scope, id) {
+        putCtx(scope, (ctxRef.current[scope] || []).filter(function(it) {
+          return it.id !== id;
+        }));
+      },
+      move: function(from, to, id) {
+        var it = (ctxRef.current[from] || []).filter(function(x) {
+          return x.id === id;
+        })[0];
+        if (!it || !ctxKey(to)) return;
+        var moved = Object.assign({}, it, { pages: to === "file" ? it.pages : [] });
+        putCtx(from, (ctxRef.current[from] || []).filter(function(x) {
+          return x.id !== id;
+        }));
+        putCtx(to, (ctxRef.current[to] || []).concat([moved]));
+      }
     };
     var docked = left === "configure" && !(wide && (bare || preview)) && (wide || pane === "add");
     useEffect(function() {
@@ -18632,7 +19329,7 @@
         },
         e(
           "aside",
-          { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content and configure", hidden: hidePanels || void 0 },
+          { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content, configure and context", hidden: hidePanels || void 0 },
           e(
             "div",
             { className: "bd-left-tabs bd-rail" },
@@ -18676,9 +19373,25 @@
             e(
               "div",
               { className: cx("bd-left-main", left === "configure" && "bd-config-main") },
-              left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null) : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps) : e(Content, contentProps)
+              left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null) : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps) : left === "context" ? e(ContextPanel, {
+                items: ctxItems,
+                query: contextQuery,
+                hasProject: !!(project && project.group),
+                projectName: groupName,
+                fileName: project ? project.name : "",
+                pages: pagesOf(project),
+                pageId,
+                pageName: (pagesOf(project).filter(function(x) {
+                  return x.id === pageId;
+                })[0] || {}).name,
+                announce,
+                add: ctxApi.add,
+                update: ctxApi.update,
+                remove: ctxApi.remove,
+                move: ctxApi.move
+              }) : e(Content, contentProps)
             ),
-            left === "configure" ? e(SearchField, { className: "bd-search-dock", label: "Search settings", placeholder: "Search settings", value: configQuery, onChange: setConfigQuery }) : left === "pages" ? e(SearchField, { className: "bd-search-dock", label: "Filter pages", placeholder: "Filter pages", value: pageQuery, onChange: setPageQuery }) : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery }) : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }) : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })
+            left === "configure" ? e(SearchField, { className: "bd-search-dock", label: "Search settings", placeholder: "Search settings", value: configQuery, onChange: setConfigQuery }) : left === "pages" ? e(SearchField, { className: "bd-search-dock", label: "Filter pages", placeholder: "Filter pages", value: pageQuery, onChange: setPageQuery }) : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery }) : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }) : left === "context" ? e(SearchField, { className: "bd-search-dock", label: "Filter context", placeholder: "Filter docs and skills", value: contextQuery, onChange: setContextQuery }) : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })
           )
         ),
         e("div", { className: "bd-center" }, slot2 ? null : toolbar, stage),
