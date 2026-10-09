@@ -3396,6 +3396,304 @@ span.bd-layer-twisty.is-open .bd-ic {
   gap: var(--dt-space-inline-xs);
 }
 
+/* An edit by layer name: the frame before and after beside a list of the
+   changes, each with an icon for its kind. */
+.bd-edit-kind {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dt-space-inline-xs);
+  align-items: center;
+  padding: var(--dt-space-inset-sm) var(--dt-space-inset-md) 0;
+}
+
+.bd-edit-badge {
+  display: inline-flex;
+  gap: var(--dt-space-inline-2xs);
+  align-items: center;
+  padding: var(--dt-space-inset-2xs) var(--dt-space-inset-xs);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-pill);
+  font-size: var(--dt-font-size-xs);
+}
+
+.bd-edit-n,
+.bd-edit-undo {
+  display: inline-flex;
+  gap: var(--dt-space-inline-2xs);
+  align-items: center;
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
+}
+
+.bd-edit-sp {
+  flex: 1;
+}
+
+.bd-btn.is-on {
+  background: var(--bd-field-on);
+}
+
+.bd-edit-cols {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: var(--dt-space-inline-md);
+  min-height: 0;
+  padding: var(--dt-space-inset-sm) var(--dt-space-inset-md);
+}
+
+@media (max-width: 720px) {
+  .bd-edit-cols {
+    grid-template-columns: minmax(0, 1fr);
+    overflow-y: auto;
+  }
+}
+
+.bd-edit-pv {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-xs);
+  min-height: 0;
+}
+
+.bd-edit-shot {
+  position: relative;
+  flex: 1;
+  min-height: calc(var(--dt-size-control-lg) * 5);
+  overflow: auto;
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+  background: var(--bd-field);
+}
+
+.bd-edit-shot > p {
+  padding: var(--dt-space-inset-sm);
+}
+
+.bd-edit-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.bd-edit-mark {
+  position: absolute;
+  box-sizing: border-box;
+  outline: var(--dt-border-width-default) dashed var(--dt-text-secondary);
+  pointer-events: none;
+}
+
+.bd-edit-mark-ic,
+.bd-edit-ic {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: var(--dt-size-icon-md, 24px);
+  height: var(--dt-size-icon-md, 24px);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-overlay);
+  color: var(--dt-text-primary);
+}
+
+.bd-edit-mark-ic {
+  position: absolute;
+  top: 0;
+  right: 0;
+  translate: 40% -40%;
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  box-shadow: var(--dt-elevation-1);
+}
+
+.bd-edit-ic {
+  background: var(--bd-field);
+}
+
+.bd-edit-mark-ic .bd-ic,
+.bd-edit-ic .bd-ic {
+  width: 14px;
+  height: 14px;
+}
+
+.bd-edit-list {
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+  list-style: none;
+}
+
+.bd-edit-row {
+  display: flex;
+  gap: var(--dt-space-inline-sm);
+  align-items: flex-start;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+
+.bd-edit-row:last-child {
+  border-bottom: 0;
+}
+
+.bd-edit-row.is-off {
+  color: var(--dt-text-secondary);
+}
+
+.bd-edit-t {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  font-size: var(--dt-font-size-sm);
+}
+
+.bd-edit-t > b {
+  overflow-wrap: anywhere;
+  font-weight: var(--dt-font-weight-semibold);
+}
+
+.bd-edit-t > span {
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
+}
+
+.bd-edit-via {
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
+  font-style: italic;
+}
+
+.bd-edit-pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dt-space-inline-2xs);
+  margin-top: var(--dt-space-stack-2xs);
+}
+
+.bd-edit-opt {
+  padding: var(--dt-space-inset-2xs) var(--dt-space-inset-xs);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+  background: var(--bd-field);
+  color: var(--dt-text-primary);
+  font: inherit;
+  font-size: var(--dt-font-size-xs);
+  cursor: pointer;
+}
+
+.bd-edit-opt.is-on {
+  border-color: var(--dt-text-primary);
+  background: var(--bd-field-on);
+}
+
+.bd-edit-opt:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: var(--dt-focus-ring-offset);
+}
+
+.bd-edit-src {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+}
+
+.bd-edit-src-h {
+  display: flex;
+  gap: var(--dt-space-inline-xs);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--dt-space-inset-2xs) var(--dt-space-inset-xs);
+  border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
+}
+
+.bd-edit-src .bd-code-pre {
+  flex: 1;
+  margin: 0;
+  border: 0;
+}
+
+.bd-edit-foot {
+  align-items: center;
+  padding: var(--dt-space-inset-sm) var(--dt-space-inset-md);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+
+/* On the canvas after an edit: a quiet label on each layer it changed. */
+.bd-edit-on {
+  position: absolute;
+  box-sizing: border-box;
+  outline: var(--dt-border-width-default) dashed var(--dt-text-secondary);
+  pointer-events: none;
+}
+
+.bd-edit-on-tag {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  display: inline-flex;
+  gap: var(--dt-space-inline-2xs);
+  align-items: center;
+  margin-bottom: 2px;
+  padding: 1px var(--dt-space-inset-2xs);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-overlay);
+  color: var(--dt-text-primary);
+  font-size: var(--dt-font-size-2xs, 11px);
+  white-space: nowrap;
+}
+
+.bd-edit-on-tag .bd-ic {
+  width: 12px;
+  height: 12px;
+}
+
+.bd-layer-edited {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--dt-text-secondary);
+}
+
+.bd-toast {
+  position: fixed;
+  bottom: calc(var(--dt-space-inset-lg) + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  z-index: 900;
+  display: flex;
+  gap: var(--dt-space-inline-sm);
+  align-items: center;
+  max-width: calc(100vw - 32px);
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-xs) var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-overlay);
+  background: var(--dt-surface-overlay);
+  color: var(--dt-text-primary);
+  box-shadow: var(--dt-elevation-3);
+  font-size: var(--dt-font-size-sm);
+  translate: -50% 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bd-toast {
+    animation: bd-toast-in 0.2s ease-out;
+  }
+}
+
+@keyframes bd-toast-in {
+  from {
+    opacity: 0;
+    translate: -50% 8px;
+  }
+}
+
 /* ------------------------------------------------------------- tooltips */
 
 .bd-tip {

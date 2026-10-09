@@ -126,7 +126,8 @@ var Layers = React.memo(function Layers(p) {
         renameable && mine && isRenaming(n.id, "layer")
           ? e(Renamable, { value: nameOf(n), label: "Layer name", startEditing: true, className: "bd-layer-name", onChange: function (v) { p.setRenaming(null); p.setName(n.id, v === n.type || v === autoName(n) ? "" : v); } })
           : e("span", { className: "bd-layer-name" }, nameOf(n)),
-        text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null),
+        text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null,
+        p.edited && p.edited[n.id] ? e("span", { className: "bd-layer-edited", title: "Changed by the edit you applied" }, e("span", { className: "visually-hidden" }, ", changed by the edit")) : null),
       /* Hiding lives in the inspector's Layer section; a hidden row keeps
          a quiet eye-off, which also shows it again. */
       n.type !== "Slot" ? e("span", { className: cx("bd-layer-flags", (n.hide || n.lock) && "is-set") },

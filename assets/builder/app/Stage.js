@@ -37,7 +37,8 @@ function placeMarks(raw, boxes, cam) {
     return { id: w.id, r: r, rot: w.rot, box: { left: cx - w.size.width * z / 2, top: cy - w.size.height * z / 2, width: w.size.width * z, height: w.size.height * z } };
   };
   var hv = raw.hover;
-  return { sel: raw.sel.map(place).filter(Boolean), hover: hv && boxes[hv.fid] ? onStage(hv.r, boxes[hv.fid], cam) : null, drop: raw.drop };
+  return { sel: raw.sel.map(place).filter(Boolean), hover: hv && boxes[hv.fid] ? onStage(hv.r, boxes[hv.fid], cam) : null, drop: raw.drop,
+    edited: (raw.edited || []).map(function (m) { var b = boxes[m.fid]; return b ? { id: m.id, icon: m.icon, label: m.label, r: onStage(m.r, b, cam) } : null; }).filter(Boolean) };
 }
 
 /* ------------------------------------------------------------- pieces */
@@ -197,6 +198,11 @@ function Marks(p) {
   var marks = placeMarks(p.marksRaw, p.boxes, cam);
   return e("div", { className: "bd-marks", "aria-hidden": true },
     !p.preview && p.frameOn && p.boxes[p.frame.id] && !p.frame.bare ? e("div", { className: cx("bd-ring", !p.sel && "is-selected"), style: { left: cam.x + p.boxes[p.frame.id].x * cam.z, top: cam.y + p.boxes[p.frame.id].y * cam.z, width: p.boxes[p.frame.id].w * cam.z, height: p.boxes[p.frame.id].h * cam.z } }) : null,
+    /* What an applied edit changed: a quiet label on each, until the next change. */
+    !p.preview ? marks.edited.map(function (m) {
+      return e("div", { key: "ed" + m.id, className: "bd-edit-on", style: { left: m.r.left, top: m.r.top, width: m.r.width, height: m.r.height } },
+        e("span", { className: "bd-edit-on-tag" }, e(Icon, { name: m.icon }), m.label));
+    }) : null,
     p.marquee ? e("div", { className: "bd-marquee", style: { left: p.marquee.left + "px", top: p.marquee.top + "px", width: p.marquee.width + "px", height: p.marquee.height + "px" } }) : null,
     !p.preview && marks.hover ? e("div", { className: "bd-mark bd-mark-hover", style: marks.hover }) : null,
     /* A selected free layer pinned to an edge: a dashed line to it. */

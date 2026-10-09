@@ -1784,6 +1784,64 @@ try {
     await pg.page.close();
   });
 
+  await step("An edit by layer name: listed with icons, drawn before and after, a shared name asked about, applied in one step and labelled", async () => {
+    const pg = await open({ width: 1440, height: 900 });
+    await startFrom(pg.page, "Paste a layout");
+    const chip = (t) => ({ type: "Group", props: { direction: "row" }, style: { radius: "pill", padding: "xs" }, children: [{ type: "Text", props: { children: t } }] });
+    await pg.page.locator(".bd-import-text").fill(JSON.stringify({ frames: [{ name: "Ledger", width: 1024, mode: "structured", hug: true, root: { children: [
+      { type: "Group", name: "Hero", props: { direction: "column", gap: "md" }, style: { padding: "lg" }, children: [
+        { type: "Shape", props: { shape: "ellipse" }, style: { position: "floating", anchor: "top-right", w: "x4", height: "x4", surface: "brand", blur: "glass" } },
+        { type: "Heading", props: { size: "display-lg", children: "$284,120" } },
+        { type: "Group", name: "Chip", props: { direction: "row" }, children: [{ type: "Text", props: { children: "Live" } }] }] },
+      { type: "Group", name: "Bar", props: { direction: "row" }, children: [chip("Overview"), chip("Plans"), { type: "Group", name: "Chip", props: { direction: "row" }, children: [{ type: "Text", props: { children: "Oct 9" } }] }] },
+      { type: "Group", name: "Spending", props: { direction: "row" }, children: [{ type: "Text", props: { children: "Rent" } }, { type: "Text", props: { children: "$2,400" } }] },
+      { type: "Group", name: "Bento", props: { direction: "column" }, children: [] }] } }] }));
+    await pg.page.locator(".bd-import-actions button", { hasText: "Replace" }).click();
+    await pg.page.waitForFunction(() => window.__builder.doc().frames.some((f) => f.name === "Ledger"));
+    await startFrom(pg.page, "Paste a layout");
+    await pg.page.locator(".bd-import-text").fill('## Edit Ledger\n- Hero: padding xl\n- Glow: z behind\n- "$284,120": size display-2xl\n- remove Spending\n- add Heading "This week" to Bento, first\n- Chip: radius pill\n- Nowhere: padding xl');
+    await pg.page.waitForSelector(".bd-edit-list");
+    const rows = await pg.page.locator(".bd-edit-row").evaluateAll((els) => els.map((el) => ({ text: el.textContent })));
+    expect(rows.length === 7, `a row per change, got ${rows.length}`);
+    expect(/Padding lg → xl/.test(rows[0].text) && /Layer order → behind/.test(rows[1].text) && /Size display-lg → display-2xl.*Found by its text/.test(rows[2].text), `each change says what it was and becomes, got ${rows.slice(0, 3).map((r) => r.text).join(" | ")}`);
+    expect(/Removed, with the 2 layers inside/.test(rows[3].text) && /New Heading, first in Bento/.test(rows[4].text), `remove and add say what they do, got ${rows[3].text} | ${rows[4].text}`);
+    expect(/2 layers have this name/.test(rows[5].text) && /Hero › Chip/.test(rows[5].text) && /Bar › Chip/.test(rows[5].text) && /Skip/.test(rows[5].text), `a shared name asks which one, got ${rows[5].text}`);
+    expect(/No layer here/.test(rows[6].text), `a name nothing has says so, got ${rows[6].text}`);
+    ok("each change is a row with what it was and becomes; a name two layers share asks which one, with Skip");
+    const apply = pg.page.locator(".bd-edit-foot .bd-btn-primary");
+    expect((await apply.textContent()) === "Apply 5 changes", `the unanswered question isn't counted, got ${await apply.textContent()}`);
+    await pg.page.waitForSelector(".bd-edit-shot img", { timeout: 20000 });
+    expect(await pg.page.locator(".bd-edit-mark").count() >= 3, "the frame is drawn after the edit with the changed layers marked");
+    ok("the frame is drawn as the edit would leave it, the changed layers marked");
+    await pg.page.locator(".bd-btn", { hasText: "Source" }).click();
+    expect(/^## Edit Ledger\n- Hero: padding xl/.test(await pg.page.locator(".bd-edit-src code").textContent()), "Source shows the edit as Markdown");
+    await pg.page.locator(".bd-edit-src").getByText("JSON", { exact: true }).click();
+    expect(/"changes"/.test(await pg.page.locator(".bd-edit-src code").textContent()), "and as JSON");
+    await pg.page.locator(".bd-btn", { hasText: "Source" }).click();
+    ok("Source shows the edit as Markdown or JSON");
+    await pg.page.locator(".bd-edit-pick").first().locator(".bd-edit-opt", { hasText: "Bar › Chip" }).click();
+    expect((await apply.textContent()) === "Apply 6 changes", "answering the question counts it");
+    const steps = await pg.page.evaluate(() => window.__builder.history().past);
+    await apply.click();
+    await pg.page.waitForSelector(".bd-toast");
+    const doc = await pg.page.evaluate(() => window.__builder.doc().frames.find((f) => f.name === "Ledger"));
+    const kids = doc.root.children, by = (n) => kids.find((k) => k.name === n);
+    expect(by("Hero").style.padding === "xl" && by("Hero").children[0].style.z === "behind" && by("Hero").children[1].props.size === "display-2xl", `the hero's changes are made, got ${JSON.stringify(by("Hero")).slice(0, 300)}`);
+    expect(!by("Spending") && by("Bento").children[0].props.children === "This week", "Spending is gone and This week is first in Bento");
+    expect(by("Bar").children[2].style.radius === "pill" && !by("Hero").children[2].style.radius, "only the Chip picked is changed");
+    expect((await pg.page.evaluate(() => window.__builder.history().past)) === steps + 1, "the edit is one step");
+    ok("applied, the edit makes every change it listed and only on the layer picked");
+    const tags = await pg.page.locator(".bd-edit-on-tag").allTextContents();
+    expect(tags.some((t) => /padding xl/.test(t)) && tags.some((t) => /added/.test(t)), `the canvas labels what changed, got ${tags.join(" | ")}`);
+    expect(/Applied 6 changes from the edit, 1 removed/.test(await pg.page.locator(".bd-toast").textContent()), "the toast says what was applied");
+    await pg.page.locator(".bd-toast button", { hasText: "Undo" }).click();
+    await pg.page.waitForFunction(() => !document.querySelector(".bd-toast"));
+    const back = await pg.page.evaluate(() => window.__builder.doc().frames.find((f) => f.name === "Ledger").root.children.map((k) => k.name));
+    expect(back.includes("Spending") && (await pg.page.locator(".bd-edit-on-tag").count()) === 0, `Undo takes the whole edit back and the labels with it, got ${back}`);
+    ok("the canvas labels each change and the toast's Undo takes the whole edit back");
+    await pg.page.close();
+  });
+
   await step("Layouts from elsewhere: the reference's example opens whole, and a pasted layout lists what it left out", async () => {
     const md = fs.readFileSync(path.join(ROOT, "assets/builder-layouts.md"), "utf8");
     const m = /\]\(https:\/\/[^)]*builder\.html(#b=[\w-]+)\)/.exec(md);
