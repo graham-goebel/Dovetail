@@ -996,7 +996,10 @@ try {
     await tag.waitFor();
     const said = await tag.textContent();
     expect(/^\d+ gap \w+$/.test(said), `Shift shows the gap between the Heading and the Text with its token, got ${said}`);
-    await tag.click();
+    /* Pressed where it is: moving the pointer onto the label would change
+       what's measured under it, and on a slow runner swap the label for
+       another before the press lands. */
+    await tag.dispatchEvent("click");
     await page.waitForFunction(() => /Stack/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     await page.waitForFunction(() => document.querySelector('.bd-right .bd-sec[data-sec="spacing"]:not(.is-closed), .bd-right .bd-sec[data-sec="flex"]:not(.is-closed)'));
     ok("the label selects the Stack, with its layout open in the inspector");
@@ -5185,6 +5188,9 @@ try {
     const pins = page.locator(".bd-right .bd-pins");
     await pins.waitFor();
     expect(await pins.locator(".bd-pin-line.is-on").count() === 2, "a free layer starts pinned left and top");
+    const place = await page.locator(".bd-right .bd-place-grid input").evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
+    expect(place.length === 5 && /^X/.test(place[0]) && /^Y/.test(place[1]) && /^Width/.test(place[2]) && /^Height/.test(place[3]) && /^Rotation/.test(place[4]), `a free layer's X, Y, W, H and turn sit in one grid under Position, got ${place.join(" | ")}`);
+    expect(await page.locator('.bd-right .bd-sec[data-sec="effects"] .bd-dd[aria-label="Layer blur"]').count() === 1 && await page.locator('.bd-right .bd-sec[data-sec="layer"] .bd-dd[aria-label="Layer blur"]').count() === 0, "blur sits under Effects, with the shadow, not under Layer");
     await pins.locator(".bd-pin-line.is-right").click();
     await pins.locator(".bd-pin-line.is-bottom").click();
     let st = await poll(() => node("bt"), (s) => s.ch === "right" && s.cv === "bottom");
