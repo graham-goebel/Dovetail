@@ -473,6 +473,47 @@ function App(props) {
     loadPage: function (pg) { return store.loadDoc(projectRef.current.id, pg); },
     screenshot: function (fid, id) { return shootForAssistant(fid, id); },
     componentDoc: function (name) { return componentDoc(name); },
+    replace: function (id, nodes) {
+      var made = [];
+      change(function (d) {
+        if (!ops.replace(d, id, nodes[0])) return null;
+        made.push(nodes[0].id);
+        var at = locate(d, nodes[0].id);
+        nodes.slice(1).forEach(function (n, i) { if (at && ops.insert(d, at.parent.id, at.index + 1 + i, n, d.active)) made.push(n.id); });
+        return undefined;
+      });
+      return made;
+    },
+    move: function (ids, parent, index) {
+      var moved = [];
+      change(function (d) {
+        ids.forEach(function (id) {
+          var to = locate(d, parent);
+          if (!to) return;
+          var at = index == null ? to.node.children.length : index + moved.length;
+          if (ops.move(d, id, parent, at)) moved.push(id);
+        });
+        return moved.length ? undefined : null;
+      });
+      return moved;
+    },
+    wrap: function (id, type) { var box = null; change(function (d) { box = ops.wrap(d, id, type); return box ? undefined : null; }); return box; },
+    group: function (ids) { var box = null; change(function (d) { box = ops.group(d, ids); return box ? undefined : null; }); return box; },
+    duplicate: function (ids) {
+      var copies = [];
+      change(function (d) { ids.forEach(function (id) { var c = ops.duplicate(d, id); if (c) copies.push(c); }); return copies.length ? undefined : null; });
+      return copies;
+    },
+    rename: function (id, name) { return change(function (d) { var at = locate(d, id); if (!at || at.node.name === name) return null; at.node.name = name; return undefined; }); },
+    createFrame: function (opts) { return frameOps.add(null, false, null, opts); },
+    useFrame: function (fid) { activate(fid); },
+    /* Edits made inside fn become one history step. */
+    batch: function (fn) {
+      var before = docRef.current, from = history.current.past.length;
+      try { fn(); } finally {
+        if (history.current.past.length - from > 1) { history.current.past.splice(from); remember(before, docRef.current); }
+      }
+    },
   };
   /* One reply: send, run the tools it calls, send back what they did, until
      it stops calling them (eight rounds at most). The brief (systemPrompt)
@@ -518,6 +559,7 @@ function App(props) {
             if (call.bad) { results.push({ type: "tool_result", tool_use_id: call.id, content: "That input didn't parse; send it again.", is_error: true }); return; }
             return Promise.resolve(runTool(api2, call)).then(function (res) {
               if (res.change) changes.push(res.change);
+              if (res.changes) changes.push.apply(changes, res.changes);
               if (res.step && res.ok) steps.push({ ok: true, text: res.step, shot: res.shot ? res.shot.url : undefined });
               if (!res.ok) steps.push({ ok: false, text: res.result });
               results.push({ type: "tool_result", tool_use_id: call.id, content: res.result, is_error: !res.ok });
@@ -3273,15 +3315,16 @@ function App(props) {
        screen size, and a desktop screen otherwise (never a loose object's
        size, or an odd one a frame was dragged to). at: where its top left
        corner goes on the canvas; otherwise it goes beside the others. */
-    /* opts: a kind (free or structured) and a screen size; otherwise the
-       active frame's size, or a desktop screen. */
+    /* opts: a kind (free or structured), a screen size and a name;
+       otherwise the active frame's size, or a desktop screen. Returns the
+       new frame's id, and its Content group's for a structured one. */
     add: function (size, page, at, opts) {
       opts = opts || {};
       var cur = active(docRef.current);
       var structured = opts.mode === "structured";
       var pid = opts.preset && PRESET[opts.preset] ? opts.preset : !page && !cur.bare ? presetOf(cur) : "";
       var p = (pid && PRESET[pid]) || PRESET.desktop;
-      var f = makeFrame("Frame " + (docRef.current.frames.length + 1), pid || "desktop", !!page || structured);
+      var f = makeFrame(opts.name || "Frame " + (docRef.current.frames.length + 1), pid || "desktop", !!page || structured);
       f.width = size ? side(size.width, MAX_WIDTH, p.width) : p.width;
       f.height = size ? side(size.height, MAX_HEIGHT, p.height) : p.height;
       if (opts.preset && p.typeScale) f.typeScale = p.typeScale;
@@ -3304,6 +3347,7 @@ function App(props) {
         return [];
       }, "Added " + f.name + ", " + f.width + " by " + f.height + (structured ? ": a structured frame. Everything goes in auto-layout Groups." : opts.mode === "free" ? ": a freeform frame. Place things anywhere." : ""));
       setTimeout(function () { showFrameRef.current(f.id, true); }, 0);
+      return { frame: f.id, content: structured ? f.root.children[0].id : undefined };
     },
     /* at: where the copy goes on the canvas; otherwise it goes beside. */
     duplicate: function (id, at) {

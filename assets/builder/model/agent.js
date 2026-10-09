@@ -9,11 +9,13 @@
    text depends only on the system, never on the page or the time, so the
    model's prompt cache keeps it from one request to the next. */
 
-import { DATA, META } from "../config.js";
+import { DATA, META, PRESETS, TEXT_PROPS, WRAPS } from "../config.js";
 import { jsxNodes, readJsxElements } from "./paste.js";
 import { cleanNode, fresh, locate } from "./tree.js";
 
 var FAMILIES = Object.keys(DATA.tokens);
+/* The edits batch may run: everything that changes layers in this frame. */
+var BATCHABLE = ["set_style", "set_prop", "set_text", "insert_jsx", "replace_jsx", "move", "wrap", "duplicate", "rename", "remove"];
 
 var TOOLS = [
   { name: "list_pages", description: "The file's pages (the current one marked), and the frames on the current page with their ids, sizes and layer counts.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
@@ -26,6 +28,15 @@ var TOOLS = [
   { name: "set_style", description: "Set one style family to one of its token values on layers, or clear it with an empty value. Only token values from list_tokens are allowed.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, family: { type: "string", enum: FAMILIES }, value: { type: "string" } }, required: ["ids", "family", "value"], additionalProperties: false } },
   { name: "set_prop", description: "Set one of a component's own props on layers of that type: its text, or one of the values its enum allows.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, name: { type: "string" }, value: { type: ["string", "number", "boolean"] } }, required: ["ids", "name", "value"], additionalProperties: false } },
   { name: "insert_jsx", description: "Add new layers written as JSX with the design system's components (for example <Section><Heading>…</Heading></Section>) into a container, at an index, or after the selection when parent is omitted.", input_schema: { type: "object", properties: { jsx: { type: "string" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["jsx"], additionalProperties: false } },
+  { name: "replace_jsx", description: "Replace one layer with new layers written as JSX, in its place: the way to rebuild a section or a card in one step.", input_schema: { type: "object", properties: { id: { type: "string" }, jsx: { type: "string" } }, required: ["id", "jsx"], additionalProperties: false } },
+  { name: "set_text", description: "Set a layer's text: a heading's or a paragraph's words, a button's label, a card's title.", input_schema: { type: "object", properties: { id: { type: "string" }, text: { type: "string" } }, required: ["id", "text"], additionalProperties: false } },
+  { name: "move", description: "Move layers into a container, at an index (the end when omitted), in the order given.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["ids", "parent"], additionalProperties: false } },
+  { name: "wrap", description: "Put a layer inside a new container of the given type, or several sibling layers inside one Group.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, type: { type: "string", enum: WRAPS } }, required: ["ids"], additionalProperties: false } },
+  { name: "duplicate", description: "Copy layers, each copy just after its original.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 } }, required: ["ids"], additionalProperties: false } },
+  { name: "rename", description: "Give a layer a name, so the layers list says what it is.", input_schema: { type: "object", properties: { id: { type: "string" }, name: { type: "string" } }, required: ["id", "name"], additionalProperties: false } },
+  { name: "create_frame", description: "Add a frame to this page and make it the one you're working in. structured frames are auto layout pages (they start with a Content group to fill, whose id comes back); free frames place layers anywhere. Presets: " + PRESETS.map(function (f) { return f.id + " (" + f.width + "×" + f.height + ")"; }).join(", ") + ".", input_schema: { type: "object", properties: { name: { type: "string" }, preset: { type: "string", enum: PRESETS.map(function (f) { return f.id; }) }, mode: { type: "string", enum: ["structured", "free"] } }, required: ["name", "preset", "mode"], additionalProperties: false } },
+  { name: "use_frame", description: "Work in another frame on this page: the edit tools act on the frame you're in.", input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false } },
+  { name: "batch", description: "Run several edit calls in order as one step the person can undo at once. Each call is { name, input } for one of: " + BATCHABLE.join(", ") + ". It stops at the first call that fails, keeping the ones before it.", input_schema: { type: "object", properties: { calls: { type: "array", minItems: 1, maxItems: 40, items: { type: "object", properties: { name: { type: "string", enum: BATCHABLE }, input: { type: "object" } }, required: ["name", "input"], additionalProperties: false } } }, required: ["calls"], additionalProperties: false } },
   { name: "remove", description: "Remove layers.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 } }, required: ["ids"], additionalProperties: false } },
   { name: "select", description: "Select layers, so the person sees them.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" } } }, required: ["ids"], additionalProperties: false } },
   { name: "read_skill", description: "Read a skill's files when a request fits its description: its SKILL.md, or another file by path.", input_schema: { type: "object", properties: { name: { type: "string" }, path: { type: "string" } }, required: ["name"], additionalProperties: false } },
@@ -108,6 +119,8 @@ function systemPrompt() {
     "## How to work",
     "- Read before you change. read_selection for the selection; read_page before anything wider, or when you need ids.",
     "- Prefer a component that already does the job (search_components, read_component) over a styled Group or Shape.",
+    "- A new page starts with create_frame (structured for web pages, a social preset for posts), then fills its Content group.",
+    "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
     "- Write real, short copy in the brand's voice. Never lorem ipsum.",
     "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish.",
     "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first.",
@@ -128,13 +141,23 @@ function systemPrompt() {
   return brief;
 }
 
+/* JSX into new layers, the way pasted code is read: unknown tags add nothing. */
+function fromJsx(jsx) {
+  var els = readJsxElements(String(jsx || ""));
+  var raw = els.length ? jsxNodes(els, []) : [];
+  return raw.map(function (n) { return cleanNode(n, null); }).filter(Boolean).map(fresh);
+}
+
 /* Runs one tool call. api: { doc(), selection(), setStyle(ids, key, value),
    setProp(ids, name, value), insert(parent, index, nodes), remove(ids),
    select(ids), skills(), pages(), loadPage(id), screenshot(fid, id),
-   componentDoc(name) }. Returns { ok, result, change, step }, or a promise
+   componentDoc(name), replace(id, nodes), move(ids, parent, index),
+   wrap(id, type), group(ids), duplicate(ids), rename(id, name),
+   createFrame(opts), useFrame(fid), batch(fn) }. Returns { ok, result,
+   change, changes, step }, or a promise
    of one for the tools that wait (another page, a picture, a component's
    docs). change, for one that edited the canvas, says what in a line for
-   the change card; step says what it read, for the thread. result is text,
+   the change card (changes, a list of them, for a batch); step says what it read, for the thread. result is text,
    or for a picture the content blocks of an image and a line about it. */
 function runTool(api, call) {
   var input = call.input || {};
@@ -233,13 +256,96 @@ function runTool(api, call) {
       return { ok: true, result: "Done.", change: { ids: pids, label: input.name === "children" ? "Text" : input.name.charAt(0).toUpperCase() + input.name.slice(1), value: String(input.value).slice(0, 60), on: pids.map(nameOf).join(", ") } };
     }
     case "insert_jsx": {
-      var els = readJsxElements(String(input.jsx || ""));
-      var raw = els.length ? jsxNodes(els, []) : [];
-      var made = raw.map(function (n) { return cleanNode(n, null); }).filter(Boolean).map(fresh);
+      var made = fromJsx(input.jsx);
       if (!made.length) return fail("That JSX has no components the system knows.");
       var ids2 = api.insert(input.parent || null, typeof input.index === "number" ? input.index : null, made);
       if (!ids2 || !ids2.length) return fail("Those layers can't go there.");
       return { ok: true, result: JSON.stringify({ added: ids2 }), change: { ids: ids2, label: "Added", value: made.map(function (n) { return n.name || n.type; }).join(", "), on: "" } };
+    }
+    case "replace_jsx": {
+      var at0 = locate(doc, input.id);
+      if (!at0 || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
+      var made2 = fromJsx(input.jsx);
+      if (!made2.length) return fail("That JSX has no components the system knows.");
+      var was = nameOf(input.id);
+      var ids3 = api.replace(input.id, made2);
+      if (!ids3 || !ids3.length) return fail("Those layers can't go there.");
+      return { ok: true, result: JSON.stringify({ added: ids3 }), change: { ids: ids3, label: "Rebuilt", value: was + " → " + made2.map(function (n) { return n.name || n.type; }).join(", "), on: "" } };
+    }
+    case "set_text": {
+      var tat = locate(doc, input.id);
+      if (!tat || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
+      var tn = tat.node, specs = (META[tn.type] && META[tn.type].props) || [];
+      var key = TEXT_PROPS.filter(function (k) { return typeof tn.props[k] === "string"; })[0] ||
+        TEXT_PROPS.filter(function (k) { return specs.some(function (sp) { return sp.name === k; }); })[0];
+      if (!key) return fail(tn.type + " has no text of its own; set the text of a layer inside it.");
+      var text = String(input.text == null ? "" : input.text);
+      if (!api.setProp([input.id], key, text)) return fail("Nothing changed.");
+      return { ok: true, result: "Done.", change: { ids: [input.id], label: "Text", value: short(text, 60), on: nameOf(input.id) } };
+    }
+    case "move": {
+      var mids = known(input.ids);
+      if (!mids.length) return fail("None of those layers are in this frame.");
+      if (!locate(doc, input.parent)) return fail("There's no container " + input.parent + " in this frame.");
+      var moved = api.move(mids, input.parent, typeof input.index === "number" ? input.index : null);
+      if (!moved || !moved.length) return fail("Those layers can't go there.");
+      return { ok: true, result: JSON.stringify({ moved: moved }), change: { ids: moved, label: "Moved", value: moved.map(nameOf).join(", "), on: "into " + nameOf(input.parent) } };
+    }
+    case "wrap": {
+      var wids = known(input.ids);
+      if (!wids.length) return fail("None of those layers are in this frame.");
+      var type = input.type || "Group";
+      if (wids.length > 1 && type !== "Group") return fail("Several layers go into a Group; wrap them one at a time for a " + type + ".");
+      var box = wids.length > 1 ? api.group(wids) : api.wrap(wids[0], type);
+      if (!box) return fail("Those can't be wrapped there.");
+      return { ok: true, result: JSON.stringify({ container: box }), change: { ids: [box], label: "Wrapped", value: wids.map(nameOf).join(", "), on: "in a " + type } };
+    }
+    case "duplicate": {
+      var dids = known(input.ids);
+      if (!dids.length) return fail("None of those layers are in this frame.");
+      var copies = api.duplicate(dids);
+      if (!copies || !copies.length) return fail("Those layers can't be copied.");
+      return { ok: true, result: JSON.stringify({ copies: copies }), change: { ids: copies, label: "Copied", value: dids.map(nameOf).join(", "), on: "" } };
+    }
+    case "rename": {
+      if (!locate(doc, input.id) || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
+      var nm = short(String(input.name || ""), 60);
+      if (!nm) return fail("Give it a name.");
+      var old = nameOf(input.id);
+      if (!api.rename(input.id, nm)) return fail("Nothing changed.");
+      return { ok: true, result: "Done.", change: { ids: [input.id], label: "Named", value: nm, on: old } };
+    }
+    case "create_frame": {
+      var preset = PRESETS.filter(function (f) { return f.id === input.preset; })[0];
+      if (!preset) return fail("There's no preset " + input.preset + ".");
+      if (input.mode !== "structured" && input.mode !== "free") return fail("A frame is structured or free.");
+      var made3 = api.createFrame({ name: short(String(input.name || "Frame"), 60), preset: preset.id, mode: input.mode });
+      if (!made3) return fail("The frame couldn't be added.");
+      return { ok: true, result: JSON.stringify(made3), change: { ids: [], label: "New frame", value: short(String(input.name || "Frame"), 60), on: preset.label + ", " + input.mode } };
+    }
+    case "use_frame": {
+      var to = (doc.frames || []).filter(function (f) { return f.id === input.id; })[0];
+      if (!to) return fail("There's no frame " + input.id + " on this page.");
+      api.useFrame(to.id);
+      return { ok: true, result: "Now working in " + to.name + ".", step: "Moved to " + to.name };
+    }
+    case "batch": {
+      var list = Array.isArray(input.calls) ? input.calls.slice(0, 40) : [];
+      if (!list.length) return fail("Send at least one call.");
+      var bad = list.filter(function (c) { return !c || BATCHABLE.indexOf(c.name) < 0; })[0];
+      if (bad) return fail((bad && bad.name) + " can't run in a batch. Batch runs: " + BATCHABLE.join(", ") + ".");
+      var changes = [], outs = [], stopped = null;
+      api.batch(function () {
+        for (var i = 0; i < list.length; i++) {
+          var r = runTool(api, { name: list[i].name, input: list[i].input || {} });
+          outs.push(r.ok ? r.result : "Failed: " + r.result);
+          if (!r.ok) { stopped = { at: i, why: r.result }; break; }
+          if (r.change) changes.push(r.change);
+        }
+      });
+      var summary = JSON.stringify(outs);
+      if (stopped) return { ok: changes.length > 0, result: "Call " + (stopped.at + 1) + " (" + list[stopped.at].name + ") failed: " + stopped.why + " The " + stopped.at + " before it stand. Results: " + summary, changes: changes };
+      return { ok: true, result: summary, changes: changes };
     }
     case "remove": {
       var rids = known(input.ids);
@@ -280,6 +386,19 @@ function practiceAnswer(request, results) {
     return { text: "Practice mode: this page has " + frames + (frames === 1 ? " frame" : " frames") + " and " + layers + (layers === 1 ? " layer" : " layers") + (top.length ? ". At the top level: " + top.slice(0, 8).join(", ") + (top.length > 8 ? ", and " + (top.length - 8) + " more" : "") : "") + ".", calls: [] };
   }
   if (names[0] === "screenshot") return { text: "Practice mode: I looked at " + body(0).replace(/, \d+×\d+ pixels\.$/, "") + ". A model would now check it for overlaps, spacing and contrast, and fix what it finds.", calls: [] };
+  if (names[0] === "create_frame") {
+    var made = {};
+    try { made = JSON.parse(body(0)); } catch (err) { made = {}; }
+    var into = made.content;
+    if (!into) return null;
+    var name = (prev.content.filter(function (b) { return b.type === "tool_use"; })[0].input || {}).name || "Page";
+    return { text: "", calls: [{ name: "batch", input: { calls: [
+      { name: "insert_jsx", input: { parent: into, jsx: "<Section tone=\"brand-muted\"><Stack gap=\"md\" align=\"flex-start\"><Badge tone=\"brand\">New</Badge><Heading size=\"display-md\">" + name + " that keeps up</Heading><Text>Everything you need to start, and room to grow.</Text><Button variant=\"primary\">Get started</Button></Stack></Section>" } },
+      { name: "insert_jsx", input: { parent: into, jsx: "<Section><Grid columns={3} gap=\"lg\"><Card title=\"Free\" description=\"For trying it out.\" /><Card title=\"Pro\" description=\"For makers who ship.\" /><Card title=\"Team\" description=\"For studios and teams.\" /></Grid></Section>" } },
+      { name: "insert_jsx", input: { parent: into, jsx: "<Section dark><Stack gap=\"md\" align=\"center\"><Heading>Ready when you are</Heading><Button variant=\"brand\">Start free</Button></Stack></Section>" } },
+    ] } }] };
+  }
+  if (names[0] === "batch") return { text: "Practice mode, with the real tools: a new structured frame with a hero, three plan cards and a dark closing band, as one step you can undo at once.", calls: [] };
   if (names[0] === "search_components") {
     var found = [];
     try { found = JSON.parse(body(0)).map(function (x) { return x.name; }); } catch (err) { found = []; }
@@ -304,6 +423,11 @@ function practiceScript(sel) {
     if (/\blook\b|screenshot|how does it look|check (it|how)/.test(text)) {
       if (offered.indexOf("screenshot") < 0) return { text: "Looking at the canvas is turned off for this file.", calls: [] };
       return { text: "", calls: [{ name: "screenshot", input: ids.length ? { id: ids[0] } : {} }] };
+    }
+    var page = /(?:make|build|design|create|start)\b.*\b(pricing|landing|about|home|launch)\b.*\bpage\b/.exec(text) || /\b(pricing|landing|about|launch)\s+page\b/.exec(text);
+    if (page && /make|build|design|create|start/.test(text)) {
+      var title = page[1].charAt(0).toUpperCase() + page[1].slice(1);
+      return { text: "", calls: [{ name: "create_frame", input: { name: title, preset: "desktop", mode: "structured" } }] };
     }
     var forWhat = /component (?:for|to)\s+(.+)$/.exec(text) || /(?:which|find a|is there a) component\s+(?:for\s+)?(.+)$/.exec(text);
     if (forWhat) return { text: "", calls: [{ name: "search_components", input: { query: forWhat[1].replace(/[?.!]+$/, "") } }] };
