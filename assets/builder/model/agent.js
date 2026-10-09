@@ -22,6 +22,8 @@ var TOOLS = [
   { name: "read_page", description: "An outline of every layer on a page: one line each, indented by depth, with its id, type, name, text, props and style tokens. Reads the current page unless page names another; frame narrows it to one frame. Read it before changing anything beyond the selection.", input_schema: { type: "object", properties: { page: { type: "string" }, frame: { type: "string" } }, additionalProperties: false } },
   { name: "read_selection", description: "The selected layers (or the frame when nothing is selected): each one's id, type, name, props and style tokens, and its children's ids and types.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "screenshot", description: "A picture of a frame or one layer on the current page, as it's drawn now. Look after visible changes and fix what looks wrong: overlaps, cramped spacing, weak contrast, text that wraps badly.", input_schema: { type: "object", properties: { id: { type: "string" } }, additionalProperties: false } },
+  { name: "lint", description: "Check a frame (the one you're in unless frame names another): text contrast as drawn, anything spilling past the edge at 390px wide, contrast in dark mode, labels, alt text, heading order, primary buttons and placeholder copy. Each finding names its layers. Run it after you change something and fix what fails.", input_schema: { type: "object", properties: { frame: { type: "string" } }, additionalProperties: false } },
+  { name: "measure", description: "The space between two layers as drawn, across and down, in pixels and as the nearest spacing token.", input_schema: { type: "object", properties: { a: { type: "string" }, b: { type: "string" } }, required: ["a", "b"], additionalProperties: false } },
   { name: "search_components", description: "Find components by what they're for: each match's name, group and one-line purpose. An empty query lists every component by group.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false } },
   { name: "read_component", description: "A component's props (kinds, options, defaults and notes) and its documentation: when to use it, examples and accessibility.", input_schema: { type: "object", properties: { name: { type: "string" } }, required: ["name"], additionalProperties: false } },
   { name: "list_tokens", description: "The values a style family accepts. Families: " + FAMILIES.join(", ") + ".", input_schema: { type: "object", properties: { family: { type: "string", enum: FAMILIES } }, required: ["family"], additionalProperties: false } },
@@ -123,6 +125,7 @@ function systemPrompt() {
     "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
     "- Write real, short copy in the brand's voice. Never lorem ipsum.",
     "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish.",
+    "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
     "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first.",
     "- Finish with a sentence or two on what you changed and anything the person should check.",
     "## The system's rules",
@@ -153,7 +156,8 @@ function fromJsx(jsx) {
    select(ids), skills(), pages(), loadPage(id), screenshot(fid, id),
    componentDoc(name), replace(id, nodes), move(ids, parent, index),
    wrap(id, type), group(ids), duplicate(ids), rename(id, name),
-   createFrame(opts), useFrame(fid), batch(fn) }. Returns { ok, result,
+   createFrame(opts), useFrame(fid), batch(fn), runChecks(fid),
+   measure(a, b) }. Returns { ok, result,
    change, changes, step }, or a promise
    of one for the tools that wait (another page, a picture, a component's
    docs). change, for one that edited the canvas, says what in a line for
@@ -197,6 +201,22 @@ function runTool(api, call) {
         if (!pic || !pic.data) return fail("The picture couldn't be made.");
         return { ok: true, result: [{ type: "image", source: { type: "base64", media_type: pic.media_type, data: pic.data } }, { type: "text", text: what + ", " + pic.width + "×" + pic.height + " pixels." }], step: "Looked at " + what, shot: pic };
       }, function (err) { return fail((err && err.message) || "The picture couldn't be made."); });
+    }
+    case "lint": {
+      var lf = input.frame ? (doc.frames || []).filter(function (f) { return f.id === input.frame; })[0] : (doc.frames || []).filter(function (f) { return f.id === doc.active; })[0] || doc.frames[0];
+      if (!lf) return fail("There's no frame " + input.frame + " on this page.");
+      if (!api.runChecks) return fail("Checks can't run here.");
+      return Promise.resolve(api.runChecks(lf.id)).then(function (got) {
+        return { ok: true, result: got.text, step: "Checked " + lf.name, checks: got.rows, frame: lf.id };
+      }, function (err) { return fail((err && err.message) || "The checks couldn't run."); });
+    }
+    case "measure": {
+      if (!locate(doc, input.a) || !locate(doc, input.b)) return fail("Both layers must be in the frame you're in.");
+      if (!api.measure) return fail("Measuring can't run here.");
+      return Promise.resolve(api.measure(input.a, input.b)).then(function (m) {
+        if (!m) return fail("Those layers aren't drawn.");
+        return { ok: true, result: JSON.stringify(m), step: "Measured " + nameOf(input.a) + " to " + nameOf(input.b) };
+      });
     }
     case "search_components": {
       var q = String(input.query || "").toLowerCase().trim();
@@ -398,6 +418,12 @@ function practiceAnswer(request, results) {
       { name: "insert_jsx", input: { parent: into, jsx: "<Section dark><Stack gap=\"md\" align=\"center\"><Heading>Ready when you are</Heading><Button variant=\"brand\">Start free</Button></Stack></Section>" } },
     ] } }] };
   }
+  if (names[0] === "lint") {
+    var rows = body(0).split("\n").filter(function (l) { return /^- /.test(l); });
+    var open = rows.filter(function (l) { return /^- (FAIL|WARN) /.test(l); }).map(function (l) { return l.replace(/^- (FAIL|WARN) /, "").replace(/:.*$/, "").replace(/ \[layers:.*$/, ""); });
+    var asked = /^fix this check/i.test(String(request.messages.filter(function (m) { return m.role === "user" && typeof m.content === "string"; }).slice(-1).map(function (m) { return m.content; })[0] || ""));
+    return { text: "Practice mode: I ran the checks. " + (open.length ? open.length + (open.length === 1 ? " wants" : " want") + " attention: " + open.join("; ") + "." : "Everything passes.") + (asked && open.length ? " A model would now fix them with the edit tools and check again." : ""), calls: [] };
+  }
   if (names[0] === "batch") return { text: "Practice mode, with the real tools: a new structured frame with a hero, three plan cards and a dark closing band, as one step you can undo at once.", calls: [] };
   if (names[0] === "search_components") {
     var found = [];
@@ -424,6 +450,7 @@ function practiceScript(sel) {
       if (offered.indexOf("screenshot") < 0) return { text: "Looking at the canvas is turned off for this file.", calls: [] };
       return { text: "", calls: [{ name: "screenshot", input: ids.length ? { id: ids[0] } : {} }] };
     }
+    if (/^fix this check|\bcheck (it|this|the page|the frame)\b|\blint\b|run the checks/.test(text)) return { text: "", calls: [{ name: "lint", input: {} }] };
     var page = /(?:make|build|design|create|start)\b.*\b(pricing|landing|about|home|launch)\b.*\bpage\b/.exec(text) || /\b(pricing|landing|about|launch)\s+page\b/.exec(text);
     if (page && /make|build|design|create|start/.test(text)) {
       var title = page[1].charAt(0).toUpperCase() + page[1].slice(1);

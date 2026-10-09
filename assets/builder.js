@@ -2939,10 +2939,10 @@
       },
       /* Versions: newest first, at most VERSIONS_MAX a page. Without a page,
          listVersions gives every page's. */
-      addVersion: function(id, doc2, label, page) {
+      addVersion: function(id, doc2, label2, page) {
         page = page || MAIN;
         lastVersionAt[docKey(id, page)] = now();
-        return b.put("versions", { project: id, page, at: now(), label: label || "Saved", frames: count2(doc2), doc: doc2 }).then(function() {
+        return b.put("versions", { project: id, page, at: now(), label: label2 || "Saved", frames: count2(doc2), doc: doc2 }).then(function() {
           return api.listVersions(id, page);
         }).then(function(vs) {
           return Promise.all(vs.slice(VERSIONS_MAX).map(function(v) {
@@ -3408,8 +3408,8 @@
     ]));
   }
   function layOutRow() {
-    var stat = function(label, value, delta) {
-      return make("Stat", { label, value, unit: "", delta, deltaDirection: "up" });
+    var stat = function(label2, value, delta) {
+      return make("Stat", { label: label2, value, unit: "", delta, deltaDirection: "up" });
     };
     return doc(frame("Lay out a row", "desktop", [
       guide("Try it", "Lay out a row", "A Group lines up what's in it, in a row or a column. Select the Group below, then open Layout in the inspector and try its direction, gap and alignment. Drag a Stat's row in Layers to reorder it.", [
@@ -3487,8 +3487,8 @@
     ]));
   }
   function keys() {
-    var list = function(label, items) {
-      return make("List", { divided: true, label, items: items.map(function(it) {
+    var list = function(label2, items) {
+      return make("List", { divided: true, label: label2, items: items.map(function(it) {
         return { title: it[0], trailing: it[1] };
       }) });
     };
@@ -3557,16 +3557,16 @@
     var col = function(props, children, style) {
       return make("Group", Object.assign({ direction: "column", gap: "sm" }, props), children, style);
     };
-    var more = function(label, size) {
-      return make("IconButton", { label, size: size || "sm" });
+    var more = function(label2, size) {
+      return make("IconButton", { label: label2, size: size || "sm" });
     };
     var small = function(t, v) {
       return make("Button", { children: t, variant: v || "ghost", size: "sm" });
     };
     var PANEL = { surface: "raised", border: "subtle", radius: "container" };
     var WELL = { surface: "sunken", border: "subtle", radius: "control", paddingTop: "xs", paddingBottom: "xs", paddingLeft: "sm", paddingRight: "sm" };
-    var field = function(label, value, hint) {
-      return col({ gap: "2xs" }, [text(label, "label"), row({ justify: "space-between" }, [text(value, "small"), text("⌄", "small", { tone: "tertiary" })], WELL)].concat(hint ? [text(hint, "fine", { tone: "tertiary" })] : []));
+    var field = function(label2, value, hint) {
+      return col({ gap: "2xs" }, [text(label2, "label"), row({ justify: "space-between" }, [text(value, "small"), text("⌄", "small", { tone: "tertiary" })], WELL)].concat(hint ? [text(hint, "fine", { tone: "tertiary" })] : []));
     };
     var num = function(letter, value) {
       return row({ gap: "xs" }, [text(letter, "fine", { tone: "tertiary" }), text(value, "small")], WELL);
@@ -3585,8 +3585,8 @@
         text(blurb, "fine", { tone: "tertiary", align: "center" })
       ], { surface: "sunken", border: "subtle", radius: "container", paddingTop: "md", paddingBottom: "md", paddingLeft: "xs", paddingRight: "xs" });
     };
-    var seg = function(label, value, names) {
-      return make("Tabs", { variant: "pill", value, label, tabs: names.map(function(t) {
+    var seg = function(label2, value, names) {
+      return make("Tabs", { variant: "pill", value, label: label2, tabs: names.map(function(t) {
         return { id: t.toLowerCase(), label: t };
       }) });
     };
@@ -5529,7 +5529,7 @@
         if (hit >= 0) setActive(hit);
       }
     };
-    var label = props.menu ? props.placeholder : props.mixed ? props.mixedLabel || "Mixed" : selected ? selected.short != null ? selected.short : selected.label || String(selected.value) : props.placeholder || "None";
+    var label2 = props.menu ? props.placeholder : props.mixed ? props.mixedLabel || "Mixed" : selected ? selected.short != null ? selected.short : selected.label || String(selected.value) : props.placeholder || "None";
     return e(
       React.Fragment,
       null,
@@ -5575,7 +5575,7 @@
         }, props.prefix) : null,
         props.icon ? e(Icon, { name: props.icon }) : selected && selected.icon && props.iconValue ? e(Icon, { name: selected.icon }) : null,
         !props.menu && selected && !props.mixed ? e(Preview, { option: selected, kind: props.preview }) : null,
-        props.iconOnly ? e("span", { className: "visually-hidden" }, label) : e("span", { className: "bd-dd-label" }, label),
+        props.iconOnly ? e("span", { className: "visually-hidden" }, label2) : e("span", { className: "bd-dd-label" }, label2),
         e(Icon, { name: "down", className: "bd-dd-chev" })
       ),
       open && pos ? ReactDOM.createPortal(e("ul", {
@@ -6554,16 +6554,16 @@
     var issues = [], tokens2 = {}, count2 = 0;
     (function walk(n, depth) {
       count2++;
-      var label = nameOf(n);
+      var label2 = nameOf(n);
       if (n.type === "Slot") issues.push({ level: "error", text: "A slot only lives inside its component. Select the component instead." });
       Object.keys(n.style || {}).forEach(function(k) {
         var v = n.style[k];
         if (k === "x" || k === "y") {
-          if (depth > 0 && k === "x") issues.push({ level: "error", id: n.id, fix: "flow", text: label + " is placed by position. A component's layers sit in its flow." });
+          if (depth > 0 && k === "x") issues.push({ level: "error", id: n.id, fix: "flow", text: label2 + " is placed by position. A component's layers sit in its flow." });
           return;
         }
         if (k === "fill" || k === "color") {
-          issues.push({ level: "error", id: n.id, key: k, fix: "token", text: label + " has a custom " + (k === "fill" ? "fill" : "text colour") + " (" + v + "), not a token." });
+          issues.push({ level: "error", id: n.id, key: k, fix: "token", text: label2 + " has a custom " + (k === "fill" ? "fill" : "text colour") + " (" + v + "), not a token." });
           return;
         }
         var def = DATA.tokens[k];
@@ -6576,7 +6576,7 @@
       });
       if (n.type === "Group" && n.props.gap && n.props.gap !== "none") tokens2["--dt-space-" + (n.props.direction === "row" ? "inline" : "stack") + "-" + n.props.gap] = 1;
       Object.keys(n.props || {}).forEach(function(k) {
-        if (typeof n.props[k] === "string" && /^data:/.test(n.props[k])) issues.push({ level: "warn", text: label + " carries an uploaded file. It stays in this browser and isn't in share links." });
+        if (typeof n.props[k] === "string" && /^data:/.test(n.props[k])) issues.push({ level: "warn", text: label2 + " carries an uploaded file. It stays in this browser and isn't in share links." });
       });
       (n.children || []).forEach(function(c) {
         walk(c, depth + 1);
@@ -6782,8 +6782,8 @@
       return sortWhen(sort, b, filesOf ? filesOf(b) : null) - sortWhen(sort, a, filesOf ? filesOf(a) : null);
     });
   }
-  function confirmRow(label, text2, actions) {
-    return e("div", { className: "bd-proj-confirm", role: "group", "aria-label": label }, e("span", null, text2), actions);
+  function confirmRow(label2, text2, actions) {
+    return e("div", { className: "bd-proj-confirm", role: "group", "aria-label": label2 }, e("span", null, text2), actions);
   }
   function skeleton() {
     return e("ul", { className: "bd-projects-grid is-loading", role: "list", "aria-busy": "true", "aria-label": "Loading" }, [0, 1, 2, 3].map(function(i) {
@@ -8180,7 +8180,7 @@
   function brandPanel(p) {
     var b = p.brand;
     var pieces = brandPieces(b);
-    var tile = function(key, label, piece, preview, emptyNote, hint) {
+    var tile = function(key, label2, piece, preview, emptyNote, hint) {
       var fileId = "bd-brand-" + key;
       var hasFile = !!b[key];
       return e(
@@ -8197,12 +8197,12 @@
             p.readBrandFile(key, ev.dataTransfer.files[0]);
           }
         },
-        e("h3", { className: "bd-content-h", id: fileId + "-h" }, label),
+        e("h3", { className: "bd-content-h", id: fileId + "-h" }, label2),
         piece ? e("button", {
           type: "button",
           className: cx("bd-brand-tile", key === "mark" && "is-mark"),
           "data-brand": key,
-          title: "Drag the " + label.toLowerCase() + " onto a frame, or press to add it",
+          title: "Drag the " + label2.toLowerCase() + " onto a frame, or press to add it",
           onPointerDown: function(ev) {
             if (ev.pointerType !== "touch") p.startDrag(ev, piece);
           },
@@ -8227,7 +8227,7 @@
           hasFile ? e("button", { type: "button", className: "bd-btn", onClick: function() {
             var patch = {};
             patch[key] = "";
-            if (p.setBrandPart(patch)) p.announce("Removed the " + label.toLowerCase() + ".");
+            if (p.setBrandPart(patch)) p.announce("Removed the " + label2.toLowerCase() + ".");
           } }, "Remove") : null
         ),
         hint ? e("p", { className: "bd-content-note" }, hint) : null
@@ -9245,6 +9245,30 @@
           e("span", { className: "bd-as-v" }, c.value, c.on ? e("span", { className: "bd-as-on" }, " · " + c.on) : null)
         );
       }),
+      turn.undone ? null : turn.checking ? e("div", { className: "bd-as-checks" }, e("div", { className: "bd-as-checks-h" }, e("span", null, "Checks"), e("span", { className: "bd-as-note" }, "Checking…"))) : turn.checks ? e(
+        "div",
+        { className: "bd-as-checks" },
+        e("div", { className: "bd-as-checks-h" }, e("span", null, "Checks"), e("span", { className: "bd-as-note" }, "ran after the last step")),
+        turn.checks.map(function(r) {
+          var icon = r.status === "pass" ? "check" : r.status === "skip" ? "minus" : "alert";
+          return e(
+            "div",
+            { key: r.id, className: cx("bd-as-check", "is-" + r.status) },
+            e("span", { className: "bd-as-check-i", "aria-hidden": "true" }, e(Icon, { name: icon })),
+            e(
+              "span",
+              { className: "bd-as-check-t", title: r.detail || void 0 },
+              r.ids.length ? e("button", { type: "button", className: "bd-as-check-link", onClick: function() {
+                p.show(r.ids);
+              } }, r.title) : r.title,
+              r.status === "skip" && r.detail ? e("span", { className: "bd-as-check-d" }, r.detail) : null
+            ),
+            (r.status === "fail" || r.status === "warn") && !p.busy ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+              p.fix(turn.id, r);
+            } }, "Fix") : null
+          );
+        })
+      ) : null,
       !turn.kept && !turn.undone && turn.status === "done" ? e(
         "div",
         { className: "bd-as-acts" },
@@ -9262,10 +9286,12 @@
   }
   function AssistantPanel(p) {
     var listRef = useRef(null);
+    var last = p.thread[p.thread.length - 1];
+    var tail = last ? [p.thread.length, last.text, (last.steps || []).length, (last.changes || []).length, last.checking ? 1 : 0, last.checks ? last.checks.length : 0, last.status].join("|") : "";
     useEffect(function() {
       var el = listRef.current;
       if (el) el.scrollTop = el.scrollHeight;
-    }, [p.thread.length, p.thread.length && p.thread[p.thread.length - 1].text]);
+    }, [tail]);
     var send = function() {
       var t = p.draft.trim();
       if (t && !p.busy) p.send(t);
@@ -9379,6 +9405,8 @@
     { name: "read_page", description: "An outline of every layer on a page: one line each, indented by depth, with its id, type, name, text, props and style tokens. Reads the current page unless page names another; frame narrows it to one frame. Read it before changing anything beyond the selection.", input_schema: { type: "object", properties: { page: { type: "string" }, frame: { type: "string" } }, additionalProperties: false } },
     { name: "read_selection", description: "The selected layers (or the frame when nothing is selected): each one's id, type, name, props and style tokens, and its children's ids and types.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
     { name: "screenshot", description: "A picture of a frame or one layer on the current page, as it's drawn now. Look after visible changes and fix what looks wrong: overlaps, cramped spacing, weak contrast, text that wraps badly.", input_schema: { type: "object", properties: { id: { type: "string" } }, additionalProperties: false } },
+    { name: "lint", description: "Check a frame (the one you're in unless frame names another): text contrast as drawn, anything spilling past the edge at 390px wide, contrast in dark mode, labels, alt text, heading order, primary buttons and placeholder copy. Each finding names its layers. Run it after you change something and fix what fails.", input_schema: { type: "object", properties: { frame: { type: "string" } }, additionalProperties: false } },
+    { name: "measure", description: "The space between two layers as drawn, across and down, in pixels and as the nearest spacing token.", input_schema: { type: "object", properties: { a: { type: "string" }, b: { type: "string" } }, required: ["a", "b"], additionalProperties: false } },
     { name: "search_components", description: "Find components by what they're for: each match's name, group and one-line purpose. An empty query lists every component by group.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false } },
     { name: "read_component", description: "A component's props (kinds, options, defaults and notes) and its documentation: when to use it, examples and accessibility.", input_schema: { type: "object", properties: { name: { type: "string" } }, required: ["name"], additionalProperties: false } },
     { name: "list_tokens", description: "The values a style family accepts. Families: " + FAMILIES.join(", ") + ".", input_schema: { type: "object", properties: { family: { type: "string", enum: FAMILIES } }, required: ["family"], additionalProperties: false } },
@@ -9510,6 +9538,7 @@
       "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
       "- Write real, short copy in the brand's voice. Never lorem ipsum.",
       "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish.",
+      "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
       "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first.",
       "- Finish with a sentence or two on what you changed and anything the person should check.",
       "## The system's rules",
@@ -9566,17 +9595,17 @@
           return pg.id === input.page || pg.name === input.page;
         })[0] : null;
         if (input.page && !other && !(here && (input.page === here.id || input.page === here.name))) return fail("There's no page called " + input.page + ". Call list_pages for them.");
-        var from = function(d, label) {
+        var from = function(d, label2) {
           if (!d) return fail("That page couldn't be read.");
           if (input.frame && !(d.frames || []).some(function(f2) {
             return f2.id === input.frame;
-          })) return fail("There's no frame " + input.frame + " on " + label + ".");
+          })) return fail("There's no frame " + input.frame + " on " + label2 + ".");
           var n = (d.frames || []).filter(function(f2) {
             return !input.frame || f2.id === input.frame;
           }).reduce(function(a, f2) {
             return a + count(f2.root) - 1;
           }, 0);
-          return { ok: true, result: outline(d, input.frame || null), step: "Read " + label + " · " + n + (n === 1 ? " layer" : " layers") };
+          return { ok: true, result: outline(d, input.frame || null), step: "Read " + label2 + " · " + n + (n === 1 ? " layer" : " layers") };
         };
         if (other) return Promise.resolve(api.loadPage(other.id)).then(function(d) {
           return from(d, other.name);
@@ -9609,6 +9638,28 @@
           return { ok: true, result: [{ type: "image", source: { type: "base64", media_type: pic.media_type, data: pic.data } }, { type: "text", text: what + ", " + pic.width + "×" + pic.height + " pixels." }], step: "Looked at " + what, shot: pic };
         }, function(err) {
           return fail(err && err.message || "The picture couldn't be made.");
+        });
+      }
+      case "lint": {
+        var lf = input.frame ? (doc2.frames || []).filter(function(f2) {
+          return f2.id === input.frame;
+        })[0] : (doc2.frames || []).filter(function(f2) {
+          return f2.id === doc2.active;
+        })[0] || doc2.frames[0];
+        if (!lf) return fail("There's no frame " + input.frame + " on this page.");
+        if (!api.runChecks) return fail("Checks can't run here.");
+        return Promise.resolve(api.runChecks(lf.id)).then(function(got) {
+          return { ok: true, result: got.text, step: "Checked " + lf.name, checks: got.rows, frame: lf.id };
+        }, function(err) {
+          return fail(err && err.message || "The checks couldn't run.");
+        });
+      }
+      case "measure": {
+        if (!locate(doc2, input.a) || !locate(doc2, input.b)) return fail("Both layers must be in the frame you're in.");
+        if (!api.measure) return fail("Measuring can't run here.");
+        return Promise.resolve(api.measure(input.a, input.b)).then(function(m2) {
+          if (!m2) return fail("Those layers aren't drawn.");
+          return { ok: true, result: JSON.stringify(m2), step: "Measured " + nameOf2(input.a) + " to " + nameOf2(input.b) };
         });
       }
       case "search_components": {
@@ -9890,6 +9941,22 @@
         { name: "insert_jsx", input: { parent: into, jsx: '<Section dark><Stack gap="md" align="center"><Heading>Ready when you are</Heading><Button variant="brand">Start free</Button></Stack></Section>' } }
       ] } }] };
     }
+    if (names[0] === "lint") {
+      var rows = body(0).split("\n").filter(function(l) {
+        return /^- /.test(l);
+      });
+      var open = rows.filter(function(l) {
+        return /^- (FAIL|WARN) /.test(l);
+      }).map(function(l) {
+        return l.replace(/^- (FAIL|WARN) /, "").replace(/:.*$/, "").replace(/ \[layers:.*$/, "");
+      });
+      var asked = /^fix this check/i.test(String(request.messages.filter(function(m) {
+        return m.role === "user" && typeof m.content === "string";
+      }).slice(-1).map(function(m) {
+        return m.content;
+      })[0] || ""));
+      return { text: "Practice mode: I ran the checks. " + (open.length ? open.length + (open.length === 1 ? " wants" : " want") + " attention: " + open.join("; ") + "." : "Everything passes.") + (asked && open.length ? " A model would now fix them with the edit tools and check again." : ""), calls: [] };
+    }
     if (names[0] === "batch") return { text: "Practice mode, with the real tools: a new structured frame with a hero, three plan cards and a dark closing band, as one step you can undo at once.", calls: [] };
     if (names[0] === "search_components") {
       var found = [];
@@ -9926,6 +9993,7 @@
         if (offered.indexOf("screenshot") < 0) return { text: "Looking at the canvas is turned off for this file.", calls: [] };
         return { text: "", calls: [{ name: "screenshot", input: ids.length ? { id: ids[0] } : {} }] };
       }
+      if (/^fix this check|\bcheck (it|this|the page|the frame)\b|\blint\b|run the checks/.test(text2)) return { text: "", calls: [{ name: "lint", input: {} }] };
       var page = /(?:make|build|design|create|start)\b.*\b(pricing|landing|about|home|launch)\b.*\bpage\b/.exec(text2) || /\b(pricing|landing|about|launch)\s+page\b/.exec(text2);
       if (page && /make|build|design|create|start/.test(text2)) {
         var title = page[1].charAt(0).toUpperCase() + page[1].slice(1);
@@ -9974,6 +10042,147 @@
       if (!calls.length) return { text: "Practice mode: I can try fills (premium, bold), corners, shadows, bigger headings, or adding a button or a section. Real requests go to the model once live mode is on.", calls: [] };
       return { text: "Practice mode, with the real tools: " + said.join(", ") + ".", calls };
     };
+  }
+
+  // assets/builder/model/lint.js
+  var FIELD_TYPES = ["Input", "Select", "Textarea", "Field", "Combobox", "Slider"];
+  var PLACEHOLDER = /\b(lorem|ipsum|dolor sit|placeholder|todo|tbd|xxx+)\b/i;
+  var TEXT_KEYS3 = ["children", "title", "label", "text", "description", "heading", "eyebrow"];
+  function label(n) {
+    return n.name || n.type;
+  }
+  function lintFrame(frame2) {
+    var found = [];
+    var add = function(kind, level, n, text2) {
+      found.push({ kind, level, id: n.id, text: text2 });
+    };
+    var headings = [];
+    var bands = {};
+    (function walk(n, band) {
+      (n.children || []).forEach(function(c) {
+        if (c.hidden) return;
+        var p = c.props || {};
+        var here = band || (c.type === "Section" ? c.id : null);
+        if (c.type === "Heading") headings.push(c);
+        if (c.type === "Button" && (p.variant || "primary") === "primary") (bands[here || "root"] = bands[here || "root"] || []).push(c);
+        if (c.type === "Image" && !(p.alt && String(p.alt).trim())) add("a11y", "warn", c, label(c) + " has no alt text.");
+        if (FIELD_TYPES.indexOf(c.type) >= 0 && !(p.label && String(p.label).trim())) add("a11y", "fail", c, label(c) + " has no label.");
+        if (c.type === "IconButton" && !(p.label && String(p.label).trim())) add("a11y", "fail", c, label(c) + " has no label for screen readers.");
+        if ((c.type === "Heading" || c.type === "Button" || c.type === "Text") && typeof p.children === "string" && !p.children.trim()) add("copy", "warn", c, label(c) + " is empty.");
+        TEXT_KEYS3.forEach(function(k) {
+          if (typeof p[k] === "string" && PLACEHOLDER.test(p[k])) add("copy", "warn", c, label(c) + " has placeholder copy: “" + p[k].slice(0, 40) + "”.");
+        });
+        walk(c, here);
+      });
+    })(frame2.root, null);
+    var lv = function(h) {
+      var l = Number(h.props && h.props.level);
+      return l >= 1 && l <= 6 ? l : 2;
+    };
+    var ones = headings.filter(function(h) {
+      return lv(h) === 1;
+    });
+    if (ones.length > 1) ones.slice(1).forEach(function(h) {
+      add("a11y", "warn", h, label(h) + " is a second level 1 heading.");
+    });
+    headings.forEach(function(h, i) {
+      if (i && lv(h) > lv(headings[i - 1]) + 1) add("a11y", "warn", h, label(h) + " jumps from level " + lv(headings[i - 1]) + " to " + lv(h) + ".");
+    });
+    Object.keys(bands).forEach(function(k) {
+      var list = bands[k];
+      if (list.length > 1) list.slice(1).forEach(function(b) {
+        add("a11y", "warn", b, "More than one primary button in one section: make " + label(b) + " secondary.");
+      });
+    });
+    return found;
+  }
+  function checksFrom(frame2, found, drawn, skip) {
+    drawn = drawn || {};
+    skip = skip || {};
+    var rows = [];
+    var row = function(id, title, status, detail, ids) {
+      rows.push({ id, title, status, detail: detail || "", ids: ids || [] });
+    };
+    var contrastOf = function(a) {
+      return a ? a.contrast : null;
+    };
+    var here = contrastOf(drawn.here);
+    if (here) row(
+      "contrast",
+      here.length ? "Text contrast is too low in " + here.length + (here.length === 1 ? " place" : " places") : "Text contrast meets AA everywhere",
+      here.length ? "fail" : "pass",
+      here.slice(0, 3).map(function(c) {
+        return "“" + c.text + "” is " + c.ratio + ":1, needs " + c.need + ":1";
+      }).join("; "),
+      here.map(function(c) {
+        return c.id;
+      })
+    );
+    else row("contrast", "Text contrast", "skip", skip.here || "The frame wasn't drawn.");
+    var narrow = drawn.narrow;
+    if (narrow) {
+      var spill = narrow.overflow.length || narrow.scrolls;
+      row(
+        "narrow",
+        spill ? "Something overflows at 390px" : "Nothing overflows at 390px",
+        spill ? "fail" : "pass",
+        narrow.overflow.slice(0, 3).map(function(o) {
+          return o.by + "px past the edge";
+        }).join("; "),
+        narrow.overflow.map(function(o) {
+          return o.id;
+        })
+      );
+    } else row("narrow", "390px wide", "skip", skip.narrow || "Not checked.");
+    var dark = contrastOf(drawn.dark);
+    if (dark) row(
+      "dark",
+      dark.length ? "Text is too faint in dark mode in " + dark.length + (dark.length === 1 ? " place" : " places") : frame2.dark ? "Light mode keeps text readable" : "Dark mode keeps text readable",
+      dark.length ? "fail" : "pass",
+      dark.slice(0, 3).map(function(c) {
+        return "“" + c.text + "” is " + c.ratio + ":1";
+      }).join("; "),
+      dark.map(function(c) {
+        return c.id;
+      })
+    );
+    else row("dark", "Dark mode", "skip", skip.dark || "Not checked.");
+    var a11y = found.filter(function(f) {
+      return f.kind === "a11y";
+    });
+    row(
+      "a11y",
+      a11y.length ? a11y.length + (a11y.length === 1 ? " accessibility issue" : " accessibility issues") : "Labels, alt text and headings are in order",
+      a11y.some(function(f) {
+        return f.level === "fail";
+      }) ? "fail" : a11y.length ? "warn" : "pass",
+      a11y.slice(0, 3).map(function(f) {
+        return f.text;
+      }).join(" "),
+      a11y.map(function(f) {
+        return f.id;
+      })
+    );
+    var copy2 = found.filter(function(f) {
+      return f.kind === "copy";
+    });
+    row(
+      "copy",
+      copy2.length ? copy2.length === 1 ? "1 layer needs real copy" : copy2.length + " layers need real copy" : "No placeholder copy",
+      copy2.length ? "warn" : "pass",
+      copy2.slice(0, 3).map(function(f) {
+        return f.text;
+      }).join(" "),
+      copy2.map(function(f) {
+        return f.id;
+      })
+    );
+    return rows;
+  }
+  function checksText(frame2, rows) {
+    return "Checks on " + frame2.name + ":\n" + rows.map(function(r) {
+      return "- " + r.status.toUpperCase() + " " + r.title + (r.detail ? ": " + r.detail : "") + (r.ids.length ? " [layers: " + r.ids.slice(0, 12).join(", ") + "]" : "");
+    }).join("\n");
   }
 
   // assets/builder/model/assistant.js
@@ -10864,24 +11073,24 @@
         switchTo("signin");
       });
     };
-    var field = function(id, label, input) {
-      return e("label", { className: "bd-acct-field", htmlFor: id }, e("span", { className: "bd-field-label" }, label), e("input", Object.assign({ id, className: "bd-input", required: true, disabled: busy }, input)));
+    var field = function(id, label2, input) {
+      return e("label", { className: "bd-acct-field", htmlFor: id }, e("span", { className: "bd-field-label" }, label2), e("input", Object.assign({ id, className: "bd-input", required: true, disabled: busy }, input)));
     };
     var emailField = field("bd-acct-email", "Email", { type: "email", autoComplete: "email", value: email, onChange: function(ev) {
       setEmail(ev.target.value);
     } });
-    var passField = function(label, autoComplete) {
-      return field("bd-acct-pass", label, { type: "password", autoComplete, minLength: autoComplete === "new-password" ? 8 : void 0, value: pass, onChange: function(ev) {
+    var passField = function(label2, autoComplete) {
+      return field("bd-acct-pass", label2, { type: "password", autoComplete, minLength: autoComplete === "new-password" ? 8 : void 0, value: pass, onChange: function(ev) {
         setPass(ev.target.value);
       } });
     };
-    var button2 = function(label) {
-      return e("button", { type: "submit", className: "bd-btn bd-btn-primary", disabled: busy }, busy ? "One moment…" : label);
+    var button2 = function(label2) {
+      return e("button", { type: "submit", className: "bd-btn bd-btn-primary", disabled: busy }, busy ? "One moment…" : label2);
     };
-    var link = function(label, m) {
+    var link = function(label2, m) {
       return e("button", { type: "button", className: "bd-acct-link", onClick: function() {
         switchTo(m);
-      } }, label);
+      } }, label2);
     };
     var title = s.status === "recovery" ? "Choose a new password" : s.status === "in" ? "Your account" : s.status === "out" ? mode === "signup" ? "Create an account" : mode === "forgot" ? "Reset your password" : "Sign in" : "Account";
     var body;
@@ -11845,6 +12054,126 @@
       });
       return cache.md[name];
     };
+    var auditEl = useRef(null);
+    var auditQueue = useRef(Promise.resolve());
+    var pageProps = function(f) {
+      return { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale, pageWidth: f.pageWidth, gutter: f.gutter, flow: f.flow, clip: f.clip, scroll: f.scroll };
+    };
+    var drawAndAudit = function(f, width, dark2) {
+      var run = function() {
+        return new Promise(function(resolve2, reject) {
+          var el = auditEl.current;
+          if (!el) {
+            el = document.createElement("iframe");
+            el.setAttribute("aria-hidden", "true");
+            el.tabIndex = -1;
+            el.title = "Checks";
+            el.style.cssText = "position:fixed;left:-20000px;top:0;height:900px;border:0;opacity:0;pointer-events:none;";
+            el.src = frameSrc;
+            document.body.appendChild(el);
+            auditEl.current = el;
+          }
+          el.style.width = width + "px";
+          var tries = 0;
+          (function wait() {
+            var a = null;
+            try {
+              a = el.contentWindow && el.contentWindow.BuilderFrame;
+            } catch (err) {
+              a = null;
+            }
+            if (!a || !a.audit) {
+              if (++tries > 80) {
+                reject(new Error("The checks couldn't draw the frame."));
+                return;
+              }
+              setTimeout(wait, 100);
+              return;
+            }
+            a.render({ page: Object.assign(pageProps(f), { dark: dark2 }), root: f.root }, { preview: true, hug: true, screen: { w: width, h: f.height || 900 } });
+            requestAnimationFrame(function() {
+              requestAnimationFrame(function() {
+                setTimeout(function() {
+                  try {
+                    resolve2(a.audit());
+                  } catch (err) {
+                    reject(err);
+                  }
+                }, 120);
+              });
+            });
+          })();
+        });
+      };
+      var next = auditQueue.current.then(run, run);
+      auditQueue.current = next.catch(function() {
+      });
+      return next;
+    };
+    var runChecks = function(fid) {
+      var f = frameById(docRef.current, fid);
+      if (!f) return Promise.reject(new Error("That frame is gone."));
+      var found = lintFrame(f), drawn = {}, skip = {};
+      var soft = function(key) {
+        return function(err) {
+          skip[key] = err && err.message || "It couldn't be drawn.";
+          return null;
+        };
+      };
+      return drawAndAudit(f, f.width, !!f.dark).then(function(r) {
+        drawn.here = r;
+      }, soft("here")).then(function() {
+        if (f.bare) {
+          skip.narrow = "A loose object isn't a page.";
+          return null;
+        }
+        if (f.mode !== "structured") {
+          skip.narrow = "A freeform frame places layers by position, so it isn't reflowed.";
+          return null;
+        }
+        if (f.width <= 390) {
+          drawn.narrow = drawn.here;
+          return null;
+        }
+        return drawAndAudit(f, 390, !!f.dark).then(function(r) {
+          drawn.narrow = r;
+        }, soft("narrow"));
+      }).then(function() {
+        return drawAndAudit(f, f.width, !f.dark).then(function(r) {
+          drawn.dark = r;
+        }, soft("dark"));
+      }).then(function() {
+        var rows = checksFrom(f, found, drawn, skip);
+        return { rows, text: checksText(f, rows) };
+      });
+    };
+    var SPACE_TOKENS = [];
+    ["padding", "margin"].forEach(function(k) {
+      ((DATA.tokens[k] || {}).options || []).forEach(function(o) {
+        var t = o.tokens && o.tokens[0];
+        if (t && SPACE_TOKENS.indexOf(t) < 0) SPACE_TOKENS.push(t);
+      });
+    });
+    var measureLayers = function(aId, bId) {
+      var a = api(docRef.current.active);
+      if (!a || !a.rect) return null;
+      var ra = a.rect(aId), rb = a.rect(bId);
+      if (!ra || !rb) return null;
+      var px = a.tokenPx ? a.tokenPx(SPACE_TOKENS) : {};
+      var near = function(v) {
+        var best = null;
+        Object.keys(px).forEach(function(t) {
+          if (px[t] > 0 && (!best || Math.abs(px[t] - v) < Math.abs(px[best] - v))) best = t;
+        });
+        return best ? { token: best, tokenPx: Math.round(px[best]) } : {};
+      };
+      var across = Math.max(rb.left - ra.right, ra.left - rb.right);
+      var down = Math.max(rb.top - ra.bottom, ra.top - rb.bottom);
+      var side2 = function(v) {
+        return Object.assign({ px: Math.round(Math.max(0, v)), overlap: v < 0 }, v > 0 ? near(v) : {});
+      };
+      return { across: side2(across), down: side2(down) };
+    };
     var LOOK_KEY = "dovetail-assistant-look:";
     var canLook = function() {
       try {
@@ -11997,6 +12326,12 @@
         activate(fid);
       },
       /* Edits made inside fn become one history step. */
+      runChecks: function(fid) {
+        return runChecks(fid);
+      },
+      measure: function(a, b) {
+        return measureLayers(a, b);
+      },
       batch: function(fn) {
         var before = docRef.current, from = history.current.past.length;
         try {
@@ -12035,6 +12370,7 @@
       var abort = typeof AbortController !== "undefined" ? new AbortController() : null;
       asAbort.current = abort;
       var script = practiceScript(sel2);
+      var edits = 0;
       var round = function(n) {
         var c = collector();
         var shown2 = "";
@@ -12077,6 +12413,7 @@
               });
             });
           }, Promise.resolve()).then(function() {
+            edits += changes.length;
             patchTurn(turn.id, function(x) {
               return { changes: x.changes.concat(changes), steps: x.steps.concat(steps), base: x.text ? x.text + " " : "" };
             });
@@ -12086,11 +12423,20 @@
         });
       };
       round(0).then(function() {
+        var changed = edits > 0;
         patchTurn(turn.id, function(x) {
           var made = history.current.past.length - x.from;
           var steps = x.changes.length ? x.steps.concat([{ ok: true, text: "Changed " + x.changes.length + (x.changes.length === 1 ? " thing" : " things") + ", all with system tokens" }]) : x.steps;
-          return { status: "done", made, steps };
+          return { status: "done", made, steps, checking: x.changes.length > 0 };
         });
+        var fid = docRef.current.active;
+        if (changed) setTimeout(function() {
+          runChecks(fid).then(function(got) {
+            patchTurn(turn.id, { checks: got.rows, checksOn: fid, checking: false });
+          }, function() {
+            patchTurn(turn.id, { checking: false });
+          });
+        }, 0);
       }, function(err) {
         patchTurn(turn.id, function(x) {
           return { status: "error", error: err.message || "The assistant stopped.", made: history.current.past.length - x.from };
@@ -12127,6 +12473,21 @@
         for (var i = 0; i < t.made; i++) undo();
         patchTurn(id, { undone: true });
         announce("Undid the assistant's " + t.changes.length + (t.changes.length === 1 ? " change" : " changes"));
+      },
+      /* A check's Fix: a message naming what failed and where. */
+      fix: function(id, row) {
+        if (asBusy) return;
+        var t = asThread.filter(function(x) {
+          return x.id === id;
+        })[0];
+        var f = t && frameById(docRef.current, t.checksOn);
+        if (f && docRef.current.active !== f.id) activate(f.id);
+        runAssistant("Fix this check" + (f ? " on " + f.name : "") + ": " + row.title + (row.detail ? ". " + row.detail : "") + (row.ids.length ? " Layers: " + row.ids.slice(0, 12).join(", ") + "." : ""));
+      },
+      show: function(ids) {
+        if (ids && ids.length) select(ids.filter(function(x) {
+          return locate(docRef.current, x);
+        }));
       },
       retry: function(id) {
         var t = asThread.filter(function(x) {
@@ -15603,7 +15964,7 @@
       if (!src || fixedSpot(at0)) return;
       var a = api(fid), r = a && a.rect ? a.rect(id) : null;
       var b = layoutRef.current.boxes[fid];
-      var label = nameOf(at0.node);
+      var label2 = nameOf(at0.node);
       change(function(d) {
         var at2 = locate(d, id, fid);
         if (fixedSpot(at2)) return null;
@@ -15613,7 +15974,7 @@
         ["x", "y", "position", "anchor", "offset"].forEach(function(k) {
           delete n.style[k];
         });
-        var f = makeFrame(label, "desktop", true);
+        var f = makeFrame(label2, "desktop", true);
         f.width = Math.max(minSide(src), Math.min(MAX_WIDTH, Math.round(r && r.width ? r.width : src.width)));
         f.mode = src.mode;
         if (b) {
@@ -15624,7 +15985,7 @@
         d.frames.push(f);
         d.active = f.id;
         return n.id;
-      }, label + " is a frame of its own now");
+      }, label2 + " is a frame of its own now");
     };
     var frameToGroup = function(fid) {
       var b = layoutRef.current.boxes[fid];
@@ -17300,7 +17661,7 @@
       var name = o.value === "hug" ? "Hug" : o.value === "fill" ? "Fill" : /^x(\d+)$/.test(o.value) ? "×" + o.value.slice(1) : String(o.label || o.value).replace(/^container /, "").replace(/^(control|icon|avatar)-/, "");
       return px != null && o.value !== "hug" && o.value !== "fill" ? Math.round(px) + " " + name : name;
     };
-    var tokenControl = function(key, nodes, id, label) {
+    var tokenControl = function(key, nodes, id, label2) {
       var def = DATA.tokens[key];
       var cur = !nodes.some(function(n) {
         return n.style[key] !== nodes[0].style[key];
@@ -17314,7 +17675,7 @@
       var open = !!sidesOpen[key] || anySide;
       return e(
         Field,
-        { key, id, label: label || def.label, hint: cur ? cur.tokens.join(" · ") || null : null },
+        { key, id, label: label2 || def.label, hint: cur ? cur.tokens.join(" · ") || null : null },
         e(
           "div",
           { className: "bd-sides-row" },
@@ -17588,7 +17949,7 @@
         var from = all === "padding" && ownPad ? ownPad.label + " (" + ownPad.token + ")" : oneType ? nodes[0].type + "'s own " + all : "";
         var noneLabel = inherited ? "Same as every side (" + inherited + ")" : px ? "From " + (from || "the component") + ": " + px + "px" : all === "padding" && ownLabel ? ownLabel : "None";
         var noneShort = inherited ? pxMap[all + "|" + inherited] != null ? String(Math.round(pxMap[all + "|" + inherited])) : inherited : px ? String(px) : all === "padding" && ownLabel ? "Def" : "–";
-        var label = DATA.tokens[key].label;
+        var label2 = DATA.tokens[key].label;
         return e(
           "div",
           { key, className: "bd-box-cell is-" + where },
@@ -17600,7 +17961,7 @@
             className: cx("bd-box-val", !own && "is-inherited"),
             noneLabel,
             noneShort,
-            title: label + (own ? "" : inherited ? ", from every side" : px ? ", " + px + "px from " + (from || "the component") : "") + ". Drag sideways or press Up and Down to step it; Shift sets every side; Alt-click clears it.",
+            title: label2 + (own ? "" : inherited ? ", from every side" : px ? ", " + px + "px from " + (from || "the component") : "") + ". Drag sideways or press Up and Down to step it; Shift sets every side; Alt-click clears it.",
             scrubBody: true,
             scrubFrom: function() {
               return px != null ? px : null;
@@ -17694,7 +18055,7 @@
         return e("div", { key }, tokenDropdown(key, nodes, null, { prefix, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: key === "w" || key === "height" }));
       };
       var dim = function(wide2) {
-        var short3 = wide2 ? "W" : "H", label = wide2 ? "Width" : "Height";
+        var short3 = wide2 ? "W" : "H", label2 = wide2 ? "Width" : "Height";
         var fkey = wide2 ? "fw" : "fh", tkey = wide2 ? "w" : "height", rkey = wide2 ? "rw" : "rh";
         var units = nodes.map(function(n) {
           var r = relSize(n.style[rkey]);
@@ -17726,7 +18087,7 @@
             var p = Object.assign({}, clear);
             p[rkey] = n + u;
             return p;
-          }, label + " " + n + u, live);
+          }, label2 + " " + n + u, live);
         };
         var onUnit = function(u) {
           if (u === unit) return;
@@ -17736,7 +18097,7 @@
               var px2 = measured(id, wide2);
               if (free && px2) p[fkey] = Math.max(1, Math.min(FREE_MAX, Math.round(px2 / 4)));
               return p;
-            }, label + " in pixels");
+            }, label2 + " in pixels");
             return;
           }
           apply2(function(id) {
@@ -17744,9 +18105,9 @@
             var px2 = measured(id, wide2), one2 = per(id, wide2, u);
             p[rkey] = Math.max(1, Math.min(999, Math.round(px2 && one2 ? px2 / one2 : 100))) + u;
             return p;
-          }, label + " in " + u);
+          }, label2 + " in " + u);
         };
-        var picker = e(Dropdown, { label: label + " unit", value: unit, mixed: !unit, mixedLabel: "~", options: SIZE_UNITS, compact: true, narrow: true, alignEnd: true, className: "bd-dd-unit", onChange: onUnit });
+        var picker = e(Dropdown, { label: label2 + " unit", value: unit, mixed: !unit, mixedLabel: "~", options: SIZE_UNITS, compact: true, narrow: true, alignEnd: true, className: "bd-dd-unit", onChange: onUnit });
         var body;
         if (unit && unit !== "px") {
           var ns = nodes.map(function(n) {
@@ -17754,12 +18115,12 @@
           });
           body = e(NumberField, {
             short: short3,
-            label: label + ", in " + (unit === "%" ? "percent of its parent" : unit === "vw" ? "percent of the screen's width" : "percent of the screen's height"),
+            label: label2 + ", in " + (unit === "%" ? "percent of its parent" : unit === "vw" ? "percent of the screen's width" : "percent of the screen's height"),
             value: same3(ns) ? ns[0] : null,
             placeholder: "Mixed",
             min: 1,
             max: 999,
-            title: label + ": " + (unit === "%" ? "a share of its parent" : "a share of the screen's " + (unit === "vw" ? "width" : "height")) + ". Arrows step 1, Shift 10; drag the letter to scrub.",
+            title: label2 + ": " + (unit === "%" ? "a share of its parent" : "a share of the screen's " + (unit === "vw" ? "width" : "height")) + ". Arrows step 1, Shift 10; drag the letter to scrub.",
             onChange: function(v) {
               setRel(v, unit);
             },
@@ -17780,17 +18141,17 @@
               var p = Object.assign({}, clear);
               p[fkey] = steps;
               return p;
-            }, label + " " + steps * 4 + "px", first === false);
+            }, label2 + " " + steps * 4 + "px", first === false);
           };
           body = e(NumberField, {
             short: short3,
-            label: label + ", in pixels, a multiple of 4",
+            label: label2 + ", in pixels, a multiple of 4",
             value: same3(vs) ? vs[0] : null,
             placeholder: "Mixed",
             step: 4,
             min: 4,
             max: FREE_MAX * 4,
-            title: label + ": any multiple of 4px. Arrows step 4, Shift 16; drag the letter to scrub.",
+            title: label2 + ": any multiple of 4px. Arrows step 4, Shift 16; drag the letter to scrub.",
             onChange: function(v) {
               set2(v);
             },
@@ -17981,19 +18342,19 @@
       var set2 = function(v) {
         setProp(ids, p.name, v);
       };
-      var label = PROP_LABEL[p.name] || words(p.name);
+      var label2 = PROP_LABEL[p.name] || words(p.name);
       var control;
       if (p.kind === "list") {
         var fa = api(docRef.current.active);
         var own = first.props[p.name];
         var sample = own !== void 0 ? own : fa && fa.listSample ? fa.listSample(first.type, p.name) : null;
         var count2 = Array.isArray(sample) ? sample.length : 0;
-        if (nodes.length > 1) return e(Field, { key: p.name, id, label, note: p.note, hint: "Select one " + first.type + " to edit its " + label.toLowerCase() + "." }, null);
-        if (!Array.isArray(sample)) return e(Field, { key: p.name, id, label, note: p.note, hint: "Its sample has parts the builder can't edit here (pictures or elements), so it keeps them." }, null);
+        if (nodes.length > 1) return e(Field, { key: p.name, id, label: label2, note: p.note, hint: "Select one " + first.type + " to edit its " + label2.toLowerCase() + "." }, null);
+        if (!Array.isArray(sample)) return e(Field, { key: p.name, id, label: label2, note: p.note, hint: "Its sample has parts the builder can't edit here (pictures or elements), so it keeps them." }, null);
         return e(
           Field,
-          { key: p.name, id, label: label + (count2 ? " (" + count2 + ")" : ""), note: p.note },
-          e(ListEditor, { key: first.id + p.name, id, label, spec: p, value: sample, pages: pagesOf(projectRef.current), pageNow: pageRef.current, onChange: function(v) {
+          { key: p.name, id, label: label2 + (count2 ? " (" + count2 + ")" : ""), note: p.note },
+          e(ListEditor, { key: first.id + p.name, id, label: label2, spec: p, value: sample, pages: pagesOf(projectRef.current), pageNow: pageRef.current, onChange: function(v) {
             setProp([first.id], p.name, v);
           } })
         );
@@ -18068,7 +18429,7 @@
           e("input", {
             className: "bd-input",
             type: "url",
-            "aria-label": label + " URL",
+            "aria-label": label2 + " URL",
             placeholder: mixed ? "Mixed" : "or paste a URL",
             value: /^data:/.test(src) ? "" : src,
             onChange: function(ev) {
@@ -18077,7 +18438,7 @@
             }
           })
         );
-        return e(Field, { key: p.name, id, label, note: p.note, hint: /^data:/.test(src) ? "Uploaded file" : null }, control);
+        return e(Field, { key: p.name, id, label: label2, note: p.note, hint: /^data:/.test(src) ? "Uploaded file" : null }, control);
       }
       if (p.kind === "enum" && p.name === "tone") {
         var toneMap = TEXT_TYPES[first.type] ? TONE_TEXT : TONE_FILL;
@@ -18098,7 +18459,7 @@
         return e(PictureField, {
           key: p.name,
           id,
-          label,
+          label: label2,
           note: p.note,
           value: current2,
           mixed,
@@ -18152,7 +18513,7 @@
           });
         }
       } else if (p.kind === "boolean") {
-        return e(Field, { key: p.name, id, label, note: p.note, inline: true }, e(Switch, { labelledBy: id, value: !!current2, mixed, onChange: set2 }));
+        return e(Field, { key: p.name, id, label: label2, note: p.note, inline: true }, e(Switch, { labelledBy: id, value: !!current2, mixed, onChange: set2 }));
       } else if (p.kind === "number" && first.type === "Grid" && p.name === "columns") {
         control = e(Dropdown, { labelledBy: id, value: current2, mixed, onChange: set2, options: [1, 2, 3, 4, 5, 6].map(function(n) {
           return { value: n, label: n + (n === 1 ? " column" : " columns") };
@@ -18188,7 +18549,7 @@
       } else if (p.kind === "url") {
         control = e(LinkTo, { labelledBy: id, value: current2, mixed, pages: pagesOf(projectRef.current), pageNow: pageRef.current, onChange: set2 });
       } else return null;
-      return e(Field, { key: p.name, id, label, note: p.note }, control);
+      return e(Field, { key: p.name, id, label: label2, note: p.note }, control);
     };
     var addToLibrary = function(kind, files) {
       var list = Array.prototype.slice.call(files || []);
@@ -18298,7 +18659,7 @@
       if (project.lib === "shared") return "Shared by the files you made before projects. Moving this file into a project brings it along.";
       return "This file's own. Moving it into a project brings it along.";
     };
-    var applyVar = function(key, value, label) {
+    var applyVar = function(key, value, label2) {
       var ids = selRef.current.filter(function(id) {
         var at2 = locate(docRef.current, id);
         return at2 && at2.node.type !== "Slot";
@@ -18311,7 +18672,7 @@
       patch[key] = value;
       if (key === "surface") patch.fill = void 0;
       setStyles(ids, patch);
-      announce(label + " is " + value + " on " + (ids.length === 1 ? nameOf(locate(docRef.current, ids[0]).node) : ids.length + " layers"));
+      announce(label2 + " is " + value + " on " + (ids.length === 1 ? nameOf(locate(docRef.current, ids[0]).node) : ids.length + " layers"));
     };
     var addTemplate = function(id, into) {
       var st = STARTERS.filter(function(x) {
@@ -18471,8 +18832,8 @@
         return g.options.length;
       });
     };
-    var headAction = function(icon, label, onClick, pressed) {
-      return e("button", { type: "button", className: "bd-act bd-act-ghost", title: label, "aria-label": label, "aria-pressed": pressed === void 0 ? void 0 : String(pressed), onClick }, e(Icon, { name: icon }));
+    var headAction = function(icon, label2, onClick, pressed) {
+      return e("button", { type: "button", className: "bd-act bd-act-ghost", title: label2, "aria-label": label2, "aria-pressed": pressed === void 0 ? void 0 : String(pressed), onClick }, e(Icon, { name: icon }));
     };
     var lookSections = function(nodes, extra) {
       var ids = nodes.map(function(n) {
@@ -18511,11 +18872,11 @@
         return n.style.color || "";
       });
       var fillHex = same3(fills) ? fills[0] : "", inkHex = same3(inks) ? inks[0] : "";
-      var picker = function(key, value, label, clears) {
+      var picker = function(key, value, label2, clears) {
         return e(ColorPick, {
           value,
           on: !!value,
-          label,
+          label: label2,
           onChange: function(v) {
             var patch = {};
             patch[key] = v;
@@ -20462,11 +20823,11 @@
       );
     };
     var PADDING_KEYS = ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft"];
-    var sysGroup = function(key, label, rows) {
+    var sysGroup = function(key, label2, rows) {
       return e(
         "div",
         { key, className: "bd-sys-row" },
-        e("span", { className: "bd-sys-label" }, label),
+        e("span", { className: "bd-sys-label" }, label2),
         rows.length ? e("ul", { className: "bd-sys-list", role: "list" }, rows) : e("p", { className: "bd-sec-empty bd-sys-none" }, "None in this project yet")
       );
     };
@@ -20747,7 +21108,9 @@
                 clear: asApi.clear,
                 keep: asApi.keep,
                 undoTurn: asApi.undoTurn,
-                retry: asApi.retry
+                retry: asApi.retry,
+                fix: asApi.fix,
+                show: asApi.show
               }) : left === "context" ? e(ContextPanel, {
                 items: ctxItems,
                 query: contextQuery,

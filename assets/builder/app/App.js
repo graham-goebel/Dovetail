@@ -17,6 +17,7 @@ import { ContextPanel } from "./ContextPanel.js";
 import { cleanItem, contextFor, contextText } from "../model/context.js";
 import { AssistantPanel } from "./AssistantPanel.js";
 import { practiceScript, runTool, systemPrompt, toolsFor } from "../model/agent.js";
+import { checksFrom, checksText, lintFrame } from "../model/lint.js";
 import { collector } from "../model/assistant.js";
 import { assistantMode, sendAssistant } from "../cloud/assistant.js";
 import { EditorAt, Labels, Marks, Resizers, Rulers, SpacingLines, ViewMarks, World, camera, onStage, placeMarks } from "./Stage.js";
@@ -445,6 +446,81 @@ function App(props) {
     }).catch(function () { delete cache.md[name]; return null; });
     return cache.md[name];
   };
+  /* The checks draw a frame a second time, out of sight, so it can be read
+     as it really looks (a preview, no editing marks) at another width or in
+     the other mode without touching the canvas. One hidden frame serves
+     every check, one at a time. */
+  var auditEl = useRef(null);
+  var auditQueue = useRef(Promise.resolve());
+  var pageProps = function (f) { return { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale, pageWidth: f.pageWidth, gutter: f.gutter, flow: f.flow, clip: f.clip, scroll: f.scroll }; };
+  var drawAndAudit = function (f, width, dark) {
+    var run = function () {
+      return new Promise(function (resolve, reject) {
+        var el = auditEl.current;
+        if (!el) {
+          el = document.createElement("iframe");
+          el.setAttribute("aria-hidden", "true");
+          el.tabIndex = -1;
+          el.title = "Checks";
+          el.style.cssText = "position:fixed;left:-20000px;top:0;height:900px;border:0;opacity:0;pointer-events:none;";
+          el.src = frameSrc;
+          document.body.appendChild(el);
+          auditEl.current = el;
+        }
+        el.style.width = width + "px";
+        var tries = 0;
+        (function wait() {
+          var a = null;
+          try { a = el.contentWindow && el.contentWindow.BuilderFrame; } catch (err) { a = null; }
+          if (!a || !a.audit) { if (++tries > 80) { reject(new Error("The checks couldn't draw the frame.")); return; } setTimeout(wait, 100); return; }
+          a.render({ page: Object.assign(pageProps(f), { dark: dark }), root: f.root }, { preview: true, hug: true, screen: { w: width, h: f.height || 900 } });
+          requestAnimationFrame(function () { requestAnimationFrame(function () { setTimeout(function () { try { resolve(a.audit()); } catch (err) { reject(err); } }, 120); }); });
+        })();
+      });
+    };
+    var next = auditQueue.current.then(run, run);
+    auditQueue.current = next.catch(function () {});
+    return next;
+  };
+  /* The checks for one frame: the layers' own findings, then the frame
+     drawn at its width, at 390 wide (a structured frame wider than that),
+     and in the other mode. */
+  var runChecks = function (fid) {
+    var f = frameById(docRef.current, fid);
+    if (!f) return Promise.reject(new Error("That frame is gone."));
+    var found = lintFrame(f), drawn = {}, skip = {};
+    var soft = function (key) { return function (err) { skip[key] = (err && err.message) || "It couldn't be drawn."; return null; }; };
+    return drawAndAudit(f, f.width, !!f.dark).then(function (r) { drawn.here = r; }, soft("here")).then(function () {
+      if (f.bare) { skip.narrow = "A loose object isn't a page."; return null; }
+      if (f.mode !== "structured") { skip.narrow = "A freeform frame places layers by position, so it isn't reflowed."; return null; }
+      if (f.width <= 390) { drawn.narrow = drawn.here; return null; }
+      return drawAndAudit(f, 390, !!f.dark).then(function (r) { drawn.narrow = r; }, soft("narrow"));
+    }).then(function () {
+      return drawAndAudit(f, f.width, !f.dark).then(function (r) { drawn.dark = r; }, soft("dark"));
+    }).then(function () {
+      var rows = checksFrom(f, found, drawn, skip);
+      return { rows: rows, text: checksText(f, rows) };
+    });
+  };
+  /* The space between two layers as drawn, and the nearest spacing token. */
+  var SPACE_TOKENS = [];
+  ["padding", "margin"].forEach(function (k) { ((DATA.tokens[k] || {}).options || []).forEach(function (o) { var t = o.tokens && o.tokens[0]; if (t && SPACE_TOKENS.indexOf(t) < 0) SPACE_TOKENS.push(t); }); });
+  var measureLayers = function (aId, bId) {
+    var a = api(docRef.current.active);
+    if (!a || !a.rect) return null;
+    var ra = a.rect(aId), rb = a.rect(bId);
+    if (!ra || !rb) return null;
+    var px = a.tokenPx ? a.tokenPx(SPACE_TOKENS) : {};
+    var near = function (v) {
+      var best = null;
+      Object.keys(px).forEach(function (t) { if (px[t] > 0 && (!best || Math.abs(px[t] - v) < Math.abs(px[best] - v))) best = t; });
+      return best ? { token: best, tokenPx: Math.round(px[best]) } : {};
+    };
+    var across = Math.max(rb.left - ra.right, ra.left - rb.right);
+    var down = Math.max(rb.top - ra.bottom, ra.top - rb.bottom);
+    var side = function (v) { return Object.assign({ px: Math.round(Math.max(0, v)), overlap: v < 0 }, v > 0 ? near(v) : {}); };
+    return { across: side(across), down: side(down) };
+  };
   /* Whether the assistant may look at the canvas: on unless turned off for
      this file. */
   var LOOK_KEY = "dovetail-assistant-look:";
@@ -508,6 +584,8 @@ function App(props) {
     createFrame: function (opts) { return frameOps.add(null, false, null, opts); },
     useFrame: function (fid) { activate(fid); },
     /* Edits made inside fn become one history step. */
+    runChecks: function (fid) { return runChecks(fid); },
+    measure: function (a, b) { return measureLayers(a, b); },
     batch: function (fn) {
       var before = docRef.current, from = history.current.past.length;
       try { fn(); } finally {
@@ -539,6 +617,7 @@ function App(props) {
     var abort = typeof AbortController !== "undefined" ? new AbortController() : null;
     asAbort.current = abort;
     var script = practiceScript(sel);
+    var edits = 0;
     var round = function (n) {
       var c = collector();
       var shown = "";
@@ -566,6 +645,7 @@ function App(props) {
             });
           });
         }, Promise.resolve()).then(function () {
+          edits += changes.length;
           patchTurn(turn.id, function (x) { return { changes: x.changes.concat(changes), steps: x.steps.concat(steps), base: (x.text ? x.text + " " : "") }; });
           asMsgs.current = asMsgs.current.concat([{ role: "user", content: results }]);
           return n < 7 ? round(n + 1) : null;
@@ -573,11 +653,18 @@ function App(props) {
       });
     };
     round(0).then(function () {
+      var changed = edits > 0;
       patchTurn(turn.id, function (x) {
         var made = history.current.past.length - x.from;
         var steps = x.changes.length ? x.steps.concat([{ ok: true, text: "Changed " + x.changes.length + (x.changes.length === 1 ? " thing" : " things") + ", all with system tokens" }]) : x.steps;
-        return { status: "done", made: made, steps: steps };
+        return { status: "done", made: made, steps: steps, checking: x.changes.length > 0 };
       });
+      /* Whatever it changed, the checks run on the frame it ended in, and
+         their rows join the change card. */
+      var fid = docRef.current.active;
+      if (changed) setTimeout(function () {
+        runChecks(fid).then(function (got) { patchTurn(turn.id, { checks: got.rows, checksOn: fid, checking: false }); }, function () { patchTurn(turn.id, { checking: false }); });
+      }, 0);
     }, function (err) {
       patchTurn(turn.id, function (x) { return { status: "error", error: err.message || "The assistant stopped.", made: history.current.past.length - x.from }; });
     }).then(function () { setAsBusy(false); asAbort.current = null; });
@@ -595,6 +682,15 @@ function App(props) {
       patchTurn(id, { undone: true });
       announce("Undid the assistant's " + t.changes.length + (t.changes.length === 1 ? " change" : " changes"));
     },
+    /* A check's Fix: a message naming what failed and where. */
+    fix: function (id, row) {
+      if (asBusy) return;
+      var t = asThread.filter(function (x) { return x.id === id; })[0];
+      var f = t && frameById(docRef.current, t.checksOn);
+      if (f && docRef.current.active !== f.id) activate(f.id);
+      runAssistant("Fix this check" + (f ? " on " + f.name : "") + ": " + row.title + (row.detail ? ". " + row.detail : "") + (row.ids.length ? " Layers: " + row.ids.slice(0, 12).join(", ") + "." : ""));
+    },
+    show: function (ids) { if (ids && ids.length) select(ids.filter(function (x) { return locate(docRef.current, x); })); },
     retry: function (id) {
       var t = asThread.filter(function (x) { return x.id === id; })[0];
       if (!t) return;
@@ -6376,7 +6472,7 @@ function App(props) {
                   includeSel: asSelState[0], toggleSel: function () { asSelState[1](!asSelState[0]); }, reach: asReachState[0], setReach: asReachState[1],
                   docs: asContext().docs, skills: asContext().skills, dropDoc: function (id) { asDropState[1](asDropState[0].concat([id])); },
                   suggestions: selectedNodes.length ? ["Make it feel more premium", "Round the corners", "Add a button"] : ["Add a pricing section"],
-                  send: asApi.send, stop: asApi.stop, clear: asApi.clear, keep: asApi.keep, undoTurn: asApi.undoTurn, retry: asApi.retry })
+                  send: asApi.send, stop: asApi.stop, clear: asApi.clear, keep: asApi.keep, undoTurn: asApi.undoTurn, retry: asApi.retry, fix: asApi.fix, show: asApi.show })
               : left === "context" ? e(ContextPanel, { items: ctxItems, query: contextQuery, hasProject: !!(project && project.group), projectName: groupName, fileName: project ? project.name : "",
                   pages: pagesOf(project), pageId: pageId, pageName: (pagesOf(project).filter(function (x) { return x.id === pageId; })[0] || {}).name, announce: announce,
                   add: ctxApi.add, update: ctxApi.update, remove: ctxApi.remove, move: ctxApi.move })

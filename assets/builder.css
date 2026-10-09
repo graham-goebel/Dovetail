@@ -6943,6 +6943,73 @@ input.bd-folder-name {
 .bd-as-step.is-failed .bd-as-ok {
   color: var(--dt-text-danger, #e5484d);
 }
+/* The checks that ran after a reply, on its change card. */
+.bd-as-checks {
+  padding: var(--dt-space-inset-2xs, 6px) 0;
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+.bd-as-checks-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px var(--dt-space-inset-sm);
+  font-weight: 600;
+}
+.bd-as-check {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  min-height: 28px;
+  padding: 2px var(--dt-space-inset-sm);
+}
+.bd-as-check-i {
+  display: grid;
+  flex: none;
+  place-items: center;
+}
+.bd-as-check-i .bd-ic {
+  width: 14px;
+  height: 14px;
+}
+.bd-as-check.is-pass .bd-as-check-i {
+  color: var(--dt-text-success, #2a9d5b);
+}
+.bd-as-check.is-warn .bd-as-check-i {
+  color: var(--dt-text-warning, #c58a00);
+}
+.bd-as-check.is-fail .bd-as-check-i {
+  color: var(--dt-text-danger, #e5484d);
+}
+.bd-as-check.is-skip {
+  color: var(--dt-text-tertiary);
+}
+.bd-as-check-t {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  color: var(--dt-text-secondary);
+}
+.bd-as-check.is-warn .bd-as-check-t,
+.bd-as-check.is-fail .bd-as-check-t {
+  color: var(--dt-text-primary);
+}
+.bd-as-check-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.bd-as-check-link:hover {
+  text-decoration: underline;
+}
+.bd-as-check-d {
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-2xs, 11px);
+}
 /* A note the model wrote between tool calls: what it's doing next. */
 .bd-as-note-step {
   margin: 0;

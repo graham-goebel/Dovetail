@@ -1,6 +1,7 @@
 /* The Assistant panel: a conversation about the canvas. Each reply shows
-   what it read (and, when it looked, the picture it saw), what it changed (old token struck through, new beside it)
-   and Keep or Undo all; the box at the foot carries what goes with the next
+   what it read (and, when it looked, the picture it saw), what it changed,
+   the checks that ran after it (each with a Fix when it wants one), and
+   Keep or Undo all; the box at the foot carries what goes with the next
    message as chips (the selection, the docs, the skills), each removable.
    The App runs the conversation; this draws it. */
 
@@ -18,6 +19,18 @@ function changeCard(p, turn) {
         e("span", { className: "bd-as-n" }, c.label),
         e("span", { className: "bd-as-v" }, c.value, c.on ? e("span", { className: "bd-as-on" }, " · " + c.on) : null));
     }),
+    turn.undone ? null : turn.checking ? e("div", { className: "bd-as-checks" }, e("div", { className: "bd-as-checks-h" }, e("span", null, "Checks"), e("span", { className: "bd-as-note" }, "Checking…")))
+      : turn.checks ? e("div", { className: "bd-as-checks" },
+        e("div", { className: "bd-as-checks-h" }, e("span", null, "Checks"), e("span", { className: "bd-as-note" }, "ran after the last step")),
+        turn.checks.map(function (r) {
+          var icon = r.status === "pass" ? "check" : r.status === "skip" ? "minus" : "alert";
+          return e("div", { key: r.id, className: cx("bd-as-check", "is-" + r.status) },
+            e("span", { className: "bd-as-check-i", "aria-hidden": "true" }, e(Icon, { name: icon })),
+            e("span", { className: "bd-as-check-t", title: r.detail || undefined },
+              r.ids.length ? e("button", { type: "button", className: "bd-as-check-link", onClick: function () { p.show(r.ids); } }, r.title) : r.title,
+              r.status === "skip" && r.detail ? e("span", { className: "bd-as-check-d" }, r.detail) : null),
+            (r.status === "fail" || r.status === "warn") && !p.busy ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { p.fix(turn.id, r); } }, "Fix") : null);
+        })) : null,
     !turn.kept && !turn.undone && turn.status === "done" ? e("div", { className: "bd-as-acts" },
       e("button", { type: "button", className: "bd-btn bd-btn-sm bd-btn-primary", onClick: function () { p.keep(turn.id); } }, e(Icon, { name: "check" }), "Keep"),
       e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { p.undoTurn(turn.id); } }, e(Icon, { name: "undo" }), "Undo all"),
@@ -26,7 +39,10 @@ function changeCard(p, turn) {
 
 function AssistantPanel(p) {
   var listRef = useRef(null);
-  useEffect(function () { var el = listRef.current; if (el) el.scrollTop = el.scrollHeight; }, [p.thread.length, p.thread.length && p.thread[p.thread.length - 1].text]);
+  /* The thread follows what's new at its foot: text, steps, the change card, its checks. */
+  var last = p.thread[p.thread.length - 1];
+  var tail = last ? [p.thread.length, last.text, (last.steps || []).length, (last.changes || []).length, last.checking ? 1 : 0, last.checks ? last.checks.length : 0, last.status].join("|") : "";
+  useEffect(function () { var el = listRef.current; if (el) el.scrollTop = el.scrollHeight; }, [tail]);
   var send = function () { var t = p.draft.trim(); if (t && !p.busy) p.send(t); };
   return e("div", { className: "bd-as" },
     e("div", { className: "bd-as-head" },
