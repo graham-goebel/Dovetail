@@ -46,6 +46,11 @@
   var CONTAINERS = { Root: true, Group: true, Section: true, Stack: true, Inline: true, Grid: true, Card: true, Slot: true, Carousel: true };
 
   var DATA = window.DovetailBuilderData || { tokens: {} };
+  /* A container holding a layer set behind its siblings stacks on its own,
+     so that layer stays above the container's fill rather than slipping
+     under it. */
+  function isolates(node) { return (node.children || []).some(function (c) { return c.style && c.style.z === "behind"; }); }
+  function withIsolation(node, st) { return isolates(node) ? Object.assign({}, st || {}, { isolation: "isolate" }) : st; }
   var STYLE_KEYS = Object.keys(DATA.tokens);
 
   /* Group's gap: the inline scale in a row, the stack scale in a column. */
@@ -271,6 +276,8 @@
       var o = DATA.tokens[k].options.filter(function (x) { return x.value === st[k]; })[0];
       if (o) out = Object.assign(out || {}, o.css);
     });
+    /* A layer order needs a box that stacks; in the flow, that's relative. */
+    if (st.z && out && !out.position) out.position = "relative";
     /* A free frame may give a layer its own colours, as six-digit hex. */
     if (HEX.test(st.fill || "") && !st.gradient) out = Object.assign(out || {}, { background: st.fill });
     if (HEX.test(st.color || "")) out = Object.assign(out || {}, { color: st.color, "--dt-text-primary": st.color, "--dt-text-headline": st.color });
@@ -366,7 +373,7 @@
       if (own[k] === null || own[k] === undefined) delete p[k];
       else p[k] = own[k];
     });
-    var st = styleFor(node.style);
+    var st = withIsolation(node, styleFor(node.style));
     if (st) p.style = Object.assign({}, p.style || {}, st);
     var box = textBox(node);
     if (box) p.style = Object.assign({}, p.style || {}, box);
@@ -512,7 +519,7 @@
       var gp = node.props || {};
       var gkids = (node.children || []).length ? node.children.map(function (c) { return renderNode(c, node.id); }) : empty(node.id);
       return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Group", "data-bf-free": isFree(node.style) ? "" : undefined, "data-bf-locked": lock, style: { display: "contents" } },
-        e("div", { className: node.style && node.style.dark ? "dark" : undefined, style: Object.assign(groupStyle(gp), styleFor(node.style) || {}) }, gkids));
+        e("div", { className: node.style && node.style.dark ? "dark" : undefined, style: withIsolation(node, Object.assign(groupStyle(gp), styleFor(node.style) || {})) }, gkids));
     }
     if (node.type === "Shape") {
       var isLine = (node.props || {}).shape === "line";
@@ -614,6 +621,7 @@
     html.classList.toggle("bf-bare-doc", !!opts.bare);
     if (page.gap && ROOT_GAP[page.gap]) style.gap = "calc(var(" + ROOT_GAP[page.gap] + ") * var(--dt-layout-scale, 1))";
     if (!opts.bare && page.flow) Object.assign(style, flowStyle(page.flow));
+    if (isolates(tree.root)) style.isolation = "isolate";
     /* Clipped or scrolling, the root is the screen and the document itself
        stays still. A frame that hugs its content grows instead. */
     var over = !opts.hug && !opts.bare ? overflowStyle(page) : null;
@@ -1149,7 +1157,7 @@
       return pad + "<div" + (node.style.dark ? ' className="dark"' : "") + " style={" + value(boolBox(node), used, 0) + "}>\n" + boolCode(bts.svg, used, pad + "  ") + "\n" + pad + "</div>";
     }
     if (node.type === "Group") {
-      var gs = Object.assign(groupStyle(node.props || {}), styleFor(node.style) || {});
+      var gs = withIsolation(node, Object.assign(groupStyle(node.props || {}), styleFor(node.style) || {}));
       var gattrs = (node.style && node.style.dark ? ' className="dark"' : "") + " style={" + value(gs, used, 0) + "}";
       var gopen = pad + "<div" + gattrs;
       if (!(node.children || []).length) return gopen + " />";
@@ -1227,6 +1235,7 @@
     delete ps.color;
     var rootStyle = Object.keys(ps).map(function (k) { return (/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k)) + ": " + JSON.stringify(ps[k]); });
     if (tree.root.children.some(function (c) { return isFree(c.style); })) rootStyle.push("position: \"relative\"");
+    if (isolates(tree.root)) rootStyle.push("isolation: \"isolate\"");
     if (page.gap && ROOT_GAP[page.gap] && !(page.flow && page.flow.gap)) rootStyle.push("display: \"flex\"", "flexDirection: \"column\"", "gap: \"var(" + ROOT_GAP[page.gap] + ")\"");
     var extra = Object.assign({}, page.flow ? Object.assign({ display: "flex" }, flowStyle(page.flow)) : null, !page.hug ? overflowStyle(page) : null);
     if (page.flow && page.gap && ROOT_GAP[page.gap] && !page.flow.gap) extra.gap = "var(" + ROOT_GAP[page.gap] + ")";

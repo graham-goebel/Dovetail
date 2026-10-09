@@ -723,8 +723,10 @@
   --dt-elevation-4: 0 4px 8px -2px oklch(0.145 0.005 264 / 0.06), 0 12px 24px -4px oklch(0.145 0.005 264 / 0.12);
   --dt-elevation-5: 0 8px 16px -4px oklch(0.145 0.005 264 / 0.08), 0 24px 48px -8px oklch(0.145 0.005 264 / 0.16);
   --dt-elevation-inset: inset 0 1px 2px 0 oklch(0.145 0.005 264 / 0.08);
+  --dt-z-behind: -1;
   --dt-z-base: 0;
   --dt-z-raised: 10;
+  --dt-z-front: 20;
   --dt-z-sticky: 100;
   --dt-z-dropdown: 200;
   --dt-z-overlay: 300;

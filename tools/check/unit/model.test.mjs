@@ -328,3 +328,18 @@ test("a shape used as a mask becomes a clipped Group holding the others where th
   assert.deepEqual(g.children.map((c) => [c.id, c.style.x, c.style.y]), [["t", 2, 0]]);
   assert.equal(ops.mask(doc, ["u"]), null);
 });
+
+test("a layer order comes back from pasted JSX, with the position it rode on and without the parent's isolation", () => {
+  const read = readLayout(`<div style={{ position: "relative", display: "flex", flexDirection: "column", isolation: "isolate" }}>
+  <div style={{ position: "absolute", zIndex: "var(--dt-z-behind)", display: "flex" }} />
+  <Text style={{ zIndex: "var(--dt-z-front)", position: "relative" }}>Over the glow</Text>
+</div>`);
+  assert.ok(read && read.doc, read && read.error);
+  const g = read.doc.frames[0].root.children[0];
+  const [glow, text] = g.children;
+  assert.deepEqual([glow.style.z, glow.style.position], ["behind", "floating"]);
+  assert.deepEqual([text.style.z, text.style.position], ["front", undefined]);
+  assert.ok(!read.report.some((l) => /isolation|position/.test(l)), read.report.join("; "));
+  const floated = readLayout(`<div style={{ position: "absolute", zIndex: "var(--dt-z-raised)", display: "flex" }} />`).doc.frames[0].root.children[0];
+  assert.equal(floated.style.position, "floating", "a floating Group pastes back floating");
+});
