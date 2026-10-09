@@ -19,6 +19,7 @@ import { AssistantPanel } from "./AssistantPanel.js";
 import { practiceScript, runTool, systemPrompt, toolsFor } from "../model/agent.js";
 import { checksFrom, checksText, lintFrame } from "../model/lint.js";
 import { editsText, recentEdits } from "../model/recent.js";
+import { metaOf } from "../model/threads.js";
 import { collector } from "../model/assistant.js";
 import { assistantMode, sendAssistant } from "../cloud/assistant.js";
 import { EditorAt, Labels, Marks, Resizers, Rulers, SpacingLines, ViewMarks, World, camera, onStage, placeMarks } from "./Stage.js";
@@ -409,35 +410,61 @@ function App(props) {
      can go with their next message. */
   var asBase = useRef(null);
   var asBaseTick = useState(0);
-  /* The file's conversation with the assistant, picked up where it was
-     left, and saved whenever a reply finishes. A reply cut off by leaving
-     the page shows as stopped. */
+  /* The file's conversations with the assistant: the list, and the one
+     open, picked up where it was left and saved whenever a reply finishes.
+     A reply cut off by leaving the page shows as stopped. The open one has
+     no id until its first message is saved. */
   var threadFor = useRef(null);
+  var asIdState = useState(null), asId = asIdState[0];
+  var asIdRef = useRef(null); asIdRef.current = asId;
+  var asListState = useState([]), asList = asListState[0];
+  var asViewState = useState("chat");
+  var asNamed = useRef("");
+  /* The thread as last loaded, so opening one doesn't count as a change. */
+  var asLoaded = useRef(null);
+  var revive = function (v) {
+    return (v && Array.isArray(v.thread) ? v.thread : []).map(function (t) { return t.status === "working" ? Object.assign({}, t, { status: "error", error: "Stopped when the page closed." }) : t.queued ? Object.assign({}, t, { queued: false }) : t; });
+  };
   useEffect(function () {
     var meta = projectRef.current, live = true;
     threadFor.current = null;
     asBase.current = null;
     setAsThread([]);
     asMsgs.current = [];
-    if (!meta || !store.loadThread) return undefined;
-    store.loadThread(meta.id).then(function (v) {
-      if (!live) return;
-      threadFor.current = meta.id;
-      if (!v || !Array.isArray(v.thread)) return;
-      setAsThread(v.thread.map(function (t) { return t.status === "working" ? Object.assign({}, t, { status: "error", error: "Stopped when the page closed." }) : t.queued ? Object.assign({}, t, { queued: false }) : t; }));
-      asMsgs.current = Array.isArray(v.msgs) ? v.msgs : [];
-    }, function () { if (live) threadFor.current = meta.id; });
+    asIdState[1](null);
+    asListState[1]([]);
+    asViewState[1]("chat");
+    if (!meta || !store.listThreads) return undefined;
+    store.listThreads(meta.id).then(function (idx) {
+      if (!live) return null;
+      asListState[1](idx.list);
+      if (!idx.current) return null;
+      return store.loadThread(meta.id, idx.current).then(function (v) {
+        if (!live || !v) return;
+        asIdState[1](idx.current);
+        asNamed.current = (idx.list.filter(function (x) { return x.id === idx.current; })[0] || {}).named || "";
+        var back = revive(v);
+        asLoaded.current = back;
+        setAsThread(back);
+        asMsgs.current = Array.isArray(v.msgs) ? v.msgs : [];
+      });
+    }).then(function () { if (live) threadFor.current = meta.id; }, function () { if (live) threadFor.current = meta.id; });
     return function () { live = false; };
   }, [project ? project.id : null]);
   useEffect(function () {
     var meta = projectRef.current;
-    if (!meta || asBusy || threadFor.current !== meta.id || !store.saveThread) return;
+    if (!meta || asBusy || threadFor.current !== meta.id || !store.saveThread || !asThread.length || asThread === asLoaded.current) return;
     var plan = asThread.map(function (t) {
       if (t.plan && t.plan.status === "pending") t = Object.assign({}, t, { plan: Object.assign({}, t.plan, { status: "changing" }) });
       if (t.ask && t.ask.status === "pending") t = Object.assign({}, t, { ask: Object.assign({}, t.ask, { status: "skipped" }) });
       return t;
     });
-    store.saveThread(meta.id, asThread.length ? { thread: plan, msgs: asMsgs.current } : null).catch(function () { /* the panel still has it */ });
+    var id = asIdRef.current;
+    if (!id) { id = "t" + uid(); asIdRef.current = id; asIdState[1](id); }
+    var was = asList.filter(function (x) { return x.id === id; })[0];
+    var line = metaOf(plan, { named: asNamed.current, by: was ? was.by : (account ? { id: account.id, name: account.email } : undefined) });
+    asListState[1](function (l) { return [Object.assign({ id: id }, line)].concat(l.filter(function (x) { return x.id !== id; })); });
+    store.saveThread(meta.id, id, { thread: plan, msgs: asMsgs.current }, line).catch(function () { /* the panel still has it */ });
   }, [asThread, asBusy]);
   var asAbort = useRef(null);
   var patchTurn = function (id, patch) {
@@ -732,7 +759,7 @@ function App(props) {
     var system = [contextText(ctx), canvas].filter(Boolean).join("\n\n");
     var tools = toolsFor({ look: canLook(), plan: planOn });
     var planned = false;
-    var me = { id: uid(), role: "user", text: text };
+    var me = { id: uid(), role: "user", text: text, by: account ? { id: account.id, name: account.email } : undefined };
     var base = asBase.current;
     var mine = base && base.page === pageRef.current ? recentEdits(base.doc, docRef.current) : null;
     var told = mine && mine.count ? { id: uid(), role: "edits", count: mine.count, lines: mine.lines } : null;
@@ -848,7 +875,50 @@ function App(props) {
   var asApi = {
     send: runAssistant,
     stop: function () { if (asAbort.current) asAbort.current.abort(); if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" }); if (askWait.current) askWait.current.resolve(null); },
-    clear: function () { setAsThread([]); asMsgs.current = []; asBase.current = null; asBaseTick[1](function (n) { return n + 1; }); if (projectRef.current) store.saveThread(projectRef.current.id, null).catch(function () {}); },
+    /* A new conversation; the one open stays in the list. */
+    fresh: function () {
+      if (asBusy) return;
+      setAsThread([]); asMsgs.current = []; asBase.current = null; asNamed.current = "";
+      asIdRef.current = null; asIdState[1](null); asViewState[1]("chat");
+      asBaseTick[1](function (n) { return n + 1; });
+      if (projectRef.current) store.openThread(projectRef.current.id, null).catch(function () {});
+    },
+    /* The open conversation, deleted; a new one starts. */
+    clear: function () {
+      var id = asIdRef.current;
+      if (id && projectRef.current) { store.saveThread(projectRef.current.id, id, null).catch(function () {}); asListState[1](function (l) { return l.filter(function (x) { return x.id !== id; }); }); }
+      asApi.fresh();
+    },
+    /* The list of conversations, or the open one. */
+    showList: function (on) { asViewState[1](on ? "list" : "chat"); },
+    openThread: function (id) {
+      var meta = projectRef.current;
+      if (!meta || asBusy) return;
+      if (id === asIdRef.current) { asViewState[1]("chat"); return; }
+      store.loadThread(meta.id, id).then(function (v) {
+        if (!v) { announce("That conversation couldn't be opened."); return; }
+        asBase.current = null;
+        asIdRef.current = id; asIdState[1](id);
+        asNamed.current = (asList.filter(function (x) { return x.id === id; })[0] || {}).named || "";
+        var back = revive(v);
+        asLoaded.current = back;
+        setAsThread(back);
+        asMsgs.current = Array.isArray(v.msgs) ? v.msgs : [];
+        asViewState[1]("chat");
+        asBaseTick[1](function (n) { return n + 1; });
+        store.openThread(meta.id, id).catch(function () {});
+      }, function () { announce("That conversation couldn't be opened."); });
+    },
+    removeThread: function (id) {
+      var meta = projectRef.current;
+      if (!meta || asBusy) return;
+      var line = asList.filter(function (x) { return x.id === id; })[0];
+      if (!window.confirm("Delete “" + ((line && line.title) || "this conversation") + "”? The canvas keeps its changes.")) return;
+      store.saveThread(meta.id, id, null).catch(function () {});
+      asListState[1](function (l) { return l.filter(function (x) { return x.id !== id; }); });
+      if (id === asIdRef.current) { setAsThread([]); asMsgs.current = []; asIdRef.current = null; asIdState[1](null); asNamed.current = ""; }
+      announce("Deleted the conversation");
+    },
     /* A note while it works: it lands with the next step's results. */
     note: function (text) {
       if (askWait.current) {
@@ -6786,7 +6856,7 @@ function App(props) {
                   includeSel: asSelState[0], toggleSel: function () { asSelState[1](!asSelState[0]); }, reach: asReachState[0], setReach: asReachState[1],
                   docs: asContext().docs, skills: asContext().skills, dropDoc: function (id) { asDropState[1](asDropState[0].concat([id])); },
                   suggestions: selectedNodes.length ? ["Make it feel more premium", "Round the corners", "Add a button"] : ["Add a pricing section"],
-                  send: asApi.send, stop: asApi.stop, clear: asApi.clear, keep: asApi.keep, undoTurn: asApi.undoTurn, retry: asApi.retry, fix: asApi.fix, show: asApi.show,
+                  send: asApi.send, stop: asApi.stop, clear: asApi.clear, fresh: asApi.fresh, view: asViewState[0], showList: asApi.showList, list: asList, currentId: asId, openThread: asApi.openThread, removeThread: asApi.removeThread, me: account, cloudFile: false, keep: asApi.keep, undoTurn: asApi.undoTurn, retry: asApi.retry, fix: asApi.fix, show: asApi.show,
                   note: asApi.note, waiting: asBusy && asThread.some(function (t) { return t.ask && t.ask.status === "pending"; }), answerAsk: asApi.answerAsk, answerAskAll: asApi.answerAskAll, showVariant: asApi.showVariant, keepVariant: asApi.keepVariant, otherAsk: asApi.otherAsk, edits: asEditsNow, dropEdits: asApi.dropEdits, approvePlan: asApi.approvePlan, changePlan: asApi.changePlan, undoFrom: asApi.undoFrom, exportThread: asApi.exportThread,
                   plans: asPlanState[0], setPlans: asApi.setPlans, effort: asEffortState[0], setEffort: asApi.setEffort, look: canLook(), setLook: asApi.setLook })
               : left === "context" ? e(ContextPanel, { items: ctxItems, query: contextQuery, hasProject: !!(project && project.group), projectName: groupName, fileName: project ? project.name : "",

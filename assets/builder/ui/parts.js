@@ -281,7 +281,7 @@ function Segmented(props) {
 
 function Switch(props) {
   return e("button", {
-    type: "button", role: "switch", className: cx("bd-switch", props.mixed && "is-mixed"), "aria-checked": props.mixed ? "mixed" : String(!!props.value), "aria-labelledby": props.labelledBy, "aria-label": props.labelledBy ? undefined : props.label,
+    type: "button", role: "switch", disabled: props.disabled || undefined, className: cx("bd-switch", props.mixed && "is-mixed"), "aria-checked": props.mixed ? "mixed" : String(!!props.value), "aria-labelledby": props.labelledBy, "aria-label": props.labelledBy ? undefined : props.label,
     onClick: function () { props.onChange(!props.value); },
   }, e("span", { className: "bd-switch-knob", "aria-hidden": true }));
 }

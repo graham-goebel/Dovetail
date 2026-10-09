@@ -174,6 +174,31 @@ function makeStore(b) {
   var count = function (doc) { return doc && Array.isArray(doc.frames) ? doc.frames.length : 0; };
   var lastVersionAt = {};
 
+  /* Small records kept beside the libraries: in IndexedDB, or in browser
+     storage under THREAD_KEY when there's no IndexedDB. */
+  var keep = {
+    get: function (key) {
+      if (b.kind !== "indexeddb") return Promise.resolve(storage(function (s) { return JSON.parse(s.getItem(THREAD_KEY + ":" + key) || "null"); }) || null);
+      return b.get("library", key).then(function (rec) { return rec ? rec.value : null; });
+    },
+    put: function (key, value) {
+      if (b.kind !== "indexeddb") { storage(function (s) { s.setItem(THREAD_KEY + ":" + key, JSON.stringify(value)); return true; }); return Promise.resolve(); }
+      return b.put("library", { id: key, value: value });
+    },
+    del: function (key) {
+      if (b.kind !== "indexeddb") { storage(function (s) { s.removeItem(THREAD_KEY + ":" + key); return true; }); return Promise.resolve(); }
+      return b.del("library", key);
+    },
+    /* The one conversation a file kept before there could be several. */
+    legacy: function (fileId) {
+      if (b.kind !== "indexeddb") return Promise.resolve(storage(function (s) { return JSON.parse(s.getItem(THREAD_KEY + ":" + fileId) || "null"); }) || null);
+      return b.get("library", "thread:" + fileId).then(function (rec) { return rec && rec.value && typeof rec.value === "object" ? rec.value : null; });
+    },
+    dropLegacy: function (fileId) {
+      if (b.kind !== "indexeddb") { storage(function (s) { s.removeItem(THREAD_KEY + ":" + fileId); return true; }); return Promise.resolve(); }
+      return b.del("library", "thread:" + fileId);
+    },
+  };
   var api = {
     kind: b.kind,
     listProjects: function () {
@@ -457,20 +482,41 @@ function makeStore(b) {
       }
       return b.put("library", { id: "ctx:" + scope, value: items });
     },
-    /* A file's conversation with the assistant: what the panel shows and
-       the messages as sent, so it picks up where it left off. In browser
-       storage (no IndexedDB) a long one, pictures and all, may not fit, and
-       is then not kept. */
-    loadThread: function (fileId) {
-      if (b.kind !== "indexeddb") return Promise.resolve(storage(function (s) { return JSON.parse(s.getItem(THREAD_KEY + ":" + fileId) || "null"); }) || null);
-      return b.get("library", "thread:" + fileId).then(function (rec) { return rec && rec.value && typeof rec.value === "object" ? rec.value : null; });
+    /* A file's conversations with the assistant, each what the panel shows
+       and the messages as sent, so any can be picked up where it was left.
+       The file keeps a list of them ({ id, title, ... } as the panel
+       describes each) and which was open; each conversation is kept on its
+       own. In browser storage (no IndexedDB) a long one, pictures and all,
+       may not fit, and is then not kept. A file kept one conversation
+       before there could be several; that one becomes the first. */
+    listThreads: function (fileId) {
+      return keep.get("threads:" + fileId).then(function (idx) {
+        if (idx && Array.isArray(idx.list)) return idx;
+        return keep.legacy(fileId).then(function (old) {
+          if (!old) return { list: [], current: null };
+          var id = "t" + Date.now().toString(36);
+          var first = (old.thread || []).filter(function (t) { return t.role === "user"; })[0];
+          var made = { list: [{ id: id, title: first ? String(first.text).slice(0, 60) : "Conversation", updated: Date.now() }], current: id };
+          return keep.put("thread:" + fileId + ":" + id, old).then(function () { return keep.put("threads:" + fileId, made); }).then(function () { return keep.dropLegacy(fileId); }).then(function () { return made; });
+        });
+      });
     },
-    saveThread: function (fileId, value) {
-      if (b.kind !== "indexeddb") {
-        storage(function (s) { if (value) s.setItem(THREAD_KEY + ":" + fileId, JSON.stringify(value)); else s.removeItem(THREAD_KEY + ":" + fileId); return true; });
-        return Promise.resolve();
-      }
-      return value ? b.put("library", { id: "thread:" + fileId, value: value }) : b.del("library", "thread:" + fileId);
+    loadThread: function (fileId, id) {
+      return keep.get("thread:" + fileId + ":" + id).then(function (v) { return v && typeof v === "object" ? v : null; });
+    },
+    /* Saves a conversation and its line in the list (meta), and makes it
+       the open one; null takes it out of both. */
+    saveThread: function (fileId, id, value, meta) {
+      return api.listThreads(fileId).then(function (idx) {
+        var list = idx.list.filter(function (x) { return x.id !== id; });
+        if (value) list.unshift(Object.assign({}, meta || {}, { id: id }));
+        var next = { list: list, current: value ? id : (idx.current === id ? null : idx.current) };
+        return (value ? keep.put("thread:" + fileId + ":" + id, value) : keep.del("thread:" + fileId + ":" + id)).then(function () { return keep.put("threads:" + fileId, next); });
+      });
+    },
+    /* Which conversation is open in a file, without saving it. */
+    openThread: function (fileId, id) {
+      return api.listThreads(fileId).then(function (idx) { return keep.put("threads:" + fileId, { list: idx.list, current: id }); });
     },
     /* What one library holds, added to another (when a file moves). */
     mergeLibrary: function (from, to) {

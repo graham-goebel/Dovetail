@@ -101,6 +101,25 @@ create table if not exists public.assistant_runs (
   created_at timestamptz not null default now()
 );
 
+-- A conversation with the assistant about one file. The person who starts
+-- it sees it; once they share it, everyone on the file sees its history and
+-- can carry it on. Only its starter shares or unshares it, or deletes it.
+-- body is the conversation as the panel keeps it (each message saying who
+-- sent it), without the pictures, which stay in the browser that took them.
+-- rev counts saves, so a save made from an older copy can be refused.
+create table if not exists public.assistant_threads (
+  id uuid primary key default gen_random_uuid(),
+  file_id uuid not null references public.projects (id) on delete cascade,
+  created_by uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  title text not null default 'Conversation' check (char_length(title) between 1 and 120),
+  shared boolean not null default false,
+  body jsonb not null default '{}'::jsonb check (octet_length(body::text) < 2000000),
+  rev integer not null default 0,
+  updated_by uuid default auth.uid() references auth.users (id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create index if not exists team_members_user on public.team_members (user_id);
 create index if not exists context_docs_team on public.context_docs (team_id) where team_id is not null;
 create index if not exists context_docs_group on public.context_docs (group_id) where group_id is not null;
@@ -109,6 +128,7 @@ create index if not exists skills_team on public.skills (team_id) where team_id 
 create index if not exists skills_group on public.skills (group_id) where group_id is not null;
 create index if not exists skills_file on public.skills (file_id) where file_id is not null;
 create index if not exists assistant_runs_user_time on public.assistant_runs (user_id, created_at desc);
+create index if not exists assistant_threads_file on public.assistant_threads (file_id, updated_at desc);
 
 -- ------------------------------------------------------------- functions
 
@@ -216,6 +236,25 @@ grant execute on function public.can_edit_group(uuid) to authenticated;
 grant execute on function public.scope_ok(uuid, uuid, uuid, boolean) to authenticated;
 grant execute on function public.skill_ok(uuid, boolean) to authenticated;
 
+-- A save keeps who started a conversation, its file and when it began;
+-- only its starter may share or unshare it. Every save counts one more rev
+-- and records who made it.
+create or replace function public.touch_thread() returns trigger
+language plpgsql as $$
+begin
+  if new.shared is distinct from old.shared and old.created_by is distinct from auth.uid() then
+    raise exception 'Only the person who started a conversation can share or unshare it.' using errcode = 'insufficient_privilege';
+  end if;
+  new.created_by := old.created_by;
+  new.file_id := old.file_id;
+  new.created_at := old.created_at;
+  new.rev := old.rev + 1;
+  new.updated_by := auth.uid();
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
 -- --------------------------------------------------------------- triggers
 
 drop trigger if exists teams_add_owner on public.teams;
@@ -233,6 +272,9 @@ create trigger context_docs_touch before update on public.context_docs
 drop trigger if exists skills_touch on public.skills;
 create trigger skills_touch before update on public.skills
   for each row execute function public.touch_context();
+drop trigger if exists assistant_threads_touch on public.assistant_threads;
+create trigger assistant_threads_touch before update on public.assistant_threads
+  for each row execute function public.touch_thread();
 drop trigger if exists skill_files_touch on public.skill_files;
 create trigger skill_files_touch before update on public.skill_files
   for each row execute function public.touch_skill_file();
@@ -246,10 +288,12 @@ alter table public.context_docs enable row level security;
 alter table public.skills enable row level security;
 alter table public.skill_files enable row level security;
 alter table public.assistant_runs enable row level security;
+alter table public.assistant_threads enable row level security;
 
 revoke all on public.teams, public.team_members, public.file_groups, public.context_docs, public.skills, public.skill_files, public.assistant_runs from anon;
 grant select, insert, update, delete on public.teams, public.team_members, public.file_groups, public.context_docs, public.skills, public.skill_files to authenticated;
 grant select on public.assistant_runs to authenticated;
+grant select, insert, update, delete on public.assistant_threads to authenticated;
 
 drop policy if exists "teams: members read" on public.teams;
 create policy "teams: members read" on public.teams for select to authenticated
@@ -331,3 +375,17 @@ create policy "skill files: change with the skill" on public.skill_files for all
 drop policy if exists "runs: read your own" on public.assistant_runs;
 create policy "runs: read your own" on public.assistant_runs for select to authenticated
   using (user_id = auth.uid());
+
+drop policy if exists "threads: yours, and shared ones on your files" on public.assistant_threads;
+create policy "threads: yours, and shared ones on your files" on public.assistant_threads for select to authenticated
+  using (public.is_member(file_id) and (created_by = auth.uid() or shared));
+drop policy if exists "threads: start on your files" on public.assistant_threads;
+create policy "threads: start on your files" on public.assistant_threads for insert to authenticated
+  with check (public.is_member(file_id) and created_by = auth.uid());
+drop policy if exists "threads: carry on yours, and shared ones" on public.assistant_threads;
+create policy "threads: carry on yours, and shared ones" on public.assistant_threads for update to authenticated
+  using (public.is_member(file_id) and (created_by = auth.uid() or shared))
+  with check (public.is_member(file_id));
+drop policy if exists "threads: starter deletes" on public.assistant_threads;
+create policy "threads: starter deletes" on public.assistant_threads for delete to authenticated
+  using (created_by = auth.uid());

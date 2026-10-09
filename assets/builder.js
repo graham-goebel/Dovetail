@@ -2584,6 +2584,55 @@
       return doc2 && Array.isArray(doc2.frames) ? doc2.frames.length : 0;
     };
     var lastVersionAt = {};
+    var keep = {
+      get: function(key) {
+        if (b.kind !== "indexeddb") return Promise.resolve(storage(function(s) {
+          return JSON.parse(s.getItem(THREAD_KEY + ":" + key) || "null");
+        }) || null);
+        return b.get("library", key).then(function(rec) {
+          return rec ? rec.value : null;
+        });
+      },
+      put: function(key, value) {
+        if (b.kind !== "indexeddb") {
+          storage(function(s) {
+            s.setItem(THREAD_KEY + ":" + key, JSON.stringify(value));
+            return true;
+          });
+          return Promise.resolve();
+        }
+        return b.put("library", { id: key, value });
+      },
+      del: function(key) {
+        if (b.kind !== "indexeddb") {
+          storage(function(s) {
+            s.removeItem(THREAD_KEY + ":" + key);
+            return true;
+          });
+          return Promise.resolve();
+        }
+        return b.del("library", key);
+      },
+      /* The one conversation a file kept before there could be several. */
+      legacy: function(fileId) {
+        if (b.kind !== "indexeddb") return Promise.resolve(storage(function(s) {
+          return JSON.parse(s.getItem(THREAD_KEY + ":" + fileId) || "null");
+        }) || null);
+        return b.get("library", "thread:" + fileId).then(function(rec) {
+          return rec && rec.value && typeof rec.value === "object" ? rec.value : null;
+        });
+      },
+      dropLegacy: function(fileId) {
+        if (b.kind !== "indexeddb") {
+          storage(function(s) {
+            s.removeItem(THREAD_KEY + ":" + fileId);
+            return true;
+          });
+          return Promise.resolve();
+        }
+        return b.del("library", "thread:" + fileId);
+      }
+    };
     var api = {
       kind: b.kind,
       listProjects: function() {
@@ -3018,28 +3067,57 @@
         }
         return b.put("library", { id: "ctx:" + scope, value: items });
       },
-      /* A file's conversation with the assistant: what the panel shows and
-         the messages as sent, so it picks up where it left off. In browser
-         storage (no IndexedDB) a long one, pictures and all, may not fit, and
-         is then not kept. */
-      loadThread: function(fileId) {
-        if (b.kind !== "indexeddb") return Promise.resolve(storage(function(s) {
-          return JSON.parse(s.getItem(THREAD_KEY + ":" + fileId) || "null");
-        }) || null);
-        return b.get("library", "thread:" + fileId).then(function(rec) {
-          return rec && rec.value && typeof rec.value === "object" ? rec.value : null;
+      /* A file's conversations with the assistant, each what the panel shows
+         and the messages as sent, so any can be picked up where it was left.
+         The file keeps a list of them ({ id, title, ... } as the panel
+         describes each) and which was open; each conversation is kept on its
+         own. In browser storage (no IndexedDB) a long one, pictures and all,
+         may not fit, and is then not kept. A file kept one conversation
+         before there could be several; that one becomes the first. */
+      listThreads: function(fileId) {
+        return keep.get("threads:" + fileId).then(function(idx) {
+          if (idx && Array.isArray(idx.list)) return idx;
+          return keep.legacy(fileId).then(function(old) {
+            if (!old) return { list: [], current: null };
+            var id = "t" + Date.now().toString(36);
+            var first = (old.thread || []).filter(function(t) {
+              return t.role === "user";
+            })[0];
+            var made = { list: [{ id, title: first ? String(first.text).slice(0, 60) : "Conversation", updated: Date.now() }], current: id };
+            return keep.put("thread:" + fileId + ":" + id, old).then(function() {
+              return keep.put("threads:" + fileId, made);
+            }).then(function() {
+              return keep.dropLegacy(fileId);
+            }).then(function() {
+              return made;
+            });
+          });
         });
       },
-      saveThread: function(fileId, value) {
-        if (b.kind !== "indexeddb") {
-          storage(function(s) {
-            if (value) s.setItem(THREAD_KEY + ":" + fileId, JSON.stringify(value));
-            else s.removeItem(THREAD_KEY + ":" + fileId);
-            return true;
+      loadThread: function(fileId, id) {
+        return keep.get("thread:" + fileId + ":" + id).then(function(v) {
+          return v && typeof v === "object" ? v : null;
+        });
+      },
+      /* Saves a conversation and its line in the list (meta), and makes it
+         the open one; null takes it out of both. */
+      saveThread: function(fileId, id, value, meta) {
+        return api.listThreads(fileId).then(function(idx) {
+          var list = idx.list.filter(function(x) {
+            return x.id !== id;
           });
-          return Promise.resolve();
-        }
-        return value ? b.put("library", { id: "thread:" + fileId, value }) : b.del("library", "thread:" + fileId);
+          if (value) list.unshift(Object.assign({}, meta || {}, { id }));
+          var next = { list, current: value ? id : idx.current === id ? null : idx.current };
+          return (value ? keep.put("thread:" + fileId + ":" + id, value) : keep.del("thread:" + fileId + ":" + id)).then(function() {
+            return keep.put("threads:" + fileId, next);
+          });
+        });
+      },
+      /* Which conversation is open in a file, without saving it. */
+      openThread: function(fileId, id) {
+        return api.listThreads(fileId).then(function(idx) {
+          return keep.put("threads:" + fileId, { list: idx.list, current: id });
+        });
       },
       /* What one library holds, added to another (when a file moves). */
       mergeLibrary: function(from, to) {
@@ -5342,6 +5420,7 @@
     return e("button", {
       type: "button",
       role: "switch",
+      disabled: props.disabled || void 0,
       className: cx("bd-switch", props.mixed && "is-mixed"),
       "aria-checked": props.mixed ? "mixed" : String(!!props.value),
       "aria-labelledby": props.labelledBy,
@@ -9249,6 +9328,49 @@
     );
   }
 
+  // assets/builder/model/threads.js
+  function short2(t, n) {
+    var s = String(t || "").replace(/\s+/g, " ").trim();
+    return s.length > n ? s.slice(0, n - 1) + "…" : s;
+  }
+  function titleOf(thread, named) {
+    if (named) return short2(named, 60);
+    var first = (thread || []).filter(function(t) {
+      return t.role === "user" && t.text;
+    })[0];
+    return first ? short2(first.text, 60) : "New conversation";
+  }
+  function summaryOf(thread) {
+    var said = "", changes = 0;
+    (thread || []).forEach(function(t) {
+      if (t.role !== "assistant") return;
+      if (t.text) said = t.text;
+      changes += (t.changes || []).filter(function(c) {
+        return !c.undone;
+      }).length;
+    });
+    return { said: short2(said.replace(/^Practice mode(, with the real tools)?: /, ""), 90), changes };
+  }
+  function metaOf(thread, opts) {
+    opts = opts || {};
+    var sum2 = summaryOf(thread);
+    return {
+      title: titleOf(thread, opts.named),
+      named: opts.named || void 0,
+      said: sum2.said,
+      changes: sum2.changes,
+      updated: opts.updated || Date.now(),
+      by: opts.by || void 0,
+      shared: !!opts.shared,
+      cloud: opts.cloud || void 0
+    };
+  }
+  function senderOf(item, me) {
+    if (!item || !item.by || !item.by.id) return "";
+    if (me && item.by.id === me.id) return "";
+    return item.by.name || "Someone";
+  }
+
   // assets/builder/app/AssistantPanel.js
   function changeCard(p, turn) {
     if (!turn.changes.length) return null;
@@ -9485,15 +9607,73 @@
         row("bd-as-m-look", "Look at the canvas", "Sends a picture of what it built so it can check and fix it. Off keeps this file's canvas private.", p.look, p.setLook),
         e("p", { className: "bd-as-mnote" }, "Checks run after every change."),
         e("hr"),
+        e(
+          "div",
+          { className: "bd-as-mrow is-off" },
+          e("span", { className: "bd-as-mrow-t" }, e("b", { id: "bd-as-m-share" }, "Share in this file"), e("span", null, p.cloudFile ? "Everyone on this file can read it and carry it on." : "Sharing needs this file in the cloud, which isn't built yet. Conversations stay in this browser for now.")),
+          e(Switch, { value: false, onChange: function() {
+          }, labelledBy: "bd-as-m-share", disabled: !p.cloudFile })
+        ),
+        e("hr"),
         e("button", { type: "button", className: "bd-as-mbtn", disabled: !p.thread.length, onClick: function() {
           setOpen(false);
           p.exportThread();
-        } }, e(Icon, { name: "download" }), "Export thread as .md"),
+        } }, e(Icon, { name: "download" }), "Export as .md"),
         e("button", { type: "button", className: "bd-as-mbtn", disabled: !p.thread.length || p.busy, onClick: function() {
           setOpen(false);
           p.clear();
-        } }, e(Icon, { name: "trash" }), "Clear this thread")
+        } }, e(Icon, { name: "trash" }), "Delete this conversation")
       ) : null
+    );
+  }
+  function ago2(t) {
+    var s = Math.max(0, (Date.now() - (t || 0)) / 1e3);
+    if (s < 60) return "just now";
+    if (s < 3600) return Math.round(s / 60) + " min";
+    if (s < 86400) return Math.round(s / 3600) + " h";
+    var d = new Date(t);
+    return s < 7 * 86400 ? d.toLocaleDateString(void 0, { weekday: "short" }) : d.toLocaleDateString(void 0, { month: "short", day: "numeric" });
+  }
+  function ThreadList(p) {
+    var mine = p.list.filter(function(x) {
+      return !x.by || !p.me || x.by.id === p.me.id;
+    });
+    var others = p.list.filter(function(x) {
+      return mine.indexOf(x) < 0;
+    });
+    var row = function(x) {
+      return e(
+        "div",
+        { key: x.id, className: cx("bd-as-tr", x.id === p.currentId && "is-open") },
+        e(
+          "button",
+          { type: "button", className: "bd-as-tr-open", onClick: function() {
+            p.openThread(x.id);
+          }, disabled: p.busy, "aria-current": x.id === p.currentId ? "true" : void 0 },
+          e("span", { className: "bd-as-tr-h" }, e("b", null, x.title), e("span", { className: "bd-as-note" }, ago2(x.updated))),
+          x.said ? e("span", { className: "bd-as-tr-said" }, x.said) : null,
+          e(
+            "span",
+            { className: "bd-as-tr-m" },
+            x.changes ? e("span", null, e(Icon, { name: "pencil" }), x.changes + (x.changes === 1 ? " change" : " changes")) : null,
+            x.shared ? e("span", null, e(Icon, { name: "user" }), "Shared") : null,
+            x.by && p.me && x.by.id !== p.me.id ? e("span", null, x.by.name) : null
+          )
+        ),
+        e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-tr-del", "aria-label": "Delete " + x.title, title: "Delete", onClick: function() {
+          p.removeThread(x.id);
+        }, disabled: p.busy }, e(Icon, { name: "trash" }))
+      );
+    };
+    return e(
+      "div",
+      { className: "bd-as-list" },
+      !p.list.length ? e("p", { className: "bd-as-empty-l" }, "No conversations on this file yet. Start one and it's kept here.") : null,
+      mine.length ? e("div", { className: "bd-as-grp" }, e("span", null, "This file"), e("span", { className: "bd-as-note" }, String(mine.length))) : null,
+      mine.map(row),
+      others.length ? e("div", { className: "bd-as-grp" }, e("span", null, "Shared with you"), e("span", { className: "bd-as-note" }, String(others.length))) : null,
+      others.map(row),
+      e("p", { className: "bd-as-list-n" }, p.cloudFile ? "Kept in the cloud. Shared ones show to everyone on the file." : "Kept in this browser.")
     );
   }
   function AssistantPanel(p) {
@@ -9518,10 +9698,13 @@
         { className: "bd-as-head" },
         e("span", { className: "bd-as-title" }, "Assistant"),
         p.mode === "practice" ? e("span", { className: "bd-as-badge", title: "Answers come from a script in this browser; nothing is sent or charged" }, "Practice") : null,
-        e("button", { type: "button", className: "bd-act bd-act-ghost", title: "New conversation", "aria-label": "New conversation", onClick: p.clear, disabled: !p.thread.length || p.busy }, e(Icon, { name: "plus" })),
+        e("button", { type: "button", className: cx("bd-act bd-act-ghost", p.view === "list" && "is-on"), title: p.view === "list" ? "Back to the conversation" : "Conversations", "aria-label": "Conversations", "aria-pressed": p.view === "list", onClick: function() {
+          p.showList(p.view !== "list");
+        } }, e(Icon, { name: "list" })),
+        e("button", { type: "button", className: "bd-act bd-act-ghost", title: "New conversation", "aria-label": "New conversation", onClick: p.fresh, disabled: !p.thread.length && p.view !== "list" || p.busy }, e(Icon, { name: "plus" })),
         e(AsMenu, p)
       ),
-      e(
+      p.view === "list" ? e(ThreadList, p) : e(
         "div",
         { className: "bd-as-thread", ref: listRef, "aria-live": "polite" },
         !p.thread.length ? e(
@@ -9542,7 +9725,7 @@
             editLines(t.lines, t.count, 6)
           );
           if (t.role === "divider") return e("p", { key: t.id, className: "bd-as-divider" }, t.text);
-          if (t.role === "user") return t.queued ? e("div", { key: t.id, className: "bd-as-me-wrap" }, e("div", { className: "bd-as-me is-queued" }, t.text), e("span", { className: "bd-as-queued" }, e(Icon, { name: "chat" }), "Lands after this step")) : e("div", { key: t.id, className: "bd-as-me" }, t.text);
+          if (t.role === "user") return t.queued ? e("div", { key: t.id, className: "bd-as-me-wrap" }, e("div", { className: "bd-as-me is-queued" }, t.text), e("span", { className: "bd-as-queued" }, e(Icon, { name: "chat" }), "Lands after this step")) : senderOf(t, p.me) ? e("div", { key: t.id, className: "bd-as-me-wrap" }, e("span", { className: "bd-as-from" }, senderOf(t, p.me)), e("div", { className: "bd-as-me" }, t.text)) : e("div", { key: t.id, className: "bd-as-me" }, t.text);
           return e(
             "div",
             { key: t.id, className: cx("bd-as-bot", t.status === "error" && "is-error") },
@@ -9560,7 +9743,7 @@
           );
         })
       ),
-      p.edits ? e(
+      p.edits && p.view !== "list" ? e(
         "div",
         { className: "bd-as-edits is-pending" },
         e(
@@ -9573,7 +9756,7 @@
         editLines(p.edits.lines, p.edits.count, 3),
         e("p", { className: "bd-as-edits-n" }, "Sent with your next message, so it builds on them.")
       ) : null,
-      e(
+      p.view === "list" ? null : e(
         "div",
         { className: "bd-as-comp" },
         e(
@@ -9706,20 +9889,20 @@
     };
   }
   var TEXT_KEYS2 = ["children", "title", "label", "text", "heading", "description", "alt"];
-  function short2(v, n) {
+  function short3(v, n) {
     var t = String(v).replace(/\s+/g, " ").trim();
     return t.length > n ? t.slice(0, n - 1) + "…" : t;
   }
   function line(n, depth) {
-    var bits = [n.type + (n.name && n.name !== n.type ? ' "' + short2(n.name, 40) + '"' : ""), n.id];
+    var bits = [n.type + (n.name && n.name !== n.type ? ' "' + short3(n.name, 40) + '"' : ""), n.id];
     var props = n.props || {};
     TEXT_KEYS2.forEach(function(k) {
-      if (typeof props[k] === "string" && props[k].trim()) bits.push(k === "children" ? '"' + short2(props[k], 80) + '"' : k + '="' + short2(props[k], 60) + '"');
+      if (typeof props[k] === "string" && props[k].trim()) bits.push(k === "children" ? '"' + short3(props[k], 80) + '"' : k + '="' + short3(props[k], 60) + '"');
     });
     Object.keys(props).sort().forEach(function(k) {
       var v = props[k];
       if (TEXT_KEYS2.indexOf(k) >= 0 || v == null || v === "" || typeof v === "object") return;
-      bits.push(k + "=" + short2(v, 40));
+      bits.push(k + "=" + short3(v, 40));
     });
     var st = n.style || {};
     var toks = Object.keys(st).sort().filter(function(k) {
@@ -9768,10 +9951,10 @@
     };
     var line2 = function(t) {
       var m = META[t], g = m.guide || {};
-      var out = "- " + t + (m.container ? " (holds layers)" : "") + ": " + short2(first(g.lead || m.blurb), 120);
-      if (g.use && g.use.length) out += " Use: " + short2(g.use[0], 90);
-      if (g.avoid && g.avoid.length) out += " Not: " + short2(g.avoid[0], 90);
-      else if (g.rules && g.rules.length) out += " Rule: " + short2(g.rules[0], 90);
+      var out = "- " + t + (m.container ? " (holds layers)" : "") + ": " + short3(first(g.lead || m.blurb), 120);
+      if (g.use && g.use.length) out += " Use: " + short3(g.use[0], 90);
+      if (g.avoid && g.avoid.length) out += " Not: " + short3(g.avoid[0], 90);
+      else if (g.rules && g.rules.length) out += " Rule: " + short3(g.rules[0], 90);
       return out;
     };
     var comps = (DATA.groups || []).map(function(g) {
@@ -9783,7 +9966,7 @@
       return !SIDES.test(f);
     }).map(function(f) {
       return "- " + f + ": " + DATA.tokens[f].options.map(function(o) {
-        return o.use ? o.value + " (" + short2(first(o.use), 48) + ")" : o.value;
+        return o.use ? o.value + " (" + short3(first(o.use), 48) + ")" : o.value;
       }).join(", ");
     }).join("\n");
     var guides = {};
@@ -10005,10 +10188,10 @@
         }).sort(function(a, b) {
           return b.sc - a.sc || (a.t < b.t ? -1 : 1);
         }).slice(0, 12);
-        if (!scored.length) return { ok: true, result: "No component matches " + JSON.stringify(input.query) + ". Try another word, or an empty query for the full list.", step: "Searched components for “" + short2(input.query, 30) + "”" };
+        if (!scored.length) return { ok: true, result: "No component matches " + JSON.stringify(input.query) + ". Try another word, or an empty query for the full list.", step: "Searched components for “" + short3(input.query, 30) + "”" };
         return { ok: true, result: JSON.stringify(scored.map(function(x) {
           return { name: x.t, group: META[x.t].group, purpose: META[x.t].blurb, holdsLayers: !!META[x.t].container || void 0 };
-        })), step: "Searched components for “" + short2(input.query, 30) + "”" };
+        })), step: "Searched components for “" + short3(input.query, 30) + "”" };
       }
       case "read_component": {
         var m = META[input.name];
@@ -10106,7 +10289,7 @@
         if (!key) return fail(tn.type + " has no text of its own; set the text of a layer inside it.");
         var text2 = String(input.text == null ? "" : input.text);
         if (!api.setProp([input.id], key, text2)) return fail("Nothing changed.");
-        return { ok: true, result: "Done.", change: { ids: [input.id], label: "Text", value: short2(text2, 60), on: nameOf3(input.id) } };
+        return { ok: true, result: "Done.", change: { ids: [input.id], label: "Text", value: short3(text2, 60), on: nameOf3(input.id) } };
       }
       case "move": {
         var mids = known(input.ids);
@@ -10134,7 +10317,7 @@
       }
       case "rename": {
         if (!locate(doc2, input.id) || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
-        var nm = short2(String(input.name || ""), 60);
+        var nm = short3(String(input.name || ""), 60);
         if (!nm) return fail("Give it a name.");
         var old = nameOf3(input.id);
         if (!api.rename(input.id, nm)) return fail("Nothing changed.");
@@ -10148,9 +10331,9 @@
         if (input.mode !== "structured" && input.mode !== "free") return fail("A frame is structured or free.");
         var owed3 = owesPlan(api, "frame");
         if (owed3) return owed3;
-        var made3 = api.createFrame({ name: short2(String(input.name || "Frame"), 60), preset: preset.id, mode: input.mode });
+        var made3 = api.createFrame({ name: short3(String(input.name || "Frame"), 60), preset: preset.id, mode: input.mode });
         if (!made3) return fail("The frame couldn't be added.");
-        return { ok: true, result: JSON.stringify(made3), change: { ids: [], label: "New frame", value: short2(String(input.name || "Frame"), 60), on: preset.label + ", " + input.mode } };
+        return { ok: true, result: JSON.stringify(made3), change: { ids: [], label: "New frame", value: short3(String(input.name || "Frame"), 60), on: preset.label + ", " + input.mode } };
       }
       case "make_variants": {
         if (!api.makeVariants) return fail("Variants can't be made here.");
@@ -10161,7 +10344,7 @@
         })[0] || doc2.frames[0];
         if (!src) return fail("There's no frame " + input.frame + " on this page.");
         var labels = (input.labels || []).map(function(l) {
-          return short2(String(l || ""), 40);
+          return short3(String(l || ""), 40);
         }).filter(Boolean).slice(0, 4);
         if (labels.length < 2) return fail("Give at least two labels.");
         var made4 = api.makeVariants(src.id, labels);
@@ -10218,13 +10401,13 @@
       case "propose_plan": {
         if (!api.proposePlan) return fail("Plans can't be shown here; go ahead.");
         var steps = (input.steps || []).slice(0, 12).map(function(st) {
-          return { title: short2(String(st.title || ""), 60), detail: st.detail ? short2(String(st.detail), 160) : "" };
+          return { title: short3(String(st.title || ""), 60), detail: st.detail ? short3(String(st.detail), 160) : "" };
         }).filter(function(st) {
           return st.title;
         });
         if (!steps.length) return fail("A plan needs at least one step.");
-        var plan = { title: short2(String(input.title || "Plan"), 80), frame: input.frame && input.frame.name ? { name: short2(String(input.frame.name), 60), preset: input.frame.preset || "", mode: input.frame.mode || "" } : null, steps, notes: (input.notes || []).slice(0, 4).map(function(t) {
-          return short2(String(t), 200);
+        var plan = { title: short3(String(input.title || "Plan"), 80), frame: input.frame && input.frame.name ? { name: short3(String(input.frame.name), 60), preset: input.frame.preset || "", mode: input.frame.mode || "" } : null, steps, notes: (input.notes || []).slice(0, 4).map(function(t) {
+          return short3(String(t), 200);
         }) };
         return Promise.resolve(api.proposePlan(plan)).then(function(answer) {
           if (answer && answer.approved) return { ok: true, result: "Approved. Build it now, as planned.", step: "Plan approved" };
@@ -10234,12 +10417,12 @@
       case "ask_user": {
         if (!api.askUser) return fail("Questions can't be shown here; ask in your reply instead.");
         var opts = (input.options || []).slice(0, 4).map(function(o) {
-          return { label: short2(String(o && o.label || ""), 60), detail: o && o.detail ? short2(String(o.detail), 140) : "" };
+          return { label: short3(String(o && o.label || ""), 60), detail: o && o.detail ? short3(String(o.detail), 140) : "" };
         }).filter(function(o) {
           return o.label;
         });
         if (opts.length < 2) return fail("Give at least two options.");
-        var q = { question: short2(String(input.question || "Which way?"), 140), options: opts };
+        var q = { question: short3(String(input.question || "Which way?"), 140), options: opts };
         return Promise.resolve(api.askUser(q)).then(function(answer) {
           if (answer && typeof answer.index === "number" && opts[answer.index]) return { ok: true, result: "They chose: " + opts[answer.index].label + ".", step: "You chose " + opts[answer.index].label };
           if (answer && answer.text) return { ok: true, result: "They answered in their own words: " + answer.text, step: "You answered" };
@@ -10692,14 +10875,14 @@
 
   // assets/builder/model/recent.js
   var TEXT = ["children", "title", "label", "text", "heading", "description", "eyebrow", "alt"];
-  function short3(v, n) {
+  function short4(v, n) {
     var t = String(v).replace(/\s+/g, " ").trim();
     return t.length > n ? t.slice(0, n - 1) + "…" : t;
   }
   function shown(v) {
     if (v === void 0 || v === null || v === "") return "none";
     if (typeof v === "object") return "custom";
-    return short3(v, 32);
+    return short4(v, 32);
   }
   function index(doc2) {
     var m = {};
@@ -10718,7 +10901,7 @@
     if (n.id === "root") return "the frame";
     if (bare) return n.name || n.type;
     var p = n.props || {};
-    var said = typeof p.children === "string" && p.children.trim() ? " “" + short3(p.children, 24) + "”" : typeof p.title === "string" && p.title.trim() ? " “" + short3(p.title, 24) + "”" : "";
+    var said = typeof p.children === "string" && p.children.trim() ? " “" + short4(p.children, 24) + "”" : typeof p.title === "string" && p.title.trim() ? " “" + short4(p.title, 24) + "”" : "";
     return n.name ? n.name : n.type + said;
   }
   function recentEdits(prev, next, max) {
@@ -10814,7 +10997,7 @@
         if (b.g === "f" && b.k === "name") said.push("renamed from " + shown(b.old));
         else if (b.g === "f" && b.k === "hidden") said.push(b.value ? "hidden" : "shown");
         else if (b.g === "f" && b.k === "locked") said.push(b.value ? "locked" : "unlocked");
-        else if (b.g === "p" && TEXT.indexOf(b.k) >= 0 && typeof (b.value || b.old) === "string") said.push((b.k === "children" ? "text" : b.k) + " “" + short3(b.old || "", 30) + "” → “" + short3(b.value || "", 30) + "”");
+        else if (b.g === "p" && TEXT.indexOf(b.k) >= 0 && typeof (b.value || b.old) === "string") said.push((b.k === "children" ? "text" : b.k) + " “" + short4(b.old || "", 30) + "” → “" + short4(b.value || "", 30) + "”");
         else if (b.g === "f") return;
         else said.push(b.k + " " + shown(b.old) + " → " + shown(b.value));
       });
@@ -11447,10 +11630,10 @@
         if (handles && at2.node.type === "Shape" && at2.node.props && at2.node.props.shape === "line") handles = ["w", "e"];
         var turnable = !!handles && isFree(at2.node.style);
         var markStyle = m.rot ? Object.assign({}, m.box, { transform: "rotate(" + m.rot + "deg)" }) : m.r;
-        var short4 = (m.box || m.r).height < 28, narrow = (m.box || m.r).width < 28;
+        var short5 = (m.box || m.r).height < 28, narrow = (m.box || m.r).width < 28;
         return e(
           "div",
-          { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== p.sel && "is-extra", at2.node.lock && "is-locked", at2.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top", p.sizing && p.sizing.id === m.id && "is-sizing", handles && short4 && "is-short", handles && narrow && "is-narrow"), style: markStyle },
+          { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== p.sel && "is-extra", at2.node.lock && "is-locked", at2.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top", p.sizing && p.sizing.id === m.id && "is-sizing", handles && short5 && "is-short", handles && narrow && "is-narrow"), style: markStyle },
           turnable ? ["nw", "ne", "se", "sw"].map(function(c) {
             return e("span", { key: "rot-" + c, className: "bd-rotate is-" + c, title: "Drag to turn; Shift snaps to 15°", onPointerDown: function(ev) {
               p.startRotate(ev, at2.node.id);
@@ -12639,21 +12822,45 @@
     var asBase = useRef(null);
     var asBaseTick = useState(0);
     var threadFor = useRef(null);
+    var asIdState = useState(null), asId = asIdState[0];
+    var asIdRef = useRef(null);
+    asIdRef.current = asId;
+    var asListState = useState([]), asList = asListState[0];
+    var asViewState = useState("chat");
+    var asNamed = useRef("");
+    var asLoaded = useRef(null);
+    var revive = function(v) {
+      return (v && Array.isArray(v.thread) ? v.thread : []).map(function(t) {
+        return t.status === "working" ? Object.assign({}, t, { status: "error", error: "Stopped when the page closed." }) : t.queued ? Object.assign({}, t, { queued: false }) : t;
+      });
+    };
     useEffect(function() {
       var meta = projectRef.current, live = true;
       threadFor.current = null;
       asBase.current = null;
       setAsThread([]);
       asMsgs.current = [];
-      if (!meta || !store.loadThread) return void 0;
-      store.loadThread(meta.id).then(function(v) {
-        if (!live) return;
-        threadFor.current = meta.id;
-        if (!v || !Array.isArray(v.thread)) return;
-        setAsThread(v.thread.map(function(t) {
-          return t.status === "working" ? Object.assign({}, t, { status: "error", error: "Stopped when the page closed." }) : t.queued ? Object.assign({}, t, { queued: false }) : t;
-        }));
-        asMsgs.current = Array.isArray(v.msgs) ? v.msgs : [];
+      asIdState[1](null);
+      asListState[1]([]);
+      asViewState[1]("chat");
+      if (!meta || !store.listThreads) return void 0;
+      store.listThreads(meta.id).then(function(idx) {
+        if (!live) return null;
+        asListState[1](idx.list);
+        if (!idx.current) return null;
+        return store.loadThread(meta.id, idx.current).then(function(v) {
+          if (!live || !v) return;
+          asIdState[1](idx.current);
+          asNamed.current = (idx.list.filter(function(x) {
+            return x.id === idx.current;
+          })[0] || {}).named || "";
+          var back = revive(v);
+          asLoaded.current = back;
+          setAsThread(back);
+          asMsgs.current = Array.isArray(v.msgs) ? v.msgs : [];
+        });
+      }).then(function() {
+        if (live) threadFor.current = meta.id;
       }, function() {
         if (live) threadFor.current = meta.id;
       });
@@ -12663,13 +12870,28 @@
     }, [project ? project.id : null]);
     useEffect(function() {
       var meta = projectRef.current;
-      if (!meta || asBusy || threadFor.current !== meta.id || !store.saveThread) return;
+      if (!meta || asBusy || threadFor.current !== meta.id || !store.saveThread || !asThread.length || asThread === asLoaded.current) return;
       var plan = asThread.map(function(t) {
         if (t.plan && t.plan.status === "pending") t = Object.assign({}, t, { plan: Object.assign({}, t.plan, { status: "changing" }) });
         if (t.ask && t.ask.status === "pending") t = Object.assign({}, t, { ask: Object.assign({}, t.ask, { status: "skipped" }) });
         return t;
       });
-      store.saveThread(meta.id, asThread.length ? { thread: plan, msgs: asMsgs.current } : null).catch(function() {
+      var id = asIdRef.current;
+      if (!id) {
+        id = "t" + uid();
+        asIdRef.current = id;
+        asIdState[1](id);
+      }
+      var was = asList.filter(function(x) {
+        return x.id === id;
+      })[0];
+      var line2 = metaOf(plan, { named: asNamed.current, by: was ? was.by : account2 ? { id: account2.id, name: account2.email } : void 0 });
+      asListState[1](function(l) {
+        return [Object.assign({ id }, line2)].concat(l.filter(function(x) {
+          return x.id !== id;
+        }));
+      });
+      store.saveThread(meta.id, id, { thread: plan, msgs: asMsgs.current }, line2).catch(function() {
       });
     }, [asThread, asBusy]);
     var asAbort = useRef(null);
@@ -13153,7 +13375,7 @@
       var system = [contextText(ctx), canvas].filter(Boolean).join("\n\n");
       var tools2 = toolsFor({ look: canLook(), plan: planOn });
       var planned = false;
-      var me = { id: uid(), role: "user", text: text2 };
+      var me = { id: uid(), role: "user", text: text2, by: account2 ? { id: account2.id, name: account2.email } : void 0 };
       var base = asBase.current;
       var mine = base && base.page === pageRef.current ? recentEdits(base.doc, docRef.current) : null;
       var told = mine && mine.count ? { id: uid(), role: "edits", count: mine.count, lines: mine.lines } : null;
@@ -13323,15 +13545,94 @@
         if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" });
         if (askWait.current) askWait.current.resolve(null);
       },
-      clear: function() {
+      /* A new conversation; the one open stays in the list. */
+      fresh: function() {
+        if (asBusy) return;
         setAsThread([]);
         asMsgs.current = [];
         asBase.current = null;
+        asNamed.current = "";
+        asIdRef.current = null;
+        asIdState[1](null);
+        asViewState[1]("chat");
         asBaseTick[1](function(n) {
           return n + 1;
         });
-        if (projectRef.current) store.saveThread(projectRef.current.id, null).catch(function() {
+        if (projectRef.current) store.openThread(projectRef.current.id, null).catch(function() {
         });
+      },
+      /* The open conversation, deleted; a new one starts. */
+      clear: function() {
+        var id = asIdRef.current;
+        if (id && projectRef.current) {
+          store.saveThread(projectRef.current.id, id, null).catch(function() {
+          });
+          asListState[1](function(l) {
+            return l.filter(function(x) {
+              return x.id !== id;
+            });
+          });
+        }
+        asApi.fresh();
+      },
+      /* The list of conversations, or the open one. */
+      showList: function(on) {
+        asViewState[1](on ? "list" : "chat");
+      },
+      openThread: function(id) {
+        var meta = projectRef.current;
+        if (!meta || asBusy) return;
+        if (id === asIdRef.current) {
+          asViewState[1]("chat");
+          return;
+        }
+        store.loadThread(meta.id, id).then(function(v) {
+          if (!v) {
+            announce("That conversation couldn't be opened.");
+            return;
+          }
+          asBase.current = null;
+          asIdRef.current = id;
+          asIdState[1](id);
+          asNamed.current = (asList.filter(function(x) {
+            return x.id === id;
+          })[0] || {}).named || "";
+          var back = revive(v);
+          asLoaded.current = back;
+          setAsThread(back);
+          asMsgs.current = Array.isArray(v.msgs) ? v.msgs : [];
+          asViewState[1]("chat");
+          asBaseTick[1](function(n) {
+            return n + 1;
+          });
+          store.openThread(meta.id, id).catch(function() {
+          });
+        }, function() {
+          announce("That conversation couldn't be opened.");
+        });
+      },
+      removeThread: function(id) {
+        var meta = projectRef.current;
+        if (!meta || asBusy) return;
+        var line2 = asList.filter(function(x) {
+          return x.id === id;
+        })[0];
+        if (!window.confirm("Delete “" + (line2 && line2.title || "this conversation") + "”? The canvas keeps its changes.")) return;
+        store.saveThread(meta.id, id, null).catch(function() {
+        });
+        asListState[1](function(l) {
+          return l.filter(function(x) {
+            return x.id !== id;
+          });
+        });
+        if (id === asIdRef.current) {
+          setAsThread([]);
+          asMsgs.current = [];
+          asIdRef.current = null;
+          asIdState[1](null);
+          asNamed.current = "";
+        }
+        announce("Deleted the conversation");
       },
       /* A note while it works: it lands with the next step's results. */
       note: function(text2) {
@@ -18681,8 +18982,8 @@
         var px = pxMap[key + "|" + o.value];
         var name = o.value === "fill" && def.section === "size" ? "Fill container" : o.label || o.value;
         var group2 = order && o.family ? order.indexOf(o.family) >= 0 ? FAMILY_LABEL[o.family] : more : void 0;
-        var short4 = opts.pxOnly && px != null ? String(Math.round(px)) : opts.short ? opts.short(o, px) : px != null ? Math.round(px) + " " + name : void 0;
-        return { value: o.value, label: name, px: px != null ? Math.round(px) : null, group: group2, short: short4, hint: o.tokens.join(" · ") || (o.value === "hug" ? "As big as what's in it" : o.value === "fill" ? "As big as its parent allows" : "CSS keyword"), tokens: o.tokens };
+        var short5 = opts.pxOnly && px != null ? String(Math.round(px)) : opts.short ? opts.short(o, px) : px != null ? Math.round(px) + " " + name : void 0;
+        return { value: o.value, label: name, px: px != null ? Math.round(px) : null, group: group2, short: short5, hint: o.tokens.join(" · ") || (o.value === "hug" ? "As big as what's in it" : o.value === "fill" ? "As big as its parent allows" : "CSS keyword"), tokens: o.tokens };
       }));
       if (opts.fixed) {
         var lastFit = -1;
@@ -19151,7 +19452,7 @@
         return e("div", { key }, tokenDropdown(key, nodes, null, { prefix, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: key === "w" || key === "height" }));
       };
       var dim = function(wide2) {
-        var short4 = wide2 ? "W" : "H", label2 = wide2 ? "Width" : "Height";
+        var short5 = wide2 ? "W" : "H", label2 = wide2 ? "Width" : "Height";
         var fkey = wide2 ? "fw" : "fh", tkey = wide2 ? "w" : "height", rkey = wide2 ? "rw" : "rh";
         var units = nodes.map(function(n) {
           var r = relSize(n.style[rkey]);
@@ -19210,7 +19511,7 @@
             return relSize(n.style[rkey]).n;
           });
           body = e(NumberField, {
-            short: short4,
+            short: short5,
             label: label2 + ", in " + (unit === "%" ? "percent of its parent" : unit === "vw" ? "percent of the screen's width" : "percent of the screen's height"),
             value: same3(ns) ? ns[0] : null,
             placeholder: "Mixed",
@@ -19240,7 +19541,7 @@
             }, label2 + " " + steps * 4 + "px", first === false);
           };
           body = e(NumberField, {
-            short: short4,
+            short: short5,
             label: label2 + ", in pixels, a multiple of 4",
             value: same3(vs) ? vs[0] : null,
             placeholder: "Mixed",
@@ -19256,7 +19557,7 @@
             }
           });
         } else {
-          body = tokenDropdown(tkey, nodes, null, { prefix: short4, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: true });
+          body = tokenDropdown(tkey, nodes, null, { prefix: short5, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: true });
         }
         return e("div", { key: fkey, className: "bd-size-unit" }, body, picker);
       };
@@ -22208,6 +22509,15 @@
                 send: asApi.send,
                 stop: asApi.stop,
                 clear: asApi.clear,
+                fresh: asApi.fresh,
+                view: asViewState[0],
+                showList: asApi.showList,
+                list: asList,
+                currentId: asId,
+                openThread: asApi.openThread,
+                removeThread: asApi.removeThread,
+                me: account2,
+                cloudFile: false,
                 keep: asApi.keep,
                 undoTurn: asApi.undoTurn,
                 retry: asApi.retry,
