@@ -4985,6 +4985,17 @@ function App(props) {
      width) or fixed (a width and a height). Picking one takes the size it's
      drawn at now; dragging a side or a corner on the canvas does the same. */
   var TEXT_BOX = { Text: 1, Heading: 1 };
+  /* How a text's lines break: as they fall, on one line, balanced, or
+     without a lone last word. */
+  var linesRow = function (nodes) {
+    if (!nodes.every(function (n) { return TEXT_BOX[n.type]; })) return null;
+    var ids = nodes.map(function (n) { return n.id; });
+    var vs = nodes.map(function (n) { return n.style.textWrap || ""; });
+    var lid = "bd-lines-" + nodes[0].id;
+    var opts = [{ value: "", label: "Wrap", hint: "Breaks where the line runs out" }].concat(DATA.tokens.textWrap.options.map(function (o) { return { value: o.value, label: o.label }; }));
+    return e(Field, { key: "lines", id: lid, label: "Lines" },
+      e(Dropdown, { labelledBy: lid, value: same(vs) ? vs[0] : null, mixed: !same(vs), className: "bd-dd-field", options: opts, onChange: function (v) { setStyle(ids, "textWrap", v || undefined); } }));
+  };
   var textBoxRow = function (nodes) {
     if (frame.mode === "structured" || !nodes.every(function (n) { return TEXT_BOX[n.type] && isFree(n.style); })) return null;
     var modeOf = function (n) { return !n.style.fw && !n.style.rw ? "auto" : n.style.fh || n.style.rh ? "fixed" : "height"; };
@@ -6040,7 +6051,7 @@ function App(props) {
       arrange ? sec("props-arrange", "Arrangement", arrange, null, propsSet(nodes, propNames("layout"))) : null,
       meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
       sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "z", "x", "y"].concat(placedFree ? ["fw", "fh", "rw", "rh", "rot"] : []))),
-      sec("size", "Size", placedFree ? [textBoxRow(nodes), sizeGrid(nodes, "mins")] : [textBoxRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, placedFree ? ["minW", "h"] : ["w", "minW", "height", "h", "self", "fw", "fh", "rw", "rh"])),
+      sec("size", "Size", placedFree ? [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes, "mins")] : [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, placedFree ? ["minW", "h", "textWrap"] : ["w", "minW", "height", "h", "self", "textWrap", "fw", "fh", "rw", "rh"])),
     ].concat(lookSections(nodes, null), [
       sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
     ]);
