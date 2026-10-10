@@ -1831,6 +1831,8 @@ try {
     expect(by("Bar").children[2].style.radius === "pill" && !by("Hero").children[2].style.radius, "only the Chip picked is changed");
     expect((await pg.page.evaluate(() => window.__builder.history().past)) === steps + 1, "the edit is one step");
     ok("applied, the edit makes every change it listed and only on the layer picked");
+    /* The labels are drawn just after the change, once the frame is measured. */
+    await pg.page.waitForFunction(() => [...document.querySelectorAll(".bd-edit-on-tag")].some((t) => /added/.test(t.textContent)), null, { timeout: 5000 }).catch(() => {});
     const tags = await pg.page.locator(".bd-edit-on-tag").allTextContents();
     expect(tags.some((t) => /padding xl/.test(t)) && tags.some((t) => /added/.test(t)), `the canvas labels what changed, got ${tags.join(" | ")}`);
     expect(/Applied 6 changes from the edit, 1 removed/.test(await pg.page.locator(".bd-toast").textContent()), "the toast says what was applied");
