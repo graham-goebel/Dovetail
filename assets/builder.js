@@ -5465,7 +5465,7 @@
         var fr = frameOf || inFrame || (doc2.frames || []).filter(function(f2) {
           return f2.id === doc2.active;
         })[0] || doc2.frames[0];
-        var what2 = shotAt ? layerName(shotAt.node) : fr.name;
+        var what3 = shotAt ? layerName(shotAt.node) : fr.name;
         var width = typeof input.width === "number" ? Math.max(320, Math.min(2560, Math.round(input.width))) : null;
         var dark = typeof input.dark === "boolean" ? input.dark : null;
         var how = [width ? "at " + width + " wide" : "", dark === true ? "in dark mode" : dark === false ? "in light mode" : ""].filter(Boolean).join(" ");
@@ -5473,7 +5473,7 @@
         var note3 = width && fr.mode !== "structured" ? " A freeform frame places layers by position, so it isn't reflowed at another width." : "";
         return Promise.resolve(api.screenshot(fr.id, shotAt ? input.id : null, opts)).then(function(pic) {
           if (!pic || !pic.data) return fail("The picture couldn't be made.");
-          return { ok: true, result: [{ type: "image", source: { type: "base64", media_type: pic.media_type, data: pic.data } }, { type: "text", text: what2 + (how ? " " + how : "") + ", " + pic.width + "×" + pic.height + " pixels." + note3 }], step: "Looked at " + what2 + (how ? " " + how : ""), shot: pic };
+          return { ok: true, result: [{ type: "image", source: { type: "base64", media_type: pic.media_type, data: pic.data } }, { type: "text", text: what3 + (how ? " " + how : "") + ", " + pic.width + "×" + pic.height + " pixels." + note3 }], step: "Looked at " + what3 + (how ? " " + how : ""), shot: pic };
         }, function(err) {
           return fail(err && err.message || "The picture couldn't be made.");
         });
@@ -6079,19 +6079,73 @@
     description: `Change layers by the names the Layers list shows, in one step the person can undo: an edit in Markdown (a "## Edit" heading, then lines like "- Hero: padding xl", "- \\"$284,120\\": size display-2xl", "- remove Spending", "- add Heading \\"This week\\" to Bento, first") or JSON ({ "edit": frame, "changes": [{ "layer", "style", "props", "text" } | { "layer", "remove": true } | { "into", "at", "add": [nodes] }] }). A name two layers share is skipped; name the layer more exactly, or use ids with the other tools. Answers what changed and what couldn't be.`,
     input_schema: { type: "object", properties: { edit: { type: "string" } }, required: ["edit"], additionalProperties: false }
   };
+  var HELLO = {
+    name: "hello",
+    description: "Say who you are, so the person sees your name and mark on your cursor and in the Session panel. name: what to call you (up to 40 characters). mark: optional, a small square picture as a data:image/png, jpeg or webp address, up to 48 KB. Send it once, first.",
+    input_schema: { type: "object", properties: { name: { type: "string" }, mark: { type: "string" } }, required: ["name"], additionalProperties: false }
+  };
   function isRead(name) {
-    return !!READS[name] || name === "describe";
+    return !!READS[name] || name === "describe" || name === "hello";
+  }
+  function agentFrom(input) {
+    var name = String(input && input.name || "").replace(/[\u0000-\u001f]/g, "").replace(/\s+/g, " ").trim().slice(0, 40);
+    var mark = String(input && input.mark || "");
+    var okMark = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(mark) && mark.length <= 65536;
+    return { name, mark: okMark ? mark : "", markRefused: !!mark && !okMark };
+  }
+  function targetsOf(call, doc2) {
+    var input = call && call.input || {};
+    var out = [];
+    var add = function(v) {
+      [].concat(v || []).forEach(function(id) {
+        if (typeof id === "string" && id !== "root" && out.indexOf(id) < 0) out.push(id);
+      });
+    };
+    switch (call && call.name) {
+      case "batch":
+        (input.calls || []).forEach(function(c) {
+          add(targetsOf(c, doc2));
+        });
+        break;
+      case "edit_by_name": {
+        var edit = readEdit(input.edit);
+        if (edit && doc2) planEdit(doc2, edit).rows.forEach(function(r) {
+          if (!r.choices) add(r.ids);
+        });
+        break;
+      }
+      case "set_style":
+      case "set_prop":
+      case "remove":
+      case "duplicate":
+      case "move":
+      case "wrap":
+        add(input.ids);
+        add(input.parent);
+        break;
+      case "set_text":
+      case "replace_jsx":
+      case "rename":
+        add(input.id);
+        break;
+      case "insert_jsx":
+        add(input.parent);
+        break;
+      default:
+        break;
+    }
+    return out;
   }
   function bridgeTools(tools, canEdit) {
     var list = tools.filter(function(t) {
       return !LEFT_OUT[t.name] && (canEdit || READS[t.name]);
     });
     if (canEdit) list = list.concat([EDIT_BY_NAME]);
-    return list;
+    return [HELLO].concat(list);
   }
   function allowed(call, session, tools) {
     var name = call && call.name;
-    if (name === "describe") return null;
+    if (name === "describe" || name === "hello") return null;
     if (!name || !tools.some(function(t) {
       return t.name === name;
     })) return "There's no tool called " + name + " in this session. Call describe for the ones there are.";
@@ -6102,6 +6156,7 @@
   function describeText(brief2, tools, session) {
     return [
       "You're in a live session on " + (session.label || "a Dovetail Builder file") + ". " + (session.canEdit ? "You may look and make changes" : "You may only look") + (session.askFirst ? "; each change waits for the person to apply it, and may come back declined with a note from them." : ". Each change lands on their canvas as you make it, and they can undo any of them."),
+      "Call hello first with your name (and a small mark if you have one), so the person sees who you are. Other agents may be working on the same canvas: a layer another agent is changing is held for a moment, and a step that needs it waits or comes back saying so.",
       "Work in small steps and look (screenshot, lint) after visible changes. Say what you're doing in your own conversation; the person sees each step in their Session panel.",
       "",
       brief2,
@@ -6174,6 +6229,8 @@
         return [{ icon: "fit", title: "Measured", detail: who([input.a, input.b]) }];
       case "describe":
         return [{ icon: "book", title: "Read the brief", detail: "The system's rules and the tools" }];
+      case "hello":
+        return [{ icon: "user", title: "Said hello", detail: "As " + (agentFrom(input).name || "an agent") }];
       default:
         return [{ icon: "book", title: String(call && call.name || "A step").replace(/_/g, " ").replace(/^./, function(c) {
           return c.toUpperCase();
@@ -6341,7 +6398,7 @@
     var status = opts.onStatus || function() {
     };
     var handle = function(row) {
-      if (ended || !row || seen[row.id] || row.status === "done") return;
+      if (ended || !row || seen[row.id] || row.status === "done" || row.session_id && row.session_id !== id) return;
       seen[row.id] = true;
       queue = queue.then(function() {
         if (ended) return null;
@@ -6499,6 +6556,7 @@
     folder: ["M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"],
     play: ["M7 4.5v15l12-7.5z"],
     pause: ["M9 5v14", "M15 5v14"],
+    clock: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z", "M12 7v5l3 2"],
     wand: ["M4 20 15 9", "M14 4v3", "M19 9h-3", "M17.5 5.5l-2 2", "M19 14v2", "M20 15h-2", "M8 3v2", "M9 4H7"],
     pipette: ["m3 21 1.5-1.5h2.5l8-8", "M4.5 19.5V17l8-8", "m14.5 6.5 2.8-2.8a2.1 2.1 0 1 1 3 3l-2.8 2.8", "m12 5 7 7"],
     exportOut: ["M12 15V3", "m7 8 5-5 5 5", "M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"],
@@ -6673,6 +6731,14 @@
 
   // assets/builder/app/Bridge.js
   var memo = React.memo;
+  function Avatar(p) {
+    var a = p.agent || {};
+    return e(
+      "span",
+      { className: cx("bd-av", p.size && "is-" + p.size), style: { "--bd-agent": a.color }, "aria-hidden": true },
+      a.mark ? e("img", { src: a.mark, alt: "" }) : String(a.name || "?").trim().charAt(0).toUpperCase()
+    );
+  }
   function Switch(p) {
     return e(
       "button",
@@ -6682,12 +6748,23 @@
       e("span", { className: "bd-br-knob" })
     );
   }
+  function what2(a) {
+    return a.canEdit ? "Can make changes" + (a.askFirst ? " · asks first" : " · live") : "Can only look";
+  }
   var BridgeDialog = memo(function BridgeDialog2(p) {
-    var b = p.bridge, o = p.options;
-    var live = b && b.status === "live";
+    var o = p.options, list = p.bridge ? p.bridge.sessions : [];
     var off = p.account.status === "off", out = p.account.status !== "in";
+    var starting = list.some(function(a) {
+      return a.status === "starting";
+    });
     var close = function() {
       if (p.dialogRef.current) p.dialogRef.current.close();
+    };
+    var set2 = function(k, v) {
+      var n = Object.assign({}, o);
+      n[k] = v;
+      if (k === "canEdit" && !v) n.askFirst = false;
+      p.setOptions(n);
     };
     var row = function(key, icon, title, sub, on, disabled) {
       return e(
@@ -6696,10 +6773,7 @@
         e(Icon, { name: icon }),
         e("div", null, e("b", null, title), e("span", null, sub)),
         e(Switch, { on, disabled, label: title, set: function(v) {
-          var n = Object.assign({}, o);
-          n[key] = v;
-          if (key === "canEdit" && !v) n.askFirst = false;
-          p.setOptions(n);
+          set2(key, v);
         } })
       );
     };
@@ -6712,8 +6786,8 @@
         e(
           "div",
           { className: "bd-code-intro" },
-          e("h2", { id: "bd-br-title" }, "Let Claude edit this file"),
-          e("p", { className: "bd-inspect-sub" }, "Claude works on your open canvas with the assistant's own tools: it reads the page, makes changes, runs the checks and takes pictures. You watch each step and can undo it.")
+          e("h2", { id: "bd-br-title" }, "Let agents edit this file"),
+          e("p", { className: "bd-inspect-sub" }, "An agent works on your open canvas with the assistant's own tools: it reads the page, makes changes, runs the checks and takes pictures. Each gets its own link, so you see who did what, and can end one without the others.")
         ),
         e("div", { className: "bd-code-actions" }, e("button", { type: "button", className: "bd-act", "aria-label": "Close", onClick: close }, e(Icon, { name: "close" })))
       ),
@@ -6721,71 +6795,93 @@
         "div",
         { className: "bd-br-body" },
         off ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sessions run through the builder's cloud, which isn't connected here yet (docs/cloud.md).") : out ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: a session is tied to your account. ", e("button", { type: "button", className: "bd-link", onClick: p.onSignIn }, "Sign in")) : null,
+        list.length ? e("ul", { className: "bd-br-agents", role: "list", "aria-label": "Agents on this file" }, list.map(function(a) {
+          return e(
+            "li",
+            { key: a.key, className: "bd-br-agent" },
+            e(Avatar, { agent: a }),
+            e(
+              "div",
+              { className: "bd-br-agent-t" },
+              e("b", null, a.name),
+              e("span", null, a.status === "starting" ? "Starting…" : a.status === "error" ? a.error : what2(a)),
+              a.link ? e("code", { className: "bd-br-link" }, a.link) : null
+            ),
+            a.link ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+              p.onCopy(a.key);
+            } }, e(Icon, { name: "copy" }), "Copy link") : null,
+            e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+              p.onEnd(a.key);
+            } }, a.status === "error" ? "Remove" : "End")
+          );
+        })) : null,
         e(
           "div",
-          { className: "bd-br-step" },
-          e("span", { className: "bd-br-n" }, "1"),
+          { className: "bd-br-add" },
           e(
             "div",
             { className: "bd-br-st" },
-            e("b", null, "Choose what it can do"),
+            e("b", null, list.length ? "Add another agent" : "Add an agent"),
+            e("span", null, "Name it, choose what it can do, then give it the link. It can send its own name and mark when it starts. The link works while this tab stays open, and ends after an hour without a step."),
+            e(
+              "label",
+              { className: "bd-br-name" },
+              e("span", null, "Name"),
+              e("input", { type: "text", maxLength: 40, value: o.name || "", placeholder: list.length ? "Agent " + (list.length + 1) : "Claude", onChange: function(ev) {
+                set2("name", ev.target.value);
+              } })
+            ),
             e(
               "div",
               { className: "bd-br-opts" },
               row("canSee", "eye", "See the canvas", "Read layers, take pictures, run the checks", true, true),
-              row("canEdit", "sliders", "Make changes", "Add, change and remove layers in this file", o.canEdit, live),
+              row("canEdit", "sliders", "Make changes", "Add, change and remove layers in this file", o.canEdit, false),
               row("askFirst", "ask", "Ask before each change", "Each change waits for you to apply it", o.askFirst, !o.canEdit)
             )
-          )
-        ),
-        e(
-          "div",
-          { className: "bd-br-step" },
-          e("span", { className: "bd-br-n" }, "2"),
-          e(
-            "div",
-            { className: "bd-br-st" },
-            e("b", null, "Give Claude the link"),
-            e("span", null, "Paste it into Claude (in the app, the terminal or your editor). It works while this tab stays open, and ends after an hour without a step."),
-            live ? e("div", { className: "bd-br-code" }, e("code", null, b.link), e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: p.onCopy }, e(Icon, { name: "copy" }), "Copy")) : e("p", { className: "bd-br-wait" }, b && b.status === "starting" ? "Starting…" : b && b.error ? b.error : "Start the session to get the link.")
           )
         )
       ),
       e(
         "div",
         { className: "bd-br-foot" },
-        e("span", { className: "bd-edit-undo" }, e(Icon, { name: "lock" }), "Claude sees only what it asks for. Every step can be undone."),
+        e("span", { className: "bd-edit-undo" }, e(Icon, { name: "lock" }), "Agents see only what they ask for. Every step can be undone."),
         e("span", { className: "bd-edit-sp" }),
-        live ? e("button", { type: "button", className: "bd-btn", onClick: p.onEnd }, "End session") : e("button", { type: "button", className: "bd-btn", onClick: close }, "Cancel"),
-        live ? e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: close }, "Done") : e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: out || b && b.status === "starting", onClick: p.onStart }, "Start session")
+        list.length > 1 ? e("button", { type: "button", className: "bd-btn", onClick: p.onEndAll }, "End all") : null,
+        e("button", { type: "button", className: "bd-btn", onClick: close }, list.length ? "Done" : "Cancel"),
+        e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: out || starting, onClick: p.onAdd }, e(Icon, { name: "plus" }), list.length ? "Add agent" : "Start session")
       )
     );
   });
   function BridgePill(p) {
     var b = p.bridge;
-    if (!b || b.status !== "live") return null;
-    var what2 = b.paused ? "Paused" : b.pending ? "Claude is waiting on you in" : "Claude can edit";
+    var live = b ? b.sessions.filter(function(a) {
+      return a.status === "live";
+    }) : [];
+    if (!live.length) return null;
+    var text2 = b.paused ? "Paused" : b.pending ? "Waiting on you in" : live.length === 1 ? live[0].name + " can edit" : live.length + " agents on";
     return e(
       "span",
       { className: cx("bd-br-pill", b.paused && "is-paused"), role: "status" },
       e(
         "button",
         { type: "button", className: "bd-br-pill-main", onClick: p.onOpen, title: "Show the session" },
-        e("i", { className: "bd-br-dot", "aria-hidden": true }),
-        e(Icon, { name: "wand" }),
-        e("span", { className: "bd-br-pill-text" }, what2, b.paused ? "" : e(React.Fragment, null, " ", e("b", null, p.frameName)))
+        e("span", { className: "bd-br-stack" }, live.slice(0, 3).map(function(a) {
+          return e(Avatar, { key: a.key, agent: a, size: "sm" });
+        })),
+        e("span", { className: "bd-br-pill-text" }, text2, b.paused ? "" : e(React.Fragment, null, " ", e("b", null, p.frameName)))
       ),
       e("span", { className: "bd-br-vd", "aria-hidden": true }),
-      e("button", { type: "button", className: "bd-br-lk", onClick: p.onPause, "aria-label": b.paused ? "Resume" : "Pause" }, e(Icon, { name: b.paused ? "play" : "pause" }), e("span", { className: "bd-br-lk-text" }, b.paused ? "Resume" : "Pause")),
-      e("button", { type: "button", className: "bd-br-lk", onClick: p.onEnd }, "End")
+      e("button", { type: "button", className: "bd-br-lk", onClick: p.onManage, "aria-label": "Agents on this file", title: "Agents on this file" }, e(Icon, { name: "plus" })),
+      e("button", { type: "button", className: "bd-br-lk", onClick: p.onPause, "aria-label": b.paused ? "Resume" : "Pause" }, e(Icon, { name: b.paused ? "play" : "pause" }), e("span", { className: "bd-br-lk-text" }, b.paused ? "Resume" : live.length > 1 ? "Pause all" : "Pause")),
+      e("button", { type: "button", className: "bd-br-lk", onClick: p.onEnd }, live.length > 1 ? "End all" : "End")
     );
   }
-  function stepRow(s, onUndo) {
+  function stepRow(s, agent, onUndo) {
     return s.rows.map(function(r, i) {
       return e(
         "li",
         { key: s.id + ":" + i, className: cx("bd-br-a", s.undone && "is-undone", !s.ok && "is-off") },
-        e("span", { className: "bd-edit-ic" }, e(Icon, { name: r.icon })),
+        i === 0 ? e(Avatar, { agent, size: "sm" }) : e("span", { className: "bd-av is-sm is-blank", "aria-hidden": true }),
         e(
           "div",
           { className: "bd-edit-t" },
@@ -6795,6 +6891,7 @@
           !s.ok && s.why ? e("em", { className: "bd-br-why" }, s.why) : null,
           s.shot && i === 0 ? e("img", { className: "bd-br-thumb", src: s.shot, alt: "" }) : null
         ),
+        e("span", { className: "bd-br-kind" }, e(Icon, { name: r.icon })),
         i === 0 && s.diff && !s.undone ? e("button", { type: "button", className: "bd-act", "aria-label": "Undo " + r.title, title: "Undo this step", onClick: function() {
           onUndo(s.id);
         } }, e(Icon, { name: "undo" })) : null
@@ -6804,20 +6901,40 @@
   var SessionPanel = memo(function SessionPanel2(p) {
     var b = p.bridge;
     var noteState = React.useState(""), note3 = noteState[0], setNote = noteState[1];
-    if (!b || b.status !== "live" || !b.open) return null;
-    var undoable = b.steps.filter(function(s) {
+    if (!b || !b.open || !b.sessions.length) return null;
+    var byKey = {};
+    b.sessions.forEach(function(a) {
+      byKey[a.key] = a;
+    });
+    var gone = { name: "Ended", color: "var(--dt-text-secondary)" };
+    var steps = b.steps.filter(function(s) {
+      return !b.filter || s.key === b.filter;
+    });
+    var undoable = steps.filter(function(s) {
       return s.diff && !s.undone;
     }).length;
+    var who = b.filter ? byKey[b.filter] : null;
+    var asker = b.pending ? byKey[b.pending.key] || gone : null;
     return e(
       "section",
-      { className: "bd-br-panel", "aria-label": "Claude's session" },
+      { className: "bd-br-panel", "aria-label": "Agents' session" },
       e(
         "div",
         { className: "bd-br-sh" },
-        e(Icon, { name: "wand" }),
         e("b", null, "Session"),
         e("span", { className: "bd-edit-sp" }),
-        e("span", { className: "bd-edit-n" }, b.askFirst ? "Asks first" : b.steps.length + (b.steps.length === 1 ? " step" : " steps")),
+        b.sessions.length > 1 ? e(
+          "div",
+          { className: "bd-br-filter", role: "group", "aria-label": "Show steps from" },
+          e("button", { type: "button", "aria-pressed": !b.filter, className: cx(!b.filter && "is-on"), onClick: function() {
+            p.onFilter("");
+          } }, "All"),
+          b.sessions.map(function(a) {
+            return e("button", { key: a.key, type: "button", "aria-pressed": b.filter === a.key, "aria-label": a.name, title: a.name, className: cx(b.filter === a.key && "is-on"), onClick: function() {
+              p.onFilter(a.key);
+            } }, e(Avatar, { agent: a, size: "xs" }));
+          })
+        ) : e("span", { className: "bd-edit-n" }, steps.length + (steps.length === 1 ? " step" : " steps")),
         e("button", { type: "button", className: "bd-act", "aria-label": "Hide the session", onClick: p.onClose }, e(Icon, { name: "close" }))
       ),
       e(
@@ -6826,15 +6943,15 @@
         b.pending ? e(
           "div",
           { className: "bd-br-card", role: "group", "aria-label": "A change waiting for you" },
-          e("div", { className: "bd-br-ch" }, e(Icon, { name: "wand" }), e("b", null, "Claude wants to make " + b.pending.rows.length + (b.pending.rows.length === 1 ? " change" : " changes"))),
+          e("div", { className: "bd-br-ch" }, e(Avatar, { agent: asker, size: "sm" }), e("b", null, asker.name + " wants to make " + b.pending.rows.length + (b.pending.rows.length === 1 ? " change" : " changes"))),
           e("ul", { className: "bd-br-list", role: "list" }, b.pending.rows.map(function(r, i) {
             return e("li", { key: i, className: "bd-br-a" }, e("span", { className: "bd-edit-ic" }, e(Icon, { name: r.icon })), e("div", { className: "bd-edit-t" }, e("b", null, r.title), r.detail ? e("span", null, r.detail) : null));
           })),
-          e("label", { className: "visually-hidden", htmlFor: "bd-br-note" }, "Tell Claude something instead"),
+          e("label", { className: "visually-hidden", htmlFor: "bd-br-note" }, "Tell the agent something instead"),
           e("input", {
             id: "bd-br-note",
             className: "bd-br-tell",
-            placeholder: "Tell Claude something instead…",
+            placeholder: "Tell " + asker.name + " something instead…",
             value: note3,
             onChange: function(ev) {
               setNote(ev.target.value);
@@ -6860,14 +6977,16 @@
             } }, "Apply " + b.pending.rows.length + (b.pending.rows.length === 1 ? " change" : " changes"))
           )
         ) : null,
-        b.steps.length ? e("ul", { className: "bd-br-list", role: "list" }, b.steps.map(function(s) {
-          return stepRow(s, p.onUndo);
-        })) : !b.pending ? e("p", { className: "bd-sec-empty" }, "Waiting for Claude. Paste the link into Claude and ask for what you want; each step shows here as it happens.") : null
+        steps.length ? e("ul", { className: "bd-br-list", role: "list" }, steps.map(function(s) {
+          return stepRow(s, byKey[s.key] || gone, p.onUndo);
+        })) : !b.pending ? e("p", { className: "bd-sec-empty" }, "Waiting for " + (who ? who.name : b.sessions.length > 1 ? "the agents" : b.sessions[0].name) + ". Give it the link and ask for what you want; each step shows here as it happens.") : null
       ),
       e(
         "div",
         { className: "bd-br-sf" },
-        e("button", { type: "button", className: "bd-btn bd-btn-sm", disabled: !undoable, onClick: p.onUndoAll }, e(Icon, { name: "undo" }), undoable ? "Undo all " + undoable : "Undo all"),
+        e("button", { type: "button", className: "bd-btn bd-btn-sm", disabled: !undoable, onClick: function() {
+          p.onUndoAll(b.filter || "");
+        } }, e(Icon, { name: "undo" }), undoable ? who ? "Undo " + who.name + "'s " + undoable : "Undo all " + undoable : "Undo all"),
         e("span", { className: "bd-edit-sp" }),
         e("span", { className: "bd-edit-n" }, "Each step is one undo")
       )
@@ -12591,6 +12710,10 @@
       sel: raw.sel.map(place).filter(Boolean),
       hover: hv && boxes[hv.fid] ? onStage(hv.r, boxes[hv.fid], cam) : null,
       drop: raw.drop,
+      agents: (raw.agents || []).map(function(m) {
+        var b = boxes[m.fid];
+        return b ? Object.assign({}, m, { r: onStage(m.r, b, cam) }) : null;
+      }).filter(Boolean),
       edited: (raw.edited || []).map(function(m) {
         var b = boxes[m.fid];
         return b ? { id: m.id, icon: m.icon, label: m.label, r: onStage(m.r, b, cam) } : null;
@@ -12809,6 +12932,20 @@
       "div",
       { className: "bd-marks", "aria-hidden": true },
       !p.preview && p.frameOn && p.boxes[p.frame.id] && !p.frame.bare ? e("div", { className: cx("bd-ring", !p.sel && "is-selected"), style: { left: cam.x + p.boxes[p.frame.id].x * cam.z, top: cam.y + p.boxes[p.frame.id].y * cam.z, width: p.boxes[p.frame.id].w * cam.z, height: p.boxes[p.frame.id].h * cam.z } }) : null,
+      /* Each agent on the canvas: its colour round the layer it's working on,
+         and a cursor with its mark and name at the layer's corner. */
+      !p.preview ? marks.agents.map(function(m) {
+        return e(
+          "div",
+          { key: "ag" + m.key, className: "bd-agent-on", style: { left: m.r.left, top: m.r.top, width: m.r.width, height: m.r.height, "--bd-agent": m.color } },
+          e(
+            "span",
+            { className: "bd-agent-cur" },
+            e("svg", { className: "bd-agent-ptr", viewBox: "0 0 16 16", "aria-hidden": true }, e("path", { d: "M1 1l5 14 2-6 6-2z" })),
+            e("span", { className: "bd-agent-tag" }, e(Avatar, { agent: m, size: "sm" }), e("b", null, m.name), m.label ? e("i", null, m.label) : null)
+          )
+        );
+      }) : null,
       /* What an applied edit changed: a quiet label on each, until the next change. */
       !p.preview ? marks.edited.map(function(m) {
         return e(
@@ -13484,8 +13621,8 @@
           if (name) values[name] = o.props[k];
         });
       });
-      var what2 = leftOut(ovs, c.comp.node, c.keys);
-      if (what2.length) notes2.push({ id: n.id, name: n.name || c.comp.name, component: c.fn, what: what2 });
+      var what3 = leftOut(ovs, c.comp.node, c.keys);
+      if (what3.length) notes2.push({ id: n.id, name: n.name || c.comp.name, component: c.fn, what: what3 });
       var own = {};
       OWN_STYLE.forEach(function(k) {
         if (n.style && n.style[k] !== void 0) own[k] = n.style[k];
@@ -13786,8 +13923,8 @@
     var editMarksRef = useRef(null);
     var bridgeState = useState(null);
     var bridge = bridgeState[0], setBridge = bridgeState[1];
-    var bridgeOptsState = useState({ canEdit: true, askFirst: false });
-    var bridgeRef = useRef(null), bridgeLive = useRef(null), bridgeWait = useRef(null), bridgeDlgRef = useRef(null), bridgeCallRef = useRef(null);
+    var bridgeOptsState = useState({ name: "", canEdit: true, askFirst: false });
+    var bridgeHandles = useRef({}), bridgeLives = useRef({}), bridgeWait = useRef([]), bridgeDlgRef = useRef(null), bridgeCallRef = useRef(null), bridgeHolds = useRef({}), bridgeColorN = useRef(0), bridgeSessionsRef = useRef([]);
     var savedState = useState({ ok: true, at: null });
     var saved = savedState[0], setSaved = savedState[1];
     var savedRef = useRef(saved);
@@ -15855,6 +15992,10 @@
             return r ? { fid: h.f, r } : null;
           })() : null,
           drop: m.drop,
+          agents: (bridgeSessionsRef.current || []).map(function(x) {
+            var aa = x.at && x.at.fid ? api(x.at.fid) : null, r = aa && aa.rect ? aa.rect(x.at.id) : null;
+            return r ? { key: x.key, fid: x.at.fid, r, name: x.name, mark: x.mark, color: x.color, label: x.at.label } : null;
+          }).filter(Boolean),
           edited: (function() {
             var em = editMarksRef.current, ea = em && em.doc === docRef.current ? api(em.fid) : null;
             return ea ? em.items.map(function(it) {
@@ -18877,13 +19018,13 @@
       clip.current = { nodes, from: d.active };
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(JSON.stringify({ kind: CLIP_MARK, nodes: withoutUploads({ frames: [{ root: { children: nodes } }] }).doc.frames[0].root.children })).catch(function() {
       });
-      var what2 = nodes.length === 1 ? nameOf(nodes[0]) : nodes.length + " layers";
+      var what3 = nodes.length === 1 ? nameOf(nodes[0]) : nodes.length + " layers";
       if (cut) change(function(dd) {
         return ops.remove(dd, spots.map(function(at2) {
           return at2.node.id;
         }));
-      }, "Cut " + what2);
-      else announce("Copied " + what2);
+      }, "Cut " + what3);
+      else announce("Copied " + what3);
       return true;
     };
     var pasteNodes = function(raw) {
@@ -20182,10 +20323,25 @@
       setEditMarks(marks);
       setTimeout(remeasure, 60);
     };
+    var AGENT_COLORS = ["var(--dt-color-amber-500)", "var(--dt-color-cyan-500)", "var(--dt-color-green-500)", "var(--dt-color-violet-500)", "var(--dt-color-red-500)", "var(--dt-color-primary-500)"];
+    var HOLD_MS = 3e3, HOLD_WAIT = 1e4;
+    bridgeSessionsRef.current = bridge ? bridge.sessions : [];
     var patchBridge = function(fn) {
       setBridge(function(b) {
         return b ? Object.assign({}, b, typeof fn === "function" ? fn(b) : fn) : b;
       });
+    };
+    var patchAgent = function(key, fields) {
+      patchBridge(function(b) {
+        return { sessions: b.sessions.map(function(x) {
+          return x.key === key ? Object.assign({}, x, typeof fields === "function" ? fields(x) : fields) : x;
+        }) };
+      });
+    };
+    var agentOf = function(key) {
+      return (bridgeSessionsRef.current || []).filter(function(x) {
+        return x.key === key;
+      })[0];
     };
     var bridgeName = function(id) {
       var d = docRef.current, hit = null;
@@ -20199,6 +20355,17 @@
         return !!hit;
       });
       return hit || id;
+    };
+    var frameOfId = function(id) {
+      var d = docRef.current, hit = null;
+      d.frames.some(function(f) {
+        if (locate(d, id, f.id)) {
+          hit = f.id;
+          return true;
+        }
+        return false;
+      });
+      return hit;
     };
     var bridgeOut = function(res) {
       if (Array.isArray(res.result)) {
@@ -20228,19 +20395,63 @@
       });
       return { ok: true, result: "Done on " + plan.frame.name + ":\n" + said2, changes: [{ ids: touched }] };
     };
-    var bridgeCall = function(call) {
-      var live = bridgeLive.current;
+    var heldBy = function(key, ids) {
+      var now = Date.now(), holds = bridgeHolds.current, hit = null;
+      ids.some(function(id) {
+        var h = holds[id];
+        if (h && h.key !== key && (h.running || h.until > now)) {
+          hit = { key: h.key, id };
+          return true;
+        }
+        return false;
+      });
+      return hit;
+    };
+    var hold = function(key, ids, running) {
+      var until = Date.now() + HOLD_MS;
+      ids.forEach(function(id) {
+        bridgeHolds.current[id] = { key, until, running: !!running };
+      });
+    };
+    var waitForLayers = function(key, ids) {
+      var started = Date.now();
+      return new Promise(function(resolve2) {
+        (function look() {
+          var h = heldBy(key, ids);
+          if (!h) resolve2({});
+          else if (Date.now() - started > HOLD_WAIT) resolve2({ busy: h });
+          else setTimeout(look, 200);
+        })();
+      });
+    };
+    var bridgeCall = function(key, call) {
+      var live = bridgeLives.current[key];
       if (!live) return { ok: false, result: "This session has ended." };
       var tools2 = bridgeTools(toolsFor({ look: true, plan: false }), live.canEdit);
       var why = allowed(call, live, tools2);
       if (why) return { ok: false, result: why };
       if (live.paused) return { ok: false, result: "The person paused the session. Wait a minute and try again, or ask them to resume it." };
-      var rows = rowsOf(call, bridgeName, docRef.current);
-      var sid = uid();
-      var go = function() {
-        var before = docRef.current, edits = !isRead(call.name);
+      var me = agentOf(key) || { name: live.name };
+      if (call.name === "hello") {
+        var who = agentFrom(call.input);
+        if (!who.name) return { ok: false, result: "Send a name: { name, mark? }." };
+        live.name = who.name;
+        patchAgent(key, { name: who.name, mark: who.mark || null });
         patchBridge(function(b) {
-          return { steps: [{ id: sid, rows, ok: true, running: edits }].concat(b.steps).slice(0, 200) };
+          return { steps: [{ id: uid(), key, rows: [{ icon: "user", title: "Said hello", detail: "As " + who.name }], ok: true }].concat(b.steps).slice(0, 300) };
+        });
+        return { ok: true, result: "Hello, " + who.name + "." + (who.markRefused ? " The mark wasn't shown: send a data:image/png, jpeg or webp address up to 48 KB." : who.mark ? " Your mark is on your cursor." : "") };
+      }
+      var rows = rowsOf(call, bridgeName, docRef.current);
+      var targets = isRead(call.name) ? [] : targetsOf(call, docRef.current);
+      var sid = uid();
+      var go = function(waitedFor) {
+        var before = docRef.current, edits = !isRead(call.name);
+        if (targets.length) hold(key, targets, true);
+        if (targets[0]) patchAgent(key, { at: { id: targets[0], fid: frameOfId(targets[0]), label: rows[0].detail || rows[0].title } });
+        patchBridge(function(b) {
+          var waitRow = waitedFor ? [{ id: uid(), key, rows: [{ icon: "clock", title: bridgeName(waitedFor.id), detail: "Waited for " + ((agentOf(waitedFor.key) || {}).name || "another agent") + " to finish, then went on" }], ok: true }] : [];
+          return { steps: [{ id: sid, key, rows, ok: true, running: edits }].concat(waitRow, b.steps).slice(0, 300) };
         });
         var run = call.name === "describe" ? { ok: true, result: describeText(systemPrompt(), tools2, live) } : call.name === "edit_by_name" ? bridgeEditByName(call.input) : runTool(Object.assign({}, toolApi, { needsPlan: null, selection: function() {
           return [];
@@ -20250,23 +20461,22 @@
           var ids = [].concat(res.change ? [res.change] : [], res.changes || []).reduce(function(a, c) {
             return a.concat(c.ids || []);
           }, []);
+          hold(key, targets.concat(ids), false);
+          var first = ids.filter(function(id) {
+            return locate(docRef.current, id, frameOfId(id));
+          })[0] || targets[0];
+          if (first && diff2) patchAgent(key, { at: { id: first, fid: frameOfId(first), label: rows[0].detail || rows[0].title } });
           patchBridge(function(b) {
             return { steps: b.steps.map(function(s) {
               return s.id === sid ? Object.assign({}, s, { running: false, ok: !!res.ok, why: res.ok ? "" : String(res.result).slice(0, 200), diff: diff2 && diff2.length ? diff2 : null, shot: res.shot ? res.shot.url : void 0 }) : s;
             }) };
           });
-          if (diff2 && ids.length) {
-            var marks = { fid: docRef.current.active, doc: docRef.current, quiet: true, items: ids.filter(function(id) {
-              return locate(docRef.current, id);
-            }).slice(0, 24).map(function(id) {
-              return { id, icon: rows[0].icon, label: "Claude · " + String(rows[0].detail || "changed").charAt(0).toLowerCase() + String(rows[0].detail || "changed").slice(1) };
-            }) };
-            editMarksRef.current = marks;
-            setEditMarks(marks);
-            setTimeout(remeasure, 60);
-          }
-          return bridgeOut(res);
+          setTimeout(remeasure, 60);
+          var out = bridgeOut(res);
+          if (waitedFor) out.result = "(Waited for " + ((agentOf(waitedFor.key) || {}).name || "another agent") + " to finish with " + bridgeName(waitedFor.id) + ".) " + out.result;
+          return out;
         }, function(err) {
+          hold(key, targets, false);
           patchBridge(function(b) {
             return { steps: b.steps.map(function(s) {
               return s.id === sid ? Object.assign({}, s, { running: false, ok: false, why: String(err && err.message || err) }) : s;
@@ -20275,106 +20485,164 @@
           return { ok: false, result: String(err && err.message || err) };
         });
       };
+      var afterHold = function() {
+        var first = targets.length ? heldBy(key, targets) : null;
+        if (!first) return go(null);
+        return waitForLayers(key, targets).then(function(r) {
+          if (r.busy) {
+            var other = (agentOf(r.busy.key) || {}).name || "Another agent";
+            patchBridge(function(b) {
+              return { steps: [{ id: sid, key, rows: [{ icon: "clock", title: bridgeName(r.busy.id), detail: other + " is still working on it" }], ok: false, why: "Not changed" }].concat(b.steps).slice(0, 300) };
+            });
+            return { ok: false, result: other + " is working on " + bridgeName(r.busy.id) + ". Try again in a moment, or change something else first." };
+          }
+          return go(first);
+        });
+      };
       if (!isRead(call.name) && live.askFirst) {
         return new Promise(function(resolve2) {
-          bridgeWait.current = resolve2;
-          patchBridge({ pending: { rows }, open: true });
+          bridgeWait.current.push({ key, rows, resolve: resolve2 });
+          patchBridge({ pending: bridgeWait.current[0] ? { key: bridgeWait.current[0].key, rows: bridgeWait.current[0].rows } : null, open: true });
         }).then(function(ans) {
-          if (ans && ans.apply) return go();
+          if (ans && ans.apply) return afterHold();
           return { ok: false, result: ans && ans.note ? "The person didn't apply that, and said: " + ans.note : "The person didn't apply that change. Ask them what they'd like instead." };
         });
       }
-      return go();
+      return afterHold();
     };
     bridgeCallRef.current = bridgeCall;
     var answerBridge = function(apply2, note3) {
-      var r = bridgeWait.current;
-      bridgeWait.current = null;
-      patchBridge({ pending: null });
-      if (r) r({ apply: apply2, note: note3 || "" });
+      var w = bridgeWait.current.shift();
+      var next = bridgeWait.current[0];
+      patchBridge({ pending: next ? { key: next.key, rows: next.rows } : null });
+      if (w) w.resolve({ apply: apply2, note: note3 || "" });
     };
     var openBridge = function() {
-      if (bridge && bridge.status === "live") {
-        patchBridge({ open: true });
-        return;
-      }
       var dlg = bridgeDlgRef.current;
       if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
     };
-    var startSession = function() {
+    var addAgent = function() {
       var o = bridgeOptsState[0];
-      bridgeLive.current = { canEdit: o.canEdit, askFirst: o.canEdit && o.askFirst, paused: false, label: projectRef.current.name };
-      setBridge({ status: "starting", steps: [], open: true, canEdit: o.canEdit, askFirst: bridgeLive.current.askFirst, paused: false });
-      startBridge({ canEdit: o.canEdit, askFirst: bridgeLive.current.askFirst, label: projectRef.current.name, onCall: function(c) {
-        return bridgeCallRef.current(c);
+      var key = uid();
+      var count3 = bridge ? bridge.sessions.length : 0;
+      var name = String(o.name || "").trim().slice(0, 40) || (count3 ? "Agent " + (count3 + 1) : "Claude");
+      var askFirst = o.canEdit && o.askFirst;
+      bridgeLives.current[key] = { canEdit: o.canEdit, askFirst, paused: false, label: projectRef.current.name, name };
+      var agent = { key, name, mark: null, color: AGENT_COLORS[bridgeColorN.current++ % AGENT_COLORS.length], status: "starting", canEdit: o.canEdit, askFirst };
+      setBridge(function(b) {
+        return Object.assign({ steps: [], pending: null, open: true, paused: false, filter: "" }, b || {}, { sessions: (b ? b.sessions : []).concat([agent]), open: true });
+      });
+      bridgeOptsState[1](Object.assign({}, o, { name: "" }));
+      startBridge({ canEdit: o.canEdit, askFirst, label: projectRef.current.name + " · " + name, onCall: function(c) {
+        return bridgeCallRef.current(key, c);
       }, onStatus: announce }).then(function(h) {
-        bridgeRef.current = h;
-        patchBridge({ status: "live", link: h.link });
-        announce("The session has started. Copy the link and give it to Claude.");
+        if (!bridgeLives.current[key]) {
+          h.end().catch(function() {
+          });
+          return;
+        }
+        bridgeHandles.current[key] = h;
+        patchAgent(key, { status: "live", link: h.link });
+        announce(name + "'s session has started. Copy its link and give it to the agent.");
       }, function(err) {
-        bridgeLive.current = null;
-        setBridge({ status: "error", error: String(err && err.message || err), steps: [] });
+        delete bridgeLives.current[key];
+        patchAgent(key, { status: "error", error: String(err && err.message || err) });
       });
     };
-    var endSession = function() {
-      var h = bridgeRef.current;
-      bridgeRef.current = null;
-      bridgeLive.current = null;
-      if (bridgeWait.current) answerBridge(false, "");
+    var endAgent = function(key) {
+      var h = bridgeHandles.current[key];
+      delete bridgeHandles.current[key];
+      delete bridgeLives.current[key];
       if (h) h.end().catch(function() {
       });
-      setBridge(null);
+      bridgeWait.current.filter(function(w) {
+        return w.key === key;
+      }).forEach(function(w) {
+        w.resolve({ apply: false, note: "" });
+      });
+      bridgeWait.current = bridgeWait.current.filter(function(w) {
+        return w.key !== key;
+      });
+      Object.keys(bridgeHolds.current).forEach(function(id) {
+        if (bridgeHolds.current[id].key === key) delete bridgeHolds.current[id];
+      });
+      var gone = agentOf(key);
+      setBridge(function(b) {
+        if (!b) return b;
+        var left2 = b.sessions.filter(function(x) {
+          return x.key !== key;
+        });
+        if (!left2.length) return null;
+        var next = bridgeWait.current[0];
+        return Object.assign({}, b, { sessions: left2, pending: next ? { key: next.key, rows: next.rows } : null, filter: b.filter === key ? "" : b.filter });
+      });
+      setTimeout(remeasure, 30);
+      announce((gone ? gone.name + "'s" : "The") + " session has ended.");
+    };
+    var endAllAgents = function() {
+      (bridgeSessionsRef.current || []).slice().forEach(function(x) {
+        endAgent(x.key);
+      });
       var dlg = bridgeDlgRef.current;
       if (dlg && dlg.open) dlg.close();
-      announce("The session has ended. Claude can't make more changes.");
     };
-    var pauseSession = function() {
-      var live = bridgeLive.current, h = bridgeRef.current;
-      if (!live || !h) return;
-      live.paused = !live.paused;
-      patchBridge({ paused: live.paused });
-      h.update({ paused: live.paused }).catch(function() {
+    var pauseAgents = function() {
+      var keys2 = Object.keys(bridgeLives.current);
+      if (!keys2.length) return;
+      var paused = !(bridge && bridge.paused);
+      keys2.forEach(function(k) {
+        bridgeLives.current[k].paused = paused;
+        var h = bridgeHandles.current[k];
+        if (h) h.update({ paused }).catch(function() {
+        });
       });
-      announce(live.paused ? "Paused: Claude's steps wait until you resume." : "Resumed.");
+      patchBridge({ paused });
+      announce(paused ? "Paused: the agents' steps wait until you resume." : "Resumed.");
     };
     var undoBridgeStep = function(id) {
       var s = (bridge ? bridge.steps : []).filter(function(x) {
         return x.id === id;
       })[0];
       if (!s || !s.diff || s.undone) return;
-      commit(apply(docRef.current, invert(s.diff)), void 0, "Undid Claude's step: " + s.rows[0].title);
+      commit(apply(docRef.current, invert(s.diff)), void 0, "Undid a step: " + s.rows[0].title);
       patchBridge(function(b) {
         return { steps: b.steps.map(function(x) {
           return x.id === id ? Object.assign({}, x, { undone: true }) : x;
         }) };
       });
     };
-    var undoBridgeAll = function() {
+    var undoBridgeAll = function(key) {
       var list = (bridge ? bridge.steps : []).filter(function(x) {
-        return x.diff && !x.undone;
+        return x.diff && !x.undone && (!key || x.key === key);
       });
       if (!list.length) return;
       var next = list.reduce(function(d, x) {
         return apply(d, invert(x.diff));
       }, docRef.current);
-      commit(next, void 0, "Undid Claude's " + list.length + (list.length === 1 ? " step" : " steps"));
+      commit(next, void 0, "Undid " + list.length + (list.length === 1 ? " step" : " steps"));
+      var ids = list.map(function(x) {
+        return x.id;
+      });
       patchBridge(function(b) {
         return { steps: b.steps.map(function(x) {
-          return x.diff ? Object.assign({}, x, { undone: true }) : x;
+          return ids.indexOf(x.id) >= 0 ? Object.assign({}, x, { undone: true }) : x;
         }) };
       });
     };
-    var copyBridgeLink = function() {
-      if (!bridge || !bridge.link) return;
-      copyText(bridge.link).then(function() {
-        announce("Link copied. Paste it into Claude.");
+    var copyBridgeLink = function(key) {
+      var a = agentOf(key);
+      if (!a || !a.link) return;
+      copyText(a.link).then(function() {
+        announce(a.name + "'s link copied. Paste it into the agent.");
       }, function() {
         announce("This browser didn't allow copying.");
       });
     };
     useEffect(function() {
       var leave = function() {
-        if (bridgeRef.current) bridgeRef.current.end().catch(function() {
+        Object.keys(bridgeHandles.current).forEach(function(k) {
+          bridgeHandles.current[k].end().catch(function() {
+          });
         });
       };
       window.addEventListener("pagehide", leave);
@@ -20382,6 +20650,11 @@
         window.removeEventListener("pagehide", leave);
       };
     }, []);
+    useEffect(function() {
+      remeasure();
+    }, [bridge && bridge.sessions.map(function(x) {
+      return x.key + (x.at ? x.at.id : "");
+    }).join()]);
     var copyLayout = function() {
       var out = withoutUploads(docRef.current);
       copyText(JSON.stringify(out.doc, null, 2)).then(function() {
@@ -20830,8 +21103,8 @@
       };
     };
     var boxWord = function(key, all, v, every) {
-      var what2 = every ? (all === "padding" ? "Padding" : "Margin") + " on every side" : DATA.tokens[key].label;
-      return v ? what2 + " " + v : what2 + " cleared";
+      var what3 = every ? (all === "padding" ? "Padding" : "Margin") + " on every side" : DATA.tokens[key].label;
+      return v ? what3 + " " + v : what3 + " cleared";
     };
     var scrubBox = function(ids, key, all, v, first, every) {
       if (first || !boxScrubRef.current) boxScrubRef.current = { start: docRef.current };
@@ -21554,20 +21827,20 @@
       if (!file) return;
       var P = window.DovetailConfigurePanel;
       var limit = P && P.brandLimit || 512 * 1024;
-      var what2 = kind === "wordmark" ? "logo" : "brand mark";
+      var what3 = kind === "wordmark" ? "logo" : "brand mark";
       if (!/^image\//.test(file.type)) {
         setBrandErr("That isn't a picture. Use a PNG, JPEG, GIF, WebP or SVG.");
         return;
       }
       if (file.size > limit) {
-        setBrandErr("That " + what2 + " is " + Math.round(file.size / 1024) + "KB. The limit is " + Math.round(limit / 1024) + "KB, because it's kept in this browser.");
+        setBrandErr("That " + what3 + " is " + Math.round(file.size / 1024) + "KB. The limit is " + Math.round(limit / 1024) + "KB, because it's kept in this browser.");
         return;
       }
       var reader = new FileReader();
       reader.onload = function() {
         var patch = {};
         patch[kind] = String(reader.result);
-        if (setBrandPart(patch)) announce("The " + what2 + " is set for this project.");
+        if (setBrandPart(patch)) announce("The " + what3 + " is set for this project.");
       };
       reader.onerror = function() {
         setBrandErr("That file couldn't be read.");
@@ -22877,7 +23150,13 @@
     var workBar = e(
       "div",
       { className: "bd-toolbar", role: "toolbar", "aria-label": "Builder" },
-      e("span", { className: "bd-tb-side bd-tb-left" }),
+      e(
+        "span",
+        { className: "bd-tb-side bd-tb-left" },
+        e(BridgePill, { bridge, frameName: frame2.name, onPause: pauseAgents, onEnd: endAllAgents, onOpen: function() {
+          patchBridge({ open: true });
+        }, onManage: openBridge })
+      ),
       e(
         "div",
         { className: "bd-tb-title bd-project" },
@@ -22902,7 +23181,7 @@
             { value: "picture", label: "Use this frame as the picture", icon: "image" }
           ].concat(project.thumbSet ? [{ value: "auto-picture", label: "Picture follows the canvas", icon: "rotate" }] : []).concat([
             { value: "import", label: "Paste a layout…", icon: "upload" },
-            { value: "bridge", label: bridge && bridge.status === "live" ? "Claude's session" : "Let Claude edit…", icon: "wand" },
+            { value: "bridge", label: bridge ? "Agents on this file…" : "Let agents edit…", icon: "wand" },
             { value: "blank", label: "Start over with a blank frame", icon: "trash", danger: true }
           ]),
           onChange: function(v) {
@@ -22923,7 +23202,6 @@
       e(
         "span",
         { className: "bd-tb-side bd-tb-right" },
-        e(BridgePill, { bridge, frameName: frame2.name, onPause: pauseSession, onEnd: endSession, onOpen: openBridge }),
         /* What the canvas shows and snaps to: its own button, beside zoom. */
         e(Dropdown, {
           menu: true,
@@ -23798,9 +24076,11 @@
     var onGetDoc = useEvent(function() {
       return docRef.current;
     }), onEditPreview = useEvent(editPreview), onApplyEdit = useEvent(applyEdit);
-    var onStartSession = useEvent(startSession), onEndSession = useEvent(endSession), onPauseSession = useEvent(pauseSession), onOpenBridge = useEvent(openBridge), onCopyBridge = useEvent(copyBridgeLink);
+    var onAddAgent = useEvent(addAgent), onEndAgent = useEvent(endAgent), onEndAllAgents = useEvent(endAllAgents), onCopyBridge = useEvent(copyBridgeLink);
     var onUndoBridge = useEvent(undoBridgeStep), onUndoBridgeAll = useEvent(undoBridgeAll), onAnswerBridge = useEvent(answerBridge), onCloseBridge = useEvent(function() {
       patchBridge({ open: false });
+    }), onFilterBridge = useEvent(function(k) {
+      patchBridge({ filter: k });
     });
     var onCopyCode = useEvent(function() {
       copyText(code).then(function() {
@@ -24198,8 +24478,8 @@
         onDownloadProject
       }),
       e(ImportDialog, { dialogRef: importRef, text: importText, setText: setImportText, onImport: onImportLayout, getDoc: onGetDoc, preview: onEditPreview, onApplyEdit }),
-      e(BridgeDialog, { dialogRef: bridgeDlgRef, account: account2, bridge, options: bridgeOptsState[0], setOptions: bridgeOptsState[1], onStart: onStartSession, onEnd: onEndSession, onCopy: onCopyBridge, onSignIn: openAccount }),
-      e(SessionPanel, { bridge, onUndo: onUndoBridge, onUndoAll: onUndoBridgeAll, onAnswer: onAnswerBridge, onClose: onCloseBridge }),
+      e(BridgeDialog, { dialogRef: bridgeDlgRef, account: account2, bridge, options: bridgeOptsState[0], setOptions: bridgeOptsState[1], onAdd: onAddAgent, onEnd: onEndAgent, onEndAll: onEndAllAgents, onCopy: onCopyBridge, onSignIn: openAccount }),
+      e(SessionPanel, { bridge, onUndo: onUndoBridge, onUndoAll: onUndoBridgeAll, onAnswer: onAnswerBridge, onClose: onCloseBridge, onFilter: onFilterBridge }),
       editMarks && !editMarks.quiet ? e(
         "div",
         { className: "bd-toast", role: "status" },

@@ -40,7 +40,7 @@ function startBridge(opts) {
   var status = opts.onStatus || function () {};
 
   var handle = function (row) {
-    if (ended || !row || seen[row.id] || row.status === "done") return;
+    if (ended || !row || seen[row.id] || row.status === "done" || (row.session_id && row.session_id !== id)) return;
     seen[row.id] = true;
     queue = queue.then(function () {
       if (ended) return null;
