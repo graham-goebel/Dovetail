@@ -13,6 +13,7 @@ var TEXT_KEYS = ["children", "title", "label", "text", "description", "heading",
 /* What a destructive action says, for the danger variant's rule. */
 var DESTRUCTIVE = /\b(delete|remove|discard|erase|revoke|cancel (my |your |the )?(account|subscription|plan|order)|close (my |your |the )?account|leave|reset|destroy|unsubscribe|deactivate|disconnect|uninstall|clear all|empty trash)\b/i;
 
+import { META } from "../config.js";
 import { autoName, layerName } from "./names.js";
 
 function label(n) { return layerName(n); }
@@ -60,7 +61,8 @@ function lintFrame(frame) {
     (n.children || []).forEach(function (c) {
       if (c.hidden) return;
       var p = c.props || {};
-      var here = band || (c.type === "Section" ? c.id : null);
+      /* A block (HeroBlock, CtaBlock…) is a section of its own, as a Section is. */
+      var here = band || (c.type === "Section" || (META[c.type] && META[c.type].group === "blocks") ? c.id : null);
       /* The components' own rules, where a machine can tell. */
       if (c.type === "Button" && p.variant === "danger" && typeof p.children === "string" && !DESTRUCTIVE.test(p.children)) add("usage", "warn", c, "“" + p.children.slice(0, 30) + "” isn't a destructive action, so it shouldn't be a danger button.");
       if (c.type === "Card" && inCard) add("usage", "warn", c, label(c) + " is a card inside a card; use a Stack and a Divider instead.");

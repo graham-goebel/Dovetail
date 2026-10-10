@@ -13,10 +13,11 @@ import { DATA, META, PRESETS, TEXT_PROPS, WRAPS } from "../config.js";
 import { jsxNodes, readJsxElements } from "./paste.js";
 import { cleanNode, fresh, locate } from "./tree.js";
 import { layerName } from "./names.js";
+import { KINDS, findLayouts, layoutById, layoutLine } from "./layouts.js";
 
 var FAMILIES = Object.keys(DATA.tokens);
 /* The edits batch may run: everything that changes layers in this frame. */
-var BATCHABLE = ["set_style", "set_prop", "set_text", "insert_jsx", "replace_jsx", "move", "wrap", "duplicate", "rename", "remove"];
+var BATCHABLE = ["set_style", "set_prop", "set_text", "insert_jsx", "replace_jsx", "insert_layout", "move", "wrap", "duplicate", "rename", "remove"];
 
 var TOOLS = [
   { name: "list_pages", description: "The file's pages (the current one marked), and the frames on the current page with their ids, sizes and layer counts.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
@@ -34,6 +35,8 @@ var TOOLS = [
   { name: "set_prop", description: "Set one of a component's own props on layers of that type: its text, or one of the values its enum allows.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, name: { type: "string" }, value: { type: ["string", "number", "boolean"] } }, required: ["ids", "name", "value"], additionalProperties: false } },
   { name: "insert_jsx", description: "Add new layers written as JSX with the design system's components (for example <Section><Heading>…</Heading></Section>) into a container, at an index, or after the selection when parent is omitted.", input_schema: { type: "object", properties: { jsx: { type: "string" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["jsx"], additionalProperties: false } },
   { name: "replace_jsx", description: "Replace one layer with new layers written as JSX, in its place: the way to rebuild a section or a card in one step.", input_schema: { type: "object", properties: { id: { type: "string" }, jsx: { type: "string" } }, required: ["id", "jsx"], additionalProperties: false } },
+  { name: "search_layouts", description: "Find tested section layouts to build with: heroes, features, stories, proof, showcases, steps, questions and closes, each with its mood, when it fits and the content fields it takes. Filter by kind (" + KINDS.join(", ") + ") or words such as bold, calm, editorial, moving. Nothing given lists them all.", input_schema: { type: "object", properties: { query: { type: "string" }, kind: { type: "string", enum: KINDS } }, additionalProperties: false } },
+  { name: "insert_layout", description: "Add a section from search_layouts, filled with your content: into a container at an index, after the selection when parent is omitted, or in place of a layer with replace. content takes the layout's fields (eyebrow, title, lead, action, secondary, image, items, stats, quotes, points, faqs, steps, slides); anything left out gets sample copy, so give real copy for every field the layout lists.", input_schema: { type: "object", properties: { id: { type: "string" }, content: { type: "object" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 }, replace: { type: "string" } }, required: ["id"], additionalProperties: false } },
   { name: "set_text", description: "Set a layer's text: a heading's or a paragraph's words, a button's label, a card's title.", input_schema: { type: "object", properties: { id: { type: "string" }, text: { type: "string" } }, required: ["id", "text"], additionalProperties: false } },
   { name: "move", description: "Move layers into a container, at an index (the end when omitted), in the order given.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["ids", "parent"], additionalProperties: false } },
   { name: "wrap", description: "Put a layer inside a new container of the given type, or several sibling layers inside one Group.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, type: { type: "string", enum: WRAPS } }, required: ["ids"], additionalProperties: false } },
@@ -144,12 +147,13 @@ function systemPrompt() {
     "- Choose token values by what they're for (each family below says), not by how they look: raised for cards, subtle for a quiet band, brand-muted for a band with presence.",
     "- When the brand or the context matters (a component's product or marketing variant, the voice of copy), read_theme first; read_guideline for the rules on a topic.",
     "- A new page starts with create_frame (structured for web pages, a social preset for posts), then fills its Content group.",
+    "- Build sections from the layouts library: search_layouts for the kind of section and the mood asked for, then insert_layout with real copy for its fields (replace to swap one in for an existing section). Write JSX only for what no layout covers. A page reads best when its sections vary: alternate light and dark or brand bands, and don't repeat a layout.",
     "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
     "- Write real, short copy in the brand's voice. Never lorem ipsum.",
     "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish. For a page, look at 390 wide and in dark mode too (screenshot with width or dark) when the change touches layout or colour, or the checks flag them.",
     "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
     "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first. When it leaves a real choice of direction open (two good answers with a different tone), call ask_user with the options rather than guessing.",
-    "- When the person wants to see options, make_variants copies the frame once per option, side by side; build each in its copy and say how they differ. They keep one.",
+    "- When the person wants to see options, make_variants copies the frame once per option, side by side; build each in its copy and say how they differ. They keep one. Make the copies differ in more than colour: swap in different layouts (insert_layout with replace), bands and type sizes, so each is a real direction.",
     "- A message may start with what the person changed on the canvas since your last reply. Keep those changes unless they ask otherwise, and build on them.",
     "- Before a new page or frame, or a change that adds more than about 10 layers, call propose_plan and wait for the answer, unless the canvas notes say plans are off. Building without one is refused.",
     "- Finish with a sentence or two on what you changed and anything the person should check.",
@@ -360,6 +364,20 @@ function runTool(api, call) {
       if (!ids3 || !ids3.length) return fail("Those layers can't go there.");
       return { ok: true, result: JSON.stringify({ added: ids3 }), change: { ids: ids3, label: "Rebuilt", value: was + " → " + made2.map(function (n) { return layerName(n); }).join(", "), on: "" } };
     }
+    case "search_layouts": {
+      var found = findLayouts(input.query, input.kind);
+      if (!found.length) found = findLayouts("", input.kind);
+      return { ok: true, result: found.map(layoutLine).join("\n"), step: "Looked through " + found.length + " layouts" };
+    }
+    case "insert_layout": {
+      var lay = layoutById(input.id);
+      if (!lay) return fail("There's no layout " + input.id + ". search_layouts lists them.");
+      var jsx = lay.jsx(input.content || {});
+      var r0 = input.replace ? runTool(api, { name: "replace_jsx", input: { id: input.replace, jsx: jsx } })
+        : runTool(api, { name: "insert_jsx", input: { jsx: jsx, parent: input.parent, index: input.index } });
+      if (r0.ok && r0.change) r0.change = Object.assign({}, r0.change, { label: input.replace ? "Rebuilt" : "Added", value: lay.name + (input.replace ? " in place of " + r0.change.value.split(" → ")[0] : "") });
+      return r0;
+    }
     case "set_text": {
       var tat = locate(doc, input.id);
       if (!tat || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
@@ -435,7 +453,10 @@ function runTool(api, call) {
       if (!list.length) return fail("Send at least one call.");
       var bad = list.filter(function (c) { return !c || BATCHABLE.indexOf(c.name) < 0; })[0];
       if (bad) return fail((bad && bad.name) + " can't run in a batch. Batch runs: " + BATCHABLE.join(", ") + ".");
-      var size = list.reduce(function (a, c) { return a + (c.name === "insert_jsx" || c.name === "replace_jsx" ? added(fromJsx((c.input || {}).jsx)) : 0); }, 0);
+      var size = list.reduce(function (a, c) {
+        var inp = c.input || {}, lay2 = c.name === "insert_layout" && layoutById(inp.id);
+        return a + (c.name === "insert_jsx" || c.name === "replace_jsx" ? added(fromJsx(inp.jsx)) : lay2 ? added(fromJsx(lay2.jsx(inp.content || {}))) : 0);
+      }, 0);
       var owed4 = owesPlan(api, size);
       if (owed4) return owed4;
       /* The batch as a whole was judged; its calls aren't asked again. */
