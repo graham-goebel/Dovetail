@@ -52,6 +52,18 @@ function useAccount() {
   return [s, set];
 }
 
+/* How the mirror is doing, in a line: props.cloud is cloud/mirror.js's
+   state, { status, at, error }. */
+function cloudLine(c) {
+  var base = "Your files are kept in the cloud and in this browser, so they open anywhere you sign in, and offline. ";
+  if (!c || c.status === "off") return base;
+  if (c.status === "syncing") return base + "Syncing…";
+  if (c.status === "offline") return base + "You're offline: changes are saved here and go up when you're back.";
+  if (c.status === "error") return base + "The last sync didn't finish" + (c.error ? ": " + c.error : ".") + " It tries again on the next change.";
+  var ago = c.at ? Math.round((Date.now() - c.at) / 1000) : null;
+  return base + (ago == null ? "" : ago < 45 ? "Synced just now." : ago < 3600 ? "Synced " + Math.round(ago / 60) + " min ago." : "Synced " + Math.round(ago / 3600) + " h ago.");
+}
+
 function AccountDialog(props) {
   var s = props.state, setState = props.setState, ref = props.dialogRef;
   var modeSt = useState("signin"), mode = modeSt[0], setMode = modeSt[1];
@@ -115,7 +127,7 @@ function AccountDialog(props) {
     body = e("div", { className: "bd-acct-in" },
       e("p", { className: "bd-acct-who" }, e(Icon, { name: "user" }), e("span", null, "Signed in as ", e("strong", null, s.account && s.account.email))),
       s.joined ? e("p", null, "You've joined " + s.joined + (s.joined === 1 ? " shared project." : " shared projects.")) : null,
-      e("p", { className: "bd-inspect-sub" }, "Your projects are still saved in this browser. Keeping them in the cloud, and editing together, come next."),
+      e("p", { className: "bd-inspect-sub bd-acct-cloud" }, cloudLine(props.cloud)),
       e("div", { className: "bd-acct-actions" }, e("button", { type: "button", className: "bd-btn", disabled: busy, onClick: signOut }, "Sign out")));
   } else if (s.status === "recovery") {
     body = e("form", { className: "bd-acct-form", onSubmit: submit },

@@ -3380,6 +3380,53 @@
           });
         });
       },
+      /* The cloud (cloud/mirror.js): a file's row id there, the page versions
+         last seen, and what's waiting to go up. null drops a field. */
+      setCloud: function(id, patch) {
+        return b.get("projects", id).then(function(meta) {
+          if (!meta) return null;
+          ["cloud", "cloudVersions", "cloudDirty", "cloudOwner"].forEach(function(k) {
+            if (!(k in patch)) return;
+            if (patch[k] == null) delete meta[k];
+            else meta[k] = patch[k];
+          });
+          return b.put("projects", meta).then(function() {
+            return meta;
+          });
+        });
+      },
+      setGroupCloud: function(id, cloudId) {
+        return b.get("groups", id).then(function(g) {
+          if (!g) return null;
+          if (cloudId) g.cloud = cloudId;
+          else delete g.cloud;
+          return b.put("groups", g).then(function() {
+            return g;
+          });
+        });
+      },
+      /* A file that arrived whole from the cloud: its record as given (name,
+         pages, folders, settings, cloud fields), with a local id and times,
+         and its documents, { pageId: doc }. */
+      adopt: function(given, docs) {
+        var pages = Array.isArray(given.pages) && given.pages.length ? given.pages : [{ id: MAIN, name: "Page 1" }];
+        var meta = Object.assign({ id: "p" + uid(), createdAt: now(), updatedAt: now(), thumb: null }, given, {
+          name: String(given.name || "Untitled").slice(0, 80),
+          pages,
+          page: pages.some(function(p) {
+            return p.id === given.page;
+          }) ? given.page : pages[0].id
+        });
+        var steps = b.put("projects", meta);
+        pages.forEach(function(p) {
+          steps = steps.then(function() {
+            return b.put("docs", { id: docKey(meta.id, p.id), doc: docs[p.id] || emptyDoc() });
+          });
+        });
+        return steps.then(function() {
+          return meta;
+        });
+      },
       lastOpened: function() {
         return storage(function(s) {
           return s.getItem(LAST_KEY);
@@ -9035,11 +9082,11 @@
     return { issues, tokens: list, count: count3 };
   }
   var ComponentDialog = memo2(function ComponentDialog2(p) {
-    var check2 = p.node ? componentCheck(p.node) : null;
-    var errors2 = check2 ? check2.issues.filter(function(i) {
+    var check3 = p.node ? componentCheck(p.node) : null;
+    var errors2 = check3 ? check3.issues.filter(function(i) {
       return i.level === "error";
     }) : [];
-    var warns = check2 ? check2.issues.filter(function(i) {
+    var warns = check3 ? check3.issues.filter(function(i) {
       return i.level === "warn";
     }) : [];
     var fixable = errors2.some(function(i) {
@@ -9054,7 +9101,7 @@
         "It goes in Assets, under Components › My components, to use again in any frame. A component is built from the system's tokens, so it follows the theme wherever it goes.",
         [closeButton(p.dialogRef)]
       ),
-      check2 ? e(
+      check3 ? e(
         "div",
         { className: "bd-comp-body" },
         e(
@@ -9072,16 +9119,16 @@
           "div",
           { className: cx("bd-comp-status", errors2.length ? "is-blocked" : "is-ready"), role: "status" },
           e(Icon, { name: errors2.length ? "alert" : "check" }),
-          errors2.length ? errors2.length + (errors2.length === 1 ? " thing stops" : " things stop") + " it becoming a component" : "Ready: " + check2.count + (check2.count === 1 ? " layer" : " layers") + " on " + check2.tokens.length + (check2.tokens.length === 1 ? " token" : " tokens")
+          errors2.length ? errors2.length + (errors2.length === 1 ? " thing stops" : " things stop") + " it becoming a component" : "Ready: " + check3.count + (check3.count === 1 ? " layer" : " layers") + " on " + check3.tokens.length + (check3.tokens.length === 1 ? " token" : " tokens")
         ),
         errors2.length || warns.length ? e("ul", { className: "bd-comp-issues" }, errors2.concat(warns).map(function(i, k) {
           return e("li", { key: k, className: "is-" + i.level }, e(Icon, { name: i.level === "error" ? "alert" : "bell" }), e("span", null, i.text));
         })) : null,
-        check2.tokens.length ? e(
+        check3.tokens.length ? e(
           "details",
           { className: "bd-comp-tokens" },
-          e("summary", null, "The tokens it's built on (" + check2.tokens.length + ")"),
-          e("ul", null, check2.tokens.map(function(t) {
+          e("summary", null, "The tokens it's built on (" + check3.tokens.length + ")"),
+          e("ul", null, check3.tokens.map(function(t) {
             return e("li", { key: t }, e("code", null, t));
           }))
         ) : null,
@@ -13277,6 +13324,15 @@
     }, []);
     return [s, set2];
   }
+  function cloudLine(c) {
+    var base = "Your files are kept in the cloud and in this browser, so they open anywhere you sign in, and offline. ";
+    if (!c || c.status === "off") return base;
+    if (c.status === "syncing") return base + "Syncing…";
+    if (c.status === "offline") return base + "You're offline: changes are saved here and go up when you're back.";
+    if (c.status === "error") return base + "The last sync didn't finish" + (c.error ? ": " + c.error : ".") + " It tries again on the next change.";
+    var ago3 = c.at ? Math.round((Date.now() - c.at) / 1e3) : null;
+    return base + (ago3 == null ? "" : ago3 < 45 ? "Synced just now." : ago3 < 3600 ? "Synced " + Math.round(ago3 / 60) + " min ago." : "Synced " + Math.round(ago3 / 3600) + " h ago.");
+  }
   function AccountDialog(props) {
     var s = props.state, setState = props.setState, ref = props.dialogRef;
     var modeSt = useState("signin"), mode = modeSt[0], setMode = modeSt[1];
@@ -13387,7 +13443,7 @@
         { className: "bd-acct-in" },
         e("p", { className: "bd-acct-who" }, e(Icon, { name: "user" }), e("span", null, "Signed in as ", e("strong", null, s.account && s.account.email))),
         s.joined ? e("p", null, "You've joined " + s.joined + (s.joined === 1 ? " shared project." : " shared projects.")) : null,
-        e("p", { className: "bd-inspect-sub" }, "Your projects are still saved in this browser. Keeping them in the cloud, and editing together, come next."),
+        e("p", { className: "bd-inspect-sub bd-acct-cloud" }, cloudLine(props.cloud)),
         e("div", { className: "bd-acct-actions" }, e("button", { type: "button", className: "bd-btn", disabled: busy, onClick: signOut }, "Sign out"))
       );
     } else if (s.status === "recovery") {
@@ -14136,6 +14192,51 @@
     var importRef = useRef(null);
     var accountRef = useRef(null);
     var accountState = useAccount(), account2 = accountState[0];
+    var mirror = props.mirror;
+    var mirrorSt = useState(mirror ? mirror.state() : { status: "off" }), mirrorState = mirrorSt[0], setMirrorState = mirrorSt[1];
+    useEffect(function() {
+      if (!mirror) return void 0;
+      if (account2.status !== "in") {
+        mirror.stop();
+        setMirrorState(mirror.state());
+        return void 0;
+      }
+      var live = true;
+      getClient().then(function(sb) {
+        if (!live) return;
+        mirror.start(sb, {
+          me: account2.account ? account2.account.id : null,
+          onState: setMirrorState,
+          onFilesChanged: function() {
+            refreshProjects();
+          },
+          /* The open file's record, as the cloud left it (its cloud id, say). */
+          onFileChanged: function(pid, meta) {
+            if (pid === projectRef.current.id) {
+              projectRef.current = meta;
+              setProject(meta);
+            }
+            refreshProjects();
+          },
+          /* A page the cloud replaced: if it's the one on screen, it's reloaded there. */
+          onPageReplaced: function(pid, pageId2, d, meta) {
+            if (pid === projectRef.current.id && pageId2 === pageRef.current) switchTo(meta, d, "This page was changed elsewhere; the cloud's copy is on the canvas. The one that was here is under Versions.", pageId2);
+            else refreshProjects();
+          }
+        });
+      }, function() {
+      });
+      var again = function() {
+        if (document.visibilityState !== "hidden") mirror.sync();
+      };
+      window.addEventListener("online", again);
+      document.addEventListener("visibilitychange", again);
+      return function() {
+        live = false;
+        window.removeEventListener("online", again);
+        document.removeEventListener("visibilitychange", again);
+      };
+    }, [account2.status]);
     var asModeState = useState(assistantMode());
     var rightRef = useRef(null);
     var leftPanelRef = useRef(null);
@@ -15562,6 +15663,7 @@
         },
         flush,
         store,
+        mirror,
         /* The assistant's checks on a frame (the active one by default), as the lint tool runs them. */
         checks: function(fid) {
           return runChecks(fid || docRef.current.active);
@@ -19818,7 +19920,7 @@
         return openPage(got.page.id);
       });
     };
-    var deletePage = function(pg) {
+    var deletePage2 = function(pg) {
       setConfirmPage(null);
       var meta = projectRef.current;
       var gone = pagesOf(meta).filter(function(x) {
@@ -20137,8 +20239,8 @@
     var saveComponent = function() {
       var node = componentSource();
       if (!node || !compDraft) return;
-      var check2 = componentCheck(node);
-      if (check2.issues.some(function(i) {
+      var check3 = componentCheck(node);
+      if (check3.issues.some(function(i) {
         return i.level === "error";
       })) return;
       var name = (compDraft.name || "").trim().slice(0, 60) || "My component";
@@ -20151,7 +20253,7 @@
       var cid = uid();
       setLibrary(function(l) {
         var n = Object.assign({}, l);
-        n.components = [{ id: cid, name, node: kept, tokens: check2.tokens, rev: 1, made: Date.now() }].concat(l.components || []);
+        n.components = [{ id: cid, name, node: kept, tokens: check3.tokens, rev: 1, made: Date.now() }].concat(l.components || []);
         return n;
       });
       if (compDraft.ids.length === 1) {
@@ -20166,7 +20268,7 @@
       var dlg = compRef.current;
       if (dlg && dlg.open) dlg.close();
       setCompDraft(null);
-      announce(name + " is in My components, built on " + check2.tokens.length + (check2.tokens.length === 1 ? " token" : " tokens"));
+      announce(name + " is in My components, built on " + check3.tokens.length + (check3.tokens.length === 1 ? " token" : " tokens"));
     };
     var removeComponent = function(id) {
       setLibrary(function(l) {
@@ -20188,8 +20290,8 @@
           announce("Not yet: " + nameOf(at2.node) + " holds an instance of " + comp.name + ", and a component can't hold itself.");
           return;
         }
-        var check2 = componentCheck(at2.node);
-        var bad = check2.issues.filter(function(i) {
+        var check3 = componentCheck(at2.node);
+        var bad = check3.issues.filter(function(i) {
           return i.level === "error";
         })[0];
         if (bad) {
@@ -20209,7 +20311,7 @@
         setLibrary(function(l) {
           var n = Object.assign({}, l);
           n.components = (l.components || []).map(function(c) {
-            return c.id === comp.id ? Object.assign({}, c, { node: master, prev: was, rev, tokens: check2.tokens }) : c;
+            return c.id === comp.id ? Object.assign({}, c, { node: master, prev: was, rev, tokens: check3.tokens }) : c;
           });
           return n;
         });
@@ -24311,7 +24413,7 @@
       anatomyOf: onAnatomy
     };
     var onFoldFolder = useEvent(foldFolder), onRenameFolder = useEvent(renameFolder), onMoveFolder = useEvent(moveFolder), onDeleteFolder = useEvent(deleteFolder);
-    var onRenamePage = useEvent(renamePage), onOpenPage = useEvent(openPage), onDeletePage = useEvent(deletePage), onDuplicatePage = useEvent(duplicatePage), onMovePage = useEvent(movePage), onPlacePage = useEvent(placePage);
+    var onRenamePage = useEvent(renamePage), onOpenPage = useEvent(openPage), onDeletePage = useEvent(deletePage2), onDuplicatePage = useEvent(duplicatePage), onMovePage = useEvent(movePage), onPlacePage = useEvent(placePage);
     var onAddFolder = useEvent(addFolder), onAddPage = useEvent(addPage);
     var pagesProps = {
       project,
@@ -24671,7 +24773,7 @@
         onBack: onPlayBack,
         onLoad: onRenderPlay
       }),
-      e(AccountDialog, { dialogRef: accountRef, state: account2, setState: accountState[1] }),
+      e(AccountDialog, { dialogRef: accountRef, state: account2, setState: accountState[1], cloud: mirrorState }),
       menu ? e(ContextMenu, { x: menu.x, y: menu.y, label: "Actions", options: menuOptions(menu.ids), onClose: function() {
         setMenu(null);
       }, onChoose: onMenu }) : null,
@@ -24748,13 +24850,567 @@
     });
   }
 
+  // assets/builder/cloud/files.js
+  var THUMB_MAX = 25e4;
+  var SETTINGS_MAX = 9e5;
+  var DOC_MAX = 49e5;
+  var PROJECT_COLUMNS = "id, name, settings, group_id, owner, updated_at";
+  function check2(res) {
+    if (res && res.error) throw new Error(res.error.message || "The cloud refused that.");
+    return res ? res.data : null;
+  }
+  function settingsFor(meta) {
+    var s = {
+      pages: meta.pages,
+      folders: meta.folders,
+      page: meta.page,
+      pageFrames: meta.pageFrames,
+      frames: meta.frames,
+      stage: meta.stage,
+      theme: meta.theme,
+      lib: meta.lib,
+      createdAt: meta.createdAt
+    };
+    if (meta.thumb && meta.thumb.length <= THUMB_MAX) {
+      s.thumb = meta.thumb;
+      s.thumbSet = !!meta.thumbSet;
+    }
+    if (JSON.stringify(s).length > SETTINGS_MAX) {
+      delete s.thumb;
+      delete s.thumbSet;
+    }
+    return s;
+  }
+  function metaFromRow(row, localGroup) {
+    var s = row.settings && typeof row.settings === "object" ? row.settings : {};
+    var meta = { name: row.name, cloud: row.id, cloudOwner: row.owner };
+    ["pages", "folders", "page", "pageFrames", "frames", "stage", "theme", "lib", "thumb", "thumbSet"].forEach(function(k) {
+      if (s[k] !== void 0) meta[k] = s[k];
+    });
+    if (typeof s.createdAt === "number") meta.createdAt = s.createdAt;
+    if (localGroup) meta.group = localGroup;
+    return meta;
+  }
+  function tooBig(doc2) {
+    return JSON.stringify(doc2).length > DOC_MAX;
+  }
+  function listCloud(sb) {
+    return Promise.all([
+      sb.from("projects").select(PROJECT_COLUMNS).order("updated_at", { ascending: false }).then(check2),
+      sb.from("pages").select("project_id, page_id, version, updated_at").then(check2),
+      sb.from("file_groups").select("id, name, owner, updated_at").then(check2)
+    ]).then(function(got) {
+      return { projects: got[0] || [], pages: got[1] || [], groups: got[2] || [] };
+    });
+  }
+  function createCloudFile(sb, meta, docs, groupCloud) {
+    var big = Object.keys(docs).filter(function(p) {
+      return tooBig(docs[p]);
+    });
+    if (big.length) return Promise.reject(new Error(meta.name + " has a page too large for the cloud; it stays in this browser."));
+    return sb.from("projects").insert({ name: meta.name, settings: settingsFor(meta), group_id: groupCloud || null }).select("id").single().then(check2).then(function(row) {
+      var rows = Object.keys(docs).map(function(p) {
+        return { project_id: row.id, page_id: p, doc: docs[p] };
+      });
+      return sb.from("pages").insert(rows).select("page_id, version").then(check2).then(function(made) {
+        var versions = {};
+        (made || []).forEach(function(r) {
+          versions[r.page_id] = r.version;
+        });
+        return { id: row.id, versions };
+      });
+    });
+  }
+  function pushPage(sb, cloudId, pageId, doc2, known) {
+    if (tooBig(doc2)) return Promise.reject(new Error("This page is too large for the cloud; it's kept in this browser."));
+    var current2 = function() {
+      return fetchPage(sb, cloudId, pageId).then(function(row) {
+        if (!row) return { gone: true };
+        return { stale: true, doc: row.doc, version: row.version };
+      });
+    };
+    if (known == null) {
+      return sb.from("pages").insert({ project_id: cloudId, page_id: pageId, doc: doc2 }).select("version").then(function(res) {
+        if (res && res.error) return current2();
+        var rows = res ? res.data : null;
+        return { version: rows && rows[0] ? rows[0].version : 1 };
+      });
+    }
+    return sb.from("pages").update({ doc: doc2 }).eq("project_id", cloudId).eq("page_id", pageId).eq("version", known).select("version").then(check2).then(function(rows) {
+      if (rows && rows.length) return { version: rows[0].version };
+      return current2();
+    });
+  }
+  function fetchPage(sb, cloudId, pageId) {
+    return sb.from("pages").select("doc, version, updated_at").eq("project_id", cloudId).eq("page_id", pageId).maybeSingle().then(check2);
+  }
+  function fetchPages(sb, cloudId) {
+    return sb.from("pages").select("page_id, doc, version").eq("project_id", cloudId).then(check2).then(function(rows) {
+      return rows || [];
+    });
+  }
+  function pushMeta(sb, meta, groupCloud) {
+    return sb.from("projects").update({ name: meta.name, settings: settingsFor(meta), group_id: groupCloud || null }).eq("id", meta.cloud).then(check2);
+  }
+  function deletePage(sb, cloudId, pageId) {
+    return sb.from("pages").delete().eq("project_id", cloudId).eq("page_id", pageId).then(check2);
+  }
+  function deleteCloudFile(sb, cloudId) {
+    return sb.from("projects").delete().eq("id", cloudId).then(check2);
+  }
+  function createCloudGroup(sb, name) {
+    return sb.from("file_groups").insert({ name }).select("id").single().then(check2).then(function(row) {
+      return row.id;
+    });
+  }
+  function renameCloudGroup(sb, cloudId, name) {
+    return sb.from("file_groups").update({ name }).eq("id", cloudId).then(check2);
+  }
+  function deleteCloudGroup(sb, cloudId) {
+    return sb.from("file_groups").delete().eq("id", cloudId).then(check2);
+  }
+
+  // assets/builder/cloud/mirror.js
+  var PUSH_DELAY = 800;
+  var META_CALLS = ["renameProject", "setThumb", "setSettings", "setPage", "renamePage", "movePage", "placePage", "addFolder", "renameFolder", "foldFolder", "moveFolder", "deleteFolder", "setFolders"];
+  function createMirrorHub() {
+    var sb = null, store = null, hooks = {};
+    var timers = {}, queue = Promise.resolve(), stopped = true;
+    var state = { status: "off", at: null, pending: 0, error: "" };
+    var say = function(patch) {
+      Object.assign(state, patch);
+      if (hooks.onState) hooks.onState(Object.assign({}, state));
+    };
+    var later = function(fn) {
+      var run = function() {
+        return Promise.resolve().then(fn).catch(function(err) {
+          say({ error: String(err && err.message || err) });
+        });
+      };
+      queue = queue.then(run, run);
+      return queue;
+    };
+    var online = function() {
+      return typeof navigator === "undefined" || navigator.onLine !== false;
+    };
+    var fail = function(err) {
+      say({ status: online() ? "error" : "offline", error: String(err && err.message || err) });
+    };
+    var localGroupFor = function(cloudId, name) {
+      if (!cloudId) return Promise.resolve(null);
+      return store.listGroups().then(function(gs) {
+        var hit = gs.filter(function(g) {
+          return g.cloud === cloudId;
+        })[0];
+        if (hit) return hit.id;
+        return store.createGroup(name || "Project").then(function(g) {
+          return store.setGroupCloud(g.id, cloudId).then(function() {
+            return g.id;
+          });
+        });
+      });
+    };
+    var cloudGroupFor = function(meta) {
+      if (!meta.group) return Promise.resolve(null);
+      return store.getGroup(meta.group).then(function(g) {
+        if (!g) return null;
+        if (g.cloud) return g.cloud;
+        return createCloudGroup(sb, g.name).then(function(id) {
+          return store.setGroupCloud(g.id, id).then(function() {
+            return id;
+          });
+        });
+      });
+    };
+    var docsOf = function(meta) {
+      var pages = meta.pages && meta.pages.length ? meta.pages : [{ id: "main" }];
+      return Promise.all(pages.map(function(p) {
+        return store.loadDoc(meta.id, p.id);
+      })).then(function(docs) {
+        var out = {};
+        pages.forEach(function(p, i) {
+          if (docs[i]) out[p.id] = docs[i];
+        });
+        return out;
+      });
+    };
+    var changed = function(meta) {
+      if (meta && hooks.onFileChanged) hooks.onFileChanged(meta.id, meta);
+      return meta;
+    };
+    var upload = function(meta) {
+      return Promise.all([docsOf(meta), cloudGroupFor(meta)]).then(function(got) {
+        return createCloudFile(sb, meta, got[0], got[1]);
+      }).then(function(made) {
+        return store.setCloud(meta.id, { cloud: made.id, cloudVersions: made.versions, cloudDirty: {}, cloudOwner: hooks.me || null });
+      }).then(changed);
+    };
+    var download = function(row, groups) {
+      var g = groups.filter(function(x) {
+        return x.id === row.group_id;
+      })[0];
+      return Promise.all([fetchPages(sb, row.id), localGroupFor(row.group_id, g && g.name)]).then(function(got) {
+        var docs = {}, versions = {};
+        got[0].forEach(function(p) {
+          docs[p.page_id] = p.doc;
+          versions[p.page_id] = p.version;
+        });
+        var meta = metaFromRow(row, got[1]);
+        meta.cloudVersions = versions;
+        return store.adopt(meta, docs);
+      });
+    };
+    var takeCloud = function(meta, pageId, doc2, version) {
+      return store.loadDoc(meta.id, pageId).then(function(local) {
+        var differs = local && JSON.stringify(local) !== JSON.stringify(doc2);
+        var keep = differs ? store.addVersion(meta.id, local, "Before reloading from the cloud", pageId) : Promise.resolve();
+        return keep.then(function() {
+          return store.saveDoc(meta.id, doc2, pageId, { quiet: true });
+        }).then(function() {
+          var versions = Object.assign({}, meta.cloudVersions || {});
+          versions[pageId] = version;
+          var dirty = Object.assign({}, meta.cloudDirty || {});
+          delete dirty[pageId];
+          return store.setCloud(meta.id, { cloudVersions: versions, cloudDirty: dirty });
+        }).then(function(m) {
+          if (differs && hooks.onPageReplaced) hooks.onPageReplaced(meta.id, pageId, doc2, m);
+          return m;
+        });
+      });
+    };
+    var push = function(pid, pageId) {
+      return store.getProject(pid).then(function(meta) {
+        if (!meta || !meta.cloud) return null;
+        return store.loadDoc(pid, pageId).then(function(doc2) {
+          if (!doc2) return null;
+          var known = (meta.cloudVersions || {})[pageId];
+          return pushPage(sb, meta.cloud, pageId, doc2, known).then(function(res) {
+            if (res.gone) return null;
+            if (res.stale) return takeCloud(meta, pageId, res.doc, res.version);
+            var versions = Object.assign({}, meta.cloudVersions || {});
+            versions[pageId] = res.version;
+            var dirty = Object.assign({}, meta.cloudDirty || {});
+            delete dirty[pageId];
+            return store.setCloud(pid, { cloudVersions: versions, cloudDirty: dirty });
+          });
+        });
+      });
+    };
+    var level = function(meta, row, pageRows2) {
+      var cloudV = {};
+      pageRows2.forEach(function(p) {
+        if (p.project_id === row.id) cloudV[p.page_id] = p.version;
+      });
+      var known = meta.cloudVersions || {}, dirty = meta.cloudDirty || {};
+      var steps = Promise.resolve();
+      Object.keys(cloudV).forEach(function(pageId) {
+        if (known[pageId] == null || cloudV[pageId] > known[pageId]) {
+          steps = steps.then(function() {
+            return fetchPage(sb, row.id, pageId);
+          }).then(function(r) {
+            return r ? takeCloud(meta, pageId, r.doc, r.version) : null;
+          }).then(function(m) {
+            if (m) meta = m;
+          });
+        } else if (dirty[pageId]) {
+          steps = steps.then(function() {
+            return push(meta.id, pageId);
+          }).then(function(m) {
+            if (m) meta = m;
+          });
+        }
+      });
+      (meta.pages || []).forEach(function(p) {
+        if (cloudV[p.id] == null) steps = steps.then(function() {
+          return push(meta.id, p.id);
+        }).then(function(m) {
+          if (m) meta = m;
+        });
+      });
+      if (dirty.meta) steps = steps.then(function() {
+        return cloudGroupFor(meta);
+      }).then(function(g) {
+        return pushMeta(sb, meta, g);
+      }).then(function() {
+        var d = Object.assign({}, meta.cloudDirty || {});
+        delete d.meta;
+        return store.setCloud(meta.id, { cloudDirty: d });
+      });
+      return steps;
+    };
+    var sync = function() {
+      if (stopped || !sb) return Promise.resolve();
+      return later(function() {
+        say({ status: "syncing", error: "" });
+        return Promise.all([store.listProjects(), listCloud(sb), store.listGroups()]).then(function(got) {
+          var local = got[0], cloud = got[1], groups = got[2];
+          var builderMade = {};
+          groups.forEach(function(g) {
+            if (g.kind) builderMade[g.id] = true;
+          });
+          var byCloud = {};
+          local.forEach(function(m) {
+            if (m.cloud) byCloud[m.cloud] = m;
+          });
+          var steps = Promise.resolve();
+          cloud.projects.forEach(function(row) {
+            var meta = byCloud[row.id];
+            steps = steps.then(function() {
+              return meta ? level(meta, row, cloud.pages) : download(row, cloud.groups);
+            });
+          });
+          local.forEach(function(m) {
+            if (m.cloud && !cloud.projects.some(function(r) {
+              return r.id === m.cloud;
+            })) {
+              steps = steps.then(function() {
+                return store.setCloud(m.id, { cloud: null, cloudVersions: {}, cloudDirty: {}, cloudOwner: null });
+              }).then(changed);
+            } else if (!m.cloud && !(m.group && builderMade[m.group])) {
+              steps = steps.then(function() {
+                return upload(m);
+              });
+            }
+          });
+          return steps;
+        }).then(function() {
+          say({ status: "synced", at: Date.now(), error: "" });
+          if (hooks.onFilesChanged) hooks.onFilesChanged();
+        }, function(err) {
+          fail(err);
+        });
+      });
+    };
+    var markDirty = function(pid, key) {
+      return store.getProject(pid).then(function(meta) {
+        if (!meta || !meta.cloud) return null;
+        var d = Object.assign({}, meta.cloudDirty || {});
+        d[key] = true;
+        return store.setCloud(pid, { cloudDirty: d });
+      });
+    };
+    var schedule = function(key, fn) {
+      clearTimeout(timers[key]);
+      timers[key] = setTimeout(function() {
+        delete timers[key];
+        later(function() {
+          return fn().catch(fail);
+        });
+      }, PUSH_DELAY);
+    };
+    var hub = {
+      /* The local store, from watchStore. */
+      attach: function(s) {
+        store = s;
+      },
+      /* The person is in: client, who they are, and what to tell the Builder. */
+      start: function(client, h) {
+        sb = client;
+        hooks = h || {};
+        stopped = false;
+        say({ status: "syncing", error: "" });
+        return sync();
+      },
+      stop: function() {
+        stopped = true;
+        sb = null;
+        hooks = {};
+        Object.keys(timers).forEach(function(k) {
+          clearTimeout(timers[k]);
+        });
+        timers = {};
+        say({ status: "off", error: "" });
+      },
+      sync,
+      state: function() {
+        return Object.assign({}, state);
+      },
+      /* From the watched store. Stopped, each marks what's to go up later and
+         resolves once that's written; started, each schedules the send. */
+      saved: function(pid, pageId) {
+        if (stopped) return markDirty(pid, pageId).catch(function() {
+        });
+        schedule("doc:" + pid + ":" + pageId, function() {
+          return push(pid, pageId).then(function() {
+            say({ status: "synced", at: Date.now(), error: "" });
+          });
+        });
+        return void 0;
+      },
+      metaChanged: function(pid) {
+        if (stopped) return markDirty(pid, "meta").catch(function() {
+        });
+        schedule("meta:" + pid, function() {
+          return store.getProject(pid).then(function(meta) {
+            if (!meta || !meta.cloud) return null;
+            return cloudGroupFor(meta).then(function(g) {
+              return pushMeta(sb, meta, g);
+            });
+          });
+        });
+        return void 0;
+      },
+      fileMade: function(pid) {
+        if (stopped) return;
+        schedule("new:" + pid, function() {
+          return store.getProject(pid).then(function(meta) {
+            if (!meta || meta.cloud) return null;
+            var inBuilderMade = meta.group ? store.getGroup(meta.group).then(function(g) {
+              return !!(g && g.kind);
+            }) : Promise.resolve(false);
+            return inBuilderMade.then(function(skip) {
+              return skip ? null : upload(meta);
+            });
+          });
+        });
+      },
+      pageRemoved: function(pid, pageId) {
+        if (stopped) return markDirty(pid, "meta").catch(function() {
+        });
+        later(function() {
+          return store.getProject(pid).then(function(meta) {
+            return meta && meta.cloud ? deletePage(sb, meta.cloud, pageId) : null;
+          }).catch(fail);
+        });
+        return hub.metaChanged(pid);
+      },
+      fileDeleted: function(meta) {
+        if (stopped || !meta || !meta.cloud) return;
+        later(function() {
+          return deleteCloudFile(sb, meta.cloud).catch(fail);
+        });
+      },
+      groupChanged: function(gid) {
+        if (stopped) return;
+        schedule("group:" + gid, function() {
+          return store.getGroup(gid).then(function(g) {
+            if (!g) return null;
+            if (g.cloud) return renameCloudGroup(sb, g.cloud, g.name);
+            return createCloudGroup(sb, g.name).then(function(id) {
+              return store.setGroupCloud(gid, id);
+            });
+          });
+        });
+      },
+      groupDeleted: function(g) {
+        if (stopped || !g || !g.cloud) return;
+        later(function() {
+          return deleteCloudGroup(sb, g.cloud).catch(fail);
+        });
+      }
+    };
+    return hub;
+  }
+  function watchStore(store, hub) {
+    hub.attach(store);
+    var w = Object.assign({}, store);
+    var told = function(note3, out) {
+      return Promise.resolve(note3).then(function() {
+        return out;
+      });
+    };
+    w.saveDoc = function(id, doc2, page, opts) {
+      return store.saveDoc(id, doc2, page).then(function(meta) {
+        return told(opts && opts.quiet ? null : hub.saved(id, page || "main"), meta);
+      });
+    };
+    META_CALLS.forEach(function(name) {
+      w[name] = function(id) {
+        var args = arguments;
+        return store[name].apply(store, args).then(function(out) {
+          return told(hub.metaChanged(id), out);
+        });
+      };
+    });
+    w.addPage = function(id) {
+      var a = arguments;
+      return store.addPage.apply(store, a).then(function(meta) {
+        var pg = meta && meta.pages && meta.pages[meta.pages.length - 1];
+        return told(Promise.all([hub.metaChanged(id), pg ? hub.saved(id, pg.id) : null]), meta);
+      });
+    };
+    w.duplicatePage = function(id) {
+      var a = arguments;
+      return store.duplicatePage.apply(store, a).then(function(out) {
+        return told(Promise.all([hub.metaChanged(id)].concat((out && out.pages || []).map(function(p) {
+          return hub.saved(id, p.id);
+        }))), out);
+      });
+    };
+    w.deletePage = function(id, pageId) {
+      return store.deletePage(id, pageId).then(function(out) {
+        return told(hub.pageRemoved(id, pageId), out);
+      });
+    };
+    w.createProject = function() {
+      var a = arguments;
+      return store.createProject.apply(store, a).then(function(meta) {
+        hub.fileMade(meta.id);
+        return meta;
+      });
+    };
+    w.duplicateProject = function() {
+      var a = arguments;
+      return store.duplicateProject.apply(store, a).then(function(meta) {
+        if (meta) hub.fileMade(meta.id);
+        return meta;
+      });
+    };
+    w.moveFile = function(id, group2) {
+      return store.moveFile(id, group2).then(function(meta) {
+        return told(hub.metaChanged(id), meta);
+      });
+    };
+    w.deleteProject = function(id) {
+      return store.getProject(id).then(function(meta) {
+        return store.deleteProject(id).then(function(out) {
+          hub.fileDeleted(meta);
+          return out;
+        });
+      });
+    };
+    w.createGroup = function() {
+      var a = arguments;
+      return store.createGroup.apply(store, a).then(function(g) {
+        if (!(g && g.kind)) hub.groupChanged(g.id);
+        return g;
+      });
+    };
+    w.renameGroup = function(id) {
+      var a = arguments;
+      return store.renameGroup.apply(store, a).then(function(g) {
+        hub.groupChanged(id);
+        return g;
+      });
+    };
+    w.deleteGroup = function(id, keep) {
+      return store.getGroup(id).then(function(g) {
+        return store.deleteGroup(id, keep).then(function(out) {
+          hub.groupDeleted(g);
+          return out;
+        });
+      });
+    };
+    w.duplicateGroup = function(id) {
+      return store.duplicateGroup(id).then(function(g) {
+        if (g) {
+          hub.groupChanged(g.id);
+        }
+        return g;
+      });
+    };
+    return w;
+  }
+
   // assets/builder/main.js
   if (mountEl && window.DovetailBuilderData && window.React && window.ReactDOM) {
     installTips();
-    openStore().then(function(store) {
+    openStore().then(function(local) {
+      var mirror = createMirrorHub();
+      var store = watchStore(local, mirror);
       return openStart(store).then(function(init) {
         mountEl.textContent = "";
-        ReactDOM.createRoot(mountEl).render(e(App, { init, store }));
+        ReactDOM.createRoot(mountEl).render(e(App, { init, store, mirror }));
       });
     }).catch(function(err) {
       mountEl.textContent = "The builder couldn't open: " + (err && err.message ? err.message : err) + ". Reload to try again.";
