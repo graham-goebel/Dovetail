@@ -35,6 +35,10 @@ import { addPlayground } from "../model/playground.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { invite as inviteToFile, listPeople, removeMember, withdraw as withdrawInvite } from "../cloud/sharing.js";
 import { ShareDialog } from "./Share.js";
+import { createSync, topicFor } from "../cloud/sync.js";
+import { supabaseTransport } from "../cloud/client.js";
+import { TAB, othersFrom } from "../cloud/live.js";
+import { colorFor } from "./People.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid, constrain, H_PINS, V_PINS, GUIDES_MAX, COLUMNS_MAX, columnsOf } from "../model/tree.js";
 import { detachAll, holdsInstanceOf, masterOf, rebase, updateInstances } from "../model/instances.js";
 import { codeWithComponents } from "../model/codegen.js";
@@ -370,6 +374,42 @@ function App(props) {
   }, [account.status]);
   /* An invite accepted at sign-in: the shared files come down straight away. */
   useEffect(function () { if (mirror && account.joined) mirror.sync(); }, [account.joined]);
+
+  /* Live editing: signed in, each open page of a cloud file has a channel
+     that carries every edit to everyone else on it, and who's there (the
+     top bar's people). Their edits land on the canvas without a step in
+     this history; an edit too big for a message is saved and the others
+     load the page. */
+  var syncRef = useRef(null);
+  var liveSt = useState(0), liveTick = liveSt[0], setLiveTick = liveSt[1];
+  var othersSt = useState([]), others = othersSt[0], setOthers = othersSt[1];
+  var receiveRef = useRef(null);
+  useEffect(function () {
+    if (account.status !== "in" || !account.account) return undefined;
+    var live = true, me = account.account;
+    getClient().then(function (sb) {
+      if (!live) return;
+      syncRef.current = createSync({ transport: supabaseTransport(sb), clientId: me.id + ":" + TAB,
+        onRemote: function (changes) { if (receiveRef.current) receiveRef.current(changes); },
+        onReload: function () { if (mirror) mirror.sync(); },
+        onPeers: function (list) { setOthers(othersFrom(list, me.id)); } });
+      setLiveTick(function (t) { return t + 1; });
+    }, function () {});
+    return function () { live = false; if (syncRef.current) { syncRef.current.leave(); syncRef.current = null; } setOthers([]); };
+  }, [account.status]);
+  useEffect(function () {
+    var live = syncRef.current, me = account.account;
+    if (!live) return;
+    if (me && project.cloud && pageId) live.join(topicFor(project.cloud, pageId), { id: me.id, name: me.email, color: colorFor(me.id) });
+    else live.leave();
+  }, [liveTick, project.cloud, pageId]);
+  /* One step's changes to everyone else; too big, the page goes up and
+     they load it. */
+  var liveSend = function (changes) {
+    var live = syncRef.current;
+    if (!live || live.send(changes)) return;
+    flush().then(function () { return mirror ? mirror.sync() : null; }).then(function () { live.reload(); }, function () {});
+  };
   /* Live or practice, as this browser has it; the panel's menu switches it. */
   var asModeState = useState(assistantMode(false));
   /* Signed in with the cloud connected, the assistant is live unless practice
@@ -1271,6 +1311,7 @@ function App(props) {
     history.current.past.push({ redo: redo, undo: invert(redo) });
     if (history.current.past.length > HISTORY_MAX) history.current.past.shift();
     history.current.future = [];
+    liveSend(redo);
   }, []);
   var commit = useCallback(function (next, nextSel, message) {
     next = freeze(next, true);
@@ -1330,6 +1371,7 @@ function App(props) {
     var step = h.past.pop();
     h.future.push(step);
     place(step.undo);
+    liveSend(step.undo);
     announce("Undone");
   }, [announce, place]);
   var redo = useCallback(function () {
@@ -1338,11 +1380,13 @@ function App(props) {
     var step = h.future.pop();
     h.past.push(step);
     place(step.redo);
+    liveSend(step.redo);
     announce("Redone");
   }, [announce, place]);
   /* Changes made somewhere else (later, by someone sharing the canvas):
      they land on the canvas, and your own history is left as it is. */
   var receive = useCallback(function (changes) { place(changes); }, [place]);
+  receiveRef.current = receive;
 
   /* Every change is saved to its project straight away, in order: while one
      save is being written the latest document waits, and only the newest is
@@ -1383,7 +1427,7 @@ function App(props) {
   /* For the checks: the document and project on screen, and a way to wait
      for the save. */
   useEffect(function () {
-    window.__builder = { doc: function () { return docRef.current; }, project: function () { return projectRef.current; }, library: function () { return libRef.current; }, flush: flush, store: store, mirror: mirror,
+    window.__builder = { doc: function () { return docRef.current; }, project: function () { return projectRef.current; }, library: function () { return libRef.current; }, flush: flush, store: store, mirror: mirror, live: function () { return syncRef.current; },
       /* The assistant's checks on a frame (the active one by default), as the lint tool runs them. */
       checks: function (fid) { return runChecks(fid || docRef.current.active); },
       /* One prop on one layer, through the same undoable change a control makes. */
@@ -6656,7 +6700,7 @@ function App(props) {
       /* Saving is quiet; the bar speaks up only when this browser can't keep the work. */
       saved.ok ? null : e("span", { className: "bd-saved is-error", title: savedTitle, role: "status" }, e(Icon, { name: "alert" }), e("span", { className: "bd-saved-text" }, "Not saved")),
       /* Who's on the file: you, and others once live editing brings them. */
-      e(People, { account: account, others: [], onOpen: account.status === "in" ? openShare : openAccount }),
+      e(People, { account: account, others: others, onOpen: account.status === "in" ? openShare : openAccount }),
       e("button", { type: "button", className: "bd-act", title: "Play: see " + frame.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame.id], onClick: function () { openPlay(); } }, e(Icon, { name: "play" })),
       e("button", { type: "button", className: "bd-act", "aria-pressed": String(preview), title: "Preview: use the components (Esc to stop)", "aria-label": "Preview", onClick: actions.preview }, e(Icon, { name: "eye" })),
       e("button", { type: "button", className: "bd-btn bd-btn-primary bd-export", onClick: openCode, disabled: !ready[frame.id], "aria-label": "Export", title: "Export: code, a picture, the layout or a link" }, e(Icon, { name: "exportOut" }))));

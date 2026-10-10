@@ -143,15 +143,30 @@ sync; live editing on it is the next step.
 ## Live editing
 
 Each edit in the Builder is already a small list of changes (the same ones its
-undo history keeps). Once live editing is on, on a shared page the Builder sends each list to everyone
-else on that page's channel, and applies theirs as they arrive, without adding
-them to its own undo history. Changes to different things all survive, in any
-order; on the very same field, the last to arrive wins. Undo takes back only
-your own edits. A change too big for one message (a large uploaded image, say)
-is saved with the page instead, and everyone else loads it.
+undo history keeps). Signed in, each open page of a file in the cloud has a
+private Realtime channel (`project:<file id>:<page id>`, which the database's
+policies open to the file's members). The Builder sends each list to everyone
+else on that channel, and applies theirs as they arrive, without adding them to
+its own undo history. Changes to different things all survive, in any order;
+on the very same field, the last to arrive wins. Undo takes back only your own
+edits. A change too big for one message (a large uploaded image, say) is saved
+with the page instead, and everyone else loads it.
 
-`npm run check:unit` runs the sync engine against an in-memory channel:
-`tools/check/unit/sync.test.mjs`.
+**Who's there.** The channel's presence carries each person's account id and
+address; the people in the top bar show everyone else on the open page, one
+avatar per person however many tabs they have open, and the avatars open Share.
+
+**With the mirror.** Each person's Builder still saves the page it sees to the
+cloud (the mirror, above). Two people editing the same page converge through
+the channel, so when one save finds the other's ahead, the copies are the same
+and the version is simply taken. If they differ for a moment, the cloud's copy
+wins and the local one is kept under Versions, as for any conflict.
+
+`npm run check:unit` runs the sync engine against an in-memory channel
+(`tools/check/unit/sync.test.mjs`) and the presence list
+(`tools/check/unit/live.test.mjs`). The Builder check's account step joins a
+page's channel against a stand-in, has someone else join, takes their edit and
+sends one.
 
 ## The assistant
 
@@ -228,9 +243,8 @@ The Builder's design assistant reads context (docs and skills) and makes changes
 
 Built: the schema and its tests, signing in and out, new accounts with a
 confirmed email, password resets, invites accepted on sign-in, files kept in
-the cloud and brought level on sign-in, the assistant and live agent
-sessions, and the sync engine for live editing. The Builder fetches nothing
-until the address and key are set.
+the cloud and brought level on sign-in, sharing a file, live editing with
+presence on its pages, the assistant and live agent sessions. The Builder
+fetches nothing until the address and key are set.
 
-Next: live editing and presence on shared pages, and conversations shared in
-a file.
+Next: conversations shared in a file.
