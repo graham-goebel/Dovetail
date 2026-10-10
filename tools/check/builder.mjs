@@ -5795,10 +5795,10 @@ try {
     expect(fit(laptop), `the shell fills to the foot and the panels float inside it under the header with a clear foot, got ${JSON.stringify(laptop)}`);
     /* A tablet in landscape: the same page at its width, with a touch screen
        and no hover, which is what the rules for coarse pointers look at. */
-    const tablet = await page.evaluate(() => null).then(async () => { await page.setViewportSize({ width: 1180, height: 820 }); await page.waitForFunction(() => innerWidth === 1180); return places(); });
+    const tablet = await page.evaluate(() => null).then(async () => { await page.setViewportSize({ width: 1180, height: 820 }); await page.waitForFunction(() => innerWidth === 1180 && innerHeight === 820 && Math.round(document.querySelector(".bd-shell").getBoundingClientRect().bottom) === 820); return places(); });
     expect(fit(tablet), `at a tablet with touch the same holds, got ${JSON.stringify(tablet)}`);
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.waitForFunction(() => innerWidth === 1440);
+    await page.waitForFunction(() => innerWidth === 1440 && Math.round(document.querySelector(".bd-shell").getBoundingClientRect().bottom) === 900);
     ok("the panels float inside the shell, under the header and above its foot, at a laptop and a tablet");
     const width = (side) => page.evaluate((s) => { const el = document.querySelector(".bd-shell > .bd-" + s); return el && el.offsetParent ? Math.round(el.getBoundingClientRect().width) : 0; }, side);
     const value = (side) => page.locator(".bd-panel-edge.is-" + side).getAttribute("aria-valuenow");
