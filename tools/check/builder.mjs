@@ -1688,7 +1688,7 @@ try {
     await page.close();
   });
 
-  await step("Carousel: its items lie flat while editing, take drops and edits, export as children, and move in Play", async () => {
+  await step("Carousel: drawn as it looks until it's being edited, when its items lie flat, take drops and edits, export as children, and move in Play", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     const carousel = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())).frames[0].root.children.find((c) => c.type === "Carousel"));
     await startFrom(page, "Blank frame");
@@ -1738,6 +1738,22 @@ try {
     ok("a component added with the Carousel selected becomes an item, and a drop between items lands between them");
 
     await release(page);
+    await page.keyboard.press("Escape");
+    /* Nothing selected, the canvas draws the real carousel, held still, so
+       it looks as it will in Play; picking an item opens it flat again. */
+    await frame().waitForFunction(() => !document.querySelector(".bf-carousel-board") && document.querySelectorAll('[aria-roledescription="carousel"] [data-carousel-item]').length === 6);
+    const still = await frame().evaluate(async () => {
+      const at = () => [...document.querySelectorAll("[data-carousel-item]")].map((el) => el.getAttribute("style") || "").join("|");
+      const a = at();
+      await new Promise((r) => setTimeout(r, 600));
+      return { same: a === at(), items: document.querySelectorAll('[data-carousel-item] [data-bf-type="Cover"]').length };
+    });
+    expect(still.same && still.items === 5, `with nothing selected the real coverflow is drawn, its items in place and still, got ${JSON.stringify(still)}`);
+    const real = await canvasPoint(page, '[data-carousel-item] [data-bf-type="Cover"]');
+    await page.mouse.click(real.x, real.y);
+    await page.waitForFunction(() => /Cover/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await frame().waitForSelector(".bf-carousel-board");
+    ok("with nothing selected the canvas shows the real carousel, held still; picking an item lays it flat for editing");
     await page.keyboard.press("Escape");
     await page.locator(".bd-export").click();
     const code = await page.locator(".bd-code-pre code").textContent();
