@@ -184,7 +184,8 @@ The Builder's design assistant reads context (docs and skills) and makes changes
 2. Deploy the function: `supabase functions deploy assistant`.
 3. Set its secrets in the dashboard (Edge Functions > Secrets) or with `supabase secrets set`:
    - **`ANTHROPIC_API_KEY`**: required. Set it there only; never put it in the repository, a page or a chat.
-   - **`ASSISTANT_HOURLY_LIMIT`**: optional, 60 requests per person per hour by default.
+   - **`ASSISTANT_HOURLY_LIMIT`**: optional, 60 messages per person per hour by default. A message often takes several requests (the model calls tools, the Builder runs them and sends the results back); those follow-on rounds don't count here, and a reply that's under way never stops for this limit.
+   - **`ASSISTANT_HOURLY_ROUNDS`**: optional, 600 requests of any kind per person per hour by default: a ceiling on tool rounds too, so a runaway loop can't run up the bill.
    - **`ASSISTANT_ORIGINS`**: optional, the sites allowed to call the function, comma-separated (for example `https://graham-goebel.github.io`).
 
 **Who reads what:**
