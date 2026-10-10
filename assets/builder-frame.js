@@ -534,7 +534,9 @@
     var Comp = NS[node.type];
     if (!Comp) return e("div", { key: node.id, className: "bf-error", "data-bf-id": node.id }, "Unknown component " + node.type);
     var p = propsOf(node);
-    if (node.type === "Carousel" && !opts.preview) { p.paused = true; p.entrance = false; }
+    /* Held still: paused stops it moving between items, and no expression
+       stops the drift it has at rest. */
+    if (node.type === "Carousel" && !opts.preview) { p.paused = true; p.entrance = false; p.expression = "none"; }
     /* Its slots, rendered into the props they stand for. */
     slotsOf(node).forEach(function (sl) {
       index[sl.id] = { node: sl, parent: node.id };
@@ -562,8 +564,11 @@
     var shape = typeof p.itemRatio === "number" && p.itemRatio > 0 ? String(p.itemRatio) : ITEM_SHAPE[p.itemRatio] || ITEM_SHAPE.square;
     var size = typeof p.itemSize === "number" && p.itemSize > 0 ? Math.max(0.5, Math.min(2, p.itemSize)) : 1;
     var dark = node.style && node.style.dark;
+    /* As tall as the real carousel was, so opening it for editing doesn't
+       move the page under it. */
+    var tall = carouselHeights[node.id];
     return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Carousel", "data-bf-free": isFree(node.style) ? "" : undefined, style: { display: "contents" } },
-      e("div", { className: "bf-carousel-board" + (dark ? " dark" : ""), style: Object.assign({ "--bf-carousel-size": size }, styleFor(node.style) || {}), role: "group", "aria-label": (p.label || "Carousel") + ", laid flat while editing" },
+      e("div", { className: "bf-carousel-board" + (dark ? " dark" : ""), style: Object.assign({ "--bf-carousel-size": size, minHeight: tall ? tall + "px" : undefined, boxSizing: "border-box" }, styleFor(node.style) || {}), role: "group", "aria-label": (p.label || "Carousel") + ", laid flat while editing" },
         e("div", { className: "bf-carousel-head" },
           e("strong", null, p.label || "Carousel"),
           e("span", null, (p.layout || "ring") + " · " + items.length + (items.length === 1 ? " item" : " items")),
@@ -576,6 +581,8 @@
 
   var current = null;
   var opts = {};
+  /* Each real carousel's drawn height, by id, for its flat view. */
+  var carouselHeights = {};
 
   /* React commits on its own schedule, so the builder hears about a new
      layout from here, after the canvas has really changed. */
@@ -590,6 +597,10 @@
           Array.prototype.forEach.call(rootEl.querySelectorAll("[data-bf-free] > *"), function (el) { need = Math.max(need, el.getBoundingClientRect().bottom - top); });
         }
         rootEl.style.minHeight = need ? Math.ceil(need) + "px" : "";
+        Array.prototype.forEach.call(rootEl.querySelectorAll('[data-bf-type="Carousel"]'), function (w) {
+          var drawn = w.firstElementChild;
+          if (drawn && !drawn.classList.contains("bf-carousel-board")) carouselHeights[w.getAttribute("data-bf-id")] = Math.round(drawn.getBoundingClientRect().height);
+        });
       }
       if (host()) host().moved();
     });

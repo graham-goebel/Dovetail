@@ -1741,9 +1741,14 @@ try {
     await page.keyboard.press("Escape");
     /* Nothing selected, the canvas draws the real carousel, held still, so
        it looks as it will in Play; picking an item opens it flat again. */
+    /* With motion allowed, as on most devices: held still means no drift. */
+    await page.emulateMedia({ reducedMotion: "no-preference" });
     await frame().waitForFunction(() => !document.querySelector(".bf-carousel-board") && document.querySelectorAll('[aria-roledescription="carousel"] [data-carousel-item]').length === 6);
+    await page.waitForTimeout(300);
+    const frameTall = () => page.evaluate(() => Math.round(document.querySelector("iframe.bd-frame").getBoundingClientRect().height));
+    const realTall = await frameTall();
     const still = await frame().evaluate(async () => {
-      const at = () => [...document.querySelectorAll("[data-carousel-item]")].map((el) => el.getAttribute("style") || "").join("|");
+      const at = () => [...document.querySelectorAll("[data-carousel-item]")].map((el) => getComputedStyle(el).transform + "/" + getComputedStyle(el).opacity).join("|");
       const a = at();
       await new Promise((r) => setTimeout(r, 600));
       return { same: a === at(), items: document.querySelectorAll('[data-carousel-item] [data-bf-type="Cover"]').length };
@@ -1753,7 +1758,11 @@ try {
     await page.mouse.click(real.x, real.y);
     await page.waitForFunction(() => /Cover/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     await frame().waitForSelector(".bf-carousel-board");
-    ok("with nothing selected the canvas shows the real carousel, held still; picking an item lays it flat for editing");
+    await page.waitForTimeout(200);
+    const flatTall = await frameTall();
+    expect(Math.abs(flatTall - realTall) <= 1, `laying it flat keeps its height, so the page under it doesn't jump, got ${realTall} then ${flatTall}`);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    ok("with nothing selected the canvas shows the real carousel, held still with motion allowed; picking an item lays it flat at the same height");
     await page.keyboard.press("Escape");
     await page.locator(".bd-export").click();
     const code = await page.locator(".bd-code-pre code").textContent();
