@@ -5602,9 +5602,173 @@
     return { lines, alike };
   }
 
+  // assets/builder/model/instances.js
+  var FLAGS = ["name", "hide", "lock"];
+  function same3(a, b) {
+    return a === b || JSON.stringify(a) === JSON.stringify(b);
+  }
+  function diffObj(a, b, skip) {
+    var out = null;
+    a = a || {};
+    b = b || {};
+    Object.keys(a).concat(Object.keys(b)).forEach(function(k) {
+      if (skip && skip.indexOf(k) >= 0) return;
+      if (out && k in out) return;
+      if (!same3(a[k], b[k])) {
+        out = out || {};
+        out[k] = b[k];
+      }
+    });
+    return out;
+  }
+  function lined(as, bs) {
+    if (as.length !== bs.length) return false;
+    return as.every(function(c, i) {
+      return c.type === bs[i].type && (c.type !== "Slot" || c.props.name === bs[i].props.name);
+    });
+  }
+  function at(node, path) {
+    if (!path) return node;
+    var n = node;
+    var parts = path.split("/");
+    for (var i = 0; i < parts.length; i++) {
+      n = n && n.children ? n.children[Number(parts[i])] : null;
+      if (!n) return null;
+    }
+    return n;
+  }
+  function overrides(inst, master) {
+    var out = [];
+    (function walk2(a, b, path) {
+      var o = { path };
+      var props = diffObj(b.props, a.props);
+      var style = diffObj(b.style, a.style, path === "" ? ["x", "y", "ch", "cv"] : null);
+      if (props) o.props = props;
+      if (style) o.style = style;
+      if (path !== "") {
+        var flags = null;
+        FLAGS.forEach(function(k) {
+          if (!same3(a[k], b[k])) {
+            flags = flags || {};
+            flags[k] = a[k];
+          }
+        });
+        if (flags) o.flags = flags;
+      }
+      var ak = a.children || [], bk = b.children || [];
+      if (a.children && !lined(ak, bk)) o.children = copy(ak);
+      else ak.forEach(function(c, i) {
+        walk2(c, bk[i], path ? path + "/" + i : String(i));
+      });
+      if (o.props || o.style || o.flags || o.children) out.push(o);
+    })(inst, master, "");
+    return out;
+  }
+  function reid(n) {
+    var c = copy(n);
+    (function walk2(x) {
+      x.id = uid();
+      (x.children || []).forEach(walk2);
+    })(c);
+    return c;
+  }
+  function setKeys(target2, patch) {
+    Object.keys(patch).forEach(function(k) {
+      if (patch[k] === void 0) delete target2[k];
+      else target2[k] = patch[k];
+    });
+  }
+  function applyOverrides(master, ovs) {
+    var out = reid(master);
+    ovs.forEach(function(o) {
+      var n = at(out, o.path);
+      if (!n) return;
+      if (o.props) {
+        n.props = n.props || {};
+        setKeys(n.props, o.props);
+      }
+      if (o.style) {
+        n.style = n.style || {};
+        setKeys(n.style, o.style);
+      }
+      if (o.flags) setKeys(n, o.flags);
+      if (o.children && n.children) n.children = copy(o.children);
+    });
+    return out;
+  }
+  function rebase(inst, was, next, rev) {
+    var out = applyOverrides(next, overrides(inst, was || next));
+    out.id = inst.id;
+    FLAGS.forEach(function(k) {
+      if (inst[k] !== void 0) out[k] = inst[k];
+      else delete out[k];
+    });
+    out.style = out.style || {};
+    if (inst.style && inst.style.x !== void 0) {
+      out.style.x = inst.style.x;
+      out.style.y = inst.style.y;
+      ["ch", "cv"].forEach(function(k) {
+        if (inst.style[k]) out.style[k] = inst.style[k];
+        else delete out.style[k];
+      });
+    } else {
+      delete out.style.x;
+      delete out.style.y;
+      delete out.style.ch;
+      delete out.style.cv;
+    }
+    out.inst = { of: inst.inst.of, rev };
+    return out;
+  }
+  function instancesOf(doc2, compId) {
+    var out = [];
+    doc2.frames.forEach(function(f) {
+      (function walk2(n) {
+        (n.children || []).forEach(function(c, i) {
+          if (c.inst && c.inst.of === compId) out.push({ fid: f.id, parent: n, index: i, node: c });
+          else walk2(c);
+        });
+      })(f.root);
+    });
+    return out;
+  }
+  function updateInstances(doc2, compId, was, next, rev, exceptId) {
+    var hits = instancesOf(doc2, compId), n = 0;
+    hits.forEach(function(h) {
+      if (h.node.id === exceptId) {
+        h.node.inst = { of: compId, rev };
+        return;
+      }
+      h.parent.children[h.index] = rebase(h.node, was, next, rev);
+      n++;
+    });
+    return n;
+  }
+  function detachAll(doc2, compId) {
+    var hits = instancesOf(doc2, compId);
+    hits.forEach(function(h) {
+      delete h.node.inst;
+    });
+    return hits.length;
+  }
+  function masterOf(library, node) {
+    if (!node || !node.inst || !library) return null;
+    return (library.components || []).filter(function(c) {
+      return c.id === node.inst.of;
+    })[0] || null;
+  }
+  function holdsInstanceOf(node, compId) {
+    return (node.children || []).some(function(c) {
+      return c.inst && c.inst.of === compId || holdsInstanceOf(c, compId);
+    });
+  }
+
   // assets/builder/model/agent.js
   var FAMILIES = Object.keys(DATA.tokens);
-  var BATCHABLE = ["set_style", "set_prop", "set_text", "insert_jsx", "replace_jsx", "insert_layout", "move", "wrap", "duplicate", "rename", "remove"];
+  var BATCHABLE = ["set_style", "set_prop", "set_text", "insert_jsx", "replace_jsx", "insert_layout", "insert_instance", "move", "wrap", "duplicate", "rename", "remove"];
+  var TEMPLATES = STARTERS.filter(function(st) {
+    return st[0] !== "blank";
+  });
   var TOOLS = [
     { name: "list_pages", description: "The file's pages (the current one marked), and the frames on the current page with their ids, sizes and layer counts.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
     { name: "read_page", description: "An outline of every layer on a page: one line each, indented by depth, with its id, type, name, text, props and style tokens. Reads the current page unless page names another; frame narrows it to one frame. Read it before changing anything beyond the selection.", input_schema: { type: "object", properties: { page: { type: "string" }, frame: { type: "string" } }, additionalProperties: false } },
@@ -5624,6 +5788,14 @@
     { name: "find_images", description: `Find pictures for the page: first in this file's Content uploads (images and illustrations), by words in their names, each as content:<id>; when none fits and stock photos are set up, it searches stock photos for the query instead, each as stock:<id> with what it shows and who took it. Use the id wherever a picture goes: an Image's or Cover's src, a layout's image field, or a prop set with set_prop. Prefer the person's own uploads; describe a stock search in a few plain words ("stoneware mug on a table").`, input_schema: { type: "object", properties: { query: { type: "string" }, orientation: { type: "string", enum: ["landscape", "portrait", "squarish"] } }, additionalProperties: false } },
     { name: "search_layouts", description: "Find tested section layouts to build with: heroes, features, stories, proof, showcases, steps, questions and closes, each with its mood, when it fits and the content fields it takes. Filter by kind (" + KINDS.join(", ") + ") or words such as bold, calm, editorial, moving. Nothing given lists them all.", input_schema: { type: "object", properties: { query: { type: "string" }, kind: { type: "string", enum: KINDS } }, additionalProperties: false } },
     { name: "insert_layout", description: "Add a section from search_layouts, filled with your content: into a container at an index, after the selection when parent is omitted, or in place of a layer with replace. content takes the layout's fields (eyebrow, title, lead, action, secondary, image, items, stats, quotes, points, faqs, steps, slides); anything left out gets sample copy, so give real copy for every field the layout lists.", input_schema: { type: "object", properties: { id: { type: "string" }, content: { type: "object" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 }, replace: { type: "string" } }, required: ["id"], additionalProperties: false } },
+    { name: "insert_template", description: "Start from one of the builder's templates, the same ones the person adds from Assets: " + TEMPLATES.map(function(st) {
+      return st[0] + " (" + st[1].toLowerCase() + ")";
+    }).join(", ") + ". Its sections go at the end of the frame you're in, or into parent at index; new_frame puts it in a frame of its own beside yours instead and makes that the one you're in. Its copy is sample copy: set the person's own words after, with set_text or set_prop.", input_schema: { type: "object", properties: { id: { type: "string", enum: TEMPLATES.map(function(st) {
+      return st[0];
+    }) }, new_frame: { type: "boolean" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["id"], additionalProperties: false } },
+    { name: "list_components", description: "The file's own components, from My components: each one's id, name, what it's made of, how many layers, the tokens it's built on and how many instances this page has. Reuse them before building the same thing again.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+    { name: "insert_instance", description: "Put down one of the file's own components (an id from list_components) as a linked instance: when the component is updated, the instance follows. Into a container at an index, after the selection when parent is omitted, or in place of a layer with replace. Change its text with set_text like any layer.", input_schema: { type: "object", properties: { id: { type: "string" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 }, replace: { type: "string" } }, required: ["id"], additionalProperties: false } },
+    { name: "make_component", description: "Turn a layer into one of the file's own components, named, so it can be reused with insert_instance. The layer becomes its first instance. It must be built on the system's tokens, with no custom colours and nothing placed by position inside it. Do it when the person asks, or when a part repeats on the page and they agree.", input_schema: { type: "object", properties: { id: { type: "string" }, name: { type: "string" } }, required: ["id", "name"], additionalProperties: false } },
     { name: "set_text", description: "Set a layer's text: a heading's or a paragraph's words, a button's label, a card's title.", input_schema: { type: "object", properties: { id: { type: "string" }, text: { type: "string" } }, required: ["id", "text"], additionalProperties: false } },
     { name: "move", description: "Move layers into a container, at an index (the end when omitted), in the order given.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["ids", "parent"], additionalProperties: false } },
     { name: "wrap", description: "Put a layer inside a new container of the given type, or several sibling layers inside one Group.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, type: { type: "string", enum: WRAPS } }, required: ["ids"], additionalProperties: false } },
@@ -5766,6 +5938,7 @@
       "- When the brand or the context matters (a component's product or marketing variant, the voice of copy), read_theme first; read_guideline for the rules on a topic.",
       "- A new page starts with create_frame (structured for web pages, a social preset for posts), then fills its Content group.",
       "- Build sections from the layouts library: search_layouts for the kind of section and the mood asked for, then insert_layout with real copy for its fields (replace to swap one in for an existing section). Write JSX only for what no layout covers. A page reads best when its sections vary: alternate light and dark or brand bands, and don't repeat a layout.",
+      "- Reuse what the file already has. list_components shows its own components (My components); put one down with insert_instance rather than building it again, and when a part you built repeats, offer make_component. When the ask matches a template (a landing page, a store page, a settings form, a support chat), insert_template gives you its sections to start from; then set the person's copy in place of the sample copy.",
       "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
       "- Write real, short copy in the brand's voice. Never lorem ipsum.",
       "- Use the person's pictures: find_images lists their Content uploads; put one in with its content:<id> wherever a picture goes (a layout's image field, an Image or Cover src). Leave a placeholder only when nothing fits.",
@@ -5802,6 +5975,24 @@
     var big = size === "frame" || size > PLAN_OVER;
     if (!big || !api.needsPlan()) return null;
     return { ok: false, result: (size === "frame" ? "A new frame" : "Adding " + size + " layers") + " is a big change. Call propose_plan first and wait for the person's answer." };
+  }
+  function ownComponents(api) {
+    var lib = api.library ? api.library() || {} : {};
+    return (lib.components || []).filter(function(c) {
+      return c && c.id && c.node;
+    });
+  }
+  function instanceNode(comp) {
+    var n = cleanNode(JSON.parse(JSON.stringify(comp.node)), null);
+    if (!n) return null;
+    n = fresh(n);
+    delete n.style.x;
+    delete n.style.y;
+    delete n.style.ch;
+    delete n.style.cv;
+    n.name = comp.name;
+    n.inst = { of: comp.id, rev: comp.rev || 1 };
+    return n;
   }
   function added(nodes) {
     return nodes.reduce(function(a, n) {
@@ -6157,6 +6348,90 @@
         if (r0.ok && r0.change) r0.change = Object.assign({}, r0.change, { label: input.replace ? "Rebuilt" : "Added", value: lay.name + (input.replace ? " in place of " + r0.change.value.split(" → ")[0] : "") });
         return r0;
       }
+      case "insert_template": {
+        var tpl = TEMPLATES.filter(function(st) {
+          return st[0] === input.id;
+        })[0];
+        if (!tpl) return fail("There's no template " + input.id + ". The templates are " + TEMPLATES.map(function(st) {
+          return st[0];
+        }).join(", ") + ".");
+        if (input.new_frame) {
+          if (!api.addTemplate) return fail("Templates can't be added as a frame here; put it in the frame you're in.");
+          var owed5 = owesPlan(api, "frame");
+          if (owed5) return owed5;
+          var tf = api.addTemplate(tpl[0]);
+          if (!tf) return fail("The template couldn't be added.");
+          return { ok: true, result: JSON.stringify({ frame: tf }) + " You're working in it now. read_page shows its layers; set the person's copy in place of the sample copy.", change: { ids: [], label: "Template", value: tpl[1], on: "as a new frame" } };
+        }
+        var secs = [];
+        tpl[2]().frames.forEach(function(fr2) {
+          (fr2.root.children || []).forEach(function(c) {
+            var n = fresh(c);
+            delete n.style.x;
+            delete n.style.y;
+            delete n.style.ch;
+            delete n.style.cv;
+            secs.push(n);
+          });
+        });
+        if (!secs.length) return fail("That template is empty.");
+        var owed6 = owesPlan(api, added(secs));
+        if (owed6) return owed6;
+        var into = input.parent || "root";
+        if (!locate(doc2, into)) return fail("There's no container " + input.parent + " in this frame.");
+        var ids6 = api.insert(into, typeof input.index === "number" ? input.index : null, secs);
+        if (!ids6 || !ids6.length) return fail("The template's sections can't go there.");
+        return { ok: true, result: JSON.stringify({ added: ids6 }) + " These hold sample copy: read_page and set the person's own.", change: { ids: ids6, label: "Template", value: tpl[1], on: "into " + (into === "root" ? "the frame" : nameOf3(into)) } };
+      }
+      case "list_components": {
+        var comps = ownComponents(api);
+        if (!comps.length) return { ok: true, result: "This file has no components of its own yet. make_component turns a layer into one.", step: "Looked through My components" };
+        return { ok: true, result: comps.map(function(c) {
+          var here3 = instancesOf(doc2, c.id).length;
+          var toks = c.tokens || [];
+          return c.id + " · " + c.name + " · a " + c.node.type + (c.node.children && c.node.children.length ? " holding " + c.node.children.map(function(k) {
+            return k.type;
+          }).slice(0, 6).join(", ") : "") + " · " + count2(c.node) + (count2(c.node) === 1 ? " layer" : " layers") + " · built on " + (toks.length ? toks.slice(0, 6).join(", ") + (toks.length > 6 ? "…" : "") : "no tokens") + " · " + (here3 ? here3 + (here3 === 1 ? " instance" : " instances") + " on this page" : "not on this page");
+        }).join("\n"), step: "Looked through " + comps.length + (comps.length === 1 ? " component" : " components") };
+      }
+      case "insert_instance": {
+        var comp = ownComponents(api).filter(function(c) {
+          return c.id === input.id;
+        })[0];
+        if (!comp) return fail("There's no component " + input.id + " in this file. list_components lists them.");
+        var inst = instanceNode(comp);
+        if (!inst) return fail(comp.name + " couldn't be read back.");
+        var spot = input.replace ? (locate(doc2, input.replace) || {}).path : input.parent ? (locate(doc2, input.parent) || {}).path : (function() {
+          var s0 = (api.selection ? api.selection() : [])[0];
+          var a0 = s0 && locate(doc2, s0);
+          return a0 ? a0.path.slice(0, -1) : null;
+        })();
+        if ((spot || []).some(function(a) {
+          return a.inst && a.inst.of === comp.id && a.id !== input.replace;
+        })) return fail(comp.name + " can't go inside one of its own instances. Put it beside that instance instead.");
+        if (input.replace) {
+          if (!locate(doc2, input.replace) || input.replace === "root") return fail("There's no layer " + input.replace + " in this frame.");
+          var was7 = nameOf3(input.replace);
+          var ids7 = api.replace(input.replace, [inst]);
+          if (!ids7 || !ids7.length) return fail(comp.name + " can't go there.");
+          return { ok: true, result: JSON.stringify({ added: ids7 }), change: { ids: ids7, label: "Rebuilt", value: comp.name + " in place of " + was7, on: "" } };
+        }
+        if (input.parent && !locate(doc2, input.parent)) return fail("There's no container " + input.parent + " in this frame.");
+        var ids8 = api.insert(input.parent || null, typeof input.index === "number" ? input.index : null, [inst]);
+        if (!ids8 || !ids8.length) return fail(comp.name + " can't go there.");
+        return { ok: true, result: JSON.stringify({ added: ids8 }), change: { ids: ids8, label: "Instance", value: comp.name, on: input.parent ? "in " + nameOf3(input.parent) : "" } };
+      }
+      case "make_component": {
+        if (!api.makeComponent) return fail("Components can't be made here.");
+        var mat = locate(doc2, input.id);
+        if (!mat || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
+        if (mat.node.inst) return fail(nameOf3(input.id) + " is already an instance of a component.");
+        var cname = short3(String(input.name || "").trim(), 60);
+        if (!cname) return fail("Give it a name.");
+        var madeC = api.makeComponent(input.id, cname);
+        if (!madeC || madeC.error) return fail(madeC && madeC.error || "It couldn't be made a component.");
+        return { ok: true, result: JSON.stringify({ component: madeC.id, name: madeC.name, tokens: madeC.tokens }) + " It's in My components, and " + nameOf3(input.id) + " is its first instance.", change: { ids: [input.id], label: "Component", value: madeC.name, on: "from " + nameOf3(input.id) } };
+      }
       case "set_text": {
         var tat = locate(doc2, input.id);
         if (!tat || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
@@ -6328,7 +6603,10 @@
         if (bad) return fail((bad && bad.name) + " can't run in a batch. Batch runs: " + BATCHABLE.join(", ") + ".");
         var size = list2.reduce(function(a, c) {
           var inp = c.input || {}, lay2 = c.name === "insert_layout" && layoutById(inp.id);
-          return a + (c.name === "insert_jsx" || c.name === "replace_jsx" ? added(fromJsx(inp.jsx)) : lay2 ? added(fromJsx(lay2.jsx(inp.content || {}))) : 0);
+          var own = c.name === "insert_instance" && ownComponents(api).filter(function(k) {
+            return k.id === inp.id;
+          })[0];
+          return a + (c.name === "insert_jsx" || c.name === "replace_jsx" ? added(fromJsx(inp.jsx)) : lay2 ? added(fromJsx(lay2.jsx(inp.content || {}))) : own ? count2(own.node) : 0);
         }, 0);
         var owed4 = owesPlan(api, size);
         if (owed4) return owed4;
@@ -6682,7 +6960,7 @@
   }
 
   // assets/builder/model/bridge.js
-  var READS = { list_pages: 1, read_page: 1, read_selection: 1, screenshot: 1, read_guideline: 1, read_theme: 1, lint: 1, measure: 1, search_components: 1, read_component: 1, list_tokens: 1, read_skill: 1 };
+  var READS = { list_pages: 1, read_page: 1, read_selection: 1, screenshot: 1, read_guideline: 1, read_theme: 1, lint: 1, measure: 1, search_components: 1, read_component: 1, list_tokens: 1, read_skill: 1, list_components: 1 };
   var LEFT_OUT = { propose_plan: 1, ask_user: 1, select: 1 };
   var EDIT_BY_NAME = {
     name: "edit_by_name",
@@ -6759,7 +7037,15 @@
         add(input.id);
         break;
       case "insert_jsx":
+      case "insert_template":
         add(input.parent);
+        break;
+      case "insert_instance":
+        add(input.parent);
+        add(input.replace);
+        break;
+      case "make_component":
+        add(input.id);
         break;
       case "place_image":
         add(input.id);
@@ -6838,6 +7124,14 @@
         return [{ icon: "plus", title: "New layers", detail: "Added " + (input.parent ? "in " + who([input.parent]) : "to the page") }];
       case "replace_jsx":
         return [{ icon: "plus", title: who([input.id]), detail: "Rebuilt from new layers" }];
+      case "insert_template":
+        return [{ icon: "file", title: "The " + String(input.id || "") + " template", detail: input.new_frame ? "As a new frame" : "Added " + (input.parent && input.parent !== "root" ? "in " + who([input.parent]) : "to the page") }];
+      case "insert_instance":
+        return [{ icon: "component", title: input.replace ? who([input.replace]) : "A component", detail: input.replace ? "Swapped for an instance" : "Instance added " + (input.parent && input.parent !== "root" ? "in " + who([input.parent]) : "to the page") }];
+      case "make_component":
+        return [{ icon: "component", title: who([input.id]), detail: "Made a component: " + short4(input.name, 40) }];
+      case "list_components":
+        return [{ icon: "component", title: "Listed the file's components", detail: "" }];
       case "move":
         return [{ icon: "layers2", title: who(input.ids), detail: "Moved into " + who([input.parent]) }];
       case "wrap":
@@ -14541,167 +14835,6 @@
     });
   }
 
-  // assets/builder/model/instances.js
-  var FLAGS = ["name", "hide", "lock"];
-  function same3(a, b) {
-    return a === b || JSON.stringify(a) === JSON.stringify(b);
-  }
-  function diffObj(a, b, skip) {
-    var out = null;
-    a = a || {};
-    b = b || {};
-    Object.keys(a).concat(Object.keys(b)).forEach(function(k) {
-      if (skip && skip.indexOf(k) >= 0) return;
-      if (out && k in out) return;
-      if (!same3(a[k], b[k])) {
-        out = out || {};
-        out[k] = b[k];
-      }
-    });
-    return out;
-  }
-  function lined(as, bs) {
-    if (as.length !== bs.length) return false;
-    return as.every(function(c, i) {
-      return c.type === bs[i].type && (c.type !== "Slot" || c.props.name === bs[i].props.name);
-    });
-  }
-  function at(node, path) {
-    if (!path) return node;
-    var n = node;
-    var parts = path.split("/");
-    for (var i = 0; i < parts.length; i++) {
-      n = n && n.children ? n.children[Number(parts[i])] : null;
-      if (!n) return null;
-    }
-    return n;
-  }
-  function overrides(inst, master) {
-    var out = [];
-    (function walk2(a, b, path) {
-      var o = { path };
-      var props = diffObj(b.props, a.props);
-      var style = diffObj(b.style, a.style, path === "" ? ["x", "y", "ch", "cv"] : null);
-      if (props) o.props = props;
-      if (style) o.style = style;
-      if (path !== "") {
-        var flags = null;
-        FLAGS.forEach(function(k) {
-          if (!same3(a[k], b[k])) {
-            flags = flags || {};
-            flags[k] = a[k];
-          }
-        });
-        if (flags) o.flags = flags;
-      }
-      var ak = a.children || [], bk = b.children || [];
-      if (a.children && !lined(ak, bk)) o.children = copy(ak);
-      else ak.forEach(function(c, i) {
-        walk2(c, bk[i], path ? path + "/" + i : String(i));
-      });
-      if (o.props || o.style || o.flags || o.children) out.push(o);
-    })(inst, master, "");
-    return out;
-  }
-  function reid(n) {
-    var c = copy(n);
-    (function walk2(x) {
-      x.id = uid();
-      (x.children || []).forEach(walk2);
-    })(c);
-    return c;
-  }
-  function setKeys(target2, patch) {
-    Object.keys(patch).forEach(function(k) {
-      if (patch[k] === void 0) delete target2[k];
-      else target2[k] = patch[k];
-    });
-  }
-  function applyOverrides(master, ovs) {
-    var out = reid(master);
-    ovs.forEach(function(o) {
-      var n = at(out, o.path);
-      if (!n) return;
-      if (o.props) {
-        n.props = n.props || {};
-        setKeys(n.props, o.props);
-      }
-      if (o.style) {
-        n.style = n.style || {};
-        setKeys(n.style, o.style);
-      }
-      if (o.flags) setKeys(n, o.flags);
-      if (o.children && n.children) n.children = copy(o.children);
-    });
-    return out;
-  }
-  function rebase(inst, was, next, rev) {
-    var out = applyOverrides(next, overrides(inst, was || next));
-    out.id = inst.id;
-    FLAGS.forEach(function(k) {
-      if (inst[k] !== void 0) out[k] = inst[k];
-      else delete out[k];
-    });
-    out.style = out.style || {};
-    if (inst.style && inst.style.x !== void 0) {
-      out.style.x = inst.style.x;
-      out.style.y = inst.style.y;
-      ["ch", "cv"].forEach(function(k) {
-        if (inst.style[k]) out.style[k] = inst.style[k];
-        else delete out.style[k];
-      });
-    } else {
-      delete out.style.x;
-      delete out.style.y;
-      delete out.style.ch;
-      delete out.style.cv;
-    }
-    out.inst = { of: inst.inst.of, rev };
-    return out;
-  }
-  function instancesOf(doc2, compId) {
-    var out = [];
-    doc2.frames.forEach(function(f) {
-      (function walk2(n) {
-        (n.children || []).forEach(function(c, i) {
-          if (c.inst && c.inst.of === compId) out.push({ fid: f.id, parent: n, index: i, node: c });
-          else walk2(c);
-        });
-      })(f.root);
-    });
-    return out;
-  }
-  function updateInstances(doc2, compId, was, next, rev, exceptId) {
-    var hits = instancesOf(doc2, compId), n = 0;
-    hits.forEach(function(h) {
-      if (h.node.id === exceptId) {
-        h.node.inst = { of: compId, rev };
-        return;
-      }
-      h.parent.children[h.index] = rebase(h.node, was, next, rev);
-      n++;
-    });
-    return n;
-  }
-  function detachAll(doc2, compId) {
-    var hits = instancesOf(doc2, compId);
-    hits.forEach(function(h) {
-      delete h.node.inst;
-    });
-    return hits.length;
-  }
-  function masterOf(library, node) {
-    if (!node || !node.inst || !library) return null;
-    return (library.components || []).filter(function(c) {
-      return c.id === node.inst.of;
-    })[0] || null;
-  }
-  function holdsInstanceOf(node, compId) {
-    return (node.children || []).some(function(c) {
-      return c.inst && c.inst.of === compId || holdsInstanceOf(c, compId);
-    });
-  }
-
   // assets/builder/model/codegen.js
   var OWN_STYLE = ["x", "y", "ch", "cv", "fw", "fh", "rot", "rw", "rh"];
   function isText(type, key, value2) {
@@ -16068,6 +16201,17 @@
       createFrame: function(opts) {
         return frameOps.add(null, false, null, opts);
       },
+      /* A template as a frame of its own beside yours; its frame's id. */
+      addTemplate: function(id) {
+        return addTemplate(id) || null;
+      },
+      /* A layer as one of the file's own components: { id, name, tokens }, or
+         { error } saying what stops it. */
+      makeComponent: function(id, name) {
+        var at2 = locate(docRef.current, id);
+        if (!at2) return { error: "There's no layer " + id + " in this frame." };
+        return keepComponent(copy(at2.node), name, [id]);
+      },
       useFrame: function(fid) {
         activate(fid);
       },
@@ -17050,6 +17194,10 @@
         },
         select: function(ids) {
           select([].concat(ids));
+        },
+        /* One of the assistant's tool calls, run as the assistant runs it (plans aside). */
+        tool: function(call2) {
+          return runTool(Object.assign({}, toolApi, { needsPlan: null }), call2);
         },
         /* The conversation with the assistant, as it's sent. */
         assistantMsgs: function() {
@@ -21605,39 +21753,50 @@
         return any ? void 0 : null;
       }, "Custom colours and positions taken out; it uses the system's now");
     };
-    var saveComponent = function() {
-      var node = componentSource();
-      if (!node || !compDraft) return;
+    var keepComponent = function(node, name0, ids) {
       var check5 = componentCheck(node);
-      if (check5.issues.some(function(i) {
+      var bad = check5.issues.filter(function(i) {
         return i.level === "error";
-      })) return;
-      var name = (compDraft.name || "").trim().slice(0, 60) || "My component";
+      })[0];
+      if (bad) return { error: bad.text };
+      var name = (name0 || "").trim().slice(0, 60) || "My component";
       var kept = cleanNode(copy(node), null);
-      if (!kept) return;
+      if (!kept) return { error: "It couldn't be read back." };
       delete kept.style.x;
       delete kept.style.y;
       delete kept.style.ch;
       delete kept.style.cv;
+      delete kept.inst;
       var cid = uid();
+      var entry = { id: cid, name, node: kept, tokens: check5.tokens, rev: 1, made: Date.now() };
+      libRef.current = Object.assign({}, libRef.current, { components: [entry].concat(libRef.current.components || []) });
       setLibrary(function(l) {
         var n = Object.assign({}, l);
-        n.components = [{ id: cid, name, node: kept, tokens: check5.tokens, rev: 1, made: Date.now() }].concat(l.components || []);
+        n.components = [entry].concat((l.components || []).filter(function(c) {
+          return c.id !== cid;
+        }));
         return n;
       });
-      if (compDraft.ids.length === 1) {
-        setName(compDraft.ids[0], name);
+      if (ids.length === 1) {
+        setName(ids[0], name);
         quiet(function(d) {
-          var at2 = locate(d, compDraft.ids[0]);
+          var at2 = locate(d, ids[0]);
           if (!at2) return null;
           at2.node.inst = { of: cid, rev: 1 };
           return void 0;
         });
       }
+      announce(name + " is in My components, built on " + check5.tokens.length + (check5.tokens.length === 1 ? " token" : " tokens"));
+      return { id: cid, name, tokens: check5.tokens };
+    };
+    var saveComponent = function() {
+      var node = componentSource();
+      if (!node || !compDraft) return;
+      var made = keepComponent(node, compDraft.name, compDraft.ids);
+      if (made.error) return;
       var dlg = compRef.current;
       if (dlg && dlg.open) dlg.close();
       setCompDraft(null);
-      announce(name + " is in My components, built on " + check5.tokens.length + (check5.tokens.length === 1 ? " token" : " tokens"));
     };
     var removeComponent = function(id) {
       setLibrary(function(l) {
@@ -23544,6 +23703,7 @@
       setTimeout(function() {
         if (first) showFrameRef.current(first, true);
       }, 0);
+      return first;
     };
     var isOpen = function(n) {
       return nodeIsOpen(n, collapsed);

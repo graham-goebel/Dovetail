@@ -893,6 +893,15 @@ function App(props) {
     },
     rename: function (id, name) { return change(function (d) { var at = locate(d, id); if (!at || at.node.name === name) return null; at.node.name = name; return undefined; }); },
     createFrame: function (opts) { return frameOps.add(null, false, null, opts); },
+    /* A template as a frame of its own beside yours; its frame's id. */
+    addTemplate: function (id) { return addTemplate(id) || null; },
+    /* A layer as one of the file's own components: { id, name, tokens }, or
+       { error } saying what stops it. */
+    makeComponent: function (id, name) {
+      var at = locate(docRef.current, id);
+      if (!at) return { error: "There's no layer " + id + " in this frame." };
+      return keepComponent(copy(at.node), name, [id]);
+    },
     useFrame: function (fid) { activate(fid); },
     /* A copy of a frame per label, beside it, in one step; their ids. */
     makeVariants: function (fid, labels) {
@@ -1559,6 +1568,8 @@ function App(props) {
       receive: receive, diff: diffDocs,
       /* The selection, as the checks read and set it. */
       selection: function () { return selRef.current.slice(); }, select: function (ids) { select([].concat(ids)); },
+      /* One of the assistant's tool calls, run as the assistant runs it (plans aside). */
+      tool: function (call) { return runTool(Object.assign({}, toolApi, { needsPlan: null }), call); },
       /* The conversation with the assistant, as it's sent. */
       assistantMsgs: function () { return asMsgs.current.slice(); },
       /* How many steps there are to undo and redo, and whether the project saved. */
@@ -4994,27 +5005,38 @@ function App(props) {
       return any ? undefined : null;
     }, "Custom colours and positions taken out; it uses the system's now");
   };
+  /* Keeps a node as one of the file's own components. ids: what it was made
+     from; one layer becomes its first instance. */
+  var keepComponent = function (node, name0, ids) {
+    var check = componentCheck(node);
+    var bad = check.issues.filter(function (i) { return i.level === "error"; })[0];
+    if (bad) return { error: bad.text };
+    var name = (name0 || "").trim().slice(0, 60) || "My component";
+    var kept = cleanNode(copy(node), null);
+    if (!kept) return { error: "It couldn't be read back." };
+    delete kept.style.x; delete kept.style.y; delete kept.style.ch; delete kept.style.cv; delete kept.inst;
+    var cid = uid();
+    var entry = { id: cid, name: name, node: kept, tokens: check.tokens, rev: 1, made: Date.now() };
+    /* Straight away too, so a tool call after this one finds it. */
+    libRef.current = Object.assign({}, libRef.current, { components: [entry].concat(libRef.current.components || []) });
+    setLibrary(function (l) { var n = Object.assign({}, l); n.components = [entry].concat((l.components || []).filter(function (c) { return c.id !== cid; })); return n; });
+    if (ids.length === 1) {
+      setName(ids[0], name);
+      /* What it was made from is its first instance, so editing it there
+         and pressing Update component carries the change everywhere. */
+      quiet(function (d) { var at = locate(d, ids[0]); if (!at) return null; at.node.inst = { of: cid, rev: 1 }; return undefined; });
+    }
+    announce(name + " is in My components, built on " + check.tokens.length + (check.tokens.length === 1 ? " token" : " tokens"));
+    return { id: cid, name: name, tokens: check.tokens };
+  };
   var saveComponent = function () {
     var node = componentSource();
     if (!node || !compDraft) return;
-    var check = componentCheck(node);
-    if (check.issues.some(function (i) { return i.level === "error"; })) return;
-    var name = (compDraft.name || "").trim().slice(0, 60) || "My component";
-    var kept = cleanNode(copy(node), null);
-    if (!kept) return;
-    delete kept.style.x; delete kept.style.y; delete kept.style.ch; delete kept.style.cv;
-    var cid = uid();
-    setLibrary(function (l) { var n = Object.assign({}, l); n.components = [{ id: cid, name: name, node: kept, tokens: check.tokens, rev: 1, made: Date.now() }].concat(l.components || []); return n; });
-    if (compDraft.ids.length === 1) {
-      setName(compDraft.ids[0], name);
-      /* What it was made from is its first instance, so editing it there
-         and pressing Update component carries the change everywhere. */
-      quiet(function (d) { var at = locate(d, compDraft.ids[0]); if (!at) return null; at.node.inst = { of: cid, rev: 1 }; return undefined; });
-    }
+    var made = keepComponent(node, compDraft.name, compDraft.ids);
+    if (made.error) return;
     var dlg = compRef.current;
     if (dlg && dlg.open) dlg.close();
     setCompDraft(null);
-    announce(name + " is in My components, built on " + check.tokens.length + (check.tokens.length === 1 ? " token" : " tokens"));
   };
   var removeComponent = function (id) {
     setLibrary(function (l) { var n = Object.assign({}, l); n.components = (l.components || []).filter(function (c) { return c.id !== id; }); return n; });
@@ -6213,6 +6235,7 @@ function App(props) {
       return [];
     }, "Added the " + st[1].toLowerCase() + " beside your frames");
     setTimeout(function () { if (first) showFrameRef.current(first, true); }, 0);
+    return first;
   };
 
   /* Containers start open in Layers; a component's slots start folded. */
