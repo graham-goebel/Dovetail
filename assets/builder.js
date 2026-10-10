@@ -9082,11 +9082,11 @@
     return { issues, tokens: list, count: count3 };
   }
   var ComponentDialog = memo2(function ComponentDialog2(p) {
-    var check3 = p.node ? componentCheck(p.node) : null;
-    var errors2 = check3 ? check3.issues.filter(function(i) {
+    var check4 = p.node ? componentCheck(p.node) : null;
+    var errors2 = check4 ? check4.issues.filter(function(i) {
       return i.level === "error";
     }) : [];
-    var warns = check3 ? check3.issues.filter(function(i) {
+    var warns = check4 ? check4.issues.filter(function(i) {
       return i.level === "warn";
     }) : [];
     var fixable = errors2.some(function(i) {
@@ -9101,7 +9101,7 @@
         "It goes in Assets, under Components › My components, to use again in any frame. A component is built from the system's tokens, so it follows the theme wherever it goes.",
         [closeButton(p.dialogRef)]
       ),
-      check3 ? e(
+      check4 ? e(
         "div",
         { className: "bd-comp-body" },
         e(
@@ -9119,16 +9119,16 @@
           "div",
           { className: cx("bd-comp-status", errors2.length ? "is-blocked" : "is-ready"), role: "status" },
           e(Icon, { name: errors2.length ? "alert" : "check" }),
-          errors2.length ? errors2.length + (errors2.length === 1 ? " thing stops" : " things stop") + " it becoming a component" : "Ready: " + check3.count + (check3.count === 1 ? " layer" : " layers") + " on " + check3.tokens.length + (check3.tokens.length === 1 ? " token" : " tokens")
+          errors2.length ? errors2.length + (errors2.length === 1 ? " thing stops" : " things stop") + " it becoming a component" : "Ready: " + check4.count + (check4.count === 1 ? " layer" : " layers") + " on " + check4.tokens.length + (check4.tokens.length === 1 ? " token" : " tokens")
         ),
         errors2.length || warns.length ? e("ul", { className: "bd-comp-issues" }, errors2.concat(warns).map(function(i, k) {
           return e("li", { key: k, className: "is-" + i.level }, e(Icon, { name: i.level === "error" ? "alert" : "bell" }), e("span", null, i.text));
         })) : null,
-        check3.tokens.length ? e(
+        check4.tokens.length ? e(
           "details",
           { className: "bd-comp-tokens" },
-          e("summary", null, "The tokens it's built on (" + check3.tokens.length + ")"),
-          e("ul", null, check3.tokens.map(function(t) {
+          e("summary", null, "The tokens it's built on (" + check4.tokens.length + ")"),
+          e("ul", null, check4.tokens.map(function(t) {
             return e("li", { key: t }, e("code", null, t));
           }))
         ) : null,
@@ -13498,6 +13498,150 @@
     );
   }
 
+  // assets/builder/cloud/sharing.js
+  var EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  function check2(res) {
+    if (res && res.error) throw new Error(friendly2(res.error));
+    return res ? res.data : null;
+  }
+  function friendly2(err) {
+    var m = String(err && err.message || "");
+    if (/duplicate key|already exists/i.test(m)) return "They're already invited.";
+    if (/row-level security|permission denied/i.test(m)) return "Only the file's owner can do that.";
+    return m || "The cloud refused that.";
+  }
+  function listPeople(sb, cloudId) {
+    return Promise.all([
+      sb.from("project_members").select("user_id, role, email, added_at").eq("project_id", cloudId).order("added_at", { ascending: true }).then(check2),
+      sb.from("project_invites").select("email, created_at").eq("project_id", cloudId).order("created_at", { ascending: true }).then(check2)
+    ]).then(function(got) {
+      return { members: got[0] || [], invites: got[1] || [] };
+    });
+  }
+  function invite(sb, cloudId, email, members) {
+    var addr = String(email || "").trim().toLowerCase();
+    if (!EMAIL.test(addr)) return Promise.reject(new Error("That isn't an email address."));
+    if ((members || []).some(function(m) {
+      return String(m.email || "").toLowerCase() === addr;
+    })) return Promise.reject(new Error("They're already on this file."));
+    return sb.from("project_invites").insert({ project_id: cloudId, email: addr }).select("email, created_at").single().then(check2);
+  }
+  function withdraw(sb, cloudId, email) {
+    return sb.from("project_invites").delete().eq("project_id", cloudId).eq("email", String(email || "").trim().toLowerCase()).then(check2);
+  }
+  function removeMember(sb, cloudId, userId) {
+    return sb.from("project_members").delete().eq("project_id", cloudId).eq("user_id", userId).then(check2);
+  }
+
+  // assets/builder/app/Share.js
+  function ShareDialog(p) {
+    var emailSt = useState(""), email = emailSt[0], setEmail = emailSt[1];
+    var me = p.account && p.account.status === "in" ? p.account.account : null;
+    var file = p.file || {};
+    var people = p.people || { members: [], invites: [] };
+    var mine = me && file.cloudOwner === me.id;
+    var owner = people.members.filter(function(m) {
+      return m.role === "owner";
+    })[0];
+    var close = function() {
+      if (p.dialogRef.current) p.dialogRef.current.close();
+    };
+    var submit = function(ev) {
+      ev.preventDefault();
+      var addr = email.trim();
+      if (!addr) return;
+      p.onInvite(addr, function() {
+        setEmail("");
+      });
+    };
+    var body;
+    if (!me) {
+      body = e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: sharing is tied to your account. ", e("button", { type: "button", className: "bd-link", onClick: p.onSignIn }, "Sign in"));
+    } else if (!file.cloud) {
+      body = e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "This file is on its way to the cloud. Once it's there, you can share it.");
+    } else {
+      body = e(
+        React.Fragment,
+        null,
+        e(
+          "ul",
+          { className: "bd-br-agents", role: "list", "aria-label": "People on this file" },
+          people.members.map(function(m) {
+            var you = m.user_id === me.id;
+            return e(
+              "li",
+              { key: m.user_id, className: "bd-br-agent" },
+              e(Avatar, { agent: { name: m.email || "?", color: colorFor(m.user_id) } }),
+              e(
+                "div",
+                { className: "bd-br-agent-t" },
+                e("b", null, m.email || "Someone", you ? e("span", { className: "bd-sh-you" }, " (you)") : null),
+                e("span", null, m.role === "owner" ? "Owner" : "Can edit")
+              ),
+              mine && !you ? e("button", { type: "button", className: "bd-btn bd-btn-sm", disabled: people.busy, onClick: function() {
+                p.onRemove(m.user_id);
+              } }, "Remove") : you && !mine ? e("button", { type: "button", className: "bd-btn bd-btn-sm", disabled: people.busy, onClick: p.onLeave }, "Leave") : null
+            );
+          }),
+          people.invites.map(function(i) {
+            return e(
+              "li",
+              { key: "i:" + i.email, className: "bd-br-agent is-invited" },
+              e("span", { className: "bd-av is-ghost", "aria-hidden": true }, e(Icon, { name: "user" })),
+              e("div", { className: "bd-br-agent-t" }, e("b", null, i.email), e("span", null, "Invited; joins when they sign in with this address")),
+              e("button", { type: "button", className: "bd-btn bd-btn-sm", disabled: people.busy, onClick: function() {
+                p.onWithdraw(i.email);
+              } }, "Withdraw")
+            );
+          }),
+          people.loading && !people.members.length ? e("li", { className: "bd-br-agent" }, e("span", { className: "bd-av is-blank" }), e("div", { className: "bd-br-agent-t" }, e("span", null, "Loading…"))) : null
+        ),
+        e(
+          "form",
+          { className: "bd-sh-form", onSubmit: submit },
+          e(
+            "label",
+            { className: "bd-br-name bd-sh-name" },
+            e("span", null, "Invite by email"),
+            e("input", { type: "email", className: "bd-input", required: true, value: email, placeholder: "name@example.com", disabled: people.busy, onChange: function(ev) {
+              setEmail(ev.target.value);
+            } })
+          ),
+          e("button", { type: "submit", className: "bd-btn bd-btn-primary", disabled: people.busy || !email.trim() }, e(Icon, { name: "plus" }), "Invite")
+        ),
+        e("p", { className: "bd-inspect-sub" }, "They'll find the file on their Home once they've signed in with that address. Everyone on a file can edit it" + (owner && owner.user_id !== me.id ? "; " + owner.email + " owns it." : "."))
+      );
+    }
+    return e(
+      "dialog",
+      { className: "bd-code bd-share-dlg", ref: p.dialogRef, "aria-labelledby": "bd-sh-title" },
+      e(
+        "div",
+        { className: "bd-code-head" },
+        e(
+          "div",
+          { className: "bd-code-intro" },
+          e("h2", { id: "bd-sh-title" }, "Share " + (file.name || "this file")),
+          e("p", { className: "bd-inspect-sub" }, "Who can open and edit this file. Your own account is under ", e("button", { type: "button", className: "bd-link", onClick: p.onAccount }, "Account"), ".")
+        ),
+        e("div", { className: "bd-code-actions" }, e("button", { type: "button", className: "bd-act", "aria-label": "Close", onClick: close }, e(Icon, { name: "close" })))
+      ),
+      e(
+        "div",
+        { className: "bd-br-body" },
+        body,
+        people.error ? e("p", { className: cx("bd-acct-msg", "is-error"), role: "status" }, e(Icon, { name: "alert" }), e("span", null, people.error)) : null
+      ),
+      e(
+        "div",
+        { className: "bd-br-foot" },
+        e("span", { className: "bd-edit-undo" }, e(Icon, { name: "lock" }), "Only people on the file can open it."),
+        e("span", { className: "bd-edit-sp" }),
+        e("button", { type: "button", className: "bd-btn", onClick: close }, "Done")
+      )
+    );
+  }
+
   // assets/builder/model/instances.js
   var FLAGS = ["name", "hide", "lock"];
   function same3(a, b) {
@@ -14237,6 +14381,9 @@
         document.removeEventListener("visibilitychange", again);
       };
     }, [account2.status]);
+    useEffect(function() {
+      if (mirror && account2.joined) mirror.sync();
+    }, [account2.joined]);
     var asModeState = useState(assistantMode());
     var rightRef = useRef(null);
     var leftPanelRef = useRef(null);
@@ -15518,6 +15665,70 @@
     var openAccount = function() {
       var dlg = accountRef.current;
       if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+    };
+    var shareRef = useRef(null);
+    var peopleSt = useState({ members: [], invites: [], loading: false, error: null, busy: false }), people = peopleSt[0], setPeople = peopleSt[1];
+    var loadPeople = function() {
+      var cid = projectRef.current.cloud;
+      if (!cid) return Promise.resolve();
+      setPeople(function(s) {
+        return Object.assign({}, s, { loading: true, error: null });
+      });
+      return getClient().then(function(sb) {
+        return listPeople(sb, cid);
+      }).then(function(got) {
+        if (projectRef.current.cloud !== cid) return;
+        setPeople({ members: got.members, invites: got.invites, loading: false, error: null, busy: false });
+      }, function(err) {
+        setPeople(function(s) {
+          return Object.assign({}, s, { loading: false, busy: false, error: err && err.message ? err.message : "Couldn't load who's on this file." });
+        });
+      });
+    };
+    var openShare = function() {
+      if (account2.status !== "in") {
+        openAccount();
+        return;
+      }
+      var dlg = shareRef.current;
+      if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+      loadPeople();
+    };
+    var peopleWork = function(work, said2) {
+      setPeople(function(s) {
+        return Object.assign({}, s, { busy: true, error: null });
+      });
+      return getClient().then(work).then(function(out) {
+        if (said2) announce(said2);
+        return loadPeople().then(function() {
+          return out;
+        });
+      }, function(err) {
+        setPeople(function(s) {
+          return Object.assign({}, s, { busy: false, error: err && err.message ? err.message : "That didn't go through." });
+        });
+      });
+    };
+    var onInvite = function(email, done) {
+      peopleWork(function(sb) {
+        return invite(sb, projectRef.current.cloud, email, people.members);
+      }, "Invited " + email.trim().toLowerCase()).then(function(out) {
+        if (out && done) done();
+      });
+    };
+    var onWithdraw = function(email) {
+      peopleWork(function(sb) {
+        return withdraw(sb, projectRef.current.cloud, email);
+      }, "Invite withdrawn");
+    };
+    var onRemove = function(userId) {
+      peopleWork(function(sb) {
+        return removeMember(sb, projectRef.current.cloud, userId);
+      }, "Removed from the file");
+    };
+    var onLeave = function() {
+      if (shareRef.current && shareRef.current.open) shareRef.current.close();
+      deleteProject(projectRef.current.id);
     };
     var arrivedRef = useRef(ARRIVED.link);
     useEffect(function() {
@@ -20239,8 +20450,8 @@
     var saveComponent = function() {
       var node = componentSource();
       if (!node || !compDraft) return;
-      var check3 = componentCheck(node);
-      if (check3.issues.some(function(i) {
+      var check4 = componentCheck(node);
+      if (check4.issues.some(function(i) {
         return i.level === "error";
       })) return;
       var name = (compDraft.name || "").trim().slice(0, 60) || "My component";
@@ -20253,7 +20464,7 @@
       var cid = uid();
       setLibrary(function(l) {
         var n = Object.assign({}, l);
-        n.components = [{ id: cid, name, node: kept, tokens: check3.tokens, rev: 1, made: Date.now() }].concat(l.components || []);
+        n.components = [{ id: cid, name, node: kept, tokens: check4.tokens, rev: 1, made: Date.now() }].concat(l.components || []);
         return n;
       });
       if (compDraft.ids.length === 1) {
@@ -20268,7 +20479,7 @@
       var dlg = compRef.current;
       if (dlg && dlg.open) dlg.close();
       setCompDraft(null);
-      announce(name + " is in My components, built on " + check3.tokens.length + (check3.tokens.length === 1 ? " token" : " tokens"));
+      announce(name + " is in My components, built on " + check4.tokens.length + (check4.tokens.length === 1 ? " token" : " tokens"));
     };
     var removeComponent = function(id) {
       setLibrary(function(l) {
@@ -20290,8 +20501,8 @@
           announce("Not yet: " + nameOf(at2.node) + " holds an instance of " + comp.name + ", and a component can't hold itself.");
           return;
         }
-        var check3 = componentCheck(at2.node);
-        var bad = check3.issues.filter(function(i) {
+        var check4 = componentCheck(at2.node);
+        var bad = check4.issues.filter(function(i) {
           return i.level === "error";
         })[0];
         if (bad) {
@@ -20311,7 +20522,7 @@
         setLibrary(function(l) {
           var n = Object.assign({}, l);
           n.components = (l.components || []).map(function(c) {
-            return c.id === comp.id ? Object.assign({}, c, { node: master, prev: was, rev, tokens: check3.tokens }) : c;
+            return c.id === comp.id ? Object.assign({}, c, { node: master, prev: was, rev, tokens: check4.tokens }) : c;
           });
           return n;
         });
@@ -23506,7 +23717,7 @@
         /* Saving is quiet; the bar speaks up only when this browser can't keep the work. */
         saved.ok ? null : e("span", { className: "bd-saved is-error", title: savedTitle, role: "status" }, e(Icon, { name: "alert" }), e("span", { className: "bd-saved-text" }, "Not saved")),
         /* Who's on the file: you, and others once live editing brings them. */
-        e(People, { account: account2, others: [], onOpen: openAccount }),
+        e(People, { account: account2, others: [], onOpen: account2.status === "in" ? openShare : openAccount }),
         e("button", { type: "button", className: "bd-act", title: "Play: see " + frame2.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame2.id], onClick: function() {
           openPlay();
         } }, e(Icon, { name: "play" })),
@@ -24774,6 +24985,7 @@
         onLoad: onRenderPlay
       }),
       e(AccountDialog, { dialogRef: accountRef, state: account2, setState: accountState[1], cloud: mirrorState }),
+      e(ShareDialog, { dialogRef: shareRef, account: account2, file: project, people, onInvite, onWithdraw, onRemove, onLeave, onSignIn: openAccount, onAccount: openAccount }),
       menu ? e(ContextMenu, { x: menu.x, y: menu.y, label: "Actions", options: menuOptions(menu.ids), onClose: function() {
         setMenu(null);
       }, onChoose: onMenu }) : null,
@@ -24855,7 +25067,7 @@
   var SETTINGS_MAX = 9e5;
   var DOC_MAX = 49e5;
   var PROJECT_COLUMNS = "id, name, settings, group_id, owner, updated_at";
-  function check2(res) {
+  function check3(res) {
     if (res && res.error) throw new Error(res.error.message || "The cloud refused that.");
     return res ? res.data : null;
   }
@@ -24896,9 +25108,9 @@
   }
   function listCloud(sb) {
     return Promise.all([
-      sb.from("projects").select(PROJECT_COLUMNS).order("updated_at", { ascending: false }).then(check2),
-      sb.from("pages").select("project_id, page_id, version, updated_at").then(check2),
-      sb.from("file_groups").select("id, name, owner, updated_at").then(check2)
+      sb.from("projects").select(PROJECT_COLUMNS).order("updated_at", { ascending: false }).then(check3),
+      sb.from("pages").select("project_id, page_id, version, updated_at").then(check3),
+      sb.from("file_groups").select("id, name, owner, updated_at").then(check3)
     ]).then(function(got) {
       return { projects: got[0] || [], pages: got[1] || [], groups: got[2] || [] };
     });
@@ -24908,11 +25120,11 @@
       return tooBig(docs[p]);
     });
     if (big.length) return Promise.reject(new Error(meta.name + " has a page too large for the cloud; it stays in this browser."));
-    return sb.from("projects").insert({ name: meta.name, settings: settingsFor(meta), group_id: groupCloud || null }).select("id").single().then(check2).then(function(row) {
+    return sb.from("projects").insert({ name: meta.name, settings: settingsFor(meta), group_id: groupCloud || null }).select("id").single().then(check3).then(function(row) {
       var rows = Object.keys(docs).map(function(p) {
         return { project_id: row.id, page_id: p, doc: docs[p] };
       });
-      return sb.from("pages").insert(rows).select("page_id, version").then(check2).then(function(made) {
+      return sb.from("pages").insert(rows).select("page_id, version").then(check3).then(function(made) {
         var versions = {};
         (made || []).forEach(function(r) {
           versions[r.page_id] = r.version;
@@ -24936,38 +25148,38 @@
         return { version: rows && rows[0] ? rows[0].version : 1 };
       });
     }
-    return sb.from("pages").update({ doc: doc2 }).eq("project_id", cloudId).eq("page_id", pageId).eq("version", known).select("version").then(check2).then(function(rows) {
+    return sb.from("pages").update({ doc: doc2 }).eq("project_id", cloudId).eq("page_id", pageId).eq("version", known).select("version").then(check3).then(function(rows) {
       if (rows && rows.length) return { version: rows[0].version };
       return current2();
     });
   }
   function fetchPage(sb, cloudId, pageId) {
-    return sb.from("pages").select("doc, version, updated_at").eq("project_id", cloudId).eq("page_id", pageId).maybeSingle().then(check2);
+    return sb.from("pages").select("doc, version, updated_at").eq("project_id", cloudId).eq("page_id", pageId).maybeSingle().then(check3);
   }
   function fetchPages(sb, cloudId) {
-    return sb.from("pages").select("page_id, doc, version").eq("project_id", cloudId).then(check2).then(function(rows) {
+    return sb.from("pages").select("page_id, doc, version").eq("project_id", cloudId).then(check3).then(function(rows) {
       return rows || [];
     });
   }
   function pushMeta(sb, meta, groupCloud) {
-    return sb.from("projects").update({ name: meta.name, settings: settingsFor(meta), group_id: groupCloud || null }).eq("id", meta.cloud).then(check2);
+    return sb.from("projects").update({ name: meta.name, settings: settingsFor(meta), group_id: groupCloud || null }).eq("id", meta.cloud).then(check3);
   }
   function deletePage(sb, cloudId, pageId) {
-    return sb.from("pages").delete().eq("project_id", cloudId).eq("page_id", pageId).then(check2);
+    return sb.from("pages").delete().eq("project_id", cloudId).eq("page_id", pageId).then(check3);
   }
   function deleteCloudFile(sb, cloudId) {
-    return sb.from("projects").delete().eq("id", cloudId).then(check2);
+    return sb.from("projects").delete().eq("id", cloudId).then(check3);
   }
   function createCloudGroup(sb, name) {
-    return sb.from("file_groups").insert({ name }).select("id").single().then(check2).then(function(row) {
+    return sb.from("file_groups").insert({ name }).select("id").single().then(check3).then(function(row) {
       return row.id;
     });
   }
   function renameCloudGroup(sb, cloudId, name) {
-    return sb.from("file_groups").update({ name }).eq("id", cloudId).then(check2);
+    return sb.from("file_groups").update({ name }).eq("id", cloudId).then(check3);
   }
   function deleteCloudGroup(sb, cloudId) {
-    return sb.from("file_groups").delete().eq("id", cloudId).then(check2);
+    return sb.from("file_groups").delete().eq("id", cloudId).then(check3);
   }
 
   // assets/builder/cloud/mirror.js
@@ -25274,10 +25486,13 @@
         });
         return hub.metaChanged(pid);
       },
+      /* Deleting here deletes there, for a file of your own; one shared with
+         you, you leave instead, and it stays for the others. */
       fileDeleted: function(meta) {
         if (stopped || !meta || !meta.cloud) return;
+        var leave = meta.cloudOwner && hooks.me && meta.cloudOwner !== hooks.me;
         later(function() {
-          return deleteCloudFile(sb, meta.cloud).catch(fail);
+          return (leave ? removeMember(sb, meta.cloud, hooks.me) : deleteCloudFile(sb, meta.cloud)).catch(fail);
         });
       },
       groupChanged: function(gid) {

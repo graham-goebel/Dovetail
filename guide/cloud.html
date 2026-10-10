@@ -88,6 +88,8 @@
 <p>Signed in, every file is kept in the cloud as well as in this browser (<code>assets/builder/cloud/mirror.js</code>, over <code>cloud/files.js</code>). The local store stays what the Builder reads and writes, so files open at once and offline; the mirror watches it and sends each change on:</p>
 <ul><li><strong>Signing in</strong> reconciles: files in this browser the cloud lacks are uploaded (a <code>projects</code> row with the file's pages, folders, colour and theme in <code>settings</code>, and a <code>pages</code> row per page); cloud files this browser lacks are downloaded; a file both have is brought level page by page. Home's projects mirror to <code>file_groups</code>. The Playground the Builder makes for itself stays local.</li><li><strong>Each save</strong> goes up a moment later, naming the page version it was made from. If someone saved that page first, the cloud wins: what was here is kept under Versions as &quot;Before reloading from the cloud&quot;, and the cloud's copy replaces it on the canvas.</li><li><strong>Offline</strong>, saves land here and the page is marked to go up on the next sync, which runs when the browser is back online, when the tab wakes, and on sign-in. The Account dialog says how the last sync went.</li><li><strong>Deleting</strong> a file here deletes it in the cloud (only its owner can; a file shared with you comes back on the next sync until sharing has a &quot;leave&quot;). A file deleted elsewhere stays here as a file of its own.</li></ul>
 <p>Not yet mirrored: the Content library and the assistant's conversations (each stays in the browser it was made in), and live updates from another device while a file is open, which arrive on the next sync rather than as they happen.</p>
+<h2 id="sharing-a-file">Sharing a file</h2>
+<p>The people in the top bar open <strong>Share</strong> (<code>assets/builder/app/Share.js</code>, over <code>cloud/sharing.js</code>): who's on the file, an invite by email, withdraw, Remove (the owner) and Leave (anyone else). The rows are <code>project_members</code> and <code>project_invites</code>; the database decides who may do what, as under &quot;How it keeps things private&quot;. An invite turns into membership when that address signs in, confirmed (<code>accept_invites</code>), and the file then comes down to them on the sync that follows. Deleting a file shared with you leaves it instead, so it stays for the others. A shared file's edits still meet on the next sync; live editing on it is the next step.</p>
 <h2 id="live-editing">Live editing</h2>
 <p>Each edit in the Builder is already a small list of changes (the same ones its undo history keeps). Once live editing is on, on a shared page the Builder sends each list to everyone else on that page's channel, and applies theirs as they arrive, without adding them to its own undo history. Changes to different things all survive, in any order; on the very same field, the last to arrive wins. Undo takes back only your own edits. A change too big for one message (a large uploaded image, say) is saved with the page instead, and everyone else loads it.</p>
 <p><code>npm run check:unit</code> runs the sync engine against an in-memory channel: <code>tools/check/unit/sync.test.mjs</code>.</p>
@@ -119,7 +121,7 @@
 <p><code>sh supabase/tests/run.sh</code> tries who can see and answer a session, too.</p>
 <h2 id="what-s-built-and-what-s-next">What's built and what's next</h2>
 <p>Built: the schema and its tests, signing in and out, new accounts with a confirmed email, password resets, invites accepted on sign-in, files kept in the cloud and brought level on sign-in, the assistant and live agent sessions, and the sync engine for live editing. The Builder fetches nothing until the address and key are set.</p>
-<p>Next: sharing a file (invite by email, from the people in the top bar), live editing and presence on shared pages, and conversations shared in a file.</p>
+<p>Next: live editing and presence on shared pages, and conversations shared in a file.</p>
 </article>
 <p class="muted">Source: <a href="../docs/cloud.md">docs/cloud.md</a></p>
 
@@ -131,6 +133,7 @@
     <li><a href="#connecting-a-supabase-project">Connecting a Supabase project</a></li>
     <li><a href="#how-it-keeps-things-private">How it keeps things private</a></li>
     <li><a href="#files-in-the-cloud">Files in the cloud</a></li>
+    <li><a href="#sharing-a-file">Sharing a file</a></li>
     <li><a href="#live-editing">Live editing</a></li>
     <li><a href="#the-assistant">The assistant</a></li>
     <li><a href="#letting-agents-edit-an-open-canvas">Letting agents edit an open canvas</a></li>

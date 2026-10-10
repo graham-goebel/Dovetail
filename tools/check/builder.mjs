@@ -491,7 +491,7 @@ try {
     expect(code.includes('paddingTop: "var(--dt-space-inset-2xl)"'), "the code should carry the per-side token");
     const values = [...code.matchAll(/style=\{\{([^}]*)\}\}/g)].flatMap((m) => [...m[1].matchAll(/:\s*"([^"]*)"/g)].map((v) => v[1]));
     expect(!values.some(raw), `style values that aren't tokens: ${values.filter(raw).join(", ")}`);
-    const box = await page.locator(".bd-code:not(.bd-import):not(.bd-new):not(.bd-comp-dlg):not(.bd-projects):not(.bd-versions):not(.bd-keys):not(.bd-acct):not(.bd-bridge-dlg)").boundingBox();
+    const box = await page.locator(".bd-code:not(.bd-import):not(.bd-new):not(.bd-comp-dlg):not(.bd-projects):not(.bd-versions):not(.bd-keys):not(.bd-acct):not(.bd-bridge-dlg):not(.bd-share-dlg)").boundingBox();
     expect(box.height > 700, `the code overlay should use most of the screen, got ${Math.round(box.height)}px`);
     ok(`exported code is named after the frame, its ${values.length} style values are tokens or keywords, and the overlay is ${Math.round(box.height)}px tall`);
     await page.keyboard.press("Escape");
@@ -1969,7 +1969,7 @@ try {
     /* A second agent, with its own link, name and mark; a layer one agent
        just changed is held, so the other's step waits for it. */
     await fileMenu("Agents on this file…");
-    await page.locator(".bd-br-name input").fill("Image agent");
+    await page.locator(".bd-bridge-dlg .bd-br-name input").fill("Image agent");
     await page.locator(".bd-bridge-dlg .bd-btn-primary", { hasText: "Add agent" }).click();
     await page.waitForFunction(() => document.querySelectorAll(".bd-br-agent .bd-br-link").length === 2);
     const links = await page.locator(".bd-br-link").allTextContents();
@@ -3437,8 +3437,9 @@ try {
           from,
         };
       }
-      /* The three tables files mirror to, with pages counting their saves. */
-      const db = { projects: [], pages: [], file_groups: [] };
+      /* The tables files mirror to (pages count their saves) and the two
+         sharing reads, with the owner's membership row added on insert. */
+      const db = { projects: [], pages: [], file_groups: [], project_members: [], project_invites: [] };
       let seq = 1;
       const uuid = () => "00000000-0000-4000-8000-" + String(seq++).padStart(12, "0");
       function from(table) {
@@ -3458,7 +3459,9 @@ try {
         const run = () => {
           if (op === "insert") {
             const rows = [].concat(payload).map((p) => table === "pages" ? { ...p, version: 1 } : { id: uuid(), owner: "u1", group_id: null, updated_at: new Date().toISOString(), ...p });
+            if (table === "project_invites" && db.project_invites.some((r) => rows.some((n) => r.project_id === n.project_id && r.email === n.email))) return { data: null, error: { message: 'duplicate key value violates unique constraint "project_invites_pkey"' } };
             db[table].push(...rows);
+            if (table === "projects") rows.forEach((r) => db.project_members.push({ project_id: r.id, user_id: "u1", role: "owner", email: "ann@example.com", added_at: new Date().toISOString() }));
             return { data: single ? rows[0] : rows, error: null };
           }
           if (op === "update") { const hit = db[table].filter(match); hit.forEach((r) => { Object.assign(r, payload); if (table === "pages") r.version += 1; }); return { data: hit.map((r) => ({ ...r })), error: null }; }
@@ -3503,6 +3506,29 @@ try {
     ok("signed in, the file here is in the cloud, a save follows it up, and the dialog says so");
     expect(await page.evaluate(() => window.__fakeSb.calls.some((c) => c[0] === "rpc" && c[1] === "accept_invites")), "signing in accepts waiting invites");
     ok("on: the PKCE client, a friendly error, then signed in with invites accepted");
+
+    /* Signed in, the people in the top bar open Share for the file. */
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector(".bd-acct[open]"));
+    await page.locator(".bd-tb-right .bd-people").click();
+    await page.waitForSelector(".bd-share-dlg[open] .bd-br-agent");
+    const owner = await page.locator(".bd-share-dlg .bd-br-agent").first().textContent();
+    expect(/ann@example\.com \(you\)/.test(owner) && /Owner/.test(owner), `Share lists you as the owner, got "${owner}"`);
+    await page.fill(".bd-sh-form input[type=email]", "Ben@Example.com");
+    await page.locator(".bd-sh-form button[type=submit]").click();
+    await page.waitForSelector(".bd-share-dlg .bd-br-agent.is-invited");
+    const invited = await page.evaluate(() => window.__fakeSb.db.project_invites.map((i) => i.email));
+    expect(invited.length === 1 && invited[0] === "ben@example.com" && (await page.locator(".bd-sh-form input[type=email]").inputValue()) === "", `an invite is written tidied and the field clears, got ${JSON.stringify(invited)}`);
+    await page.fill(".bd-sh-form input[type=email]", "ann@example.com");
+    await page.locator(".bd-sh-form button[type=submit]").click();
+    await page.waitForSelector(".bd-share-dlg .bd-acct-msg.is-error");
+    expect(/already on this file/.test(await page.locator(".bd-share-dlg .bd-acct-msg").textContent()), "inviting someone already on the file says so");
+    await page.locator(".bd-share-dlg .bd-br-agent.is-invited button", { hasText: "Withdraw" }).click();
+    await page.waitForFunction(() => !document.querySelector(".bd-share-dlg .bd-br-agent.is-invited"));
+    expect((await page.evaluate(() => window.__fakeSb.db.project_invites.length)) === 0, "withdrawing takes the invite back");
+    await page.locator(".bd-share-dlg .bd-br-foot button", { hasText: "Done" }).click();
+    await page.waitForFunction(() => !document.querySelector(".bd-share-dlg[open]"));
+    ok("the people in the top bar open Share: the owner, an invite, a caught duplicate, a withdrawal");
 
     /* Signed in with the cloud on, the assistant goes live from its menu. */
     await page.keyboard.press("Escape");

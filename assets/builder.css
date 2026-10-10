@@ -3695,7 +3695,8 @@ span.bd-layer-twisty.is-open .bd-ic {
 
 /* The live canvas bridge: the dialog that starts a session, the pill in the
    top bar while one runs, and the Session panel with its steps. */
-.bd-code.bd-bridge-dlg {
+.bd-code.bd-bridge-dlg,
+.bd-code.bd-share-dlg {
   width: min(680px, calc(100vw - 32px));
   height: fit-content;
   max-height: calc(100dvh - 48px);
@@ -4166,6 +4167,26 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-people-in:focus-visible {
   outline: 2px solid var(--bd-select);
   outline-offset: 1px;
+}
+
+/* Share: the people on the file, as the agents list, and an invite form. */
+.bd-sh-form {
+  display: flex;
+  gap: var(--dt-space-inline-xs);
+  align-items: flex-end;
+}
+
+.bd-sh-form .bd-br-name {
+  flex: 1;
+}
+
+.bd-sh-you {
+  color: var(--dt-text-secondary);
+  font-weight: var(--dt-font-weight-regular);
+}
+
+.bd-br-agent.is-invited .bd-br-agent-t > b {
+  color: var(--dt-text-secondary);
 }
 
 /* Export is its icon alone; its name is in its label. */
