@@ -1842,7 +1842,7 @@ try {
     await pg.page.close();
   });
 
-  await step("Live canvas bridge: a session from the File menu, Claude's steps run on the canvas, listed with undo, paused, asked first, ended", async () => {
+  await step("Agents on the canvas: a session from the File menu, steps run on the canvas, listed with undo, paused, asked first, two agents with their own marks and holds, ended", async () => {
     /* A stand-in for supabase-js with just what a session uses: a signed-in
        account, the two bridge tables, and a channel that hears new steps.
        push(call) adds a waiting step, as the function would, and resolves
@@ -1853,8 +1853,9 @@ try {
         const db = {}, listeners = [];
         let nextCall = 1, nextSession = 1;
         const fb = window.__fakeBridge = { db, updates: [], removed: 0,
-          push(call) {
-            const s = db.bridge_sessions[db.bridge_sessions.length - 1];
+          push(call, n) {
+            const live = db.bridge_sessions.filter((x) => !x.ended_at);
+            const s = n == null ? live[live.length - 1] : live[n];
             const row = { id: nextCall++, session_id: s.id, call, status: "waiting", result: null };
             db.bridge_calls = db.bridge_calls || [];
             db.bridge_calls.push(row);
@@ -1899,7 +1900,7 @@ try {
           },
           rpc: async () => ({ data: 0, error: null }),
           from,
-          channel() { const ch = { on(t, f, cb) { if (f && f.table === "bridge_calls") listeners.push(cb); return ch; }, subscribe(cb) { if (cb) setTimeout(() => cb("SUBSCRIBED"), 0); return ch; }, send: async () => {}, track() {}, presenceState: () => ({}) }; return ch; },
+          channel() { const ch = { on(t, f, cb) { if (f && f.table === "bridge_calls") { const want = String(f.filter || "").replace("session_id=eq.", ""); listeners.push((m) => { if (!want || m.new.session_id === want) cb(m); }); } return ch; }, subscribe(cb) { if (cb) setTimeout(() => cb("SUBSCRIBED"), 0); return ch; }, send: async () => {}, track() {}, presenceState: () => ({}) }; return ch; },
           removeChannel() { fb.removed++; },
           realtime: { setAuth: async () => {} },
         };
@@ -1918,27 +1919,29 @@ try {
     const heroId = (await hero()).id;
 
     const fileMenu = async (label) => { await page.locator("button[aria-label='File actions']").click(); await page.getByText(label, { exact: true }).click(); };
-    await fileMenu("Let Claude edit…");
+    await fileMenu("Let agents edit…");
     await page.waitForSelector(".bd-bridge-dlg[open]");
     await page.locator(".bd-bridge-dlg .bd-btn-primary", { hasText: "Start session" }).click();
-    const link = await page.locator(".bd-br-code code").textContent();
+    const link = await page.locator(".bd-br-link").first().textContent();
     expect(/^https:\/\/stand-in\.supabase\.co\/functions\/v1\/bridge\?s=b1000000-[\w-]+&k=[\w-]{32,}$/.test(link), `the link is the function's address with the session and a long key, got ${link}`);
     const stored = await page.evaluate(() => window.__fakeBridge.db.bridge_sessions[0]);
     const key = new URL(link).searchParams.get("k");
     expect(/^[0-9a-f]{64}$/.test(stored.key_hash) && !JSON.stringify(stored).includes(key) && stored.can_edit === true && stored.ask_first === false, `only the key's hash is stored, with what the session may do, got ${JSON.stringify(stored)}`);
     ok("Start session stores a hash of a fresh key and shows the link with Copy");
-    await page.locator(".bd-bridge-dlg .bd-btn-primary", { hasText: "Done" }).click();
-    expect(/Claude can edit\s*Ledger/.test(await page.locator(".bd-br-pill").textContent()), "the top bar says Claude can edit, and where");
+    await page.locator(".bd-bridge-dlg .bd-br-foot .bd-btn", { hasText: "Done" }).click();
+    expect(/Claude can edit\s*Ledger/.test(await page.locator(".bd-br-pill").textContent()), "the top bar says who can edit, and where");
 
-    const push = (call) => page.evaluate((c) => window.__fakeBridge.push(c), call);
+    const push = (call, n) => page.evaluate(([c, i]) => window.__fakeBridge.push(c, i), [call, n == null ? null : n]);
+    const hi = await push({ name: "hello", input: { name: "Claude" } });
+    expect(hi.ok && /Hello, Claude/.test(hi.result), "hello names the agent");
     const brief = await push({ name: "describe", input: {} });
     expect(brief.ok && /## Tools/.test(brief.result) && /edit_by_name/.test(brief.result) && !/"propose_plan"/.test(brief.result), "describe answers the brief and the session's tools");
     const read = await push({ name: "read_page", input: {} });
     expect(read.ok && /Hero/.test(read.result), `read_page reads the page, got ${String(read.result).slice(0, 120)}`);
     const set = await push({ name: "set_style", input: { ids: [heroId], family: "padding", value: "xl" } });
     expect(set.ok && (await hero()).style.padding === "xl", `set_style changes the canvas, got ${JSON.stringify(set)}`);
-    await page.waitForSelector(".bd-edit-on-tag");
-    expect(/Claude · padding → xl/i.test(await page.locator(".bd-edit-on-tag").first().textContent()), "the changed layer is labelled on the canvas");
+        await page.waitForSelector(".bd-agent-tag");
+    expect(/Claude\s*Padding → xl/.test(await page.locator(".bd-agent-tag").first().textContent()), `the agent's cursor sits on the layer it changed, with its name and what it did, got ${await page.locator(".bd-agent-tag").first().textContent()}`);
     const byName = await push({ name: "edit_by_name", input: { edit: '## Edit Ledger\n- "$284,120": size display-2xl' } });
     expect(byName.ok && (await hero()).children[0].props.size === "display-2xl", `edit_by_name finds the heading by its text and changes it, got ${JSON.stringify(byName)}`);
     const shot = await push({ name: "screenshot", input: {} });
@@ -1953,6 +1956,41 @@ try {
     expect((await hero()).style.padding === "lg" && (await hero()).children[0].props.size === "display-2xl", "undoing one step takes back only that step");
     ok("the Session panel lists each step with an icon and undoes one on its own");
 
+    /* A second agent, with its own link, name and mark; a layer one agent
+       just changed is held, so the other's step waits for it. */
+    await fileMenu("Agents on this file…");
+    await page.locator(".bd-br-name input").fill("Image agent");
+    await page.locator(".bd-bridge-dlg .bd-btn-primary", { hasText: "Add agent" }).click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-br-agent .bd-br-link").length === 2);
+    const links = await page.locator(".bd-br-link").allTextContents();
+    expect(links[0] !== links[1] && (await page.evaluate(() => window.__fakeBridge.db.bridge_sessions.length)) === 2, "each agent gets its own session and link");
+    await page.locator(".bd-bridge-dlg .bd-br-foot .bd-btn", { hasText: "Done" }).click();
+    const dot = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+    const hi2 = await push({ name: "hello", input: { name: "Image agent", mark: dot } }, 1);
+    expect(hi2.ok && /mark is on your cursor/.test(hi2.result), "an agent can send its own mark");
+    expect(/2 agents on/.test(await page.locator(".bd-br-pill").textContent()) && (await page.locator(".bd-br-pill .bd-av img").count()) === 1, `the top bar shows both agents, one with its own mark, got ${await page.locator(".bd-br-pill").textContent()} / ${await page.locator(".bd-br-pill .bd-av img").count()} / ${JSON.stringify(hi2)}`);
+    const sneaky = await push({ name: "hello", input: { name: "Sneaky", mark: "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=" } }, 1);
+    expect(/wasn't shown/.test(sneaky.result) && (await page.locator(".bd-br-pill .bd-av img").count()) === 0, "a mark that isn't a small raster picture isn't shown");
+    await push({ name: "hello", input: { name: "Image agent", mark: dot } }, 1);
+    await page.waitForTimeout(3100);
+    const firstR = await push({ name: "set_style", input: { ids: [heroId], family: "padding", value: "md" } }, 0);
+    expect(firstR.ok && !/Waited/.test(firstR.result), `with nothing held, a step runs straight away, got ${JSON.stringify(firstR)}`);
+    const t0 = Date.now();
+    const second = await push({ name: "set_style", input: { ids: [heroId], family: "padding", value: "xl" } }, 1);
+    expect(second.ok && /Waited for Claude/.test(second.result) && Date.now() - t0 > 1000, `the second agent waits for the layer the first just changed, got ${JSON.stringify(second)} after ${Date.now() - t0}ms`);
+    await page.waitForFunction(() => document.querySelectorAll(".bd-agent-tag").length === 2).catch(() => {});
+    const tags = await page.locator(".bd-agent-tag").allTextContents();
+    expect(tags.length === 2 && tags.some((t) => /^C?Claude/.test(t)) && tags.some((t) => /Image agent/.test(t)), `both agents have a cursor on the canvas, got ${tags.join(" | ")}`);
+    await page.locator(".bd-br-filter button[aria-label='Image agent']").click();
+    const mine = await page.locator(".bd-br-panel .bd-br-a").allTextContents();
+    expect(mine.every((t) => !/Padding → md/.test(t)) && mine.some((t) => /Padding → xl/.test(t)), `the panel filters to one agent's steps, got ${mine.join(" | ")}`);
+    await page.locator(".bd-br-filter button", { hasText: "All" }).click();
+    ok("a second agent gets its own link, sends its name and mark, waits for a held layer, and the panel filters by agent");
+    await fileMenu("Agents on this file…");
+    await page.locator(".bd-br-agent", { hasText: "Image agent" }).locator(".bd-btn", { hasText: "End" }).click();
+    await page.locator(".bd-bridge-dlg .bd-br-foot .bd-btn", { hasText: "Done" }).click();
+    expect(/Claude can edit/.test(await page.locator(".bd-br-pill").textContent()), "ending one agent leaves the other working");
+
     await page.locator(".bd-br-pill .bd-br-lk", { hasText: "Pause" }).click();
     const paused = await push({ name: "read_page", input: {} });
     expect(!paused.ok && /paused/.test(paused.result), "while paused, a step is turned away with why");
@@ -1963,20 +2001,21 @@ try {
     expect(await page.evaluate(() => !!window.__fakeBridge.db.bridge_sessions[0].ended_at && window.__fakeBridge.removed > 0), "End marks the session ended and stops listening");
     ok("Pause turns steps away and tells the function; End ends the session");
 
-    await fileMenu("Let Claude edit…");
+    await fileMenu("Let agents edit…");
     await page.locator(".bd-bridge-dlg .bd-br-switch[aria-label='Ask before each change']").click();
     await page.locator(".bd-bridge-dlg .bd-btn-primary", { hasText: "Start session" }).click();
-    await page.waitForSelector(".bd-br-code code");
-    await page.locator(".bd-bridge-dlg .bd-btn-primary", { hasText: "Done" }).click();
-    expect(await page.evaluate(() => window.__fakeBridge.db.bridge_sessions[1].ask_first === true), "the new session asks first");
+    await page.waitForSelector(".bd-br-link");
+    await page.locator(".bd-bridge-dlg .bd-br-foot .bd-btn", { hasText: "Done" }).click();
+    expect(await page.evaluate(() => window.__fakeBridge.db.bridge_sessions.slice(-1)[0].ask_first === true), "the new session asks first");
+    const padBefore = (await hero()).style.padding;
     const asked = page.evaluate((id) => window.__fakeBridge.push({ name: "set_style", input: { ids: [id], family: "padding", value: "2xl" } }), heroId);
     await page.waitForSelector(".bd-br-card");
     expect(/Claude wants to make 1 change.*Hero.*Padding → 2xl/.test(await page.locator(".bd-br-card").textContent()), "the change waits in a card saying what it would do");
-    expect((await hero()).style.padding === "lg", "and nothing changes until it's applied");
+    expect((await hero()).style.padding === padBefore, "and nothing changes until it's applied");
     await page.locator(".bd-br-tell").fill("Keep the padding, make it bolder instead");
     await page.locator(".bd-br-card .bd-btn", { hasText: "Send instead" }).click();
     const declined = await asked;
-    expect(!declined.ok && /Keep the padding, make it bolder instead/.test(declined.result) && (await hero()).style.padding === "lg", `declining sends the note back and changes nothing, got ${JSON.stringify(declined)}`);
+    expect(!declined.ok && /Keep the padding, make it bolder instead/.test(declined.result) && (await hero()).style.padding === padBefore, `declining sends the note back and changes nothing, got ${JSON.stringify(declined)}`);
     const again = page.evaluate((id) => window.__fakeBridge.push({ name: "set_style", input: { ids: [id], family: "padding", value: "2xl" } }), heroId);
     await page.locator(".bd-br-card .bd-btn-primary", { hasText: "Apply 1 change" }).click();
     expect((await again).ok && (await hero()).style.padding === "2xl", "Apply makes the change and answers Claude");

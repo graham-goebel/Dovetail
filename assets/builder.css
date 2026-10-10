@@ -3713,6 +3713,7 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-br-foot {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: var(--dt-space-inline-xs);
   align-items: center;
   padding: var(--dt-space-inset-sm) var(--dt-space-inset-md);
@@ -3869,6 +3870,10 @@ span.bd-layer-twisty.is-open .bd-ic {
   font-size: var(--dt-font-size-xs);
 }
 
+.bd-br-lk {
+  flex: none;
+}
+
 .bd-br-pill-main,
 .bd-br-lk {
   display: inline-flex;
@@ -3882,6 +3887,10 @@ span.bd-layer-twisty.is-open .bd-ic {
   color: var(--dt-text-primary);
   font: inherit;
   cursor: pointer;
+}
+
+.bd-br-foot > .bd-edit-undo {
+  flex: 1 1 100%;
 }
 
 .bd-br-pill-main:hover,
@@ -4077,6 +4086,226 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-br-tell:focus-visible {
   outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
   outline-offset: var(--dt-focus-ring-offset);
+}
+
+/* Agents: an avatar is the agent's own mark, or its initial on its colour. */
+.bd-av {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--bd-agent, var(--dt-text-secondary));
+  color: var(--dt-color-white);
+  font-size: var(--dt-font-size-xs);
+  font-weight: var(--dt-font-weight-semibold);
+  line-height: 1;
+}
+
+.bd-av img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bd-av.is-sm {
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+}
+
+.bd-av.is-xs {
+  width: 16px;
+  height: 16px;
+  font-size: 9px;
+}
+
+.bd-av.is-blank {
+  visibility: hidden;
+}
+
+.bd-br-stack {
+  display: inline-flex;
+}
+
+.bd-br-stack .bd-av + .bd-av {
+  margin-left: -6px;
+  box-shadow: 0 0 0 2px var(--bd-field);
+}
+
+/* On the canvas: the agent's colour round the layer it's on, and its cursor. */
+.bd-agent-on {
+  position: absolute;
+  box-sizing: border-box;
+  outline: 2px solid var(--bd-agent);
+  outline-offset: 2px;
+  pointer-events: none;
+}
+
+.bd-agent-cur {
+  position: absolute;
+  top: calc(100% - 6px);
+  left: calc(50% - 8px);
+  display: flex;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bd-agent-on {
+    transition: left 0.25s ease-out, top 0.25s ease-out, width 0.25s ease-out, height 0.25s ease-out;
+  }
+}
+
+.bd-agent-ptr {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+.bd-agent-ptr path {
+  fill: var(--bd-agent);
+  stroke: var(--dt-color-white);
+  stroke-width: 1;
+}
+
+.bd-agent-tag {
+  display: inline-flex;
+  gap: var(--dt-space-inline-2xs);
+  align-items: center;
+  max-width: 260px;
+  margin: 10px 0 0 -2px;
+  padding: 2px var(--dt-space-inset-xs) 2px 2px;
+  border-radius: var(--dt-radius-pill);
+  background: var(--bd-agent);
+  color: var(--dt-color-white);
+  font-size: var(--dt-font-size-xs);
+  white-space: nowrap;
+  box-shadow: var(--dt-elevation-1);
+}
+
+.bd-agent-tag .bd-av {
+  box-shadow: 0 0 0 1.5px var(--dt-color-white);
+}
+
+.bd-agent-tag i {
+  overflow: hidden;
+  font-style: normal;
+  text-overflow: ellipsis;
+  opacity: 0.88;
+}
+
+.bd-br-agents {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bd-br-agent {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dt-space-inline-sm);
+  align-items: center;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+}
+
+.bd-br-agent-t {
+  display: flex;
+  flex: 1 1 200px;
+  flex-direction: column;
+  min-width: 0;
+  font-size: var(--dt-font-size-sm);
+}
+
+.bd-br-agent-t > span {
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
+}
+
+.bd-br-link {
+  overflow: hidden;
+  color: var(--dt-text-secondary);
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-2xs, 11px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bd-br-add {
+  padding: var(--dt-space-inset-sm);
+  border: var(--dt-border-width-default) dashed var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+}
+
+.bd-br-name {
+  display: flex;
+  gap: var(--dt-space-inline-sm);
+  align-items: center;
+  font-size: var(--dt-font-size-sm);
+}
+
+.bd-br-name input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--dt-space-inset-2xs) var(--dt-space-inset-xs);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+  background: var(--bd-field);
+  color: var(--dt-text-primary);
+  font: inherit;
+}
+
+.bd-br-name input:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: var(--dt-focus-ring-offset);
+}
+
+.bd-br-filter {
+  display: inline-flex;
+  overflow: hidden;
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+}
+
+.bd-br-filter button {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  padding: 2px var(--dt-space-inset-xs);
+  border: 0;
+  background: none;
+  color: var(--dt-text-secondary);
+  font: inherit;
+  font-size: var(--dt-font-size-xs);
+  cursor: pointer;
+}
+
+.bd-br-filter button.is-on {
+  background: var(--bd-field-on);
+  color: var(--dt-text-primary);
+  font-weight: var(--dt-font-weight-semibold);
+}
+
+.bd-br-filter button:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: -2px;
+}
+
+.bd-br-kind {
+  flex: none;
+  color: var(--dt-text-secondary);
+}
+
+.bd-br-kind .bd-ic {
+  width: 14px;
+  height: 14px;
 }
 
 /* ------------------------------------------------------------- tooltips */

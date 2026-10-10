@@ -7,6 +7,7 @@ import { LABEL_ROOM, LIVE_MAX, STAGE_PAD, VIRTUAL_AFTER, cx, e, nameOf } from ".
 import { columnsOf, fixedSpot, frameById, isFree, locate } from "../model/tree.js";
 import { Icon } from "../ui/icons.js";
 import { InlineEditor, Renamable } from "../ui/parts.js";
+import { Avatar } from "./Bridge.js";
 
 /* ------------------------------------------------------------- camera */
 
@@ -38,6 +39,7 @@ function placeMarks(raw, boxes, cam) {
   };
   var hv = raw.hover;
   return { sel: raw.sel.map(place).filter(Boolean), hover: hv && boxes[hv.fid] ? onStage(hv.r, boxes[hv.fid], cam) : null, drop: raw.drop,
+    agents: (raw.agents || []).map(function (m) { var b = boxes[m.fid]; return b ? Object.assign({}, m, { r: onStage(m.r, b, cam) }) : null; }).filter(Boolean),
     edited: (raw.edited || []).map(function (m) { var b = boxes[m.fid]; return b ? { id: m.id, icon: m.icon, label: m.label, r: onStage(m.r, b, cam) } : null; }).filter(Boolean) };
 }
 
@@ -198,6 +200,14 @@ function Marks(p) {
   var marks = placeMarks(p.marksRaw, p.boxes, cam);
   return e("div", { className: "bd-marks", "aria-hidden": true },
     !p.preview && p.frameOn && p.boxes[p.frame.id] && !p.frame.bare ? e("div", { className: cx("bd-ring", !p.sel && "is-selected"), style: { left: cam.x + p.boxes[p.frame.id].x * cam.z, top: cam.y + p.boxes[p.frame.id].y * cam.z, width: p.boxes[p.frame.id].w * cam.z, height: p.boxes[p.frame.id].h * cam.z } }) : null,
+    /* Each agent on the canvas: its colour round the layer it's working on,
+       and a cursor with its mark and name at the layer's corner. */
+    !p.preview ? marks.agents.map(function (m) {
+      return e("div", { key: "ag" + m.key, className: "bd-agent-on", style: { left: m.r.left, top: m.r.top, width: m.r.width, height: m.r.height, "--bd-agent": m.color } },
+        e("span", { className: "bd-agent-cur" },
+          e("svg", { className: "bd-agent-ptr", viewBox: "0 0 16 16", "aria-hidden": true }, e("path", { d: "M1 1l5 14 2-6 6-2z" })),
+          e("span", { className: "bd-agent-tag" }, e(Avatar, { agent: m, size: "sm" }), e("b", null, m.name), m.label ? e("i", null, m.label) : null)));
+    }) : null,
     /* What an applied edit changed: a quiet label on each, until the next change. */
     !p.preview ? marks.edited.map(function (m) {
       return e("div", { key: "ed" + m.id, className: "bd-edit-on", style: { left: m.r.left, top: m.r.top, width: m.r.width, height: m.r.height } },

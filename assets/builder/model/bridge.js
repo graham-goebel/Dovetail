@@ -22,21 +22,57 @@ var EDIT_BY_NAME = {
   input_schema: { type: "object", properties: { edit: { type: "string" } }, required: ["edit"], additionalProperties: false },
 };
 
-function isRead(name) { return !!READS[name] || name === "describe"; }
+var HELLO = {
+  name: "hello",
+  description: "Say who you are, so the person sees your name and mark on your cursor and in the Session panel. name: what to call you (up to 40 characters). mark: optional, a small square picture as a data:image/png, jpeg or webp address, up to 48 KB. Send it once, first.",
+  input_schema: { type: "object", properties: { name: { type: "string" }, mark: { type: "string" } }, required: ["name"], additionalProperties: false },
+};
+
+function isRead(name) { return !!READS[name] || name === "describe" || name === "hello"; }
+
+/* An agent's own name and mark, as it sent them, kept only if safe to show:
+   a short plain name, and a small raster picture as a data address. */
+function agentFrom(input) {
+  var name = String((input && input.name) || "").replace(/[\u0000-\u001f]/g, "").replace(/\s+/g, " ").trim().slice(0, 40);
+  var mark = String((input && input.mark) || "");
+  var okMark = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(mark) && mark.length <= 65536;
+  return { name: name, mark: okMark ? mark : "", markRefused: !!mark && !okMark };
+}
+
+/* The layers a step means to change, before it runs, so two agents don't
+   change the same one at once. doc is the document, for an edit by name. */
+function targetsOf(call, doc) {
+  var input = (call && call.input) || {};
+  var out = [];
+  var add = function (v) { [].concat(v || []).forEach(function (id) { if (typeof id === "string" && id !== "root" && out.indexOf(id) < 0) out.push(id); }); };
+  switch (call && call.name) {
+    case "batch": (input.calls || []).forEach(function (c) { add(targetsOf(c, doc)); }); break;
+    case "edit_by_name": {
+      var edit = readEdit(input.edit);
+      if (edit && doc) planEdit(doc, edit).rows.forEach(function (r) { if (!r.choices) add(r.ids); });
+      break;
+    }
+    case "set_style": case "set_prop": case "remove": case "duplicate": case "move": case "wrap": add(input.ids); add(input.parent); break;
+    case "set_text": case "replace_jsx": case "rename": add(input.id); break;
+    case "insert_jsx": add(input.parent); break;
+    default: break;
+  }
+  return out;
+}
 
 /* The tools a session offers: the assistant's own, less those that answer
    in its panel, and only the reading ones when it may not change things. */
 function bridgeTools(tools, canEdit) {
   var list = tools.filter(function (t) { return !LEFT_OUT[t.name] && (canEdit || READS[t.name]); });
   if (canEdit) list = list.concat([EDIT_BY_NAME]);
-  return list;
+  return [HELLO].concat(list);
 }
 
 /* Whether a step may run in this session, and if not, why (in words Claude
    can act on). */
 function allowed(call, session, tools) {
   var name = call && call.name;
-  if (name === "describe") return null;
+  if (name === "describe" || name === "hello") return null;
   if (!name || !tools.some(function (t) { return t.name === name; })) return "There's no tool called " + name + " in this session. Call describe for the ones there are.";
   if (!session.canEdit && !isRead(name)) return "This session can only look: the person didn't let it make changes.";
   if (name === "batch" && !session.canEdit) return "This session can only look.";
@@ -47,6 +83,7 @@ function allowed(call, session, tools) {
 function describeText(brief, tools, session) {
   return [
     "You're in a live session on " + (session.label || "a Dovetail Builder file") + ". " + (session.canEdit ? "You may look and make changes" : "You may only look") + (session.askFirst ? "; each change waits for the person to apply it, and may come back declined with a note from them." : ". Each change lands on their canvas as you make it, and they can undo any of them."),
+    "Call hello first with your name (and a small mark if you have one), so the person sees who you are. Other agents may be working on the same canvas: a layer another agent is changing is held for a moment, and a step that needs it waits or comes back saying so.",
     "Work in small steps and look (screenshot, lint) after visible changes. Say what you're doing in your own conversation; the person sees each step in their Session panel.",
     "",
     brief,
@@ -94,8 +131,9 @@ function rowsOf(call, name, doc) {
     case "lint": return [{ icon: "check", title: "Ran the checks", detail: "" }];
     case "measure": return [{ icon: "fit", title: "Measured", detail: who([input.a, input.b]) }];
     case "describe": return [{ icon: "book", title: "Read the brief", detail: "The system's rules and the tools" }];
+    case "hello": return [{ icon: "user", title: "Said hello", detail: "As " + (agentFrom(input).name || "an agent") }];
     default: return [{ icon: "book", title: String((call && call.name) || "A step").replace(/_/g, " ").replace(/^./, function (c) { return c.toUpperCase(); }), detail: "" }];
   }
 }
 
-export { EDIT_BY_NAME, allowed, bridgeTools, describeText, isRead, rowsOf };
+export { EDIT_BY_NAME, HELLO, agentFrom, allowed, bridgeTools, describeText, isRead, rowsOf, targetsOf };
