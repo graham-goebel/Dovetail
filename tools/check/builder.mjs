@@ -428,9 +428,9 @@ try {
     await page.mouse.click(at.x, at.y);
     await page.waitForFunction(() => /Heading/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     const secs = await page.locator(".bd-ipanel > .bd-sec").evaluateAll((els) => els.map((el) => el.dataset.sec));
-    expect(!(await page.locator('.bd-right [role="tablist"]').count()) && secs[0] === "content" && ["position", "size", "fill", "border", "spacing"].every((k) => secs.includes(k)), `the inspector is one panel, its content first and then layout and looks, got ${secs.join(",")}`);
+    expect(!(await page.locator('.bd-right [role="tablist"]').count()) && secs[0] === "position" && secs[1] === "size" && ["content", "fill", "border", "spacing"].every((k) => secs.includes(k)), `the inspector is one panel, position and size first, then content and looks, got ${secs.join(",")}`);
     expect(await page.locator(".bd-ipanel .bd-field-label", { hasText: /^Text$/ }).count() === 1, "the Text field is in it");
-    expect(secs.indexOf("spacing") === secs.length - 1 && await page.locator('.bd-ipanel .bd-sec[data-sec="spacing"].is-closed').count() === 1, "spacing comes last, folded while nothing in it is set");
+    expect(secs.indexOf("spacing") < secs.indexOf("content") && secs.indexOf("content") < secs.indexOf("fill") && await page.locator('.bd-ipanel .bd-sec[data-sec="spacing"].is-closed').count() === 1, "spacing sits with the layout group above Content, folded while nothing in it is set");
     expect(await page.locator(".bd-inspect-head .bd-head-actions > :not(.bd-about)").count() === 1, "the head has one menu beside the name, not a row of buttons");
     await page.locator(".bd-inspect-head .bd-layer-menu").click();
     const actions = await page.locator(".bd-dd-opt .bd-dd-opt-label").allTextContents();
@@ -821,8 +821,8 @@ try {
     await page.mouse.up();
     await frame().waitForSelector('[data-bf-type="Image"]', { timeout: 4000 }).catch(() => { throw new Error("an Image dropped from its tray doesn't land on the frame"); });
     await page.waitForFunction(() => /Image/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect(await current() === "content", `an Image's inspector starts with its content, got ${await current()}`);
-    ok("an Image dragged from its tray lands on the frame, selected, with its content at the top of the inspector");
+    expect(await current() === "position", `an Image's inspector starts with where it is, got ${await current()}`);
+    ok("an Image dragged from its tray lands on the frame, selected, with its position at the top of the inspector");
 
     await category(page, "Layout");
     await page.locator('.bd-tile[data-type="Shape"]').click();
@@ -849,7 +849,7 @@ try {
     await page.locator('.bd-tile[data-type="Button"]').click();
     await frame().waitForSelector('[data-bf-type="Section"] [data-bf-type="Button"]');
     await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect(await current() === "content", `a Button's inspector starts with its content, got ${await current()}`);
+    expect(await current() === "position", `a Button's inspector starts with where it is, got ${await current()}`);
     const tint = await frame().evaluate(() => {
       const btn = document.querySelector('[data-bf-type="Button"] button, [data-bf-type="Button"] a, button');
       const probe = document.createElement("div");

@@ -6239,7 +6239,9 @@ function App(props) {
     var body = [sec("frame-mode", "Kind", e(Field, { key: "mode", id: "bd-fr-kind", label: "Frame kind", hint: frame.mode === "structured" ? "Everything sits in auto-layout Groups, in the flow, with tokens only." : "Place things anywhere, in any colour." },
           e(Segmented, { labelledBy: "bd-fr-kind", wide: true, value: frame.mode === "structured" ? "structured" : "free", onChange: function (v) { if (v) setMode(v); },
             options: [{ value: "free", label: "Freeform" }, { value: "structured", label: "Structured" }] }))),
-        frame.typeScale === "social" ? frameRatio() : null].concat(look, [
+        frame.typeScale === "social" ? frameRatio() : null,
+        /* How the frame lays out what's in it comes before how it looks. */
+        frameAuto()].concat(look, [
         sec("frame-flow", "Page layout", [
           e(Field, { key: "char", id: "bd-pg-char", label: "Layout character", hint: "Sets data-layout, which moves every layout layer token together." },
             e(Dropdown, { labelledBy: "bd-pg-char", value: frame.spacing, className: "bd-dd-field", onChange: function (v) { setFrame("spacing", v || ""); }, options: SPACINGS.map(function (s) { return { value: s[0], label: s[1] }; }) })),
@@ -6258,7 +6260,6 @@ function App(props) {
                 onChange: function (v) { var n = Math.max(1, Math.min(COLUMNS_MAX, Math.round(v || 0))); setFrame("columns", n, frame.name + " shows " + n + " columns"); if (!viewRef.current.columns) toggleView("columns", true); } }),
               e("button", { type: "button", className: cx("bd-act", canvasView.columns && "is-on"), "aria-pressed": String(!!canvasView.columns), title: (canvasView.columns ? "Hide" : "Show") + " layout columns (Shift+G)", onClick: function () { toggleView("columns"); } }, e(Icon, { name: canvasView.columns ? "eye" : "eyeOff" })))),
         ]),
-        frameAuto(),
         frameOverflow()]);
     return e("div", { className: "bd-inspect" },
       e("div", { className: "bd-inspect-head" },
@@ -6376,20 +6377,20 @@ function App(props) {
        layout is the same on every container, so it stays under Layout. */
     var arrange = !meta.container && flex && flex.filter(Boolean).length ? flex : null;
     var propNames = function (t) { return byTab(t).map(function (p) { return p.name; }).concat(t === "content" && hasText ? ["children"] : []).concat(t === "layout" && first.type === "Grid" ? ["minColumnWidth"] : []); };
-    /* One panel, top to bottom: what it is and says, how it's laid out and
-       placed, how it looks, then its spacing. A free layer's W and H sit
-       with its X and Y. */
+    /* One panel, top to bottom: where it is and how big, how it lays out
+       what's in it, its spacing; then what it is and says, and how it
+       looks. The layout group leads so it's always to hand. A free layer's
+       W and H sit with its X and Y. */
     var placedFree = frame.mode !== "structured" && nodes.every(function (n) { return isFree(n.style); });
     var body = [
-      contentRows.length ? sec("content", "Content", contentRows, null, propsSet(nodes, propNames("content"))) : null,
-      styleRows.length ? sec("props-style", "Style", styleRows, null, propsSet(nodes, propNames("appearance"))) : null,
-      arrange ? sec("props-arrange", "Arrangement", arrange, null, propsSet(nodes, propNames("layout"))) : null,
-      meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
       sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "z", "x", "y"].concat(placedFree ? ["fw", "fh", "rw", "rh", "rot"] : []))),
       sec("size", "Size", placedFree ? [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes, "mins")] : [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, placedFree ? ["minW", "h", "textWrap"] : ["w", "minW", "height", "h", "self", "textWrap", "fw", "fh", "rw", "rh"])),
-    ].concat(lookSections(nodes, null), [
+      meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
+      arrange ? sec("props-arrange", "Arrangement", arrange, null, propsSet(nodes, propNames("layout"))) : null,
       sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
-    ]);
+      contentRows.length ? sec("content", "Content", contentRows, null, propsSet(nodes, propNames("content"))) : null,
+      styleRows.length ? sec("props-style", "Style", styleRows, null, propsSet(nodes, propNames("appearance"))) : null,
+    ].concat(lookSections(nodes, null));
     var title = many ? nodes.length + " " + (sameType ? first.type + (first.type.endsWith("s") ? "" : "s") : "items") : null;
     var arrangeTools = arrangeRow(nodes);
     return e("div", { className: "bd-inspect" },
