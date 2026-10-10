@@ -37,6 +37,14 @@ test("headings in order, and one primary button per section", () => {
   assert.equal(t.filter((x) => /More than one primary button/.test(x)).length, 1, "only the section with two");
 });
 
+test("a block is a section of its own for the one-primary-button rule", () => {
+  /* Blocks hold their actions in a slot; make() leaves blocks childless, so
+     they're written out. */
+  const block = (type, id, label) => ({ id, type, props: {}, style: {}, children: [{ id: id + "s", type: "Slot", props: { name: "actions" }, style: {}, children: [make("Button", { children: label })] }] });
+  const f = frameWith([block("HeroBlock", "h1", "Start"), block("CtaBlock", "c1", "Shop")]);
+  assert.equal(lintFrame(f).filter((x) => /More than one primary button/.test(x.text)).length, 0, "one primary in each block is fine");
+});
+
 test("placeholder and empty copy", () => {
   const f = frameWith([make("Text", { children: "Lorem ipsum dolor" }), make("Heading", { children: "  " }), make("Card", { title: "TODO" })]);
   assert.equal(lintFrame(f).filter((x) => x.kind === "copy").length, 3);

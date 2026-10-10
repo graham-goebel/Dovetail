@@ -249,8 +249,8 @@
   }
   function slotAccepts(ownerType, name, childType) {
     if (!slotSpec(ownerType, name) || childType === "Slot") return false;
-    var list = slotTakes(ownerType, name);
-    return list ? list.indexOf(childType) >= 0 : !joinsFlow(childType);
+    var list2 = slotTakes(ownerType, name);
+    return list2 ? list2.indexOf(childType) >= 0 : !joinsFlow(childType);
   }
   function hasSlots(n) {
     return !!(n && n.children && n.children.some(function(c) {
@@ -476,8 +476,8 @@
     if (!o.family) return true;
     if (HEIGHT_KEYS[key] && o.family === "container") return false;
     if (SIDE_KEYS[key] && /^module($|-(sm|lg|xl)$)/.test(o.value)) return false;
-    var list = def.section === "size" ? scope.size : scope.space;
-    return list.indexOf(o.family) >= 0;
+    var list2 = def.section === "size" ? scope.size : scope.space;
+    return list2.indexOf(o.family) >= 0;
   }
   var MEDIA_URL = /^(https?:\/\/|data:(image|video)\/)/;
   var MEDIA_LIMIT = 15e5;
@@ -1539,9 +1539,9 @@
     })(f.root);
     return out;
   }
-  function byId(list) {
+  function byId(list2) {
     var m = /* @__PURE__ */ new Map();
-    list.forEach(function(x) {
+    list2.forEach(function(x) {
       m.set(x.id, x);
     });
     return m;
@@ -1732,11 +1732,11 @@
       changes.forEach(function(c) {
         if (c.t === "delF") gone[c.f] = true;
       });
-      var list = d.frames.filter(function(f) {
+      var list2 = d.frames.filter(function(f) {
         return !gone[f.id];
       });
       Object.keys(madeFrames).forEach(function(fid) {
-        if (madeFrames[fid].root && !gone[fid]) list.push(madeFrames[fid]);
+        if (madeFrames[fid].root && !gone[fid]) list2.push(madeFrames[fid]);
       });
       var order = null;
       changes.forEach(function(c) {
@@ -1747,7 +1747,7 @@
         order.forEach(function(id, i) {
           pos[id] = i;
         });
-        list = list.map(function(f, i) {
+        list2 = list2.map(function(f, i) {
           return { f, i };
         }).sort(function(x, y) {
           var a = pos[x.f.id] === void 0 ? order.length + x.i : pos[x.f.id];
@@ -1757,13 +1757,13 @@
           return x.f;
         });
       }
-      if (!list.length) return;
-      if (list.length !== d.frames.length || list.some(function(f, i) {
+      if (!list2.length) return;
+      if (list2.length !== d.frames.length || list2.some(function(f, i) {
         return f !== d.frames[i];
-      })) d.frames = list;
-      if (!list.some(function(f) {
+      })) d.frames = list2;
+      if (!list2.some(function(f) {
         return f.id === d.active;
-      })) d.active = list[list.length - 1].id;
+      })) d.active = list2[list2.length - 1].id;
     });
   }
 
@@ -2781,8 +2781,8 @@
     var api = {
       kind: b.kind,
       listProjects: function() {
-        return b.all("projects").then(function(list) {
-          return (list || []).sort(function(x, y) {
+        return b.all("projects").then(function(list2) {
+          return (list2 || []).sort(function(x, y) {
             return y.updatedAt - x.updatedAt;
           });
         });
@@ -3248,11 +3248,11 @@
          the open one; null takes it out of both. */
       saveThread: function(fileId, id, value2, meta) {
         return api.listThreads(fileId).then(function(idx) {
-          var list = idx.list.filter(function(x) {
+          var list2 = idx.list.filter(function(x) {
             return x.id !== id;
           });
-          if (value2) list.unshift(Object.assign({}, meta || {}, { id }));
-          var next = { list, current: value2 ? id : idx.current === id ? null : idx.current };
+          if (value2) list2.unshift(Object.assign({}, meta || {}, { id }));
+          var next = { list: list2, current: value2 ? id : idx.current === id ? null : idx.current };
           return (value2 ? keep.put("thread:" + fileId + ":" + id, value2) : keep.del("thread:" + fileId + ":" + id)).then(function() {
             return keep.put("threads:" + fileId, next);
           });
@@ -3275,8 +3275,8 @@
       /* Projects: groups of files. A file names its group; the group holds a
          name, its times and a picture of its own if one was chosen. */
       listGroups: function() {
-        return b.all("groups").then(function(list) {
-          return (list || []).sort(function(x, y) {
+        return b.all("groups").then(function(list2) {
+          return (list2 || []).sort(function(x, y) {
             return y.updatedAt - x.updatedAt;
           });
         });
@@ -3336,8 +3336,8 @@
         });
       },
       filesIn: function(group2) {
-        return api.listProjects().then(function(list) {
-          return list.filter(function(p) {
+        return api.listProjects().then(function(list2) {
+          return list2.filter(function(p) {
             return p.group === group2;
           });
         });
@@ -3781,7 +3781,7 @@
     ]));
   }
   function keys() {
-    var list = function(label2, items) {
+    var list2 = function(label2, items) {
       return make("List", { divided: true, label: label2, items: items.map(function(it) {
         return { title: it[0], trailing: it[1] };
       }) });
@@ -3789,7 +3789,7 @@
     return doc(frame("Keys worth knowing", "desktop", [
       guide("Reference", "Keys worth knowing", "Ctrl is Cmd on a Mac. Press ? for every shortcut.", [
         make("Grid", { columns: 2, gap: "xl" }, [
-          make("Stack", { layer: "related" }, [heading("Editing", "heading-sm"), list("Editing", [
+          make("Stack", { layer: "related" }, [heading("Editing", "heading-sm"), list2("Editing", [
             ["Undo, and redo", "Ctrl+Z, Ctrl+Shift+Z"],
             ["Duplicate", "Ctrl+D"],
             ["Copy, cut and paste", "Ctrl+C, X, V"],
@@ -3798,7 +3798,7 @@
             ["Delete", "Del"],
             ["Rename", "F2"]
           ])]),
-          make("Stack", { layer: "related" }, [heading("Canvas", "heading-sm"), list("Canvas", [
+          make("Stack", { layer: "related" }, [heading("Canvas", "heading-sm"), list2("Canvas", [
             ["Select all", "Ctrl+A"],
             ["Bring forward, send back", "Ctrl+], Ctrl+["],
             ["Nudge, four steps", "Arrows, Shift+Arrows"],
@@ -3884,7 +3884,7 @@
         return { id: t.toLowerCase(), label: t };
       }) });
     };
-    var head2 = function(title) {
+    var head3 = function(title) {
       return row({ justify: "space-between" }, [heading(title, "heading-xs", { level: 3 }), text("⌄", "small", { tone: "tertiary" })]);
     };
     var f = makeFrame("Workspace", "wide", false);
@@ -3927,9 +3927,9 @@
           field("Resizing", "Hug contents")
         ], { padding: "sm", borderBottom: "subtle" }),
         col({ gap: "none" }, [seg("Inspector", "layout", ["Appearance", "Layout"])], { padding: "sm", borderBottom: "subtle" }),
-        col({ gap: "xs" }, [head2("Kind"), text("Frame kind", "label"), seg("Frame kind", "freeform", ["Freeform", "Structured"]), text("Place things anywhere, in any colour.", "fine", { tone: "tertiary" })], { padding: "sm", borderBottom: "subtle" }),
+        col({ gap: "xs" }, [head3("Kind"), text("Frame kind", "label"), seg("Frame kind", "freeform", ["Freeform", "Structured"]), text("Place things anywhere, in any colour.", "fine", { tone: "tertiary" })], { padding: "sm", borderBottom: "subtle" }),
         col({ gap: "xs" }, [
-          head2("Page layout"),
+          head3("Page layout"),
           field("Layout character", "Page default", "Sets data-layout, which moves every layout layer token together."),
           field("Type scale", "Page", "The page's own sizes."),
           field("Page width", "Page", "The column every Section, block and page-width Group shares.")
@@ -4130,14 +4130,14 @@
     }).then(function(got) {
       var projects = got[0], seeded = got[1];
       var last = store.lastOpened();
-      var pick = projects.filter(function(p) {
+      var pick2 = projects.filter(function(p) {
         return p.id === last;
       })[0] || projects[0] || null;
       var current2 = function() {
-        if (!pick) return Promise.resolve(null);
-        var page = pageOf(pick);
-        return store.loadDoc(pick.id, page).then(function(doc2) {
-          return doc2 ? { project: pick, page, doc: doc2 } : null;
+        if (!pick2) return Promise.resolve(null);
+        var page = pageOf(pick2);
+        return store.loadDoc(pick2.id, page).then(function(doc2) {
+          return doc2 ? { project: pick2, page, doc: doc2 } : null;
         });
       };
       var fresh2 = function(name, doc2, extra) {
@@ -4431,7 +4431,7 @@
         return;
       }
     };
-    var str = function() {
+    var str2 = function() {
       var q = s[i++], out = "";
       while (i < s.length && s[i] !== q) {
         if (q === "`" && s[i] === "$" && s[i + 1] === "{") throw FAIL;
@@ -4450,7 +4450,7 @@
     var value2 = function() {
       ws();
       var c = s[i];
-      if (c === '"' || c === "'" || c === "`") return str();
+      if (c === '"' || c === "'" || c === "`") return str2();
       if (c === "[") {
         i++;
         var arr = [];
@@ -4476,7 +4476,7 @@
             return obj;
           }
           var key;
-          if (s[i] === '"' || s[i] === "'") key = str();
+          if (s[i] === '"' || s[i] === "'") key = str2();
           else {
             var km = /^[A-Za-z_$][\w$]*|^\d+/.exec(s.slice(i));
             if (!km) throw FAIL;
@@ -4653,12 +4653,12 @@
             slots.push({ type: "Slot", props: { name }, children: parsed });
             return;
           }
-          var lit = readLiteral(code);
-          if (!lit.ok) {
+          var lit2 = readLiteral(code);
+          if (!lit2.ok) {
             note(report, type + ": " + name + "={" + short2(code) + "} is code, so it was left out");
             return;
           }
-          v = lit.value;
+          v = lit2.value;
         }
         if (name === "style") {
           if (!v || typeof v !== "object" || Array.isArray(v)) {
@@ -4725,9 +4725,9 @@
               return;
             }
           }
-          var lit = readLiteral(code);
-          if (lit.ok && (typeof lit.value === "string" || typeof lit.value === "number")) {
-            parts.push({ text: String(lit.value) });
+          var lit2 = readLiteral(code);
+          if (lit2.ok && (typeof lit2.value === "string" || typeof lit2.value === "number")) {
+            parts.push({ text: String(lit2.value) });
             return;
           }
           note(report, type + ": {" + short2(code) + "} is code, so what it makes was left out");
@@ -4905,14 +4905,14 @@
       return { frame: typeof data.edit === "string" ? data.edit : "", format: "json", items: data.changes.slice(0, 60).map(readJsonItem) };
     }
     var lines = t.split(/\r?\n/);
-    var head2 = /^#{1,3}\s*edit\b\s*(.*)$/i.exec(lines[0].trim());
-    if (!head2) return null;
+    var head3 = /^#{1,3}\s*edit\b\s*(.*)$/i.exec(lines[0].trim());
+    if (!head3) return null;
     var items = [];
     lines.slice(1).forEach(function(l) {
       var m = /^\s*[-*]\s+(.+?)\s*$/.exec(l);
       if (m) items.push(readMarkdownItem(m[1]));
     });
-    return { frame: head2[1].trim(), format: "markdown", items: items.slice(0, 60) };
+    return { frame: head3[1].trim(), format: "markdown", items: items.slice(0, 60) };
   }
   function readJsonItem(c) {
     if (!c || typeof c !== "object") return { bad: "A change isn't an object." };
@@ -5236,9 +5236,325 @@
     })[0], ids };
   }
 
+  // assets/builder/model/layouts.js
+  var SAMPLE = {
+    eyebrow: "New season",
+    title: "Stoneware made slowly",
+    lead: "Four glazes, each fired twice, for the table you use every day.",
+    action: "Shop the range",
+    secondary: "Our story",
+    image: "",
+    items: [
+      { title: "Fired twice", text: "A second firing makes the glaze harder and the colour deeper." },
+      { title: "Free repairs", text: "Chip a rim in the first five years and we mend it." },
+      { title: "Made to order", text: "Each piece is thrown when you order it, so nothing sits in a warehouse." },
+      { title: "Plastic-free", text: "Packed in card and paper pulp that goes straight in the recycling." }
+    ],
+    stats: [
+      { value: "12", label: "Workshops" },
+      { value: "4,800", label: "Pieces this year" },
+      { value: "5 yrs", label: "Free repairs" }
+    ],
+    quotes: [
+      { quote: "The only mugs that have survived our kitchen. They feel right in the hand.", name: "Ana Ruiz", role: "Owner, Ruiz Bakery" },
+      { quote: "Ordering was easy and the bowls arrived better than the photos.", name: "Sam Okafor", role: "Home cook" },
+      { quote: "We set every table in the café with them now.", name: "Lee Park", role: "Café Park" }
+    ],
+    points: ["Thrown by hand in our own studio", "Glazes mixed in small batches", "Safe for the dishwasher and the oven"],
+    faqs: [
+      { question: "How long does an order take?", answer: "Most pieces ship within two weeks, as each is made to order." },
+      { question: "Can I return a piece?", answer: "Yes, within 30 days, unused and in its packaging." },
+      { question: "Do you ship abroad?", answer: "We ship across Europe and to the US and Canada." }
+    ],
+    steps: [
+      { title: "Choose", text: "Pick the pieces and glazes you like." },
+      { title: "We make it", text: "Each one is thrown and fired for you." },
+      { title: "It arrives", text: "Packed by hand and sent in card." }
+    ],
+    slides: [
+      { title: "Fern", text: "Spring" },
+      { title: "Tide", text: "Summer" },
+      { title: "Clay", text: "Autumn" },
+      { title: "Ash", text: "Winter" }
+    ]
+  };
+  function str(v) {
+    return "{" + JSON.stringify(String(v == null ? "" : v)) + "}";
+  }
+  function lit(v) {
+    return "{" + JSON.stringify(v) + "}";
+  }
+  function pick(c, key) {
+    var v = c && c[key];
+    return v == null || v === "" || Array.isArray(v) && !v.length ? SAMPLE[key] : v;
+  }
+  function list(c, key, max) {
+    return pick(c, key).slice(0, max);
+  }
+  function actions(c, one2) {
+    var a = '<Button variant="primary">' + str(pick(c, "action")) + "</Button>";
+    if (!one2) a += '<Button variant="secondary">' + str(pick(c, "secondary")) + "</Button>";
+    return "{<>" + a + "</>}";
+  }
+  function media(c, ratio) {
+    var src = c && c.image;
+    return src ? "<Image src=" + str(src) + " alt=" + str(c.imageAlt || pick(c, "title")) + ' ratio="' + ratio + '" radius="media" />' : "<Image placeholder=" + str(pick(c, "title")) + " alt=" + str(c && c.imageAlt || pick(c, "title")) + ' ratio="' + ratio + '" radius="media" />';
+  }
+  function head(c) {
+    return " eyebrow=" + str(pick(c, "eyebrow")) + " title=" + str(pick(c, "title"));
+  }
+  function features(c, max) {
+    return lit(list(c, "items", max).map(function(it) {
+      return { title: String(it.title || ""), description: String(it.text || it.description || "") };
+    }));
+  }
+  var LAYOUTS = [
+    /* -------------------------------------------------------------- heroes */
+    {
+      id: "hero-split",
+      kind: "hero",
+      name: "Split hero",
+      mood: "calm, product",
+      when: "Opens a page with the pitch on one side and a picture on the other. The safe default for a product or service.",
+      fields: ["eyebrow", "title", "lead", "action", "secondary", "image"],
+      jsx: function(c) {
+        return '<HeroBlock layout="split" titleSize="display-md"' + head(c) + " lead=" + str(pick(c, "lead")) + " actions=" + actions(c) + " media={" + media(c, "4:3") + "} />";
+      }
+    },
+    {
+      id: "hero-brand",
+      kind: "hero",
+      name: "Centred brand hero",
+      mood: "bold, loud",
+      when: "A big centred statement on the brand fill with texture. For a launch, a campaign or a page that should feel confident.",
+      fields: ["eyebrow", "title", "lead", "action", "secondary"],
+      jsx: function(c) {
+        return '<HeroBlock layout="centered" tone="brand" texture titleSize="display-lg" spacing="xl"' + head(c) + " lead=" + str(pick(c, "lead")) + " actions=" + actions(c) + " />";
+      }
+    },
+    {
+      id: "hero-cover",
+      kind: "hero",
+      name: "Full-bleed photo hero",
+      mood: "editorial, image-led",
+      when: "A wide photograph with the title over it on a scrim. For lifestyle, food, travel or anything that sells on the picture.",
+      fields: ["eyebrow", "title", "lead", "action", "image"],
+      jsx: function(c) {
+        var src = c && c.image ? " src=" + str(c.image) : "";
+        return '<Section width="wide" spacing="sm"><Cover ratio="21:9" radius="container" scrim="gradient" align="bottom"' + src + " alt=" + str(c && c.imageAlt || pick(c, "title")) + head(c) + " body=" + str(pick(c, "lead")) + " actions=" + actions(c, true) + " /></Section>";
+      }
+    },
+    {
+      id: "hero-statement",
+      kind: "hero",
+      name: "Type-led statement",
+      mood: "editorial, quiet",
+      when: "Just words, set very large with lots of room. For a studio, a manifesto or a page where the voice carries it.",
+      fields: ["eyebrow", "title", "lead", "action"],
+      jsx: function(c) {
+        return '<Section spacing="xl"><Stack gap="lg" align="flex-start"><Text variant="eyebrow">' + str(pick(c, "eyebrow")) + '</Text><Heading level={1} size="display-xl" measure="narrow">' + str(pick(c, "title")) + '</Heading><Text variant="lead" measure="default">' + str(pick(c, "lead")) + '</Text><Button variant="primary">' + str(pick(c, "action")) + "</Button></Stack></Section>";
+      }
+    },
+    /* ------------------------------------------------------------ features */
+    {
+      id: "features-cards",
+      kind: "features",
+      name: "Feature cards",
+      mood: "calm, structured",
+      when: "Three reasons in raised cards on a quiet band. Reads as considered and easy to scan.",
+      fields: ["eyebrow", "title", "lead", "items (title, text)"],
+      jsx: function(c) {
+        return '<FeatureGridBlock variant="cards" columns={3} tone="subtle" align="start"' + head(c) + " lead=" + str(pick(c, "lead")) + " items=" + features(c, 3) + " />";
+      }
+    },
+    {
+      id: "features-row",
+      kind: "features",
+      name: "Four-up feature row",
+      mood: "light, product",
+      when: "Four short points in a plain row, no cards. For a quick list of benefits under a hero.",
+      fields: ["title", "items (title, text)"],
+      jsx: function(c) {
+        return '<FeatureGridBlock variant="plain" columns={4} align="start" title=' + str(pick(c, "title")) + ' titleSize="heading-md" items=' + features(c, 4) + " />";
+      }
+    },
+    {
+      id: "split-points",
+      kind: "story",
+      name: "Picture and points",
+      mood: "warm, explanatory",
+      when: "A picture beside a title, a sentence and a short list. For how something is made or why it's different.",
+      fields: ["eyebrow", "title", "lead", "points", "action", "image"],
+      jsx: function(c) {
+        return "<SplitBlock" + head(c) + " body=" + str(pick(c, "lead")) + " points=" + lit(list(c, "points", 4).map(String)) + " actions=" + actions(c, true) + " media={" + media(c, "4:3") + "} />";
+      }
+    },
+    {
+      id: "split-dark",
+      kind: "story",
+      name: "Dark split, picture right",
+      mood: "bold, dramatic",
+      when: "The same split in a dark band with the picture on the right. Breaks up a long light page.",
+      fields: ["eyebrow", "title", "lead", "points", "image"],
+      jsx: function(c) {
+        return "<SplitBlock dark reverse" + head(c) + " body=" + str(pick(c, "lead")) + " points=" + lit(list(c, "points", 4).map(String)) + " media={" + media(c, "4:3") + "} />";
+      }
+    },
+    /* --------------------------------------------------------------- proof */
+    {
+      id: "stats-band",
+      kind: "proof",
+      name: "Numbers band",
+      mood: "confident",
+      when: "Three numbers set large and centred on a muted brand band. For proof that's quick to read.",
+      fields: ["title", "stats (value, label)"],
+      jsx: function(c) {
+        return '<StatsBlock tone="brand-muted" align="center" title=' + str(pick(c, "title")) + " stats=" + lit(list(c, "stats", 4).map(function(s) {
+          return { value: String(s.value), label: String(s.label) };
+        })) + " />";
+      }
+    },
+    {
+      id: "quote-large",
+      kind: "proof",
+      name: "One big quote",
+      mood: "warm, personal",
+      when: "A single quote set large. Stronger than three when you have one great line.",
+      fields: ["quotes (quote, name, role)"],
+      jsx: function(c) {
+        return '<TestimonialBlock tone="subtle" quotes=' + lit(list(c, "quotes", 1)) + " />";
+      }
+    },
+    {
+      id: "quotes-grid",
+      kind: "proof",
+      name: "Quote grid",
+      mood: "social, busy",
+      when: "Three customer quotes side by side under a title. For breadth of praise.",
+      fields: ["title", "quotes (quote, name, role)"],
+      jsx: function(c) {
+        return "<TestimonialBlock title=" + str(pick(c, "title")) + " quotes=" + lit(list(c, "quotes", 3)) + " />";
+      }
+    },
+    /* ------------------------------------------------------------ showcase */
+    {
+      id: "showcase-coverflow",
+      kind: "showcase",
+      name: "Coverflow showcase",
+      mood: "playful, moving",
+      when: "A carousel of covers that turns in Play. For a range, a collection or a portfolio; it gives the page movement.",
+      fields: ["title", "lead", "slides (title, text)"],
+      jsx: function(c) {
+        var slides = list(c, "slides", 6).map(function(s) {
+          return '<Cover ratio="3:4" title=' + str(s.title) + " eyebrow=" + str(s.text || "") + " alt=" + str(s.title) + (s.image ? " src=" + str(s.image) : "") + " />";
+        }).join("");
+        return '<Section><Stack gap="lg"><Stack gap="sm"><Heading size="heading-lg">' + str(pick(c, "title")) + '</Heading><Text variant="lead" measure="default">' + str(pick(c, "lead")) + '</Text></Stack><Carousel layout="coverflow" label=' + str(pick(c, "title")) + ">" + slides + "</Carousel></Stack></Section>";
+      }
+    },
+    {
+      id: "showcase-marquee",
+      kind: "showcase",
+      name: "Marquee strip",
+      mood: "lively, moving",
+      when: "A strip of covers that drifts sideways in Play, on a dark band. For logos, a lookbook or a busy range.",
+      fields: ["title", "slides (title, text)"],
+      jsx: function(c) {
+        var slides = list(c, "slides", 8).map(function(s) {
+          return '<Cover ratio="square" title=' + str(s.title) + " eyebrow=" + str(s.text || "") + " alt=" + str(s.title) + (s.image ? " src=" + str(s.image) : "") + " />";
+        }).join("");
+        return '<Section dark><Stack gap="lg"><Heading size="heading-lg">' + str(pick(c, "title")) + '</Heading><Carousel layout="marquee" label=' + str(pick(c, "title")) + ">" + slides + "</Carousel></Stack></Section>";
+      }
+    },
+    /* --------------------------------------------------------------- steps */
+    {
+      id: "steps",
+      kind: "steps",
+      name: "How it works",
+      mood: "clear, guiding",
+      when: "Three or four steps in order, numbered. For a process, onboarding or ordering.",
+      fields: ["eyebrow", "title", "steps (title, text)"],
+      jsx: function(c) {
+        return '<Section tone="subtle"><Stack gap="lg"><Stack gap="sm"><Text variant="eyebrow">' + str(pick(c, "eyebrow")) + '</Text><Heading size="heading-lg">' + str(pick(c, "title")) + '</Heading></Stack><Stepper orientation="horizontal" current={0} label=' + str(pick(c, "title")) + " steps=" + lit(list(c, "steps", 4).map(function(s) {
+          return { label: String(s.title), description: String(s.text || "") };
+        })) + " /></Stack></Section>";
+      }
+    },
+    /* ---------------------------------------------------------------- faq */
+    {
+      id: "faq",
+      kind: "faq",
+      name: "Questions beside a header",
+      mood: "helpful",
+      when: "Questions in an accordion beside the title. Near the foot of a page, before the last call to action.",
+      fields: ["title", "lead", "faqs (question, answer)"],
+      jsx: function(c) {
+        return '<FaqBlock layout="split" title=' + str(pick(c, "title")) + " lead=" + str(pick(c, "lead")) + " items=" + lit(list(c, "faqs", 6).map(function(q) {
+          return { question: String(q.question), answer: String(q.answer) };
+        })) + " />";
+      }
+    },
+    /* ---------------------------------------------------------------- close */
+    {
+      id: "cta-brand",
+      kind: "cta",
+      name: "Brand call to action",
+      mood: "bold",
+      when: "The last band, on the brand fill, with one clear action. Ends a marketing page.",
+      fields: ["title", "lead", "action"],
+      jsx: function(c) {
+        return '<CtaBlock tone="brand" texture title=' + str(pick(c, "title")) + " lead=" + str(pick(c, "lead")) + " actions=" + actions(c, true) + " />";
+      }
+    },
+    {
+      id: "cta-quiet",
+      kind: "cta",
+      name: "Quiet inset close",
+      mood: "calm, premium",
+      when: "A muted inset band with two actions. A softer end for a product page or a premium brand.",
+      fields: ["title", "lead", "action", "secondary"],
+      jsx: function(c) {
+        return '<CtaBlock tone="brand-muted" bleed="inset" title=' + str(pick(c, "title")) + " lead=" + str(pick(c, "lead")) + " actions=" + actions(c) + " />";
+      }
+    },
+    {
+      id: "cta-dark",
+      kind: "cta",
+      name: "Dark close",
+      mood: "dramatic",
+      when: "A dark band to end on, so the page closes with weight.",
+      fields: ["title", "lead", "action"],
+      jsx: function(c) {
+        return '<CtaBlock dark tone="base" title=' + str(pick(c, "title")) + " lead=" + str(pick(c, "lead")) + " actions=" + actions(c, true) + " />";
+      }
+    }
+  ];
+  var KINDS = LAYOUTS.reduce(function(a, l) {
+    if (a.indexOf(l.kind) < 0) a.push(l.kind);
+    return a;
+  }, []);
+  function layoutById(id) {
+    return LAYOUTS.filter(function(l) {
+      return l.id === id;
+    })[0] || null;
+  }
+  function findLayouts(query, kind) {
+    var words3 = String(query || "").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+    return LAYOUTS.filter(function(l) {
+      if (kind && l.kind !== kind) return false;
+      if (!words3.length) return true;
+      var hay = (l.id + " " + l.kind + " " + l.name + " " + l.mood + " " + l.when).toLowerCase();
+      return words3.some(function(w) {
+        return hay.indexOf(w) >= 0;
+      });
+    });
+  }
+  function layoutLine(l) {
+    return "- " + l.id + " · " + l.kind + " · " + l.name + " (" + l.mood + "): " + l.when + " Fields: " + l.fields.join(", ") + ".";
+  }
+
   // assets/builder/model/agent.js
   var FAMILIES = Object.keys(DATA.tokens);
-  var BATCHABLE = ["set_style", "set_prop", "set_text", "insert_jsx", "replace_jsx", "move", "wrap", "duplicate", "rename", "remove"];
+  var BATCHABLE = ["set_style", "set_prop", "set_text", "insert_jsx", "replace_jsx", "insert_layout", "move", "wrap", "duplicate", "rename", "remove"];
   var TOOLS = [
     { name: "list_pages", description: "The file's pages (the current one marked), and the frames on the current page with their ids, sizes and layer counts.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
     { name: "read_page", description: "An outline of every layer on a page: one line each, indented by depth, with its id, type, name, text, props and style tokens. Reads the current page unless page names another; frame narrows it to one frame. Read it before changing anything beyond the selection.", input_schema: { type: "object", properties: { page: { type: "string" }, frame: { type: "string" } }, additionalProperties: false } },
@@ -5255,6 +5571,8 @@
     { name: "set_prop", description: "Set one of a component's own props on layers of that type: its text, or one of the values its enum allows.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, name: { type: "string" }, value: { type: ["string", "number", "boolean"] } }, required: ["ids", "name", "value"], additionalProperties: false } },
     { name: "insert_jsx", description: "Add new layers written as JSX with the design system's components (for example <Section><Heading>…</Heading></Section>) into a container, at an index, or after the selection when parent is omitted.", input_schema: { type: "object", properties: { jsx: { type: "string" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["jsx"], additionalProperties: false } },
     { name: "replace_jsx", description: "Replace one layer with new layers written as JSX, in its place: the way to rebuild a section or a card in one step.", input_schema: { type: "object", properties: { id: { type: "string" }, jsx: { type: "string" } }, required: ["id", "jsx"], additionalProperties: false } },
+    { name: "search_layouts", description: "Find tested section layouts to build with: heroes, features, stories, proof, showcases, steps, questions and closes, each with its mood, when it fits and the content fields it takes. Filter by kind (" + KINDS.join(", ") + ") or words such as bold, calm, editorial, moving. Nothing given lists them all.", input_schema: { type: "object", properties: { query: { type: "string" }, kind: { type: "string", enum: KINDS } }, additionalProperties: false } },
+    { name: "insert_layout", description: "Add a section from search_layouts, filled with your content: into a container at an index, after the selection when parent is omitted, or in place of a layer with replace. content takes the layout's fields (eyebrow, title, lead, action, secondary, image, items, stats, quotes, points, faqs, steps, slides); anything left out gets sample copy, so give real copy for every field the layout lists.", input_schema: { type: "object", properties: { id: { type: "string" }, content: { type: "object" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 }, replace: { type: "string" } }, required: ["id"], additionalProperties: false } },
     { name: "set_text", description: "Set a layer's text: a heading's or a paragraph's words, a button's label, a card's title.", input_schema: { type: "object", properties: { id: { type: "string" }, text: { type: "string" } }, required: ["id", "text"], additionalProperties: false } },
     { name: "move", description: "Move layers into a container, at an index (the end when omitted), in the order given.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["ids", "parent"], additionalProperties: false } },
     { name: "wrap", description: "Put a layer inside a new container of the given type, or several sibling layers inside one Group.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, type: { type: "string", enum: WRAPS } }, required: ["ids"], additionalProperties: false } },
@@ -5395,12 +5713,13 @@
       "- Choose token values by what they're for (each family below says), not by how they look: raised for cards, subtle for a quiet band, brand-muted for a band with presence.",
       "- When the brand or the context matters (a component's product or marketing variant, the voice of copy), read_theme first; read_guideline for the rules on a topic.",
       "- A new page starts with create_frame (structured for web pages, a social preset for posts), then fills its Content group.",
+      "- Build sections from the layouts library: search_layouts for the kind of section and the mood asked for, then insert_layout with real copy for its fields (replace to swap one in for an existing section). Write JSX only for what no layout covers. A page reads best when its sections vary: alternate light and dark or brand bands, and don't repeat a layout.",
       "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
       "- Write real, short copy in the brand's voice. Never lorem ipsum.",
       "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish. For a page, look at 390 wide and in dark mode too (screenshot with width or dark) when the change touches layout or colour, or the checks flag them.",
       "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
       "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first. When it leaves a real choice of direction open (two good answers with a different tone), call ask_user with the options rather than guessing.",
-      "- When the person wants to see options, make_variants copies the frame once per option, side by side; build each in its copy and say how they differ. They keep one.",
+      "- When the person wants to see options, make_variants copies the frame once per option, side by side; build each in its copy and say how they differ. They keep one. Make the copies differ in more than colour: swap in different layouts (insert_layout with replace), bands and type sizes, so each is a real direction.",
       "- A message may start with what the person changed on the canvas since your last reply. Keep those changes unless they ask otherwise, and build on them.",
       "- Before a new page or frame, or a change that adds more than about 10 layers, call propose_plan and wait for the answer, unless the canvas notes say plans are off. Building without one is refused.",
       "- Finish with a sentence or two on what you changed and anything the person should check.",
@@ -5526,16 +5845,16 @@
         });
       }
       case "read_guideline": {
-        var list = DATA.guidelines || [];
+        var list2 = DATA.guidelines || [];
         var want = String(input.topic || "").toLowerCase().trim();
-        var g = list.filter(function(x) {
+        var g = list2.filter(function(x) {
           return x.id === want;
-        })[0] || list.filter(function(x) {
+        })[0] || list2.filter(function(x) {
           return x.title.toLowerCase() === want;
-        })[0] || list.filter(function(x) {
+        })[0] || list2.filter(function(x) {
           return want && (x.id.indexOf(want) >= 0 || x.title.toLowerCase().indexOf(want) >= 0);
         })[0];
-        if (!g) return fail("There's no guideline " + JSON.stringify(input.topic) + ". Topics: " + list.map(function(x) {
+        if (!g) return fail("There's no guideline " + JSON.stringify(input.topic) + ". Topics: " + list2.map(function(x) {
           return x.id;
         }).join(", ") + ".");
         if (!api.guideline) return fail("Guidelines can't be read here.");
@@ -5685,6 +6004,19 @@
           return layerName(n);
         }).join(", "), on: "" } };
       }
+      case "search_layouts": {
+        var found = findLayouts(input.query, input.kind);
+        if (!found.length) found = findLayouts("", input.kind);
+        return { ok: true, result: found.map(layoutLine).join("\n"), step: "Looked through " + found.length + " layouts" };
+      }
+      case "insert_layout": {
+        var lay = layoutById(input.id);
+        if (!lay) return fail("There's no layout " + input.id + ". search_layouts lists them.");
+        var jsx = lay.jsx(input.content || {});
+        var r0 = input.replace ? runTool(api, { name: "replace_jsx", input: { id: input.replace, jsx } }) : runTool(api, { name: "insert_jsx", input: { jsx, parent: input.parent, index: input.index } });
+        if (r0.ok && r0.change) r0.change = Object.assign({}, r0.change, { label: input.replace ? "Rebuilt" : "Added", value: lay.name + (input.replace ? " in place of " + r0.change.value.split(" → ")[0] : "") });
+        return r0;
+      }
       case "set_text": {
         var tat = locate(doc2, input.id);
         if (!tat || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
@@ -5780,22 +6112,23 @@
         return { ok: true, result: "Now working in " + to.name + ".", step: "Moved to " + to.name };
       }
       case "batch": {
-        var list = Array.isArray(input.calls) ? input.calls.slice(0, 40) : [];
-        if (!list.length) return fail("Send at least one call.");
-        var bad = list.filter(function(c) {
+        var list2 = Array.isArray(input.calls) ? input.calls.slice(0, 40) : [];
+        if (!list2.length) return fail("Send at least one call.");
+        var bad = list2.filter(function(c) {
           return !c || BATCHABLE.indexOf(c.name) < 0;
         })[0];
         if (bad) return fail((bad && bad.name) + " can't run in a batch. Batch runs: " + BATCHABLE.join(", ") + ".");
-        var size = list.reduce(function(a, c) {
-          return a + (c.name === "insert_jsx" || c.name === "replace_jsx" ? added(fromJsx((c.input || {}).jsx)) : 0);
+        var size = list2.reduce(function(a, c) {
+          var inp = c.input || {}, lay2 = c.name === "insert_layout" && layoutById(inp.id);
+          return a + (c.name === "insert_jsx" || c.name === "replace_jsx" ? added(fromJsx(inp.jsx)) : lay2 ? added(fromJsx(lay2.jsx(inp.content || {}))) : 0);
         }, 0);
         var owed4 = owesPlan(api, size);
         if (owed4) return owed4;
         var inner = Object.assign({}, api, { needsPlan: null });
         var changes = [], outs = [], stopped = null;
         api.batch(function() {
-          for (var i = 0; i < list.length; i++) {
-            var r = runTool(inner, { name: list[i].name, input: list[i].input || {} });
+          for (var i = 0; i < list2.length; i++) {
+            var r = runTool(inner, { name: list2[i].name, input: list2[i].input || {} });
             outs.push(r.ok ? r.result : "Failed: " + r.result);
             if (!r.ok) {
               stopped = { at: i, why: r.result };
@@ -5805,7 +6138,7 @@
           }
         });
         var summary = JSON.stringify(outs);
-        if (stopped) return { ok: changes.length > 0, result: "Call " + (stopped.at + 1) + " (" + list[stopped.at].name + ") failed: " + stopped.why + " The " + stopped.at + " before it stand. Results: " + summary, changes };
+        if (stopped) return { ok: changes.length > 0, result: "Call " + (stopped.at + 1) + " (" + list2[stopped.at].name + ") failed: " + stopped.why + " The " + stopped.at + " before it stand. Results: " + summary, changes };
         return { ok: true, result: summary, changes };
       }
       case "propose_plan": {
@@ -5971,7 +6304,7 @@
     }
     if (names[0] === "ask_user") {
       var said0 = body(0);
-      var pick = /^They chose: (.+)\.$/.exec(said0);
+      var pick2 = /^They chose: (.+)\.$/.exec(said0);
       if (/own words: Try (them )?all/i.test(said0)) {
         var asked0 = (prev.content.filter(function(b) {
           return b.type === "tool_use";
@@ -5980,9 +6313,9 @@
           return o.label;
         }) } }] };
       }
-      if (!pick) return { text: /own words/.test(said0) ? "Practice mode: a model would build what you described. Pick an option to see the practice version." : "Practice mode: pick an option whenever you're ready.", calls: [] };
-      var jsx = PRACTICE_CLOSES[pick[1]];
-      if (!jsx) return { text: "Practice mode: you chose " + pick[1] + ".", calls: [] };
+      if (!pick2) return { text: /own words/.test(said0) ? "Practice mode: a model would build what you described. Pick an option to see the practice version." : "Practice mode: pick an option whenever you're ready.", calls: [] };
+      var jsx = PRACTICE_CLOSES[pick2[1]];
+      if (!jsx) return { text: "Practice mode: you chose " + pick2[1] + ".", calls: [] };
       return { text: "", calls: [{ name: "insert_jsx", input: { jsx } }] };
     }
     if (names[0] === "make_variants") {
@@ -6227,11 +6560,11 @@
     return out;
   }
   function bridgeTools(tools, canEdit) {
-    var list = tools.filter(function(t) {
+    var list2 = tools.filter(function(t) {
       return !LEFT_OUT[t.name] && (canEdit || READS[t.name]);
     });
-    if (canEdit) list = list.concat([EDIT_BY_NAME, PLACE_IMAGE, WORKING_ON]);
-    return [HELLO].concat(list);
+    if (canEdit) list2 = list2.concat([EDIT_BY_NAME, PLACE_IMAGE, WORKING_ON]);
+    return [HELLO].concat(list2);
   }
   function allowed(call, session, tools) {
     var name = call && call.name;
@@ -6478,12 +6811,12 @@
             h.onMessage(m.payload);
           });
           ch.on("presence", { event: "sync" }, function() {
-            var st = ch.presenceState(), list = [];
+            var st = ch.presenceState(), list2 = [];
             Object.keys(st).forEach(function(key) {
               var last = st[key][st[key].length - 1] || {};
-              list.push(Object.assign({}, last, { key }));
+              list2.push(Object.assign({}, last, { key }));
             });
-            h.onPeers(list);
+            h.onPeers(list2);
           });
           ch.subscribe(function(status) {
             if (status === "SUBSCRIBED") {
@@ -6896,9 +7229,9 @@
     return a.canEdit ? "Can make changes" + (a.askFirst ? " · asks first" : " · live") : "Can only look";
   }
   var BridgeDialog = memo(function BridgeDialog2(p) {
-    var o = p.options, list = p.bridge ? p.bridge.sessions : [];
+    var o = p.options, list2 = p.bridge ? p.bridge.sessions : [];
     var off = p.account.status === "off", out = p.account.status !== "in";
-    var starting = list.some(function(a) {
+    var starting = list2.some(function(a) {
       return a.status === "starting";
     });
     var close = function() {
@@ -6939,7 +7272,7 @@
         "div",
         { className: "bd-br-body" },
         off ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sessions run through the builder's cloud, which isn't connected here yet (docs/cloud.md).") : out ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: a session is tied to your account. ", e("button", { type: "button", className: "bd-link", onClick: p.onSignIn }, "Sign in")) : null,
-        list.length ? e("ul", { className: "bd-br-agents", role: "list", "aria-label": "Agents on this file" }, list.map(function(a) {
+        list2.length ? e("ul", { className: "bd-br-agents", role: "list", "aria-label": "Agents on this file" }, list2.map(function(a) {
           return e(
             "li",
             { key: a.key, className: "bd-br-agent" },
@@ -6965,13 +7298,13 @@
           e(
             "div",
             { className: "bd-br-st" },
-            e("b", null, list.length ? "Add another agent" : "Add an agent"),
+            e("b", null, list2.length ? "Add another agent" : "Add an agent"),
             e("span", null, "Name it, choose what it can do, then give it the link. It can send its own name and mark when it starts. The link works while this tab stays open, and ends after an hour without a step."),
             e(
               "label",
               { className: "bd-br-name" },
               e("span", null, "Name"),
-              e("input", { type: "text", maxLength: 40, value: o.name || "", placeholder: list.length ? "Agent " + (list.length + 1) : "Claude", onChange: function(ev) {
+              e("input", { type: "text", maxLength: 40, value: o.name || "", placeholder: list2.length ? "Agent " + (list2.length + 1) : "Claude", onChange: function(ev) {
                 set2("name", ev.target.value);
               } })
             ),
@@ -6990,9 +7323,9 @@
         { className: "bd-br-foot" },
         e("span", { className: "bd-edit-undo" }, e(Icon, { name: "lock" }), "Agents see only what they ask for. Every step can be undone."),
         e("span", { className: "bd-edit-sp" }),
-        list.length > 1 ? e("button", { type: "button", className: "bd-btn", onClick: p.onEndAll }, "End all") : null,
-        e("button", { type: "button", className: "bd-btn", onClick: close }, list.length ? "Done" : "Cancel"),
-        e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: out || starting, onClick: p.onAdd }, e(Icon, { name: "plus" }), list.length ? "Add agent" : "Start session")
+        list2.length > 1 ? e("button", { type: "button", className: "bd-btn", onClick: p.onEndAll }, "End all") : null,
+        e("button", { type: "button", className: "bd-btn", onClick: close }, list2.length ? "Done" : "Cancel"),
+        e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: out || starting, onClick: p.onAdd }, e(Icon, { name: "plus" }), list2.length ? "Add agent" : "Start session")
       )
     );
   });
@@ -7487,8 +7820,8 @@
       }) : [];
     };
     var measure = function() {
-      var list = buttons();
-      var b = over >= 0 ? list[over] : list.find(function(c) {
+      var list2 = buttons();
+      var b = over >= 0 ? list2[over] : list2.find(function(c) {
         return c.getAttribute("aria-pressed") === "true" || c.getAttribute("aria-selected") === "true";
       });
       var next = b && b.offsetWidth ? { x: b.offsetLeft, y: b.offsetTop, w: b.offsetWidth, h: b.offsetHeight } : null;
@@ -7511,8 +7844,8 @@
       };
     });
     var under = function(x) {
-      var list = buttons(), best = -1, gap = Infinity;
-      list.forEach(function(b, i) {
+      var list2 = buttons(), best = -1, gap = Infinity;
+      list2.forEach(function(b, i) {
         if (b.disabled) return;
         var r = b.getBoundingClientRect();
         var d = x < r.left ? r.left - x : x > r.right ? x - r.right : 0;
@@ -7732,7 +8065,7 @@
     var posState = useState(null);
     var pos = posState[0], setPos = posState[1];
     var btn = useRef(null);
-    var list = useRef(null);
+    var list2 = useRef(null);
     var ids = useMemo(function() {
       ddSeq++;
       return { btn: "bd-dd-b" + ddSeq, list: "bd-dd-l" + ddSeq };
@@ -7744,16 +8077,16 @@
       return o.value === props.value;
     })[0];
     var stepList = function() {
-      var list2 = options.filter(function(o) {
+      var list3 = options.filter(function(o) {
         return o.px != null && (!props.stepFilter || props.stepFilter(o));
       }).slice().sort(function(a, b) {
         return a.px - b.px;
       });
       var byPx = {};
-      list2.forEach(function(o) {
+      list3.forEach(function(o) {
         if (!(o.px in byPx) || o === selected) byPx[o.px] = o;
       });
-      return list2.filter(function(o) {
+      return list3.filter(function(o) {
         return byPx[o.px] === o;
       });
     };
@@ -7850,14 +8183,14 @@
     };
     useEffect(function() {
       if (!open) return;
-      if (list.current) list.current.focus({ preventScroll: true });
+      if (list2.current) list2.current.focus({ preventScroll: true });
       var away = function(ev) {
-        if (list.current && list.current.contains(ev.target)) return;
+        if (list2.current && list2.current.contains(ev.target)) return;
         if (btn.current && btn.current.contains(ev.target)) return;
         close(false);
       };
       var reflow = function(ev) {
-        if (ev && list.current && list.current.contains(ev.target)) return;
+        if (ev && list2.current && list2.current.contains(ev.target)) return;
         if (!btn.current) return close(false);
         var r = place();
         if (r.bottom < 0 || r.top > window.innerHeight) close(false);
@@ -7876,8 +8209,8 @@
       props.onPreview(options[activeI].value);
     }, [open, activeI]);
     useEffect(function() {
-      if (!open || !list.current) return;
-      var l = list.current;
+      if (!open || !list2.current) return;
+      var l = list2.current;
       var el = l.querySelector('[data-i="' + activeI + '"]');
       if (!el) return;
       if (el.offsetTop < l.scrollTop) l.scrollTop = el.offsetTop;
@@ -7965,7 +8298,7 @@
         e(Icon, { name: "down", className: "bd-dd-chev" })
       ),
       open && pos ? ReactDOM.createPortal(e("ul", {
-        ref: list,
+        ref: list2,
         id: ids.list,
         role: props.menu ? "menu" : "listbox",
         tabIndex: -1,
@@ -7976,8 +8309,8 @@
         onKeyDown: onListKey
       }, options.map(function(o, i) {
         var isSel = !props.menu && !props.mixed && o.value === props.value;
-        var head2 = o.group && (i === 0 || options[i - 1].group !== o.group) ? e("li", { key: "g-" + o.group, role: "presentation", className: "bd-dd-group" }, o.group) : null;
-        return [head2, e(
+        var head3 = o.group && (i === 0 || options[i - 1].group !== o.group) ? e("li", { key: "g-" + o.group, role: "presentation", className: "bd-dd-group" }, o.group) : null;
+        return [head3, e(
           "li",
           {
             key: String(o.value),
@@ -8011,7 +8344,7 @@
   function ContextMenu(props) {
     var activeState = useState(0);
     var activeI = activeState[0], setActive = activeState[1];
-    var list = useRef(null);
+    var list2 = useRef(null);
     var options = props.options;
     var typed = useRef({ text: "", at: 0 });
     var width = 220, want = Math.min(480, options.length * 40 + 16);
@@ -8023,9 +8356,9 @@
       props.onChoose(o.value);
     };
     useEffect(function() {
-      if (list.current) list.current.focus({ preventScroll: true });
+      if (list2.current) list2.current.focus({ preventScroll: true });
       var away = function(ev) {
-        if (list.current && list.current.contains(ev.target)) return;
+        if (list2.current && list2.current.contains(ev.target)) return;
         props.onClose();
       };
       var onKey = function(ev) {
@@ -8073,7 +8406,7 @@
       }
     };
     return ReactDOM.createPortal(e("ul", {
-      ref: list,
+      ref: list2,
       role: "menu",
       tabIndex: -1,
       className: "bd-dd-list bd-ctx",
@@ -8084,8 +8417,8 @@
         ev.preventDefault();
       }
     }, options.map(function(o, i) {
-      var head2 = o.group && (i === 0 || options[i - 1].group !== o.group) ? e("li", { key: "g-" + o.group, role: "presentation", className: "bd-dd-group" }, o.group) : null;
-      return [head2, e(
+      var head3 = o.group && (i === 0 || options[i - 1].group !== o.group) ? e("li", { key: "g-" + o.group, role: "presentation", className: "bd-dd-group" }, o.group) : null;
+      return [head3, e(
         "li",
         {
           key: String(o.value),
@@ -8723,10 +9056,10 @@
   }
   var VIEW_W = [320, 360, 375, 390, 393, 414, 430, 768, 820, 834, 1024, 1280, 1366, 1440, 1536, 1920];
   var VIEW_H = [568, 667, 740, 768, 800, 812, 844, 852, 896, 900, 932, 1024, 1080, 1112, 1180, 1366];
-  function snapSide(v, list, always, reach) {
-    var best = list.reduce(function(b, x) {
+  function snapSide(v, list2, always, reach) {
+    var best = list2.reduce(function(b, x) {
       return Math.abs(x - v) < Math.abs(b - v) ? x : b;
-    }, list[0]);
+    }, list2[0]);
     if (always || Math.abs(best - v) <= reach) return best;
     return Math.round(v / 10) * 10;
   }
@@ -8741,12 +9074,12 @@
 
   // assets/builder/app/dialogs.js
   var memo2 = React.memo;
-  function head(id, title, sub, actions) {
+  function head2(id, title, sub, actions2) {
     return e(
       "div",
       { className: "bd-code-head" },
       e("div", { className: "bd-code-intro" }, e("h2", { id }, title), e("p", { className: "bd-inspect-sub" }, sub)),
-      e("div", { className: "bd-code-actions" }, actions)
+      e("div", { className: "bd-code-actions" }, actions2)
     );
   }
   var closeButton = function(dialogRef, title) {
@@ -8759,7 +9092,7 @@
     return e(
       "dialog",
       { className: "bd-code", ref: p.dialogRef, "aria-labelledby": "bd-code-title" },
-      head(
+      head2(
         "bd-code-title",
         "Export: " + name,
         "React with @dovetail-ds/react. Props at their default are left out. Blocks and other larger components keep the sample copy they started with, so they render as you see them; replace it with your own. Or take " + (p.picked ? p.title : p.frameName) + " as a picture, or every frame as layout JSON.",
@@ -8792,14 +9125,14 @@
       e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, p.code))
     );
   });
-  function notes(list) {
-    if (!list || !list.length) return null;
+  function notes(list2) {
+    if (!list2 || !list2.length) return null;
     return e(
       "details",
       { className: "bd-code-notes" },
-      e("summary", null, "Left out of the code (" + list.length + ")"),
+      e("summary", null, "Left out of the code (" + list2.length + ")"),
       e("p", null, "Each instance is written as a call to its component. Changed text comes along as props; these other changes don't. Update the component from an instance, or detach it, to keep them."),
-      e("ul", null, list.map(function(n) {
+      e("ul", null, list2.map(function(n) {
         return e("li", { key: n.id }, e("strong", null, n.name), " (" + n.component + "): " + n.what.join("; "));
       }))
     );
@@ -8814,7 +9147,7 @@
     return e(
       "dialog",
       dialogProps,
-      head(
+      head2(
         "bd-import-title",
         "Paste a layout",
         e(
@@ -8895,7 +9228,7 @@
     return e(
       React.Fragment,
       null,
-      head(
+      head2(
         "bd-import-title",
         "Paste a layout",
         "An edit names layers the way Layers does. Check each change, then apply them in one step.",
@@ -9064,7 +9397,7 @@
     return e(
       "dialog",
       dialogProps,
-      head(
+      head2(
         "bd-versions-title",
         "Versions of " + p.projectName,
         "Kept every 10 minutes while you work and before big changes, " + VERSIONS_MAX + " at most. Restoring one is a step you can undo.",
@@ -9100,7 +9433,7 @@
     return e(
       "dialog",
       dialogProps,
-      head("bd-keys-title", "Keyboard shortcuts", IS_MAC ? "As a Mac keyboard has them." : "On a Mac, Ctrl is ⌘ and Alt is ⌥.", [closeButton(p.dialogRef, "Close (Esc)")]),
+      head2("bd-keys-title", "Keyboard shortcuts", IS_MAC ? "As a Mac keyboard has them." : "On a Mac, Ctrl is ⌘ and Alt is ⌥.", [closeButton(p.dialogRef, "Close (Esc)")]),
       e("div", { className: "bd-keys-groups" }, groups.map(function(g) {
         return e(
           "section",
@@ -9152,11 +9485,11 @@
         walk2(c, depth + 1);
       });
     })(node, 0);
-    var list = Object.keys(tokens2);
+    var list2 = Object.keys(tokens2);
     if (count3 > 300) issues.push({ level: "error", text: "It has " + count3 + " layers; a component takes up to 300." });
-    if (!list.length) issues.push({ level: "error", text: "It isn't built on any tokens yet. Give it spacing, a fill, a radius or a gap from the system first." });
+    if (!list2.length) issues.push({ level: "error", text: "It isn't built on any tokens yet. Give it spacing, a fill, a radius or a gap from the system first." });
     if (count3 === 1 && !isContainer(node.type)) issues.push({ level: "warn", text: "It's a single " + node.type + ". As a component it saves its settings, nothing more." });
-    return { issues, tokens: list, count: count3 };
+    return { issues, tokens: list2, count: count3 };
   }
   var ComponentDialog = memo2(function ComponentDialog2(p) {
     var check5 = p.node ? componentCheck(p.node) : null;
@@ -9172,7 +9505,7 @@
     return e(
       "dialog",
       { className: "bd-code bd-comp-dlg", ref: p.dialogRef, "aria-labelledby": "bd-comp-title", onClose: p.onClose },
-      head(
+      head2(
         "bd-comp-title",
         "Create component",
         "It goes in Assets, under Components › My components, to use again in any frame. A component is built from the system's tokens, so it follows the theme wherever it goes.",
@@ -9342,8 +9675,8 @@
       return Math.max(t, f.updatedAt || 0);
     }, x.updatedAt || 0) : x.updatedAt || 0;
   }
-  function sortList(sort, currentId, list, filesOf) {
-    return list.slice().sort(function(a, b) {
+  function sortList(sort, currentId, list2, filesOf) {
+    return list2.slice().sort(function(a, b) {
       if (sort === "alpha") return a.name.localeCompare(b.name, void 0, { sensitivity: "base", numeric: true });
       if (sort === "recent" && !filesOf) {
         var cur = (b.id === currentId) - (a.id === currentId);
@@ -9352,8 +9685,8 @@
       return sortWhen(sort, b, filesOf ? filesOf(b) : null) - sortWhen(sort, a, filesOf ? filesOf(a) : null);
     });
   }
-  function confirmRow(label2, text2, actions) {
-    return e("div", { className: "bd-proj-confirm", role: "group", "aria-label": label2 }, e("span", null, text2), actions);
+  function confirmRow(label2, text2, actions2) {
+    return e("div", { className: "bd-proj-confirm", role: "group", "aria-label": label2 }, e("span", null, text2), actions2);
   }
   function skeleton() {
     return e("ul", { className: "bd-projects-grid is-loading", role: "list", "aria-busy": "true", "aria-label": "Loading" }, [0, 1, 2, 3].map(function(i) {
@@ -9556,12 +9889,12 @@
       return inGroup ? f.group === inGroup.id && match(f) : q ? match(f) : !f.group;
     }));
     var count3 = shownGroups.length + shownFiles.length;
-    var section = function(title, list) {
+    var section = function(title, list2) {
       return e(
         "section",
         { className: "bd-home-sec", "aria-label": title },
         inGroup ? null : e("h2", { className: "bd-home-sec-title" }, title),
-        e("ul", { className: "bd-projects-grid", role: "list" }, list)
+        e("ul", { className: "bd-projects-grid", role: "list" }, list2)
       );
     };
     var empty = !p.projects ? null : q ? inGroup ? "No file in " + inGroup.name + " is called that." : "Nothing is called that." : inGroup ? "No files in this project yet. Make one with New, or move one here from Home with its ⋯ menu." : "Nothing here yet. Make a file or a project with New.";
@@ -9749,8 +10082,8 @@
         var placed = {};
         var tree = p.anatomyOf(f.id, c.id) || [];
         var seq0 = 0;
-        (function parts(list, d) {
-          list.forEach(function(it) {
+        (function parts(list2, d) {
+          list2.forEach(function(it) {
             if (it.slot) {
               var sl = slots.filter(function(x) {
                 return x.id === it.slot;
@@ -9923,7 +10256,7 @@
         doc2.frames.map(function(f) {
           var on = f.id === doc2.active;
           var open = frameIsOpen(f) || !!q;
-          var head2 = e(
+          var head3 = e(
             "div",
             {
               key: "frame-" + f.id,
@@ -9967,12 +10300,12 @@
               e("span", { className: "bd-layer-text" }, f.bare ? "Loose on the canvas" : frameSize(f, p.boxes))
             )
           );
-          if (!open) return head2;
+          if (!open) return head3;
           var rows = rowsFor(f);
           return e(
             React.Fragment,
             { key: "frame-" + f.id },
-            head2,
+            head3,
             rows.length ? rows.map(function(r) {
               return nodeRow(f, r);
             }) : e("p", { className: "bd-empty-note bd-empty-indent" }, q ? "No layers match." : "Empty. Add something from Assets.")
@@ -10052,11 +10385,11 @@
     var pageDrag = dragState[0], setPageDrag = dragState[1];
     var pageDragRef = useRef(null), pageDragEnded = useRef(false), pagesListRef = useRef(null);
     var pageDropAt = function(x, y) {
-      var list = pagesListRef.current;
+      var list2 = pagesListRef.current;
       var dr = pageDragRef.current;
-      if (!list || !dr) return null;
+      if (!list2 || !dr) return null;
       var rows2 = dr.rows;
-      var els = Array.prototype.slice.call(list.querySelectorAll("[data-row]"));
+      var els = Array.prototype.slice.call(list2.querySelectorAll("[data-row]"));
       var pages = pagesOf(projectRef.current).filter(function(q2) {
         return q2.id !== dr.id;
       });
@@ -10066,7 +10399,7 @@
         });
         return i2 < 0 ? pages.length : i2;
       };
-      var listBox = list.getBoundingClientRect();
+      var listBox = list2.getBoundingClientRect();
       var firstOf = function(fid) {
         var q2 = pages.filter(function(x2) {
           return x2.folder === fid;
@@ -10111,7 +10444,7 @@
         index2 = pages.length;
       }
       var edge = slot2 < els.length ? els[slot2].getBoundingClientRect().top : els.length ? els[els.length - 1].getBoundingClientRect().bottom : listBox.top;
-      return { into: null, index: index2, folder, line: { top: edge - listBox.top + list.scrollTop, depth: folder ? 1 : 0 } };
+      return { into: null, index: index2, folder, line: { top: edge - listBox.top + list2.scrollTop, depth: folder ? 1 : 0 } };
     };
     var rowDown = function(pg) {
       return function(ev) {
@@ -10228,7 +10561,7 @@
     };
     var pageRow = function(r, i) {
       var pg = r.page, on = pg.id === p.pageId;
-      var list = pagesOf(project), idx = list.findIndex(function(x) {
+      var list2 = pagesOf(project), idx = list2.findIndex(function(x) {
         return x.id === pg.id;
       });
       return e(
@@ -10275,11 +10608,11 @@
           options: [
             { value: "rename", label: "Rename", icon: "pencil" },
             { value: "duplicate", label: "Duplicate", icon: "copy" }
-          ].concat(idx > 0 ? [{ value: "up", label: "Move up", icon: "up" }] : []).concat(idx < list.length - 1 ? [{ value: "down", label: "Move down", icon: "down" }] : []).concat(folders.filter(function(f) {
+          ].concat(idx > 0 ? [{ value: "up", label: "Move up", icon: "up" }] : []).concat(idx < list2.length - 1 ? [{ value: "down", label: "Move down", icon: "down" }] : []).concat(folders.filter(function(f) {
             return f.id !== r.folder;
           }).map(function(f) {
             return { value: "into:" + f.id, label: "Move to " + f.name, icon: "folder" };
-          })).concat(r.folder ? [{ value: "out", label: "Out of the folder", icon: "detach" }] : []).concat(list.length > 1 ? [{ value: "delete", label: "Delete", icon: "trash" }] : []),
+          })).concat(r.folder ? [{ value: "out", label: "Out of the folder", icon: "detach" }] : []).concat(list2.length > 1 ? [{ value: "delete", label: "Delete", icon: "trash" }] : []),
           onChange: function(v) {
             if (v === "rename") p.setRenamingPage(pg.id);
             else if (v === "duplicate") p.duplicatePage(pg.id);
@@ -10565,8 +10898,8 @@
       );
     }));
   }
-  function mineList(p, list) {
-    return e("ul", { className: "bd-mine", role: "list" }, list.map(function(c) {
+  function mineList(p, list2) {
+    return e("ul", { className: "bd-mine", role: "list" }, list2.map(function(c) {
       var layers2 = 0;
       (function walk2(n) {
         layers2++;
@@ -10615,7 +10948,7 @@
     var scopeState = useState("all");
     var varScope = scopeState[0], setVarScope = scopeState[1];
     var q = p.query.trim().toLowerCase();
-    var head2 = null;
+    var head3 = null;
     if (q) {
       var found = [];
       DATA.groups.forEach(function(g) {
@@ -10629,7 +10962,7 @@
       return e(
         "div",
         { className: "bd-assets" },
-        head2,
+        head3,
         foundMine.length ? e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "My components", e("span", { className: "bd-count" }, foundMine.length))) : null,
         foundMine.length ? mineList(p, foundMine) : null,
         e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Results", e("span", { className: "bd-count" }, found.length)), viewToggle(p)),
@@ -10641,7 +10974,7 @@
       return e(
         "div",
         { className: "bd-assets is-cards" },
-        head2,
+        head3,
         e("ul", { className: "bd-kinds bd-asset-kinds", role: "list" }, ASSET_KINDS.map(function(k) {
           var note3 = k[3];
           var count3 = k[0] === "containers" ? "Frames and screen sizes" : k[0] === "variables" ? VAR_SETS.length + " sets" : k[0] === "templates" ? STARTERS.length - 1 + " pages" : groupsOf(k[0]).reduce(function(t, g) {
@@ -10669,9 +11002,9 @@
       } }, e(Icon, { name: "left" })),
       e("h2", { className: "bd-panel-title" }, kind[1])
     );
-    if (kind[0] === "variables") return e("div", { className: "bd-assets" }, head2, back, variablesPanel(p, varScope, setVarScope));
-    if (kind[0] === "templates") return e("div", { className: "bd-assets is-cards" }, head2, back, templatesPanel(p));
-    if (kind[0] === "containers") return e("div", { className: "bd-assets is-cards" }, head2, back, containersPanel(p));
+    if (kind[0] === "variables") return e("div", { className: "bd-assets" }, head3, back, variablesPanel(p, varScope, setVarScope));
+    if (kind[0] === "templates") return e("div", { className: "bd-assets is-cards" }, head3, back, templatesPanel(p));
+    if (kind[0] === "containers") return e("div", { className: "bd-assets is-cards" }, head3, back, containersPanel(p));
     var groups = groupsOf(kind[0]);
     if (kind[0] === "components") groups = [{ id: "mine", label: "My components", items: [] }].concat(groups);
     var current2 = groups.filter(function(x) {
@@ -10683,7 +11016,7 @@
       return e(
         "div",
         { className: "bd-assets" },
-        head2,
+        head3,
         back,
         e("div", { className: "bd-cats", role: "group", "aria-label": "Categories" }, groups.map(function(g) {
           return e(
@@ -10707,7 +11040,7 @@
     return e(
       "div",
       { className: "bd-assets" },
-      head2,
+      head3,
       back,
       groups.length > 1 ? e(
         "div",
@@ -11095,17 +11428,17 @@
     return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 64) || "skill";
   }
   function skillFromFiles(files, fallbackName) {
-    var list = (files || []).filter(function(f) {
+    var list2 = (files || []).filter(function(f) {
       return f && typeof f.path === "string";
     });
-    var md2 = list.filter(function(f) {
+    var md2 = list2.filter(function(f) {
       return /(^|\/)SKILL\.md$/i.test(f.path);
     }).sort(function(a, b) {
       return a.path.split("/").length - b.path.split("/").length;
     })[0];
     if (!md2) return { error: "There's no SKILL.md in it. A skill is a folder with a SKILL.md at its top." };
     var root = md2.path.replace(/SKILL\.md$/i, "");
-    var kept = list.filter(function(f) {
+    var kept = list2.filter(function(f) {
       return f.path.indexOf(root) === 0;
     }).map(function(f) {
       return { path: f.path.slice(root.length), body: String(f.body) };
@@ -11424,9 +11757,9 @@
     });
   }
   function readUpload(files) {
-    var list = Array.prototype.slice.call(files || []);
+    var list2 = Array.prototype.slice.call(files || []);
     var out = { docs: [], skills: [], errors: [] };
-    var folder = list.filter(function(f) {
+    var folder = list2.filter(function(f) {
       return f.webkitRelativePath;
     });
     var steps = [];
@@ -11443,7 +11776,7 @@
         else out.skills.push(s);
       }));
     }
-    list.filter(function(f) {
+    list2.filter(function(f) {
       return !f.webkitRelativePath;
     }).forEach(function(f) {
       if (/\.zip$/i.test(f.name)) {
@@ -11679,8 +12012,8 @@
       });
     };
     if (open) {
-      var list = p.items[open.scope] || [];
-      var it = list.filter(function(x) {
+      var list2 = p.items[open.scope] || [];
+      var it = list2.filter(function(x) {
         return x.id === open.id;
       })[0];
       var follow = Object.assign({}, p, { move: function(from, to, id) {
@@ -12389,7 +12722,7 @@
       (n.children || []).forEach(function(c) {
         if (c.hidden) return;
         var p = c.props || {};
-        var here = band || (c.type === "Section" ? c.id : null);
+        var here = band || (c.type === "Section" || META[c.type] && META[c.type].group === "blocks" ? c.id : null);
         if (c.type === "Button" && p.variant === "danger" && typeof p.children === "string" && !DESTRUCTIVE.test(p.children)) add("usage", "warn", c, "“" + p.children.slice(0, 30) + "” isn't a destructive action, so it shouldn't be a danger button.");
         if (c.type === "Card" && inCard) add("usage", "warn", c, label(c) + " is a card inside a card; use a Stack and a Divider instead.");
         if (c.type === "Section" && inSection) add("usage", "warn", c, label(c) + " is a Section inside a Section; Sections are top-level bands.");
@@ -12424,8 +12757,8 @@
       if (i && lv(h) > lv(headings[i - 1]) + 1) add("a11y", "warn", h, label(h) + " jumps from level " + lv(headings[i - 1]) + " to " + lv(h) + ".");
     });
     Object.keys(bands).forEach(function(k) {
-      var list = bands[k];
-      if (list.length > 1) list.slice(1).forEach(function(b) {
+      var list2 = bands[k];
+      if (list2.length > 1) list2.slice(1).forEach(function(b) {
         add("a11y", "warn", b, "More than one primary button in one section: make " + label(b) + " secondary.");
       });
     });
@@ -12772,27 +13105,27 @@
         }
       },
       result: function() {
-        var list = blocks.filter(Boolean);
+        var list2 = blocks.filter(Boolean);
         var cut = -1;
-        list.forEach(function(b, i) {
+        list2.forEach(function(b, i) {
           if (b.type === "fallback") cut = i;
         });
-        var content = list.filter(function(b, i) {
+        var content = list2.filter(function(b, i) {
           return !(i < cut && (b.type === "thinking" || b.type === "redacted_thinking" || b.type === "tool_use"));
         }).map(function(b) {
           if (b.type === "tool_use") return { type: "tool_use", id: b.id, name: b.name, input: b.input || {} };
           return Object.assign({}, b);
         });
         return {
-          text: list.filter(function(b) {
+          text: list2.filter(function(b) {
             return b.type === "text";
           }).map(function(b) {
             return b.text;
           }).join(""),
-          tools: list.filter(function(b, i) {
+          tools: list2.filter(function(b, i) {
             return b.type === "tool_use" && i > cut;
           }),
-          notes: list.filter(function(b) {
+          notes: list2.filter(function(b) {
             return b.type === "thinking" && b.thinking && b.thinking.trim();
           }).map(function(b) {
             return b.thinking.trim();
@@ -13785,9 +14118,9 @@
       channel.send(msg);
     }
     function flush() {
-      var list = waiting;
+      var list2 = waiting;
       waiting = [];
-      list.forEach(function(m) {
+      list2.forEach(function(m) {
         channel.send(m);
       });
     }
@@ -13804,9 +14137,9 @@
           onMessage: function(msg) {
             if (channel === mine) deliver(msg);
           },
-          onPeers: function(list) {
+          onPeers: function(list2) {
             if (channel !== mine) return;
-            peers = (list || []).filter(function(p) {
+            peers = (list2 || []).filter(function(p) {
               return p && p.key !== me;
             });
             onPeers(peers.slice());
@@ -14730,8 +15063,8 @@
           onReload: function() {
             if (mirror) mirror.sync();
           },
-          onPeers: function(list) {
-            setOthers(othersFrom(list, me.id));
+          onPeers: function(list2) {
+            setOthers(othersFrom(list2, me.id));
           }
         });
         setLiveTick(function(t) {
@@ -14823,8 +15156,8 @@
       if (!meta) return void 0;
       var read = function(scope) {
         var k = ctxKey(scope, meta);
-        return k ? store.loadContext(k).then(function(list) {
-          return (list || []).map(cleanItem).filter(Boolean);
+        return k ? store.loadContext(k).then(function(list2) {
+          return (list2 || []).map(cleanItem).filter(Boolean);
         }, function() {
           return [];
         }) : Promise.resolve([]);
@@ -14854,8 +15187,8 @@
       });
     };
     var ctxApi = {
-      add: function(scope, list) {
-        putCtx(scope, (ctxRef.current[scope] || []).concat(list));
+      add: function(scope, list2) {
+        putCtx(scope, (ctxRef.current[scope] || []).concat(list2));
       },
       update: function(scope, id, patch) {
         putCtx(scope, (ctxRef.current[scope] || []).map(function(it) {
@@ -15924,22 +16257,22 @@
         });
         var ok = change(function(d) {
           var src = frameById(d, vs.source);
-          var pick2 = keep ? frameById(d, keep.frame) : null;
-          if (keep && !pick2) return null;
-          if (pick2 && src) {
-            pick2.name = src.name;
+          var pick3 = keep ? frameById(d, keep.frame) : null;
+          if (keep && !pick3) return null;
+          if (pick3 && src) {
+            pick3.name = src.name;
             if (typeof src.x === "number") {
-              pick2.x = src.x;
-              pick2.y = src.y;
+              pick3.x = src.x;
+              pick3.y = src.y;
             }
-            d.frames.splice(d.frames.indexOf(pick2), 1);
-            d.frames.splice(d.frames.indexOf(src), 1, pick2);
+            d.frames.splice(d.frames.indexOf(pick3), 1);
+            d.frames.splice(d.frames.indexOf(src), 1, pick3);
           }
           d.frames = d.frames.filter(function(f) {
             return gone.indexOf(f.id) < 0;
           });
           if (!d.frames.length) return null;
-          if (!frameById(d, d.active)) d.active = pick2 ? pick2.id : src ? src.id : d.frames[0].id;
+          if (!frameById(d, d.active)) d.active = pick3 ? pick3.id : src ? src.id : d.frames[0].id;
           return [];
         }, keep ? "Kept " + keep.label : "Kept the original");
         if (ok === false) {
@@ -17256,9 +17589,9 @@
       window.addEventListener("pointercancel", onCancel);
     };
     var resolve = function(x, y, payload) {
-      var list = layersRef.current;
+      var list2 = layersRef.current;
       var el = document.elementFromPoint(x, y);
-      if (list && el && list.contains(el)) return listTarget(el, y, payload);
+      if (list2 && el && list2.contains(el)) return listTarget(el, y, payload);
       var st = stageRef.current;
       if (!st) return null;
       var sr = st.getBoundingClientRect();
@@ -17363,12 +17696,12 @@
           }
         }
       }
-      var list = layersRef.current;
-      if (list) {
-        var lr = list.getBoundingClientRect();
+      var list2 = layersRef.current;
+      if (list2) {
+        var lr = list2.getBoundingClientRect();
         if (x >= lr.left && x <= lr.right) {
-          if (y - lr.top < 32) list.scrollTop -= 10;
-          else if (lr.bottom - y < 32) list.scrollTop += 10;
+          if (y - lr.top < 32) list2.scrollTop -= 10;
+          else if (lr.bottom - y < 32) list2.scrollTop += 10;
         }
       }
     };
@@ -17422,8 +17755,8 @@
       if (g && g.live) {
         var la = api(g.fid);
         var on = frameAt(x, y);
-        var list = layersRef.current;
-        var overList = list && list.contains(document.elementFromPoint(x, y));
+        var list2 = layersRef.current;
+        var overList = list2 && list2.contains(document.elementFromPoint(x, y));
         inside = !!(on && on.fid === g.fid);
         if (la && la.lift) {
           if (inside) {
@@ -17611,7 +17944,7 @@
       }
       return last ? { id: last, fid: d.active } : null;
     };
-    var mediaPropFor = function(type, media) {
+    var mediaPropFor = function(type, media2) {
       var m = META[type];
       if (!m) return null;
       var props2 = m.props.filter(function(p) {
@@ -17620,10 +17953,10 @@
         return p.name;
       });
       if (!props2.length) return null;
-      if (type === "Video") return media === "video" ? "src" : props2.indexOf("poster") >= 0 ? "poster" : null;
-      return media === "video" ? null : props2[0];
+      if (type === "Video") return media2 === "video" ? "src" : props2.indexOf("poster") >= 0 ? "poster" : null;
+      return media2 === "video" ? null : props2[0];
     };
-    var mediaTarget = function(x, y, media) {
+    var mediaTarget = function(x, y, media2) {
       var at2 = frameAt(x, y);
       if (!at2) return null;
       var d = docRef.current, f = api(at2.fid), z = camRef.current.z;
@@ -17631,7 +17964,7 @@
       while (id && id !== "root") {
         var a = locate(d, id, at2.fid);
         if (!a) break;
-        var prop = mediaPropFor(a.node.type, media || "image");
+        var prop = mediaPropFor(a.node.type, media2 || "image");
         if (prop) return { where: "media", id, fid: at2.fid, prop, name: nameOf(a.node) };
         id = a.parent ? a.parent.id : null;
       }
@@ -18198,7 +18531,7 @@
       if (!a || a === document.body || a.classList.contains("bd-inline")) return;
       if (mountEl.contains(a) || a.closest && a.closest("#app-toolbar")) a.blur();
     };
-    var pick = function(id, additive, deep, from, fid, part2) {
+    var pick2 = function(id, additive, deep, from, fid, part2) {
       if (from === "canvas") releaseFocus();
       var other = fid && fid !== docRef.current.active;
       if (other) {
@@ -18233,8 +18566,8 @@
         announce((at2 ? at2.node.type : "") + " selected. Open Edit to change it.");
       }
     };
-    var pickRef = useRef(pick);
-    pickRef.current = pick;
+    var pickRef = useRef(pick2);
+    pickRef.current = pick2;
     var textSource = function(node, text2, f) {
       var want = String(text2 || "").trim();
       if (!want) return null;
@@ -18306,10 +18639,10 @@
           return void 0;
         }
         if (!Array.isArray(at2.node.props[ed.prop])) at2.node.props[ed.prop] = JSON.parse(JSON.stringify(ed.sample || []));
-        var list = at2.node.props[ed.prop];
-        if (ed.index >= list.length) return null;
-        if (ed.field) list[ed.index][ed.field] = value2;
-        else list[ed.index] = value2;
+        var list2 = at2.node.props[ed.prop];
+        if (ed.index >= list2.length) return null;
+        if (ed.field) list2[ed.index][ed.field] = value2;
+        else list2[ed.index] = value2;
         return void 0;
       });
     };
@@ -18514,8 +18847,8 @@
           iconOnly: true,
           compact: true,
           className: "bd-dd-icon bd-gap-dd",
-          options: ["x", "y"].reduce(function(list, axis) {
-            return list.concat(DATA.tokens.padding.options.filter(function(o) {
+          options: ["x", "y"].reduce(function(list2, axis) {
+            return list2.concat(DATA.tokens.padding.options.filter(function(o) {
               return /^--dt-space-inset-/.test(o.tokens[0] || "") && o.tokens.length === 1;
             }).map(function(o) {
               var px = pxMap["padding|" + o.value];
@@ -18577,9 +18910,9 @@
           return o.px > 0;
         });
       });
-      var nearest = function(list, want) {
+      var nearest = function(list2, want) {
         var best = null;
-        list.forEach(function(o) {
+        list2.forEach(function(o) {
           if (!best || Math.abs(o.px - want) < Math.abs(best.px - want)) best = o;
         });
         return best;
@@ -18595,13 +18928,13 @@
           var v = n.style[k], px = v ? pxMap[k + "|" + v] : null;
           if (px == null) return;
           var opt = tokenOption(k, v);
-          var list = DATA.tokens[k].options.filter(function(o) {
+          var list2 = DATA.tokens[k].options.filter(function(o) {
             return pxMap[k + "|" + o.value] != null && (!opt || o.family === opt.family);
           }).map(function(o) {
             return { value: o.value, px: pxMap[k + "|" + o.value] };
           });
-          var pick2 = nearest(list, px * factor);
-          if (pick2) n.style[k] = pick2.value;
+          var pick3 = nearest(list2, px * factor);
+          if (pick3) n.style[k] = pick3.value;
         });
         var sc = SCALE_TYPE[n.type];
         if (sc && typePx[n.type].length) {
@@ -18807,29 +19140,29 @@
       else if (v === "copy") copySelection(false);
       else if (v === "paste") {
         if (clip.current) pasteNodes(clip.current.nodes);
-      } else if (v === "duplicate") actions.duplicate();
+      } else if (v === "duplicate") actions2.duplicate();
       else if (v === "copyStyle") copyStyle();
       else if (v === "pasteStyle") pasteStyle();
       else if (v === "same") selectSame();
-      else if (v === "remove") actions.remove();
-      else if (v === "front" || v === "back" || v === "up" || v === "down") actions.order(v);
+      else if (v === "remove") actions2.remove();
+      else if (v === "front" || v === "back" || v === "up" || v === "down") actions2.order(v);
       else if (v === "tidy") arrange("tidy");
-      else if (v === "group") actions.group();
-      else if (v === "ungroup") actions.ungroup();
-      else if (v === "mask") actions.mask();
-      else if (v === "autolayout") actions.autoLayout();
-      else if (v === "freelayout") actions.freeLayout();
-      else if (v === "hide") actions.hide();
-      else if (v === "lock") actions.lock();
-      else if (v === "rename") actions.rename();
+      else if (v === "group") actions2.group();
+      else if (v === "ungroup") actions2.ungroup();
+      else if (v === "mask") actions2.mask();
+      else if (v === "autolayout") actions2.autoLayout();
+      else if (v === "freelayout") actions2.freeLayout();
+      else if (v === "hide") actions2.hide();
+      else if (v === "lock") actions2.lock();
+      else if (v === "rename") actions2.rename();
       else if (v === "component") openComponent();
       else if (v === "link") share(selRef.current[0]);
       else if (v === "png") exportImage(docRef.current.active, "png", { scale: exportScale, id: selRef.current[0] });
-      else if (v === "selectAll") actions.selectAll();
+      else if (v === "selectAll") actions2.selectAll();
       else if (v === "fitAll") fitAll();
       else if (v === "fitFrame") showFrame(docRef.current.active);
     };
-    var actions = {
+    var actions2 = {
       remove: function() {
         var ids = selRef.current.slice();
         if (!ids.length) return;
@@ -19242,15 +19575,15 @@
       var mod = ev.metaKey || ev.ctrlKey;
       var key = ev.key.toLowerCase();
       if (ev.key === "Escape" && previewRef.current) {
-        actions.preview();
+        actions2.preview();
         return true;
       }
       if (ev.key === "Tab" && free && !mod && !ev.altKey && !ev.shiftKey && wide) {
-        actions.panels();
+        actions2.panels();
         return true;
       }
       if (mod && ev.key === "\\") {
-        actions.panels();
+        actions2.panels();
         return true;
       }
       if (ev.key === " " && free && !mod) {
@@ -19306,7 +19639,7 @@
         return true;
       }
       if (ev.shiftKey && !mod && !ev.altKey && (ev.code === "KeyH" || ev.code === "KeyV") && flip(ev.code === "KeyH" ? "flipH" : "flipV")) return true;
-      if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyA" && (actions.autoLayout() || actions.freeLayout())) return true;
+      if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyA" && (actions2.autoLayout() || actions2.freeLayout())) return true;
       if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyR") {
         toggleView("rulers");
         return true;
@@ -19328,11 +19661,11 @@
         return true;
       }
       if (mod && key === "a" && !ev.shiftKey && !ev.altKey) {
-        actions.selectAll();
+        actions2.selectAll();
         return true;
       }
       if (ev.key === "Enter") {
-        (ev.shiftKey ? actions.out : actions.into)();
+        (ev.shiftKey ? actions2.out : actions2.into)();
         return true;
       }
       if (ev.key === "Escape") {
@@ -19350,12 +19683,12 @@
       }
       if (mod && key === "v" && !ev.shiftKey && !ev.altKey) return false;
       if (ev.key === "F2") {
-        actions.rename();
+        actions2.rename();
         return true;
       }
       if (!selRef.current.length) return false;
       if (mod && key === "g") {
-        (ev.shiftKey ? actions.ungroup : actions.group)();
+        (ev.shiftKey ? actions2.ungroup : actions2.group)();
         return true;
       }
       if (mod && ev.altKey && (key === "k" || ev.code === "KeyK")) {
@@ -19368,11 +19701,11 @@
       }
       if (ev.shiftKey && !mod && !ev.altKey && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && stepType(ev.key === "ArrowUp" ? 1 : -1)) return true;
       if (ev.key === "Delete" || ev.key === "Backspace") {
-        actions.remove();
+        actions2.remove();
         return true;
       }
       if (mod && key === "d") {
-        actions.duplicate();
+        actions2.duplicate();
         return true;
       }
       if (!mod && !ev.altKey && !ev.shiftKey && /^Digit[0-9]$/.test(ev.code)) {
@@ -19388,19 +19721,19 @@
         return true;
       }
       if (mod && ev.shiftKey && (key === "h" || ev.code === "KeyH")) {
-        actions.hide();
+        actions2.hide();
         return true;
       }
       if (mod && ev.shiftKey && (key === "l" || ev.code === "KeyL")) {
-        actions.lock();
+        actions2.lock();
         return true;
       }
       if ((ev.altKey || mod) && ev.key === "ArrowUp") {
-        actions.up();
+        actions2.up();
         return true;
       }
       if ((ev.altKey || mod) && ev.key === "ArrowDown") {
-        actions.down();
+        actions2.down();
         return true;
       }
       if (ev.altKey && !mod) {
@@ -19408,16 +19741,16 @@
         if (ARRANGE_KEY[ev.code] && arrange(ARRANGE_KEY[ev.code])) return true;
       }
       if (mod && (ev.key === "]" || ev.code === "BracketRight")) {
-        actions.order(ev.shiftKey ? "front" : "up");
+        actions2.order(ev.shiftKey ? "front" : "up");
         return true;
       }
       if (mod && (ev.key === "[" || ev.code === "BracketLeft")) {
-        actions.order(ev.shiftKey ? "back" : "down");
+        actions2.order(ev.shiftKey ? "back" : "down");
         return true;
       }
       if (!mod && !ev.altKey && /^Arrow(Left|Right|Up|Down)$/.test(ev.key)) {
         var by = ev.shiftKey ? 4 : 1;
-        if (actions.nudge(ev.key === "ArrowLeft" ? -by : ev.key === "ArrowRight" ? by : 0, ev.key === "ArrowUp" ? -by : ev.key === "ArrowDown" ? by : 0)) return true;
+        if (actions2.nudge(ev.key === "ArrowLeft" ? -by : ev.key === "ArrowRight" ? by : 0, ev.key === "ArrowUp" ? -by : ev.key === "ArrowDown" ? by : 0)) return true;
       }
       return false;
     };
@@ -20488,9 +20821,9 @@
         refreshProjects();
       });
     };
-    var afterCurrentGone = function(list) {
-      if (list.length) store.loadDoc(list[0].id, pageOf(list[0])).then(function(d2) {
-        switchTo(list[0], d2 || emptyDoc(), "Opened " + list[0].name, pageOf(list[0]));
+    var afterCurrentGone = function(list2) {
+      if (list2.length) store.loadDoc(list2[0].id, pageOf(list2[0])).then(function(d2) {
+        switchTo(list2[0], d2 || emptyDoc(), "Opened " + list2[0].name, pageOf(list2[0]));
       });
       else {
         var d = starterDoc();
@@ -20504,7 +20837,7 @@
       setConfirmDel(null);
       var g = groupById(id);
       var hadCurrent = projectRef.current.group === id;
-      store.deleteGroup(id, keepFiles).then(refreshProjects).then(function(list) {
+      store.deleteGroup(id, keepFiles).then(refreshProjects).then(function(list2) {
         announce("Deleted " + (g ? g.name : "the project") + (keepFiles ? "; its files are on Home" : ""));
         if (homeViewRef.current === id) goHomeView(null);
         if (!hadCurrent) return;
@@ -20519,7 +20852,7 @@
           });
           return;
         }
-        afterCurrentGone(list);
+        afterCurrentGone(list2);
       });
     };
     var setGroupPicture = function(id, file) {
@@ -20559,9 +20892,9 @@
       var gone = (projList || []).filter(function(p) {
         return p.id === id;
       })[0];
-      store.deleteProject(id).then(refreshProjects).then(function(list) {
+      store.deleteProject(id).then(refreshProjects).then(function(list2) {
         announce("Deleted " + (gone ? gone.name : "the file"));
-        if (id === projectRef.current.id) afterCurrentGone(list);
+        if (id === projectRef.current.id) afterCurrentGone(list2);
       });
     };
     var renamingPageState = useState(null);
@@ -20718,9 +21051,9 @@
     var downloadProjectCode = function() {
       var f = api();
       if (!f || !f.jsxComponent) return;
-      var meta = projectRef.current, list = pagesOf(meta), pageNow = pageRef.current;
+      var meta = projectRef.current, list2 = pagesOf(meta), pageNow = pageRef.current;
       flush().then(function() {
-        return Promise.all(list.map(function(pg) {
+        return Promise.all(list2.map(function(pg) {
           return pg.id === pageNow ? docRef.current : store.loadDoc(meta.id, pg.id);
         }));
       }).then(function(docs) {
@@ -20731,7 +21064,7 @@
         } catch (err) {
           css = "";
         }
-        var got = projectFiles({ name: meta.name, pages: list.map(function(pg, i) {
+        var got = projectFiles({ name: meta.name, pages: list2.map(function(pg, i) {
           return { id: pg.id, name: pg.name, doc: docs[i] };
         }), library: libRef.current, themeCss: css, exporter: f });
         var bytes = zip(got.entries);
@@ -20778,8 +21111,8 @@
         return Promise.all(files.map(function(f) {
           return fileData(f.id);
         }));
-      }).then(function(list) {
-        download({ format: BUNDLE_FORMAT, version: 1, name: g.name, savedAt: (/* @__PURE__ */ new Date()).toISOString(), files: list.filter(Boolean) }, g.name);
+      }).then(function(list2) {
+        download({ format: BUNDLE_FORMAT, version: 1, name: g.name, savedAt: (/* @__PURE__ */ new Date()).toISOString(), files: list2.filter(Boolean) }, g.name);
       });
     };
     var takeComponents = function(scope, comps) {
@@ -21618,15 +21951,15 @@
       });
     };
     var undoBridgeAll = function(key) {
-      var list = (bridge ? bridge.steps : []).filter(function(x) {
+      var list2 = (bridge ? bridge.steps : []).filter(function(x) {
         return x.diff && !x.undone && (!key || x.key === key);
       });
-      if (!list.length) return;
-      var next = list.reduce(function(d, x) {
+      if (!list2.length) return;
+      var next = list2.reduce(function(d, x) {
         return apply(d, invert(x.diff));
       }, docRef.current);
-      commit(next, void 0, "Undid " + list.length + (list.length === 1 ? " step" : " steps"));
-      var ids = list.map(function(x) {
+      commit(next, void 0, "Undid " + list2.length + (list2.length === 1 ? " step" : " steps"));
+      var ids = list2.map(function(x) {
         return x.id;
       });
       patchBridge(function(b) {
@@ -21739,18 +22072,18 @@
       var value2 = mixed ? "" : values[0];
       var ctx = scopeFor(nodes);
       var order = def.section === "size" ? ctx.size : def.section === "spacing" ? ctx.space : null;
-      var list = def.options.slice();
-      if (order) list = list.filter(function(o) {
+      var list2 = def.options.slice();
+      if (order) list2 = list2.filter(function(o) {
         return optionAllowed(key, o, ctx) || o.value === value2;
       });
-      if (order && list.some(function(o) {
+      if (order && list2.some(function(o) {
         return o.family;
       })) {
         var rank = function(o) {
           var i = order.indexOf(o.family);
           return i < 0 ? order.length : i;
         };
-        list = list.map(function(o, i) {
+        list2 = list2.map(function(o, i) {
           return { o, i };
         }).sort(function(a, b) {
           return rank(a.o) - rank(b.o) || a.i - b.i;
@@ -21759,7 +22092,7 @@
         });
       }
       var more = def.section === "size" ? "More sizes" : "More spacing";
-      var options = [{ value: "", label: opts.noneLabel || "None", short: opts.noneShort }].concat(list.map(function(o) {
+      var options = [{ value: "", label: opts.noneLabel || "None", short: opts.noneShort }].concat(list2.map(function(o) {
         var px = pxMap[key + "|" + o.value];
         var name = o.value === "fill" && def.section === "size" ? "Fill container" : o.label || o.value;
         var group2 = order && o.family ? order.indexOf(o.family) >= 0 ? FAMILY_LABEL[o.family] : more : void 0;
@@ -22016,7 +22349,7 @@
         return n.style.cv || "top";
       });
       var h = same4(hs) ? hs[0] : null, v = same4(vs) ? vs[0] : null;
-      var pick2 = function(line2, shift) {
+      var pick3 = function(line2, shift) {
         var axis = /^(left|right|hcenter)$/.test(line2) ? "h" : "v";
         var cur = axis === "h" ? h : v, lo = axis === "h" ? "left" : "top", hi = axis === "h" ? "right" : "bottom";
         var next;
@@ -22029,7 +22362,7 @@
       };
       var pid = "bd-pins-" + nodes[0].id;
       var hint = !h || !v ? "These layers keep to different edges." : h === "left" && v === "top" ? "When the frame changes size, it stays put. Pin it to an edge, the centre, or both sides." : (h === "right" || h === "left") && (v === "bottom" || v === "top") ? "When the frame changes size, it keeps its distance to the " + h + " and " + v + " edges." : "When the frame changes size, it " + PIN_SAYS.h[h] + " and " + PIN_SAYS.v[v] + ".";
-      var dd = function(axis, now, list, prefix) {
+      var dd = function(axis, now, list2, prefix) {
         return e(Dropdown, {
           key: axis,
           label: axis === "h" ? "Constraint across" : "Constraint down",
@@ -22039,7 +22372,7 @@
           placeholder: "Mixed",
           className: "bd-dd-field",
           narrow: true,
-          options: list.map(function(k) {
+          options: list2.map(function(k) {
             return { value: k, label: PIN_WORD2[axis][k] };
           }),
           onChange: function(val) {
@@ -22053,7 +22386,7 @@
         e(
           "div",
           { className: "bd-pins-row" },
-          e(ConstraintBox, { label: "Constraints", h, v, onPick: pick2 }),
+          e(ConstraintBox, { label: "Constraints", h, v, onPick: pick3 }),
           e("div", { className: "bd-pins-dds" }, dd("h", h, H_PINS, "H"), dd("v", v, V_PINS, "V"))
         )
       );
@@ -22420,8 +22753,8 @@
         return align.options.indexOf(v) >= 0 && justify.options.indexOf(v) >= 0;
       });
       var a = val("align"), j = val("justify");
-      var head2 = [];
-      if (spec("direction")) head2.push(e(Segmented, {
+      var head3 = [];
+      if (spec("direction")) head3.push(e(Segmented, {
         key: "dir",
         label: "Direction",
         value: val("direction"),
@@ -22430,7 +22763,7 @@
         },
         options: [{ value: "row", label: "Row", icon: "row" }, { value: "column", label: "Column", icon: "column" }]
       }));
-      if (spec("wrap")) head2.push(e("button", {
+      if (spec("wrap")) head3.push(e("button", {
         key: "wrap",
         type: "button",
         className: "bd-act",
@@ -22481,9 +22814,9 @@
       }).map(function(p) {
         return propControl(p, nodes);
       }).filter(Boolean);
-      if (!head2.length && !pad && !side2.length && !rest.length) return null;
+      if (!head3.length && !pad && !side2.length && !rest.length) return null;
       return [
-        head2.length ? e("div", { key: "head", className: "bd-flex-head" }, head2) : null,
+        head3.length ? e("div", { key: "head", className: "bd-flex-head" }, head3) : null,
         pad || side2.length ? e(
           "div",
           { key: "pad", className: "bd-flex-grid" },
@@ -22752,10 +23085,10 @@
       return e(Field, { key: p.name, id, label: label2, note: p.note }, control);
     };
     var addToLibrary = function(kind, files) {
-      var list = Array.prototype.slice.call(files || []);
-      if (!list.length) return;
-      setLibBusy("Adding " + (list.length > 1 ? list.length + " files" : list[0].name) + "…");
-      Promise.all(list.map(function(f) {
+      var list2 = Array.prototype.slice.call(files || []);
+      if (!list2.length) return;
+      setLibBusy("Adding " + (list2.length > 1 ? list2.length + " files" : list2[0].name) + "…");
+      Promise.all(list2.map(function(f) {
         return readForLibrary(f, kind).then(function(src) {
           return { id: uid(), name: f.name.replace(/\.[a-z0-9]+$/i, ""), src };
         }, function(err) {
@@ -23193,7 +23526,7 @@
           var hidden = nodes.every(function(n) {
             return n.hide;
           });
-          return headAction(hidden ? "eyeOff" : "eye", hidden ? "Hidden: press to show (Ctrl+Shift+H)" : "Visible: press to hide (Ctrl+Shift+H)", actions.hide, hidden);
+          return headAction(hidden ? "eyeOff" : "eye", hidden ? "Hidden: press to show (Ctrl+Shift+H)" : "Visible: press to hide (Ctrl+Shift+H)", actions2.hide, hidden);
         })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "clip", "bool"])),
         sec("fill", "Fill", [
           extra || null,
@@ -24074,15 +24407,15 @@
                   }) ? "lockOpen" : "lock" }
                 ]),
                 onChange: function(v) {
-                  if (v === "group") actions.group();
-                  else if (v === "ungroup") actions.ungroup();
-                  else if (v.indexOf("wrap:") === 0) actions.wrap(v.slice(5));
-                  else if (v.indexOf("turn:") === 0) actions.convert(v.slice(5));
-                  else if (v === "detach") actions.detach();
+                  if (v === "group") actions2.group();
+                  else if (v === "ungroup") actions2.ungroup();
+                  else if (v.indexOf("wrap:") === 0) actions2.wrap(v.slice(5));
+                  else if (v.indexOf("turn:") === 0) actions2.convert(v.slice(5));
+                  else if (v === "detach") actions2.detach();
                   else if (v === "link") share(first.id);
                   else if (v === "component") openComponent();
-                  else if (v === "hide") actions.hide();
-                  else if (v === "lock") actions.lock();
+                  else if (v === "hide") actions2.hide();
+                  else if (v === "lock") actions2.lock();
                   else if (v === "same") selectSame();
                   else if (v === "copyStyle") copyStyle();
                   else if (v === "pasteStyle") pasteStyle();
@@ -24263,7 +24596,7 @@
         e("button", { type: "button", className: "bd-act", title: "Play: see " + frame2.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame2.id], onClick: function() {
           openPlay();
         } }, e(Icon, { name: "play" })),
-        e("button", { type: "button", className: "bd-act", "aria-pressed": String(preview), title: "Preview: use the components (Esc to stop)", "aria-label": "Preview", onClick: actions.preview }, e(Icon, { name: "eye" })),
+        e("button", { type: "button", className: "bd-act", "aria-pressed": String(preview), title: "Preview: use the components (Esc to stop)", "aria-label": "Preview", onClick: actions2.preview }, e(Icon, { name: "eye" })),
         e("button", { type: "button", className: "bd-btn bd-btn-primary bd-export", onClick: openCode, disabled: !ready[frame2.id], "aria-label": "Export", title: "Export: code, a picture, the layout or a link" }, e(Icon, { name: "exportOut" }))
       )
     );
@@ -24610,8 +24943,8 @@
       var start = { x: ev.clientX, y: ev.clientY, w: f.bare ? Math.round(b.w) : f.width, h: b.h, bx: b.x, by: b.y };
       var cur = null;
       var lo = f.bare ? MIN_FREE : minSide(f), snaps = f.mode === "structured";
-      var fit = function(v, list) {
-        return snaps ? snapSide(v, list, f.hug, 16 / z) : Math.round(v);
+      var fit = function(v, list2) {
+        return snaps ? snapSide(v, list2, f.hug, 16 / z) : Math.round(v);
       };
       var move = function(mv) {
         var dx = (mv.clientX - start.x) / z, dy = (mv.clientY - start.y) / z;
@@ -24867,7 +25200,7 @@
       e(Rulers, rulersProps),
       !preview ? tools : null,
       e(EditorAt, editorProps),
-      preview ? e("button", { type: "button", className: "bd-float bd-float-center", onClick: actions.preview, title: "Back to editing (Esc)" }, e(Icon, { name: "eye" }), "Previewing", e("span", { className: "bd-float-sep", "aria-hidden": true }), "Edit") : null,
+      preview ? e("button", { type: "button", className: "bd-float bd-float-center", onClick: actions2.preview, title: "Back to editing (Esc)" }, e(Icon, { name: "eye" }), "Previewing", e("span", { className: "bd-float-sep", "aria-hidden": true }), "Edit") : null,
       anyReady ? null : e("p", { className: "bd-stage-loading" }, "Loading the canvas…")
     );
     var openPlay = function() {
@@ -25122,7 +25455,7 @@
       store.setGroupThumb(id, null).then(refreshProjects);
     });
     var homeNewGroup = useEvent(newGroup), homeNewProject = useEvent(newProject), homeNewPlayground = useEvent(newPlayground), homeOpenAccount = useEvent(openAccount);
-    var onPick = useEvent(pick), onOpenMenu = useEvent(openMenu), onStartDrag = useEvent(startDrag), onSetName = useEvent(setName), onFlagLayer = useEvent(flagLayer);
+    var onPick = useEvent(pick2), onOpenMenu = useEvent(openMenu), onStartDrag = useEvent(startDrag), onSetName = useEvent(setName), onFlagLayer = useEvent(flagLayer);
     var onFramePick = useEvent(function(fid, v) {
       frameOps.pick(fid, v);
     }), onFrameRename = useEvent(function(fid, v) {

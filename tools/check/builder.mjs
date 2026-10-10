@@ -91,6 +91,7 @@ import { chromium } from "playwright";
 import { serve } from "./serve.mjs";
 import { buildPackage, describe as describeTs, hasReactTypes, typecheck } from "./typecheck.mjs";
 import { zip } from "../../assets/builder/model/zip.js";
+import { LAYOUTS } from "../../assets/builder/model/layouts.js";
 
 let failures = 0;
 /* Steps run side by side, so each one's lines are kept in its own lane and
@@ -1768,6 +1769,17 @@ try {
     expect(by.covered && by.covered.status === "warn" && /“\$284,120” is under Glow/.test(by.covered.detail), `the glow over the number is caught, got ${JSON.stringify(by.covered)}`);
     expect(!/Paycheck in 6 days/.test(by.covered.detail), `the card floating after the spark paints above it, so it isn't flagged, got ${by.covered.detail}`);
     ok("a glow floating over the number warns, naming the text and the shape; a card floating above a shape doesn't");
+    await pg.page.close();
+  });
+
+  await step("The assistant's layouts library: every layout lands on the canvas and passes every check", async () => {
+    const jsx = LAYOUTS.map((l) => l.jsx({})).join("\n");
+    const pg = await open({ width: 1440, height: 900 }, { hash: "#jsx=" + Buffer.from(jsx).toString("base64url") });
+    await pg.page.waitForFunction((n) => window.__builder.doc().frames.some((f) => f.root.children.length === n), LAYOUTS.length);
+    const res = await pg.page.evaluate(async (n) => { const f = window.__builder.doc().frames.find((x) => x.root.children.length === n); return (await window.__builder.checks(f.id)).rows; }, LAYOUTS.length);
+    const off = res.filter((r) => r.status !== "pass");
+    expect(off.length === 0, `all ${LAYOUTS.length} layouts pass contrast, 390px, decoration, dark mode, accessibility, usage and copy, got ${JSON.stringify(off)}`);
+    ok(`all ${LAYOUTS.length} layouts land as sections and pass every check`);
     await pg.page.close();
   });
 
