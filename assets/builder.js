@@ -5552,6 +5552,56 @@
     return "- " + l.id + " · " + l.kind + " · " + l.name + " (" + l.mood + "): " + l.when + " Fields: " + l.fields.join(", ") + ".";
   }
 
+  // assets/builder/model/compare.js
+  var KEYS = ["tone", "dark", "layout", "variant", "columns", "reverse", "texture", "titleSize", "size", "align", "width", "spacing", "bleed", "orientation", "drive"];
+  var STYLE_KEYS2 = ["surface", "radius", "elevation", "gradient", "padding", "gap"];
+  function sig(n) {
+    var p = n.props || {}, st = n.style || {};
+    var own = n.type + "(" + KEYS.filter(function(k) {
+      return p[k] != null && p[k] !== "";
+    }).map(function(k) {
+      return k + "=" + p[k];
+    }).concat(STYLE_KEYS2.filter(function(k) {
+      return st[k];
+    }).map(function(k) {
+      return k + ":" + st[k];
+    })).join(",") + ")";
+    var kids = (n.children || []).map(sig);
+    return kids.length ? own + "[" + kids.join(" ") + "]" : own;
+  }
+  function sections(frame2) {
+    var at2 = frame2.root;
+    while (at2.children && at2.children.length === 1 && at2.children[0].type === "Group" && (at2.children[0].children || []).length) at2 = at2.children[0];
+    return at2.children || [];
+  }
+  function likeness(a, b) {
+    var sa = sections(a), sb = sections(b);
+    var pool = sa.map(sig), shared = [];
+    sb.forEach(function(n) {
+      var i = pool.indexOf(sig(n));
+      if (i >= 0) {
+        pool.splice(i, 1);
+        shared.push(n);
+      }
+    });
+    var total = Math.max(sa.length, sb.length) || 1;
+    return { same: shared.length, total, ratio: shared.length / total, shared };
+  }
+  var TOO_ALIKE = 0.6;
+  function compareText(frames, name) {
+    var lines = [], alike = [];
+    for (var i = 0; i < frames.length; i++) for (var j = i + 1; j < frames.length; j++) {
+      var l = likeness(frames[i], frames[j]);
+      var line2 = frames[i].name + " and " + frames[j].name + ": " + l.same + " of " + l.total + " sections the same";
+      if (l.ratio >= TOO_ALIKE) {
+        line2 += " (too alike: " + l.shared.slice(0, 4).map(name).join(", ") + (l.shared.length > 4 ? "…" : "") + " unchanged)";
+        alike.push([frames[i], frames[j]]);
+      }
+      lines.push(line2 + ".");
+    }
+    return { lines, alike };
+  }
+
   // assets/builder/model/agent.js
   var FAMILIES = Object.keys(DATA.tokens);
   var BATCHABLE = ["set_style", "set_prop", "set_text", "insert_jsx", "replace_jsx", "insert_layout", "move", "wrap", "duplicate", "rename", "remove"];
@@ -5584,6 +5634,7 @@
       return f.id;
     }) }, mode: { type: "string", enum: ["structured", "free"] } }, required: ["name", "preset", "mode"], additionalProperties: false } },
     { name: "make_variants", description: "Try a few directions side by side: copies a frame (the one you're in unless you name another) once per label, beside it, named after the label, and hands back each copy's id. Then use_frame into each copy and make its change. The person compares them on the canvas and keeps one, which takes the original's place. Use it when they ask to see options, or pick Try them all on a question.", input_schema: { type: "object", properties: { frame: { type: "string" }, labels: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } } }, required: ["labels"], additionalProperties: false } },
+    { name: "compare_frames", description: "Look at frames side by side to judge them: a picture of each, its checks, and how alike each pair is section by section, with pairs that read as one direction flagged. With no frames given it compares the frame you're in and its variants. Give width (390) or dark to see them all that way. Call it when variants are built, then grade them.", input_schema: { type: "object", properties: { frames: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } }, width: { type: "integer", minimum: 320, maximum: 2560 }, dark: { type: "boolean" } }, additionalProperties: false } },
     { name: "use_frame", description: "Work in another frame on this page: the edit tools act on the frame you're in.", input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false } },
     { name: "propose_plan", description: "Before a new page or frame, or any change that adds more than about 10 layers, show the person a short plan and wait for their answer: the frame it goes in (when it's a new one), the steps in order (a title and a line each), and anything they should know (missing content you'll stand in for, a choice you made). It comes back approved, or with what they want changed.", input_schema: { type: "object", properties: { title: { type: "string" }, frame: { type: "object", properties: { name: { type: "string" }, preset: { type: "string" }, mode: { type: "string", enum: ["structured", "free"] } }, additionalProperties: false }, steps: { type: "array", minItems: 1, maxItems: 12, items: { type: "object", properties: { title: { type: "string" }, detail: { type: "string" } }, required: ["title"], additionalProperties: false } }, notes: { type: "array", maxItems: 4, items: { type: "string" } } }, required: ["title", "steps"], additionalProperties: false } },
     { name: "ask_user", description: "Ask the person to choose when the request leaves a real choice open: two to four ways that would set a different tone or direction, which the request, the docs and the theme don't settle. Each option is a short label and a line on what it means (the components and tokens it would use). The answer comes back as the option they picked, or what they wrote instead. Don't ask about what you can decide yourself.", input_schema: { type: "object", properties: { question: { type: "string" }, options: { type: "array", minItems: 2, maxItems: 4, items: { type: "object", properties: { label: { type: "string" }, detail: { type: "string" } }, required: ["label"], additionalProperties: false } } }, required: ["question", "options"], additionalProperties: false } },
@@ -5719,7 +5770,7 @@
       "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish. For a page, look at 390 wide and in dark mode too (screenshot with width or dark) when the change touches layout or colour, or the checks flag them.",
       "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
       "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first. When it leaves a real choice of direction open (two good answers with a different tone), call ask_user with the options rather than guessing.",
-      "- When the person wants to see options, make_variants copies the frame once per option, side by side; build each in its copy and say how they differ. They keep one. Make the copies differ in more than colour: swap in different layouts (insert_layout with replace), bands and type sizes, so each is a real direction.",
+      "- When the person wants to see options, make_variants copies the frame once per option, side by side; build each in its copy and say how they differ. They keep one. Make the copies differ in more than colour: swap in different layouts (insert_layout with replace), bands and type sizes, so each is a real direction. When they're built, compare_frames and grade each from 1 to 5 on hierarchy, rhythm, contrast and fit to its direction; rebuild what scores below 3 or is flagged too alike, compare once more, and say the grades in your reply.",
       "- A message may start with what the person changed on the canvas since your last reply. Keep those changes unless they ask otherwise, and build on them.",
       "- Before a new page or frame, or a change that adds more than about 10 layers, call propose_plan and wait for the answer, unless the canvas notes say plans are off. Building without one is refused.",
       "- Finish with a sentence or two on what you changed and anything the person should check.",
@@ -6095,13 +6146,81 @@
           ok: true,
           result: JSON.stringify({ variants: made4.map(function(v2, i) {
             return { label: labels[i], frame: v2 };
-          }) }) + " Now use_frame into each and make its change.",
+          }) }) + " Now use_frame into each and make its change, then compare_frames.",
           step: "Copied " + src.name + " into " + labels.length + " variants",
           change: { ids: [], label: "Variants", value: labels.length + " copies", on: src.name },
           variants: { source: src.id, sourceName: src.name, items: made4.map(function(v2, i) {
             return { label: labels[i], frame: v2 };
           }) }
         };
+      }
+      case "compare_frames": {
+        var all2 = doc2.frames || [];
+        var picked;
+        if (input.frames && input.frames.length) {
+          picked = input.frames.map(function(id) {
+            return all2.filter(function(f2) {
+              return f2.id === id;
+            })[0];
+          });
+          if (picked.some(function(f2) {
+            return !f2;
+          })) return fail("Each of frames must be a frame on this page.");
+        } else {
+          var here2 = all2.filter(function(f2) {
+            return f2.id === doc2.active;
+          })[0] || all2[0];
+          var base = String(here2.name).split(" · ")[0];
+          picked = all2.filter(function(f2) {
+            return f2.name === base || f2.name.indexOf(base + " · ") === 0;
+          });
+        }
+        picked = picked.slice(0, 4);
+        if (picked.length < 2) return fail("There's only one frame to compare. Name two to four frames, or make_variants first.");
+        var w2 = typeof input.width === "number" ? Math.max(320, Math.min(2560, Math.round(input.width))) : null;
+        var d2 = typeof input.dark === "boolean" ? input.dark : null;
+        var opts2 = w2 || d2 !== null ? { width: w2, dark: d2 } : null;
+        var cmp = compareText(picked, function(n) {
+          return layerName(n);
+        });
+        var shoot = api.screenshot ? function(f2) {
+          return Promise.resolve(api.screenshot(f2.id, null, opts2)).then(null, function() {
+            return null;
+          });
+        } : function() {
+          return Promise.resolve(null);
+        };
+        var check5 = api.runChecks ? function(f2) {
+          return Promise.resolve(api.runChecks(f2.id)).then(null, function() {
+            return null;
+          });
+        } : function() {
+          return Promise.resolve(null);
+        };
+        return Promise.all(picked.map(function(f2) {
+          return Promise.all([shoot(f2), check5(f2)]);
+        })).then(function(got) {
+          var blocks = [], shots = [];
+          picked.forEach(function(f2, i) {
+            var pic = got[i][0], ck = got[i][1];
+            var bad2 = ck && ck.rows ? ck.rows.filter(function(r) {
+              return r.status !== "pass";
+            }) : [];
+            var verdict = !ck ? "checks didn't run" : bad2.length ? bad2.map(function(r) {
+              return r.status.toUpperCase() + " " + r.title;
+            }).join("; ") : "every check passes";
+            if (pic && pic.data) {
+              blocks.push({ type: "image", source: { type: "base64", media_type: pic.media_type, data: pic.data } });
+              shots.push(pic);
+            }
+            blocks.push({ type: "text", text: f2.name + " (" + f2.id + ")" + (pic && pic.data ? "" : ", no picture") + ": " + verdict + "." });
+          });
+          var how2 = [w2 ? "at " + w2 + " wide" : "", d2 === true ? "in dark mode" : d2 === false ? "in light mode" : ""].filter(Boolean).join(" ");
+          blocks.push({ type: "text", text: "How alike they are:\n" + cmp.lines.join("\n") + (cmp.alike.length ? "\nRebuild one of each pair that's too alike with different layouts, bands or type before you grade." : "") + "\nGrade each from 1 to 5 on hierarchy, rhythm, contrast and fit to its direction; rebuild any below 3, then compare once more." });
+          return { ok: true, result: blocks, step: "Compared " + picked.map(function(f2) {
+            return f2.name;
+          }).join(", ") + (how2 ? " " + how2 : ""), shot: shots[0] };
+        });
       }
       case "use_frame": {
         var to = (doc2.frames || []).filter(function(f2) {
@@ -6332,7 +6451,13 @@
       });
       return { text: "", calls };
     }
-    if (names[0] === "use_frame" && names.length > 1) return { text: "Practice mode, with the real tools: one copy for each close, side by side. Compare them on the canvas and keep one; it takes the original's place.", calls: [] };
+    if (names[0] === "use_frame" && names.length > 1) return { text: "", calls: [{ name: "compare_frames", input: {} }] };
+    if (names[0] === "compare_frames") {
+      var alike = body(0).split("\n").filter(function(l) {
+        return / sections the same/.test(l);
+      });
+      return { text: "Practice mode, with the real tools: one copy for each close, side by side, compared. " + alike.join(" ") + " A model would grade each and rebuild the weakest. Compare them on the canvas and keep one; it takes the original's place.", calls: [] };
+    }
     if (names[0] === "insert_jsx") return { text: "Practice mode, with the real tools: the close you picked is at the foot of the frame.", calls: [] };
     if (names[0] === "read_guideline") return { text: "Practice mode: " + body(0).split("\n")[0].replace(/^# /, "") + " read. A model would apply it to the next change.", calls: [] };
     if (names[0] === "search_components") {

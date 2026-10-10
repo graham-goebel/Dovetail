@@ -14,6 +14,7 @@ import { jsxNodes, readJsxElements } from "./paste.js";
 import { cleanNode, fresh, locate } from "./tree.js";
 import { layerName } from "./names.js";
 import { KINDS, findLayouts, layoutById, layoutLine } from "./layouts.js";
+import { compareText } from "./compare.js";
 
 var FAMILIES = Object.keys(DATA.tokens);
 /* The edits batch may run: everything that changes layers in this frame. */
@@ -44,6 +45,7 @@ var TOOLS = [
   { name: "rename", description: "Give a layer a name, so the layers list says what it is.", input_schema: { type: "object", properties: { id: { type: "string" }, name: { type: "string" } }, required: ["id", "name"], additionalProperties: false } },
   { name: "create_frame", description: "Add a frame to this page and make it the one you're working in. structured frames are auto layout pages (they start with a Content group to fill, whose id comes back); free frames place layers anywhere. Presets: " + PRESETS.map(function (f) { return f.id + " (" + f.width + "×" + f.height + ")"; }).join(", ") + ".", input_schema: { type: "object", properties: { name: { type: "string" }, preset: { type: "string", enum: PRESETS.map(function (f) { return f.id; }) }, mode: { type: "string", enum: ["structured", "free"] } }, required: ["name", "preset", "mode"], additionalProperties: false } },
   { name: "make_variants", description: "Try a few directions side by side: copies a frame (the one you're in unless you name another) once per label, beside it, named after the label, and hands back each copy's id. Then use_frame into each copy and make its change. The person compares them on the canvas and keeps one, which takes the original's place. Use it when they ask to see options, or pick Try them all on a question.", input_schema: { type: "object", properties: { frame: { type: "string" }, labels: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } } }, required: ["labels"], additionalProperties: false } },
+  { name: "compare_frames", description: "Look at frames side by side to judge them: a picture of each, its checks, and how alike each pair is section by section, with pairs that read as one direction flagged. With no frames given it compares the frame you're in and its variants. Give width (390) or dark to see them all that way. Call it when variants are built, then grade them.", input_schema: { type: "object", properties: { frames: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } }, width: { type: "integer", minimum: 320, maximum: 2560 }, dark: { type: "boolean" } }, additionalProperties: false } },
   { name: "use_frame", description: "Work in another frame on this page: the edit tools act on the frame you're in.", input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false } },
   { name: "propose_plan", description: "Before a new page or frame, or any change that adds more than about 10 layers, show the person a short plan and wait for their answer: the frame it goes in (when it's a new one), the steps in order (a title and a line each), and anything they should know (missing content you'll stand in for, a choice you made). It comes back approved, or with what they want changed.", input_schema: { type: "object", properties: { title: { type: "string" }, frame: { type: "object", properties: { name: { type: "string" }, preset: { type: "string" }, mode: { type: "string", enum: ["structured", "free"] } }, additionalProperties: false }, steps: { type: "array", minItems: 1, maxItems: 12, items: { type: "object", properties: { title: { type: "string" }, detail: { type: "string" } }, required: ["title"], additionalProperties: false } }, notes: { type: "array", maxItems: 4, items: { type: "string" } } }, required: ["title", "steps"], additionalProperties: false } },
   { name: "ask_user", description: "Ask the person to choose when the request leaves a real choice open: two to four ways that would set a different tone or direction, which the request, the docs and the theme don't settle. Each option is a short label and a line on what it means (the components and tokens it would use). The answer comes back as the option they picked, or what they wrote instead. Don't ask about what you can decide yourself.", input_schema: { type: "object", properties: { question: { type: "string" }, options: { type: "array", minItems: 2, maxItems: 4, items: { type: "object", properties: { label: { type: "string" }, detail: { type: "string" } }, required: ["label"], additionalProperties: false } } }, required: ["question", "options"], additionalProperties: false } },
@@ -153,7 +155,7 @@ function systemPrompt() {
     "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish. For a page, look at 390 wide and in dark mode too (screenshot with width or dark) when the change touches layout or colour, or the checks flag them.",
     "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
     "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first. When it leaves a real choice of direction open (two good answers with a different tone), call ask_user with the options rather than guessing.",
-    "- When the person wants to see options, make_variants copies the frame once per option, side by side; build each in its copy and say how they differ. They keep one. Make the copies differ in more than colour: swap in different layouts (insert_layout with replace), bands and type sizes, so each is a real direction.",
+    "- When the person wants to see options, make_variants copies the frame once per option, side by side; build each in its copy and say how they differ. They keep one. Make the copies differ in more than colour: swap in different layouts (insert_layout with replace), bands and type sizes, so each is a real direction. When they're built, compare_frames and grade each from 1 to 5 on hierarchy, rhythm, contrast and fit to its direction; rebuild what scores below 3 or is flagged too alike, compare once more, and say the grades in your reply.",
     "- A message may start with what the person changed on the canvas since your last reply. Keep those changes unless they ask otherwise, and build on them.",
     "- Before a new page or frame, or a change that adds more than about 10 layers, call propose_plan and wait for the answer, unless the canvas notes say plans are off. Building without one is refused.",
     "- Finish with a sentence or two on what you changed and anything the person should check.",
@@ -439,8 +441,42 @@ function runTool(api, call) {
       if (labels.length < 2) return fail("Give at least two labels.");
       var made4 = api.makeVariants(src.id, labels);
       if (!made4 || !made4.length) return fail("The variants couldn't be made.");
-      return { ok: true, result: JSON.stringify({ variants: made4.map(function (v, i) { return { label: labels[i], frame: v }; }) }) + " Now use_frame into each and make its change.", step: "Copied " + src.name + " into " + labels.length + " variants",
+      return { ok: true, result: JSON.stringify({ variants: made4.map(function (v, i) { return { label: labels[i], frame: v }; }) }) + " Now use_frame into each and make its change, then compare_frames.", step: "Copied " + src.name + " into " + labels.length + " variants",
         change: { ids: [], label: "Variants", value: labels.length + " copies", on: src.name }, variants: { source: src.id, sourceName: src.name, items: made4.map(function (v, i) { return { label: labels[i], frame: v }; }) } };
+    }
+    case "compare_frames": {
+      var all2 = doc.frames || [];
+      var picked;
+      if (input.frames && input.frames.length) {
+        picked = input.frames.map(function (id) { return all2.filter(function (f) { return f.id === id; })[0]; });
+        if (picked.some(function (f) { return !f; })) return fail("Each of frames must be a frame on this page.");
+      } else {
+        /* The frame you're in and its variants, which are named after it. */
+        var here2 = all2.filter(function (f) { return f.id === doc.active; })[0] || all2[0];
+        var base = String(here2.name).split(" · ")[0];
+        picked = all2.filter(function (f) { return f.name === base || f.name.indexOf(base + " · ") === 0; });
+      }
+      picked = picked.slice(0, 4);
+      if (picked.length < 2) return fail("There's only one frame to compare. Name two to four frames, or make_variants first.");
+      var w2 = typeof input.width === "number" ? Math.max(320, Math.min(2560, Math.round(input.width))) : null;
+      var d2 = typeof input.dark === "boolean" ? input.dark : null;
+      var opts2 = w2 || d2 !== null ? { width: w2, dark: d2 } : null;
+      var cmp = compareText(picked, function (n) { return layerName(n); });
+      var shoot = api.screenshot ? function (f) { return Promise.resolve(api.screenshot(f.id, null, opts2)).then(null, function () { return null; }); } : function () { return Promise.resolve(null); };
+      var check = api.runChecks ? function (f) { return Promise.resolve(api.runChecks(f.id)).then(null, function () { return null; }); } : function () { return Promise.resolve(null); };
+      return Promise.all(picked.map(function (f) { return Promise.all([shoot(f), check(f)]); })).then(function (got) {
+        var blocks = [], shots = [];
+        picked.forEach(function (f, i) {
+          var pic = got[i][0], ck = got[i][1];
+          var bad = ck && ck.rows ? ck.rows.filter(function (r) { return r.status !== "pass"; }) : [];
+          var verdict = !ck ? "checks didn't run" : bad.length ? bad.map(function (r) { return r.status.toUpperCase() + " " + r.title; }).join("; ") : "every check passes";
+          if (pic && pic.data) { blocks.push({ type: "image", source: { type: "base64", media_type: pic.media_type, data: pic.data } }); shots.push(pic); }
+          blocks.push({ type: "text", text: f.name + " (" + f.id + ")" + (pic && pic.data ? "" : ", no picture") + ": " + verdict + "." });
+        });
+        var how2 = [w2 ? "at " + w2 + " wide" : "", d2 === true ? "in dark mode" : d2 === false ? "in light mode" : ""].filter(Boolean).join(" ");
+        blocks.push({ type: "text", text: "How alike they are:\n" + cmp.lines.join("\n") + (cmp.alike.length ? "\nRebuild one of each pair that's too alike with different layouts, bands or type before you grade." : "") + "\nGrade each from 1 to 5 on hierarchy, rhythm, contrast and fit to its direction; rebuild any below 3, then compare once more." });
+        return { ok: true, result: blocks, step: "Compared " + picked.map(function (f) { return f.name; }).join(", ") + (how2 ? " " + how2 : ""), shot: shots[0] };
+      });
     }
     case "use_frame": {
       var to = (doc.frames || []).filter(function (f) { return f.id === input.id; })[0];
@@ -596,7 +632,11 @@ function practiceAnswer(request, results) {
     });
     return { text: "", calls: calls };
   }
-  if (names[0] === "use_frame" && names.length > 1) return { text: "Practice mode, with the real tools: one copy for each close, side by side. Compare them on the canvas and keep one; it takes the original's place.", calls: [] };
+  if (names[0] === "use_frame" && names.length > 1) return { text: "", calls: [{ name: "compare_frames", input: {} }] };
+  if (names[0] === "compare_frames") {
+    var alike = body(0).split("\n").filter(function (l) { return / sections the same/.test(l); });
+    return { text: "Practice mode, with the real tools: one copy for each close, side by side, compared. " + alike.join(" ") + " A model would grade each and rebuild the weakest. Compare them on the canvas and keep one; it takes the original's place.", calls: [] };
+  }
   if (names[0] === "insert_jsx") return { text: "Practice mode, with the real tools: the close you picked is at the foot of the frame.", calls: [] };
   if (names[0] === "read_guideline") return { text: "Practice mode: " + body(0).split("\n")[0].replace(/^# /, "") + " read. A model would apply it to the next change.", calls: [] };
   if (names[0] === "search_components") {

@@ -6468,6 +6468,8 @@ try {
     await settled();
     const card = lastBot().locator(".bd-as-variants");
     expect(await card.locator(".bd-as-row").count() === 3, "the card lists three variants");
+    const compared = await lastBot().textContent();
+    expect(/Compared /.test(compared) && /sections the same \(too alike/.test(compared), `once built, the variants are compared side by side and copies that differ only by their close are flagged as too alike, got ${compared.slice(0, 400)}`);
     const named = await page.evaluate(() => window.__builder.doc().frames.map((f) => f.name));
     expect(named.length === variantsFrom.length + 3 && named.filter((n) => n.startsWith(origin + " · ")).length === 3, `three copies sit beside ${origin}, got ${named}`);
     const closes = await page.evaluate((o) => window.__builder.doc().frames.filter((f) => f.name.startsWith(o + " · ")).map((f) => f.root.children.length - window.__builder.doc().frames.find((x) => x.name === o).root.children.length), origin);
@@ -6481,7 +6483,7 @@ try {
     expect(/Kept Soft tint/.test(await card.textContent()) && await card.locator("button", { hasText: "Keep" }).count() === 0, "the card says which was kept");
     await page.keyboard.press(process.platform === "darwin" ? "Meta+z" : "Control+z");
     expect(await page.evaluate(() => window.__builder.doc().frames.length) === variantsFrom.length + 3, "one undo brings the variants and the original back");
-    ok("it tries directions as variants side by side, and keeping one takes the original's place");
+    ok("it tries directions as variants side by side, compares them, and keeping one takes the original's place");
     await page.keyboard.press(process.platform === "darwin" ? "Meta+Shift+z" : "Control+Shift+z");
     const countNow = await page.evaluate(() => window.__builder.doc().frames.length);
     await page.locator(".bd-as-input").fill("Add a close to the page");
