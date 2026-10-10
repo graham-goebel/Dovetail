@@ -177,7 +177,7 @@ test("the practice script reads the page and says what's on it", () => {
     { role: "assistant", content: [{ type: "tool_use", id: "t1", name: "read_page", input: {} }] },
     { role: "user", content: [{ type: "tool_result", tool_use_id: "t1", content: read.result }] },
   ]) });
-  assert.match(after.text, /1 frame and 2 layers/);
+  assert.match(after.text, /\*\*1 frame\*\* and \*\*2 layers\*\*/);
   assert.equal(after.calls.length, 0);
   assert.equal(script({ messages: [{ role: "user", content: "take a look" }], tools: toolsFor({ look: false }) }).calls.length, 0, "no screenshot when looking is off");
 });

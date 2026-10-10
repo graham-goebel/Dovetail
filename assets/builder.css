@@ -8072,6 +8072,266 @@ input.bd-folder-name {
 .bd-as-err {
   color: var(--dt-text-danger, #e5484d);
 }
+/* A reply's words, from Markdown. */
+.bd-md {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs, 6px);
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.bd-md > * {
+  margin: 0;
+}
+.bd-md strong {
+  color: var(--dt-text-primary);
+  font-weight: var(--dt-font-weight-semibold, 600);
+}
+.bd-md .bd-md-h {
+  margin-top: var(--dt-space-stack-2xs, 6px);
+  color: var(--dt-text-primary);
+  font-weight: var(--dt-font-weight-semibold, 600);
+}
+.bd-md .bd-md-h:first-child {
+  margin-top: 0;
+}
+.bd-md .bd-md-h.is-h1 {
+  font-size: 1.08em;
+}
+.bd-md ul,
+.bd-md ol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-inline-start: 1.25em;
+}
+.bd-md li::marker {
+  color: var(--dt-text-tertiary);
+}
+.bd-md code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--bd-field);
+  color: var(--dt-text-primary);
+  font-family: var(--dt-font-family-mono, ui-monospace, monospace);
+  font-size: 0.92em;
+}
+.bd-md pre {
+  max-width: 100%;
+  padding: var(--dt-space-inset-xs, 8px);
+  overflow-x: auto;
+  border-radius: var(--dt-radius-control, 8px);
+  background: var(--bd-field);
+  white-space: pre;
+}
+.bd-md pre code {
+  padding: 0;
+  background: none;
+}
+.bd-md blockquote {
+  padding-inline-start: var(--dt-space-inset-xs, 8px);
+  border-inline-start: 2px solid var(--dt-border-subtle);
+  color: var(--dt-text-tertiary);
+}
+.bd-md a {
+  color: var(--dt-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+/* What a reply did, folded into one row that updates as it works. */
+.bd-as-act {
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-control, 8px);
+  font-size: var(--dt-font-size-2xs, 11px);
+}
+.bd-as-act-h,
+.bd-as-fold {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs, 6px);
+  width: 100%;
+  min-height: 32px;
+  padding: 4px var(--dt-space-inset-xs, 8px);
+  border: 0;
+  background: none;
+  color: var(--dt-text-secondary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.bd-as-act-h:hover,
+.bd-as-fold:hover {
+  color: var(--dt-text-primary);
+}
+.bd-as-act-h:focus-visible,
+.bd-as-fold:focus-visible {
+  outline: 2px solid var(--dt-focus-ring, currentColor);
+  outline-offset: -2px;
+  border-radius: inherit;
+}
+.bd-as-act-i {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  color: var(--dt-text-success, #2a9d5b);
+}
+.bd-as-act.has-failed .bd-as-act-i {
+  color: var(--dt-text-warning, #c58a00);
+}
+.bd-as-act-i .bd-ic {
+  width: 14px;
+  height: 14px;
+}
+.bd-as-act-t {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bd-as-act.is-running .bd-as-act-t {
+  color: var(--dt-text-primary);
+}
+.bd-as-act-t.is-note {
+  font-style: italic;
+}
+.bd-as-act-shot {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 3px;
+  background: #fff;
+}
+.bd-as-act-n {
+  flex: none;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--bd-field);
+  color: var(--dt-text-tertiary);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.bd-as-act-chev {
+  display: grid;
+  flex: none;
+  place-items: center;
+  color: var(--dt-text-tertiary);
+  transition: transform var(--dt-motion-duration-fast, 120ms) ease;
+}
+.bd-as-act-chev .bd-ic {
+  width: 12px;
+  height: 12px;
+}
+.is-open > .bd-as-act-h .bd-as-act-chev,
+.is-open > .bd-as-fold .bd-as-act-chev {
+  transform: rotate(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bd-as-act-chev {
+    transition: none;
+  }
+}
+.bd-as-act-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 2px var(--dt-space-inset-xs, 8px) var(--dt-space-inset-xs, 8px);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  list-style: none;
+}
+.bd-as-act-list .bd-as-step {
+  align-items: flex-start;
+  min-height: 22px;
+  padding-top: 3px;
+}
+.bd-as-act-list .bd-as-ok {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+}
+.bd-as-step-t {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.bd-as-act-list .bd-as-step {
+  color: var(--dt-text-secondary);
+}
+.bd-as-step.is-running {
+  color: var(--dt-text-primary);
+}
+.bd-as-step-shot {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 4px;
+  background: #fff;
+}
+.bd-as-act-list .bd-as-note-step {
+  padding: 3px 0 1px 20px;
+}
+/* Working: a small ring that turns, or holds still with reduced motion. */
+.bd-as-spin {
+  display: block;
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid var(--dt-border-subtle);
+  border-top-color: var(--dt-text-secondary);
+  border-radius: 50%;
+  animation: bd-as-spin 0.8s linear infinite;
+}
+@keyframes bd-as-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bd-as-spin {
+    animation: none;
+    border-top-color: var(--dt-text-tertiary);
+  }
+}
+/* The change card's head folds its rows away. */
+.bd-as-plan .bd-as-card-h.bd-as-fold {
+  flex-direction: row;
+  align-items: center;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  color: var(--dt-text-primary);
+  font-weight: var(--dt-font-weight-semibold, 600);
+}
+.bd-as-plan .bd-as-fold > span:first-child {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--dt-space-inline-xs, 6px);
+  min-width: 0;
+}
+.bd-as-changes .bd-as-fold {
+  justify-content: space-between;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  color: var(--dt-text-primary);
+  font-size: inherit;
+  font-weight: var(--dt-font-weight-semibold, 600);
+}
+.bd-as-fold-r {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs, 6px);
+}
+.bd-as-note.is-warn {
+  color: var(--dt-text-warning, #c58a00);
+}
 .bd-as-card {
   margin-top: var(--dt-space-stack-2xs);
   overflow: hidden;

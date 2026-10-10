@@ -9,23 +9,86 @@ import { cx, e, useEffect, useRef, useState } from "../config.js";
 import { Icon } from "../ui/icons.js";
 import { Segmented, Switch } from "../ui/parts.js";
 import { senderOf } from "../model/threads.js";
+import { mdBlocks, mdInline } from "../model/markdown.js";
+
+/* A reply's words, drawn from Markdown as React elements: nothing in a
+   reply becomes markup. */
+function inline(text) {
+  return mdInline(text).map(function (r, i) {
+    if (r.t === "b") return e("strong", { key: i }, r.text);
+    if (r.t === "i") return e("em", { key: i }, r.text);
+    if (r.t === "code") return e("code", { key: i }, r.text);
+    if (r.t === "a") return e("a", { key: i, href: r.href, target: "_blank", rel: "noopener noreferrer" }, r.text);
+    if (r.t === "br") return e("br", { key: i });
+    return r.text;
+  });
+}
+function Markdown(p) {
+  return e("div", { className: cx("bd-md", p.className) }, mdBlocks(p.text).map(function (b, i) {
+    if (b.type === "h") return e("p", { key: i, className: "bd-md-h is-h" + b.level, role: "heading", "aria-level": b.level + 2 }, inline(b.text));
+    if (b.type === "ul") return e("ul", { key: i }, b.items.map(function (it, k) { return e("li", { key: k }, inline(it)); }));
+    if (b.type === "ol") return e("ol", { key: i, start: b.start }, b.items.map(function (it, k) { return e("li", { key: k }, inline(it)); }));
+    if (b.type === "quote") return e("blockquote", { key: i }, inline(b.text));
+    if (b.type === "code") return e("pre", { key: i }, e("code", null, b.lines.join("\n")));
+    return e("p", { key: i }, inline(b.text));
+  }));
+}
+
+/* What a reply did, folded into one row that says what it's doing now (or
+   how many steps it took), and opens to every step. */
+function Activity(p) {
+  var steps = p.steps;
+  if (!steps.length) return null;
+  var acts = steps.filter(function (s) { return !s.note; });
+  var failed = acts.filter(function (s) { return !s.ok && !s.running; }).length;
+  var running = steps.some(function (s) { return s.running; }) || p.working;
+  var latest = steps[steps.length - 1];
+  var shot = steps.filter(function (s) { return s.shot; }).slice(-1)[0];
+  var head = running ? latest.text : acts.length + (acts.length === 1 ? " step" : " steps") + (failed ? ", " + failed + " didn't work" : "");
+  var icon = running ? null : failed ? "alert" : "check";
+  return e("div", { className: cx("bd-as-act", p.open && "is-open", running && "is-running", failed && !running && "has-failed") },
+    e("button", { type: "button", className: "bd-as-act-h", "aria-expanded": !!p.open, onClick: p.onToggle, title: p.open ? "Hide the steps" : "Show every step" },
+      e("span", { className: "bd-as-act-i", "aria-hidden": "true" }, icon ? e(Icon, { name: icon }) : e("span", { className: "bd-as-spin" })),
+      e("span", { className: cx("bd-as-act-t", running && latest.note && "is-note") }, head),
+      shot && !p.open ? e("img", { className: "bd-as-act-shot", src: shot.shot, alt: "" }) : null,
+      running && acts.length > 1 ? e("span", { className: "bd-as-act-n" }, acts.length) : null,
+      e("span", { className: "bd-as-act-chev", "aria-hidden": "true" }, e(Icon, { name: "down" }))),
+    p.open ? e("ol", { className: "bd-as-act-list" }, steps.map(function (s, i) {
+      if (s.note) return e("li", { key: s.id || i, className: "bd-as-note-step" }, s.text);
+      return e("li", { key: s.id || i, className: cx("bd-as-step", !s.ok && !s.running && "is-failed", s.running && "is-running") },
+        e("span", { className: "bd-as-ok", "aria-hidden": "true" }, s.running ? e("span", { className: "bd-as-spin" }) : e(Icon, { name: !s.ok ? "close" : s.icon || "check" })),
+        e("span", { className: "bd-as-step-t" }, s.text),
+        s.shot ? e("img", { className: "bd-as-step-shot", src: s.shot, alt: "" }) : null);
+    })) : null);
+}
 
 function changeCard(p, turn) {
   if (!turn.changes.length) return null;
-  return e("div", { className: "bd-as-card" },
-    e("div", { className: "bd-as-card-h" }, e("span", null, turn.changes.length + (turn.changes.length === 1 ? " change" : " changes")),
-      turn.kept ? e("span", { className: "bd-as-note" }, "Kept") : turn.undone ? e("span", { className: "bd-as-note" }, "Undone") : null),
-    turn.changes.map(function (c, i) {
+  /* Folded once there are more than a few, so the thread stays short; the
+     checks that need something stay in view either way. */
+  var open = p.isOpen(turn.id + ":changes", turn.changes.length <= 3);
+  var bad = (turn.checks || []).filter(function (r) { return r.status === "fail" || r.status === "warn"; });
+  var passed = (turn.checks || []).filter(function (r) { return r.status === "pass"; }).length;
+  var shownChecks = open ? turn.checks : bad;
+  return e("div", { className: cx("bd-as-card bd-as-changes", open && "is-open") },
+    e("button", { type: "button", className: "bd-as-card-h bd-as-fold", "aria-expanded": open, onClick: function () { p.toggle(turn.id + ":changes", !open); }, title: open ? "Fold the changes" : "Show each change and check" },
+      e("span", null, turn.changes.length + (turn.changes.length === 1 ? " change" : " changes")),
+      e("span", { className: "bd-as-fold-r" },
+        turn.kept ? e("span", { className: "bd-as-note" }, "Kept") : turn.undone ? e("span", { className: "bd-as-note" }, "Undone")
+          : turn.checking ? e("span", { className: "bd-as-note" }, "Checking…")
+          : turn.checks && !open ? e("span", { className: cx("bd-as-note", bad.length && "is-warn") }, bad.length ? bad.length + " to look at" : passed + " checks pass") : null,
+        e("span", { className: "bd-as-act-chev", "aria-hidden": "true" }, e(Icon, { name: "down" })))),
+    (open ? turn.changes : []).map(function (c, i) {
       var can = turn.status === "done" && !turn.kept && !turn.undone && !c.undone && !p.busy;
       return e("div", { key: i, className: cx("bd-as-row", c.undone && "is-undone") },
         e("span", { className: "bd-as-n" }, c.label),
         e("span", { className: "bd-as-v" }, c.value, c.on ? e("span", { className: "bd-as-on" }, " · " + c.on) : null),
         can ? e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-row-undo", title: "Undo this and the changes after it", "aria-label": "Undo " + c.label + " and the changes after it", onClick: function () { p.undoFrom(turn.id, i); } }, e(Icon, { name: "undo" })) : null);
     }),
-    turn.undone ? null : turn.checking ? e("div", { className: "bd-as-checks" }, e("div", { className: "bd-as-checks-h" }, e("span", null, "Checks"), e("span", { className: "bd-as-note" }, "Checking…")))
-      : turn.checks ? e("div", { className: "bd-as-checks" },
-        e("div", { className: "bd-as-checks-h" }, e("span", null, "Checks"), e("span", { className: "bd-as-note" }, "ran after the last step")),
-        turn.checks.map(function (r) {
+    turn.undone ? null : turn.checking ? (open ? e("div", { className: "bd-as-checks" }, e("div", { className: "bd-as-checks-h" }, e("span", null, "Checks"), e("span", { className: "bd-as-note" }, "Checking…"))) : null)
+      : turn.checks && shownChecks.length ? e("div", { className: "bd-as-checks" },
+        open ? e("div", { className: "bd-as-checks-h" }, e("span", null, "Checks"), e("span", { className: "bd-as-note" }, "ran after the last step")) : null,
+        shownChecks.map(function (r) {
           var icon = r.status === "pass" ? "check" : r.status === "skip" ? "minus" : "alert";
           return e("div", { key: r.id, className: cx("bd-as-check", "is-" + r.status) },
             e("span", { className: "bd-as-check-i", "aria-hidden": "true" }, e(Icon, { name: icon })),
@@ -44,14 +107,19 @@ function changeCard(p, turn) {
 function planCard(p, turn) {
   var pl = turn.plan;
   if (!pl) return null;
-  return e("div", { className: "bd-as-card bd-as-plan" },
-    e("div", { className: "bd-as-card-h" },
-      e("span", null, e(Icon, { name: "frame" }), pl.title),
-      pl.status === "approved" ? e("span", { className: "bd-as-note" }, "Approved") : pl.status === "changing" ? e("span", { className: "bd-as-note" }, "Changing") : pl.frame ? e("span", { className: "bd-as-note" }, [pl.frame.preset, pl.frame.mode].filter(Boolean).join(" · ")) : null),
-    e("ol", { className: "bd-as-plan-steps" }, pl.steps.map(function (st, i) {
+  /* Once answered it folds to its title; it opens again to reread. */
+  var settled = pl.status !== "pending";
+  var open = !settled || p.isOpen(turn.id + ":plan", false);
+  var note = pl.status === "approved" ? e("span", { className: "bd-as-note" }, "Approved") : pl.status === "changing" ? e("span", { className: "bd-as-note" }, "Changing") : pl.frame ? e("span", { className: "bd-as-note" }, [pl.frame.preset, pl.frame.mode].filter(Boolean).join(" · ")) : null;
+  var title = e("span", null, e(Icon, { name: "frame" }), pl.title);
+  return e("div", { className: cx("bd-as-card bd-as-plan", open && "is-open") },
+    settled ? e("button", { type: "button", className: "bd-as-card-h bd-as-fold", "aria-expanded": open, onClick: function () { p.toggle(turn.id + ":plan", !open); }, title: open ? "Fold the plan" : "Show the plan" },
+      title, e("span", { className: "bd-as-fold-r" }, note, e("span", { className: "bd-as-act-chev", "aria-hidden": "true" }, e(Icon, { name: "down" }))))
+      : e("div", { className: "bd-as-card-h" }, title, note),
+    open ? e("ol", { className: "bd-as-plan-steps" }, pl.steps.map(function (st, i) {
       return e("li", { key: i }, e("b", null, st.title), st.detail ? e("span", null, st.detail) : null);
-    })),
-    pl.notes && pl.notes.length ? e("div", { className: "bd-as-plan-notes" }, pl.notes.map(function (n, i) { return e("p", { key: i }, e(Icon, { name: "alert" }), e("span", null, n)); })) : null,
+    })) : null,
+    open && pl.notes && pl.notes.length ? e("div", { className: "bd-as-plan-notes" }, pl.notes.map(function (n, i) { return e("p", { key: i }, e(Icon, { name: "alert" }), e("span", null, n)); })) : null,
     pl.status === "pending" ? e("div", { className: "bd-as-acts" },
       e("button", { type: "button", className: "bd-btn bd-btn-sm bd-btn-primary", onClick: function () { p.approvePlan(turn.id); } }, e(Icon, { name: "play" }), "Build it"),
       e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { p.changePlan(turn.id); } }, e(Icon, { name: "pencil" }), "Change plan")) : null,
@@ -197,6 +265,12 @@ function ThreadList(p) {
 
 function AssistantPanel(p) {
   var listRef = useRef(null);
+  /* What's unfolded in the thread: a reply's steps, its changes. */
+  var foldState = useState({});
+  var folds = foldState[0];
+  var isOpen = function (key, dflt) { return Object.prototype.hasOwnProperty.call(folds, key) ? folds[key] : dflt; };
+  var toggle = function (key, v) { foldState[1](function (f) { var n = Object.assign({}, f); n[key] = v; return n; }); };
+  var cp = Object.assign({}, p, { isOpen: isOpen, toggle: toggle });
   /* The thread follows what's new at its foot: text, steps, the change card, its checks. */
   var last = p.thread[p.thread.length - 1];
   var tail = last ? [p.thread.length, last.text, (last.steps || []).length, (last.changes || []).length, last.checking ? 1 : 0, last.checks ? last.checks.length : 0, last.status].join("|") : "";
@@ -223,17 +297,13 @@ function AssistantPanel(p) {
           : senderOf(t, p.me) ? e("div", { key: t.id, className: "bd-as-me-wrap" }, e("span", { className: "bd-as-from" }, senderOf(t, p.me)), e("div", { className: "bd-as-me" }, t.text))
           : e("div", { key: t.id, className: "bd-as-me" }, t.text);
         return e("div", { key: t.id, className: cx("bd-as-bot", t.status === "error" && "is-error") },
-          t.steps.map(function (s, i) {
-            if (s.note) return e("p", { key: i, className: "bd-as-note-step" }, s.text);
-            if (s.shot) return e("div", { key: i, className: "bd-as-look" }, e("img", { src: s.shot, alt: "" }), e("span", null, e(Icon, { name: "eye" }), s.text));
-            return e("div", { key: i, className: cx("bd-as-step", !s.ok && "is-failed") }, e("span", { className: "bd-as-ok" }, e(Icon, { name: s.ok ? "check" : "close" })), s.text);
-          }),
-          t.text ? e("p", { className: "bd-as-text" }, t.text) : t.status === "working" ? e("p", { className: "bd-as-text bd-as-wait" }, "Working…") : null,
-          planCard(p, t),
+          e(Activity, { steps: t.steps || [], working: t.status === "working" && !t.text, open: isOpen(t.id + ":steps", false), onToggle: function () { toggle(t.id + ":steps", !isOpen(t.id + ":steps", false)); } }),
+          t.text ? e(Markdown, { className: "bd-as-text", text: t.text }) : t.status === "working" && !(t.steps || []).length ? e("p", { className: "bd-as-text bd-as-wait" }, "Working…") : null,
+          planCard(cp, t),
           askCard(p, t),
           variantsCard(p, t),
           t.error ? e("p", { className: "bd-as-text bd-as-err" }, t.error) : null,
-          changeCard(p, t));
+          changeCard(cp, t));
       })),
     p.edits && p.view !== "list" ? e("div", { className: "bd-as-edits is-pending" },
       e("div", { className: "bd-as-edits-h" }, e(Icon, { name: "cursor" }), e("b", null, "You changed " + p.edits.count + (p.edits.count === 1 ? " thing" : " things") + " since its last reply"),

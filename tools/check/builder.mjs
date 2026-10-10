@@ -6329,6 +6329,11 @@ try {
 
   await step("Assistant: in practice mode a request changes the selection with system tokens, lists what changed, and Undo all takes it back; it reads the page, looks at the canvas, plans and builds a page, and keeps the thread; nothing is sent", async () => {
     const { page } = await open({ width: 1440, height: 900 });
+    /* A reply's steps fold into one row, and a long change card folds too:
+       open them before reading what's inside. */
+    const unfold = async (loc, head) => { const h = loc.locator(head).first(); if (await h.count() && (await h.getAttribute("aria-expanded")) !== "true") await h.click(); };
+    const stepsOf = async (loc) => { await unfold(loc, ".bd-as-act-h"); return loc.locator(".bd-as-step").allTextContents(); };
+    const looksOf = async (loc) => { await unfold(loc, ".bd-as-act-h"); return loc.locator(".bd-as-step:has(.bd-as-step-shot)"); };
     const sent = [];
     page.on("request", (r) => { if (/functions\/v1\/assistant|anthropic/.test(r.url())) sent.push(r.url()); });
     /* Let the first visit's own save land before seeding over it. */
@@ -6393,17 +6398,26 @@ try {
     const settled = () => page.locator('.bd-as-send[aria-label="Send"]').waitFor({ timeout: 20000 });
     await page.waitForFunction(() => { const b = document.querySelectorAll(".bd-as-bot")[2]; return b && /this page has/.test(b.textContent); });
     await settled();
-    const readStep = await reply(2).locator(".bd-as-step").allTextContents();
+    const readStep = await stepsOf(reply(2));
     expect(readStep.some((t) => /^Read .+ · \d+ layers$/.test(t)), `the thread says it read the page, got ${readStep}`);
     const answer = await reply(2).locator(".bd-as-text").textContent();
     expect(/Section/.test(answer), `the answer names what is at the top level, got ${answer}`);
     ok("asking what's on the page reads its outline and answers from it");
+    const md = await reply(2).locator(".bd-as-text").evaluate((el) => ({ strong: el.querySelectorAll("strong").length, items: el.querySelectorAll("ul > li").length, stars: /\*\*/.test(el.textContent) }));
+    expect(md.strong === 2 && md.items >= 1 && !md.stars, `the reply's Markdown is drawn as bold words and a list, with no stray marks, got ${JSON.stringify(md)}`);
+    /* The steps were opened above to read them; the row folds and opens again. */
+    const fold = reply(2).locator(".bd-as-act-h");
+    await fold.click();
+    expect(await fold.getAttribute("aria-expanded") === "false" && await reply(2).locator(".bd-as-act-list").count() === 0 && /^\d+ steps?$/.test((await fold.textContent()).trim()), `its steps fold into one row that counts them, got ${await fold.textContent()}`);
+    await fold.click();
+    expect(await reply(2).locator(".bd-as-act-list .bd-as-step").count() >= 1, "pressing it opens every step again");
+    ok("a reply's Markdown is styled, and its steps fold into one row that opens to each step");
     await page.locator(".bd-as-input").fill("Take a look at it");
     await page.keyboard.press("Enter");
-    await reply(3).locator(".bd-as-look img").waitFor({ timeout: 20000 });
-    const src = await reply(3).locator(".bd-as-look img").getAttribute("src");
+    await reply(3).locator(".bd-as-act-shot, .bd-as-step-shot").first().waitFor({ timeout: 20000 });
+    const src = await (await looksOf(reply(3))).locator("img").first().getAttribute("src");
     expect(/^data:image\/jpeg;base64,/.test(src), "the picture it took shows in the thread");
-    const looked = await reply(3).locator(".bd-as-look").textContent();
+    const looked = await (await looksOf(reply(3))).first().textContent();
     expect(/Looked at \S/.test(looked) && !/Looked at (Group|Section)\b/.test(looked), `the step names what it looked at, got ${looked}`);
     await page.waitForFunction(() => { const b = document.querySelectorAll(".bd-as-bot")[3]; return b && /I looked at/.test(b.textContent); });
     await settled();
@@ -6428,6 +6442,7 @@ try {
     expect(built.n === framesBefore + 1 && built.name === "Pricing" && built.mode === "structured" && built.active, `a new structured Pricing frame to work in, got ${JSON.stringify(built)}`);
     expect(built.sections.join() === "Section,Section,Section", `its Content group holds three sections, got ${built.sections}`);
     expect((await page.evaluate(() => window.__builder.history())).past === stepsBefore + 2, "the frame is one step and the batch of sections another");
+    await unfold(reply(4), ".bd-as-changes .bd-as-fold");
     const rows4 = await reply(4).locator(".bd-as-row .bd-as-n").allTextContents();
     expect(rows4[0] === "New frame" && rows4.filter((r) => r === "Added").length === 3, `the card lists the new frame and the three sections, got ${rows4}`);
     ok("asking for a pricing page shows a plan and waits; a note typed meanwhile lands with the next step; once approved it makes a structured frame and fills it in one batch");
@@ -6444,7 +6459,7 @@ try {
     await fixRow.locator("button", { hasText: "Fix" }).click();
     await page.waitForFunction(() => { const b = document.querySelectorAll(".bd-as-bot")[5]; return b && /want/.test(b.textContent); }, null, { timeout: 20000 });
     await settled();
-    const fixSteps = await reply(5).locator(".bd-as-step").allTextContents();
+    const fixSteps = await stepsOf(reply(5));
     expect(fixSteps.some((t) => /^Checked /.test(t)), `Fix asks the assistant, which runs the checks, got ${fixSteps}`);
     expect(/no label/.test(await page.locator(".bd-as-me").last().textContent()), "the Fix message names what failed");
     ok("a failing check's Fix sends what failed to the assistant, which runs the checks again");
@@ -6458,7 +6473,7 @@ try {
     await page.keyboard.press("Enter");
     await page.waitForFunction(() => { const b = document.querySelectorAll(".bd-as-bot")[6]; return b && /turned off/.test(b.textContent); }, null, { timeout: 20000 });
     await settled();
-    expect(await reply(6).locator(".bd-as-look").count() === 0, "with looking off, no picture is taken");
+    expect(await (await looksOf(reply(6))).count() === 0, "with looking off, no picture is taken");
     await page.locator(".bd-as-menu-btn").click();
     await lookSwitch.click();
     await page.keyboard.press("Escape");
@@ -6471,11 +6486,11 @@ try {
     await page.keyboard.press("Enter");
     await page.waitForFunction(() => { const b = [...document.querySelectorAll(".bd-as-bot")].pop(); return b && /I looked at .+ at 390 wide, then .+ at 390 wide in dark mode/.test(b.textContent); }, null, { timeout: 30000 });
     await settled();
-    const looks = await lastBot().locator(".bd-as-look").allTextContents();
+    const looks = await (await looksOf(lastBot())).allTextContents();
     expect(looks.length === 2 && /at 390 wide$/.test(looks[0]) && /at 390 wide in dark mode$/.test(looks[1]), `it looks at 390 wide and in dark mode, got ${looks}`);
-    const sizes = await lastBot().locator(".bd-as-look img").evaluateAll((els) => els.map((i) => i.naturalWidth));
+    const sizes = await lastBot().locator(".bd-as-step-shot").evaluateAll((els) => els.map((i) => i.naturalWidth));
     expect(sizes.every((w) => w > 0 && w <= 390), `each picture is the phone width at most, got ${sizes}`);
-    const shades = await lastBot().locator(".bd-as-look img").evaluateAll((els) => els.map((i) => { const c = document.createElement("canvas"); c.width = 8; c.height = 8; const g = c.getContext("2d"); g.drawImage(i, 0, 0, 8, 8); const d = g.getImageData(0, 0, 8, 8).data; let s = 0; for (let k = 0; k < d.length; k += 4) s += d[k] + d[k + 1] + d[k + 2]; return s / (d.length / 4) / 3; }));
+    const shades = await lastBot().locator(".bd-as-step-shot").evaluateAll((els) => els.map((i) => { const c = document.createElement("canvas"); c.width = 8; c.height = 8; const g = c.getContext("2d"); g.drawImage(i, 0, 0, 8, 8); const d = g.getImageData(0, 0, 8, 8).data; let s = 0; for (let k = 0; k < d.length; k += 4) s += d[k] + d[k + 1] + d[k + 2]; return s / (d.length / 4) / 3; }));
     expect(shades[1] < shades[0], `the dark picture is darker than the light one, got ${shades}`);
     expect(await page.evaluate(() => JSON.stringify(window.__builder.doc())) === docBeforeLook, "looking leaves the canvas as it was");
     ok("it can look at a phone width and in dark mode without touching the canvas");
@@ -6483,13 +6498,13 @@ try {
     await page.keyboard.press("Enter");
     await page.waitForFunction(() => { const b = [...document.querySelectorAll(".bd-as-bot")].pop(); return b && /brand is/.test(b.textContent); }, null, { timeout: 20000 });
     await settled();
-    expect((await lastBot().locator(".bd-as-step").allTextContents()).includes("Read the theme"), "it reads the file's theme from Configure");
+    expect((await stepsOf(lastBot())).includes("Read the theme"), "it reads the file's theme from Configure");
     expect(/primary terracotta/.test(await lastBot().locator(".bd-as-text").textContent()), "the answer names the brand's primary colour");
     await page.locator(".bd-as-input").fill("What does the voice guideline say?");
     await page.keyboard.press("Enter");
     await page.waitForFunction(() => { const b = [...document.querySelectorAll(".bd-as-bot")].pop(); return b && /Voice read/.test(b.textContent); }, null, { timeout: 20000 });
     await settled();
-    expect((await lastBot().locator(".bd-as-step").allTextContents()).includes("Read the Voice guideline"), "it reads a guideline on demand");
+    expect((await stepsOf(lastBot())).includes("Read the Voice guideline"), "it reads a guideline on demand");
     ok("it reads the theme and a guideline on demand");
     await page.locator(".bd-as-input").fill("Add a close to the page");
     await page.keyboard.press("Enter");
@@ -6499,7 +6514,7 @@ try {
     await lastBot().locator(".bd-as-opt", { hasText: "Soft tint, two buttons" }).click();
     await page.waitForFunction(() => { const b = [...document.querySelectorAll(".bd-as-bot")].pop(); return b && /close you picked/.test(b.textContent); }, null, { timeout: 20000 });
     await settled();
-    expect((await lastBot().locator(".bd-as-step").allTextContents()).includes("You chose Soft tint, two buttons"), "the choice shows as a step");
+    expect((await stepsOf(lastBot())).includes("You chose Soft tint, two buttons"), "the choice shows as a step");
     expect(await lastBot().locator(".bd-as-opt.is-chosen").count() === 1 && await lastBot().locator(".bd-as-opt:not(:disabled)").count() === 0, "the pick is marked and the options close");
     const closeHead = await page.evaluate(() => { let hit = null; (function walk(n) { (n.children || []).forEach((c) => { if (c.type === "Heading" && c.props.children === "Ready when you are") hit = c.id; walk(c); }); })(window.__builder.doc().frames.find((f) => f.id === window.__builder.doc().active).root); return hit; });
     expect(!!closeHead, "the chosen close is built");
@@ -6526,6 +6541,7 @@ try {
     await settled();
     const card = lastBot().locator(".bd-as-variants");
     expect(await card.locator(".bd-as-row").count() === 3, "the card lists three variants");
+    await unfold(lastBot(), ".bd-as-act-h");
     const compared = await lastBot().textContent();
     expect(/Compared /.test(compared) && /sections the same \(too alike/.test(compared), `once built, the variants are compared side by side and copies that differ only by their close are flagged as too alike, got ${compared.slice(0, 400)}`);
     const named = await page.evaluate(() => window.__builder.doc().frames.map((f) => f.name));

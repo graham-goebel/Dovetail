@@ -744,7 +744,7 @@ function practiceAnswer(request, results) {
     var frames = lines.filter(function (l) { return /^Frame /.test(l); }).length;
     var layers = lines.filter(function (l) { return /^\s+- /.test(l); }).length;
     var top = lines.filter(function (l) { return /^  - /.test(l); }).map(function (l) { var m = /^  - (\w+)(?: "([^"]+)")?/.exec(l); return m ? (m[2] ? m[2] + " (" + m[1] + ")" : m[1]) : ""; }).filter(Boolean);
-    return { text: "Practice mode: this page has " + frames + (frames === 1 ? " frame" : " frames") + " and " + layers + (layers === 1 ? " layer" : " layers") + (top.length ? ". At the top level: " + top.slice(0, 8).join(", ") + (top.length > 8 ? ", and " + (top.length - 8) + " more" : "") : "") + ".", calls: [] };
+    return { text: "Practice mode: this page has **" + frames + (frames === 1 ? " frame" : " frames") + "** and **" + layers + (layers === 1 ? " layer" : " layers") + "**." + (top.length ? "\n\nAt the top level:\n" + top.slice(0, 8).map(function (t) { return "- " + t; }).join("\n") + (top.length > 8 ? "\n- and " + (top.length - 8) + " more" : "") : ""), calls: [] };
   }
   if (names[0] === "screenshot") {
     var seen = results.map(function (r, i) { return body(i).replace(/, \d+×\d+ pixels\..*$/, ""); });

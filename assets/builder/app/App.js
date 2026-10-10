@@ -658,6 +658,20 @@ function App(props) {
   };
   useEffect(function () { pullOthers(); }, [project ? project.cloud : null, account.status]);
   var asAbort = useRef(null);
+  /* A tool call as a step in the thread: what it's doing while it runs
+     (the same words a live session's panel uses), then what it did. */
+  var liveStep = function (call) {
+    var rows = bridgeRows(call, bridgeName, docRef.current);
+    var r0 = rows[0] || { icon: "book", title: call.name, detail: "" };
+    var text = call.name === "batch" ? rows.length + (rows.length === 1 ? " edit" : " edits") + " in one step" : [r0.title, r0.detail].filter(Boolean).join(" · ");
+    return { id: uid(), ok: true, running: true, icon: call.name === "batch" ? "layers2" : r0.icon, text: text, tool: call.name };
+  };
+  var doneText = function (live, res, changes) {
+    if (res.step) return res.step;
+    if (changes.length === 1) { var c = changes[0]; return [c.label, c.value].filter(Boolean).join(" ") + (c.on ? " · " + c.on : ""); }
+    if (changes.length > 1) return changes.length + " changes in one step";
+    return live.text;
+  };
   var patchTurn = function (id, patch) {
     setAsThread(function (t) { return t.map(function (x) { return x.id === id ? Object.assign({}, x, typeof patch === "function" ? patch(x) : patch) : x; }); });
   };
@@ -1028,29 +1042,33 @@ function App(props) {
         if (r.stop === "refusal") throw new Error("The model declined that request.");
         var noted = r.notes.map(function (t) { return { ok: true, note: true, text: t }; });
         if (r.stop !== "tool_use" || !r.tools.length) { if (noted.length) patchTurn(turn.id, function (x) { return { steps: x.steps.concat(noted) }; }); return null; }
-        var results = [], changes = [], steps = noted.slice();
+        var results = [], changes = [];
+        if (noted.length) patchTurn(turn.id, function (x) { return { steps: x.steps.concat(noted) }; });
         /* One at a time, in order: an edit can depend on the one before.
            Each change remembers the history step it began at, so the card
-           can undo back to it. */
+           can undo back to it. Each call shows as a step while it runs, and
+           that step becomes what it did once it's done. */
         return r.tools.reduce(function (p, call) {
           return p.then(function () {
             if (call.bad) { results.push({ type: "tool_result", tool_use_id: call.id, content: "That input didn't parse; send it again.", is_error: true }); return; }
             var at = history.current.past.length;
+            var live = liveStep(call);
+            patchTurn(turn.id, function (x) { return { steps: x.steps.concat([live]) }; });
+            var settle = function (patch) { patchTurn(turn.id, function (x) { return { steps: x.steps.map(function (s) { return s.id === live.id ? Object.assign({}, s, { running: false }, patch) : s; }) }; }); };
             return Promise.resolve(runTool(api2, call)).then(function (res) {
               var mine = [].concat(res.change ? [res.change] : [], res.changes || []).map(function (ch) { return Object.assign({}, ch, { at: at }); });
               if (res.variants && res.ok) patchTurn(turn.id, { variants: res.variants });
               changes.push.apply(changes, mine);
-              if (res.step && res.ok) steps.push({ ok: true, text: res.step, shot: res.shot ? res.shot.url : undefined });
-              if (!res.ok) steps.push({ ok: false, text: res.result });
+              settle(res.ok ? { ok: true, text: doneText(live, res, mine), shot: res.shot ? res.shot.url : undefined } : { ok: false, text: String(res.result) });
               results.push({ type: "tool_result", tool_use_id: call.id, content: res.result, is_error: !res.ok });
-            });
+            }, function (err) { settle({ ok: false, text: String((err && err.message) || err) }); throw err; });
           });
         }, Promise.resolve()).then(function () {
           edits += changes.length;
           /* Notes typed meanwhile go with the results, so this reply hears them. */
           var notes = asNotes.current.splice(0);
           if (notes.length) results.push({ type: "text", text: "The person added, while you worked: " + notes.map(function (x) { return x.text; }).join("\n") });
-          patchTurn(turn.id, function (x) { return { changes: x.changes.concat(changes), steps: x.steps.concat(steps), base: (x.text ? x.text + " " : "") }; });
+          patchTurn(turn.id, function (x) { return { changes: x.changes.concat(changes), base: (x.text ? x.text.replace(/\s+$/, "") + "\n\n" : "") }; });
           if (notes.length) setAsThread(function (t) { return t.map(function (x) { return notes.some(function (nt) { return nt.id === x.id; }) ? Object.assign({}, x, { queued: false }) : x; }); });
           asMsgs.current = asMsgs.current.concat([{ role: "user", content: results }]);
           return n < 11 ? round(n + 1) : null;
@@ -1058,6 +1076,7 @@ function App(props) {
       });
     };
     var finish = function () {
+      patchTurn(turn.id, function (x) { return x.steps.some(function (s) { return s.running; }) ? { steps: x.steps.map(function (s) { return s.running ? Object.assign({}, s, { running: false, ok: false, text: s.text + " (stopped)" }) : s; }) } : {}; });
       setAsBusy(false);
       asAbort.current = null;
       if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" });
