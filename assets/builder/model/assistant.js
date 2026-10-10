@@ -115,7 +115,7 @@ function practiceEvents(request, script) {
   var turn = script ? script(request) : null;
   if (turn) return replyEvents(turn.text, turn.calls);
   if (afterTools) return replyEvents("Done. That's practice mode: nothing was sent to a model.", []);
-  var asked = last ? (typeof last.content === "string" ? last.content : (last.content || []).filter(function (b) { return b && b.type === "text"; }).map(function (b) { return b.text; }).join(" ")) : "";
+  var asked = last ? (typeof last.content === "string" ? last.content : (last.content || []).filter(function (b) { return b && b.type === "text" && String(b.text).indexOf("<builder-context>") !== 0; }).map(function (b) { return b.text; }).join(" ")) : "";
   return replyEvents("Practice mode: nothing is sent to a model yet. You asked: “" + String(asked).slice(0, 200) + "”.", []);
 }
 

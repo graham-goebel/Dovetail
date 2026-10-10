@@ -5947,11 +5947,16 @@
       }).map(function(l) {
         return l.replace(/^- (FAIL|WARN) /, "").replace(/ \[layers:.*$/, "").replace(/\.$/, "");
       });
-      var asked = /^fix this check/i.test(String(request.messages.filter(function(m) {
-        return m.role === "user" && typeof m.content === "string";
-      }).slice(-1).map(function(m) {
-        return m.content;
-      })[0] || ""));
+      var lastAsk = request.messages.filter(function(m) {
+        return m.role === "user" && askText(m);
+      }).slice(-1)[0];
+      var asked = !!lastAsk && (typeof lastAsk.content === "string" ? [lastAsk.content] : lastAsk.content.filter(function(b) {
+        return b && b.type === "text";
+      }).map(function(b) {
+        return b.text;
+      })).some(function(t) {
+        return /^fix this check/i.test(t);
+      });
       return { text: "Practice mode: I ran the checks. " + (open.length ? open.length + (open.length === 1 ? " wants" : " want") + " attention: " + open.join("; ") + "." : "Everything passes.") + (asked && open.length ? " A model would now fix them with the edit tools and check again." : ""), calls: [] };
     }
     if (names[0] === "batch") return { text: "Practice mode, with the real tools: a new structured frame with a hero, three plan cards and a dark closing band, as one step you can undo at once.", calls: [] };
@@ -6010,6 +6015,15 @@
     }
     return null;
   }
+  function askText(m) {
+    if (!m) return "";
+    if (typeof m.content === "string") return m.content;
+    return (m.content || []).filter(function(b) {
+      return b && b.type === "text" && String(b.text).indexOf("<builder-context>") !== 0;
+    }).map(function(b) {
+      return b.text;
+    }).join(" ");
+  }
   function practiceScript(sel) {
     return function(request) {
       var last = request.messages[request.messages.length - 1];
@@ -6017,7 +6031,9 @@
         return b && b.type === "tool_result";
       }) : [];
       if (results.length) return practiceAnswer(request, results);
-      var blocks = typeof last.content === "string" ? [{ text: last.content }] : last.content || [];
+      var blocks = typeof last.content === "string" ? [{ text: last.content }] : (last.content || []).filter(function(b) {
+        return !(b && b.type === "text" && String(b.text).indexOf("<builder-context>") === 0);
+      });
       var edits = blocks.filter(function(b) {
         return /^Since your last reply, the person changed/.test(b.text || "");
       })[0];
@@ -12732,7 +12748,7 @@
     if (turn) return replyEvents(turn.text, turn.calls);
     if (afterTools) return replyEvents("Done. That's practice mode: nothing was sent to a model.", []);
     var asked = last ? typeof last.content === "string" ? last.content : (last.content || []).filter(function(b) {
-      return b && b.type === "text";
+      return b && b.type === "text" && String(b.text).indexOf("<builder-context>") !== 0;
     }).map(function(b) {
       return b.text;
     }).join(" ") : "";
@@ -14101,6 +14117,19 @@
   var DARK_KEY = "dovetail-builder-dark";
   var HISTORY_MAX = 200;
   setAutoFreeze(true);
+  var CTX_OPEN = "<builder-context>\n";
+  var CTX_CLOSE = "\n</builder-context>";
+  function lastContext(msgs) {
+    for (var i = msgs.length - 1; i >= 0; i--) {
+      var m = msgs[i];
+      if (m.role !== "user" || !Array.isArray(m.content)) continue;
+      for (var j = 0; j < m.content.length; j++) {
+        var b = m.content[j];
+        if (b && b.type === "text" && typeof b.text === "string" && b.text.indexOf(CTX_OPEN) === 0) return b.text;
+      }
+    }
+    return null;
+  }
   function App(props) {
     var init = props.init;
     var store = props.store;
@@ -15129,7 +15158,10 @@
       asDraftState[1]("");
       setAsBusy(true);
       asNotes.current = [];
-      asMsgs.current = asMsgs.current.concat([{ role: "user", content: told ? [{ type: "text", text: editsText(mine) }, { type: "text", text: text2 }] : text2 }]);
+      var ctxBlock = system ? CTX_OPEN + system + CTX_CLOSE : "";
+      var ctxNew = ctxBlock && ctxBlock !== lastContext(asMsgs.current) ? [{ type: "text", text: ctxBlock }] : [];
+      var parts = ctxNew.concat(told ? [{ type: "text", text: editsText(mine) }] : [], [{ type: "text", text: text2 }]);
+      asMsgs.current = asMsgs.current.concat([{ role: "user", content: parts.length === 1 ? text2 : parts }]);
       var abort = typeof AbortController !== "undefined" ? new AbortController() : null;
       asAbort.current = abort;
       var script = practiceScript(sel2);
@@ -15137,7 +15169,7 @@
       var round = function(n) {
         var c = collector();
         var shown3 = "";
-        return sendAssistant({ stable: systemPrompt(), system, messages: asMsgs.current, tools: tools2, effort: asEffortState[0] }, function(ev) {
+        return sendAssistant({ stable: systemPrompt(), messages: asMsgs.current, tools: tools2, effort: asEffortState[0] }, function(ev) {
           c.add(ev);
           if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") {
             shown3 += ev.delta.text;
@@ -15901,6 +15933,10 @@
         },
         select: function(ids) {
           select([].concat(ids));
+        },
+        /* The conversation with the assistant, as it's sent. */
+        assistantMsgs: function() {
+          return asMsgs.current.slice();
         },
         /* How many steps there are to undo and redo, and whether the project saved. */
         history: function() {

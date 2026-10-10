@@ -61,6 +61,21 @@ setAutoFreeze(true);
 
 /* ------------------------------------------------------------ the app */
 
+/* The turn's canvas and context docs, as they go in a person's message to
+   the assistant, and the last such block a conversation already carries. */
+var CTX_OPEN = "<builder-context>\n", CTX_CLOSE = "\n</builder-context>";
+function lastContext(msgs) {
+  for (var i = msgs.length - 1; i >= 0; i--) {
+    var m = msgs[i];
+    if (m.role !== "user" || !Array.isArray(m.content)) continue;
+    for (var j = 0; j < m.content.length; j++) {
+      var b = m.content[j];
+      if (b && b.type === "text" && typeof b.text === "string" && b.text.indexOf(CTX_OPEN) === 0) return b.text;
+    }
+  }
+  return null;
+}
+
 function App(props) {
   var init = props.init;
   var store = props.store;
@@ -851,7 +866,14 @@ function App(props) {
     asDraftState[1]("");
     setAsBusy(true);
     asNotes.current = [];
-    asMsgs.current = asMsgs.current.concat([{ role: "user", content: told ? [{ type: "text", text: editsText(mine) }, { type: "text", text: text }] : text }]);
+    /* The canvas and the context docs ride in the person's message, and only
+       when they changed since the last one this conversation carries: the
+       system prompt and everything already sent stay as they were, which
+       keeps the model's earlier thinking valid and the cache warm. */
+    var ctxBlock = system ? CTX_OPEN + system + CTX_CLOSE : "";
+    var ctxNew = ctxBlock && ctxBlock !== lastContext(asMsgs.current) ? [{ type: "text", text: ctxBlock }] : [];
+    var parts = ctxNew.concat(told ? [{ type: "text", text: editsText(mine) }] : [], [{ type: "text", text: text }]);
+    asMsgs.current = asMsgs.current.concat([{ role: "user", content: parts.length === 1 ? text : parts }]);
     var abort = typeof AbortController !== "undefined" ? new AbortController() : null;
     asAbort.current = abort;
     var script = practiceScript(sel);
@@ -859,7 +881,7 @@ function App(props) {
     var round = function (n) {
       var c = collector();
       var shown = "";
-      return sendAssistant({ stable: systemPrompt(), system: system, messages: asMsgs.current, tools: tools, effort: asEffortState[0] }, function (ev) {
+      return sendAssistant({ stable: systemPrompt(), messages: asMsgs.current, tools: tools, effort: asEffortState[0] }, function (ev) {
         c.add(ev);
         if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") { shown += ev.delta.text; var now = shown; patchTurn(turn.id, function (x) { return { text: (x.base || "") + now }; }); }
       }, { script: script, signal: abort && abort.signal, mode: asModeState[0] }).then(function () {
@@ -1370,6 +1392,8 @@ function App(props) {
       receive: receive, diff: diffDocs,
       /* The selection, as the checks read and set it. */
       selection: function () { return selRef.current.slice(); }, select: function (ids) { select([].concat(ids)); },
+      /* The conversation with the assistant, as it's sent. */
+      assistantMsgs: function () { return asMsgs.current.slice(); },
       /* How many steps there are to undo and redo, and whether the project saved. */
       history: function () { return { past: history.current.past.length, future: history.current.future.length }; },
       saved: function () { return savedRef.current; } };

@@ -5795,10 +5795,10 @@ try {
     expect(fit(laptop), `the shell fills to the foot and the panels float inside it under the header with a clear foot, got ${JSON.stringify(laptop)}`);
     /* A tablet in landscape: the same page at its width, with a touch screen
        and no hover, which is what the rules for coarse pointers look at. */
-    const tablet = await page.evaluate(() => null).then(async () => { await page.setViewportSize({ width: 1180, height: 820 }); await page.waitForFunction(() => innerWidth === 1180); return places(); });
+    const tablet = await page.evaluate(() => null).then(async () => { await page.setViewportSize({ width: 1180, height: 820 }); await page.waitForFunction(() => innerWidth === 1180 && innerHeight === 820 && Math.round(document.querySelector(".bd-shell").getBoundingClientRect().bottom) === 820); return places(); });
     expect(fit(tablet), `at a tablet with touch the same holds, got ${JSON.stringify(tablet)}`);
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.waitForFunction(() => innerWidth === 1440);
+    await page.waitForFunction(() => innerWidth === 1440 && Math.round(document.querySelector(".bd-shell").getBoundingClientRect().bottom) === 900);
     ok("the panels float inside the shell, under the header and above its foot, at a laptop and a tablet");
     const width = (side) => page.evaluate((s) => { const el = document.querySelector(".bd-shell > .bd-" + s); return el && el.offsetParent ? Math.round(el.getBoundingClientRect().width) : 0; }, side);
     const value = (side) => page.locator(".bd-panel-edge.is-" + side).getAttribute("aria-valuenow");
@@ -6223,6 +6223,13 @@ try {
     await page.locator(".bd-as-input").fill("Add a button");
     await page.keyboard.press("Enter");
     await page.locator(".bd-as-bot").nth(1).locator(".bd-as-acts").waitFor();
+    /* The canvas and context ride in the person's message, once while they
+       stay the same: nothing already sent changes, so the model's earlier
+       thinking stays valid. */
+    const asks = await page.evaluate(() => window.__builder.assistantMsgs().filter((m) => m.role === "user" && (typeof m.content === "string" || m.content.some((b) => b.type === "text"))).map((m) => typeof m.content === "string" ? [m.content] : m.content.filter((b) => b.type === "text").map((b) => b.text)));
+    expect(asks.length === 2 && /^<builder-context>/.test(asks[0][0]) && /Selected: .*\(ah\)/.test(asks[0][0]) && asks[0][asks[0].length - 1] === "Make it feel more premium", `the first message carries the canvas first, then the ask, got ${JSON.stringify(asks).slice(0, 300)}`);
+    expect(!asks[1].some((t) => /^<builder-context>/.test(t)) && asks[1][asks[1].length - 1] === "Add a button", `with the canvas the same, the second doesn't carry it again, got ${JSON.stringify(asks[1]).slice(0, 300)}`);
+    ok("the canvas goes with the first message and isn't repeated while it stays the same");
     expect((await node()).children.some((c) => c.type === "Button"), "Add a button puts a Button in the selected Section");
     ok("asking to add a button adds a Button from JSX");
     const reply = (i) => page.locator(".bd-as-bot").nth(i);

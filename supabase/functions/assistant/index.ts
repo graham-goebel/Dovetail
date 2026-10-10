@@ -31,7 +31,9 @@ const MAX_TOOLS = 32;
 // What the assistant is, whatever the Builder sends after it.
 const PREAMBLE = "You edit designs in the Dovetail Builder through the tools you're given. " +
   "Work on what the person selected unless they ask for more. Use only the design system's tokens and components: " +
-  "never invent colours, sizes or components. Say in a sentence or two what you changed.";
+  "never invent colours, sizes or components. Say in a sentence or two what you changed. " +
+  "What's on the canvas, what's selected and the context docs come in the person's message inside <builder-context>; " +
+  "the latest one is what holds now.";
 
 function cors(origin: string | null): Record<string, string> {
   const allowed = origin && (ORIGINS.length === 0 || ORIGINS.includes(origin)) ? origin : ORIGINS[0] ?? "*";
@@ -50,9 +52,10 @@ function json(status: number, body: unknown, headers: Record<string, string>): R
 type Tool = { name: string; description?: string; input_schema: Record<string, unknown> };
 
 // The request the Builder sends: its brief (stable: the system's rules,
-// components and tokens, the same on every request), its system text for
-// this request (the context docs and the selection), the conversation, its
-// tools, and the file it's working on.
+// components and tokens, the same on every request), the conversation (each
+// turn's canvas and context docs ride in its user message, so nothing before
+// it changes), its tools, and the file it's working on. An older Builder
+// also sends system text for the request; it's still taken.
 const EFFORTS = ["low", "medium", "high"];
 
 function readRequest(raw: unknown): { stable: string; system: string; messages: unknown[]; tools: Tool[]; fileId: string | null; effort: string } | string {
@@ -121,14 +124,21 @@ Deno.serve(async (req) => {
         // progress notes between tool calls, which the Builder shows as steps.
         // Caching: the tools and the brief never change, so they're cached
         // for an hour; the conversation so far is cached as it grows.
+        // Thinking: each reply's thinking is sent back with the conversation
+        // and is only valid while everything before it is unchanged (the
+        // system prompt included), so the system prompt stays the same for
+        // the whole conversation. A block that no longer matches (a
+        // conversation saved by an older Builder, or one whose pictures were
+        // left out of the cloud's copy) is dropped rather than failing the
+        // request.
         const system = [{ type: "text", text: PREAMBLE + (parsed.stable ? "\n\n" + parsed.stable : ""), cache_control: { type: "ephemeral", ttl: "1h" } }];
         if (parsed.system) system.push({ type: "text", text: parsed.system } as typeof system[number]);
         const params = {
           model: MODEL,
           max_tokens: MAX_TOKENS,
-          betas: ["server-side-fallback-2026-07-01", "thinking-display-updates-2026-08-18"],
+          betas: ["server-side-fallback-2026-07-01", "thinking-display-updates-2026-08-18", "thinking-binding-controls-2026-08-01"],
           fallbacks: "default",
-          thinking: { type: "adaptive", display: "updates" },
+          thinking: { type: "adaptive", display: "updates", block_binding: { prefix_mismatch_behavior: "drop_block" } },
           output_config: { effort: parsed.effort },
           cache_control: { type: "ephemeral" },
           system,
