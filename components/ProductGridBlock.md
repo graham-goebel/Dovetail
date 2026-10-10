@@ -174,8 +174,11 @@ export function ProductGridBlock({ eyebrow, title, titleSize = "heading-lg", lea
               gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, max(${MIN_CARD}, calc((100% - ${n - 1} * ${GAP}) / ${n}))), 1fr))`,
             }}
           >
-            {products.map(({ id, ...card }, i) => (
-              <ProductCard key={id != null ? id : i} as="li" {...card} />
+            {/* Each card takes its column's full width itself rather than
+                leaning on the grid to stretch it: a browser that sizes it to
+                its content instead drew cards narrower than their price. */}
+            {products.map(({ id, style, ...card }, i) => (
+              <ProductCard key={id != null ? id : i} as="li" {...card} style={{ width: "100%", justifySelf: "stretch", ...style }} />
             ))}
           </ul>
         )}
