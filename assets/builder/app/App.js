@@ -33,6 +33,8 @@ import { EditorAt, Labels, Marks, Resizers, Rulers, SpacingLines, ViewMarks, Wor
 import { STARTERS } from "../model/starters.js";
 import { addPlayground } from "../model/playground.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
+import { invite as inviteToFile, listPeople, removeMember, withdraw as withdrawInvite } from "../cloud/sharing.js";
+import { ShareDialog } from "./Share.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid, constrain, H_PINS, V_PINS, GUIDES_MAX, COLUMNS_MAX, columnsOf } from "../model/tree.js";
 import { detachAll, holdsInstanceOf, masterOf, rebase, updateInstances } from "../model/instances.js";
 import { codeWithComponents } from "../model/codegen.js";
@@ -351,6 +353,8 @@ function App(props) {
     document.addEventListener("visibilitychange", again);
     return function () { live = false; window.removeEventListener("online", again); document.removeEventListener("visibilitychange", again); };
   }, [account.status]);
+  /* An invite accepted at sign-in: the shared files come down straight away. */
+  useEffect(function () { if (mirror && account.joined) mirror.sync(); }, [account.joined]);
   /* Live or practice, as this browser has it; the panel's menu switches it. */
   var asModeState = useState(assistantMode());
   var rightRef = useRef(null);
@@ -1177,6 +1181,44 @@ function App(props) {
 
   var announce = useCallback(function (text) { setSay(""); setTimeout(function () { setSay(text); }, 30); }, []);
   var openAccount = function () { var dlg = accountRef.current; if (dlg && dlg.showModal && !dlg.open) dlg.showModal(); };
+  /* Share: the people on the open file (cloud/sharing.js). The list is
+     loaded when the dialog opens and after each change. */
+  var shareRef = useRef(null);
+  var peopleSt = useState({ members: [], invites: [], loading: false, error: null, busy: false }), people = peopleSt[0], setPeople = peopleSt[1];
+  var loadPeople = function () {
+    var cid = projectRef.current.cloud;
+    if (!cid) return Promise.resolve();
+    setPeople(function (s) { return Object.assign({}, s, { loading: true, error: null }); });
+    return getClient().then(function (sb) { return listPeople(sb, cid); }).then(function (got) {
+      if (projectRef.current.cloud !== cid) return;
+      setPeople({ members: got.members, invites: got.invites, loading: false, error: null, busy: false });
+    }, function (err) {
+      setPeople(function (s) { return Object.assign({}, s, { loading: false, busy: false, error: err && err.message ? err.message : "Couldn't load who's on this file." }); });
+    });
+  };
+  var openShare = function () {
+    if (account.status !== "in") { openAccount(); return; }
+    var dlg = shareRef.current;
+    if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+    loadPeople();
+  };
+  var peopleWork = function (work, said) {
+    setPeople(function (s) { return Object.assign({}, s, { busy: true, error: null }); });
+    return getClient().then(work).then(function (out) { if (said) announce(said); return loadPeople().then(function () { return out; }); }, function (err) {
+      setPeople(function (s) { return Object.assign({}, s, { busy: false, error: err && err.message ? err.message : "That didn't go through." }); });
+    });
+  };
+  var onInvite = function (email, done) {
+    peopleWork(function (sb) { return inviteToFile(sb, projectRef.current.cloud, email, people.members); }, "Invited " + email.trim().toLowerCase()).then(function (out) { if (out && done) done(); });
+  };
+  var onWithdraw = function (email) { peopleWork(function (sb) { return withdrawInvite(sb, projectRef.current.cloud, email); }, "Invite withdrawn"); };
+  var onRemove = function (userId) { peopleWork(function (sb) { return removeMember(sb, projectRef.current.cloud, userId); }, "Removed from the file"); };
+  var onLeave = function () {
+    /* Deleting a file shared with you leaves it: the store wrapper takes the
+       membership away in the cloud and the local copy goes. */
+    if (shareRef.current && shareRef.current.open) shareRef.current.close();
+    deleteProject(projectRef.current.id);
+  };
   /* Back from a link in one of the cloud's emails (a confirmed address, a
      password to reset): the Account dialog takes it from there. */
   var arrivedRef = useRef(ARRIVED.link);
@@ -6587,7 +6629,7 @@ function App(props) {
       /* Saving is quiet; the bar speaks up only when this browser can't keep the work. */
       saved.ok ? null : e("span", { className: "bd-saved is-error", title: savedTitle, role: "status" }, e(Icon, { name: "alert" }), e("span", { className: "bd-saved-text" }, "Not saved")),
       /* Who's on the file: you, and others once live editing brings them. */
-      e(People, { account: account, others: [], onOpen: openAccount }),
+      e(People, { account: account, others: [], onOpen: account.status === "in" ? openShare : openAccount }),
       e("button", { type: "button", className: "bd-act", title: "Play: see " + frame.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame.id], onClick: function () { openPlay(); } }, e(Icon, { name: "play" })),
       e("button", { type: "button", className: "bd-act", "aria-pressed": String(preview), title: "Preview: use the components (Esc to stop)", "aria-label": "Preview", onClick: actions.preview }, e(Icon, { name: "eye" })),
       e("button", { type: "button", className: "bd-btn bd-btn-primary bd-export", onClick: openCode, disabled: !ready[frame.id], "aria-label": "Export", title: "Export: code, a picture, the layout or a link" }, e(Icon, { name: "exportOut" }))));
@@ -7303,6 +7345,7 @@ function App(props) {
     e(PlayDialog, { dialogRef: playRef, frameRef: playFrameRef, stageRef: playStageRef, play: play, setPlay: setPlay, box: playBox, frame: play ? frameById(doc, play.fid) : null,
       pageName: playPageName, frameSrc: frameSrc, onClose: onPlayClosed, onBack: onPlayBack, onLoad: onRenderPlay }),
     e(AccountDialog, { dialogRef: accountRef, state: account, setState: accountState[1], cloud: mirrorState }),
+    e(ShareDialog, { dialogRef: shareRef, account: account, file: project, people: people, onInvite: onInvite, onWithdraw: onWithdraw, onRemove: onRemove, onLeave: onLeave, onSignIn: openAccount, onAccount: openAccount }),
     menu ? e(ContextMenu, { x: menu.x, y: menu.y, label: "Actions", options: menuOptions(menu.ids), onClose: function () { setMenu(null); }, onChoose: onMenu }) : null,
     e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));
 }

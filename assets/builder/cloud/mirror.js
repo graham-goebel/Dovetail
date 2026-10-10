@@ -22,6 +22,7 @@
    Content library and the assistant's conversations stay local for now. */
 
 import { createCloudFile, createCloudGroup, deleteCloudFile, deleteCloudGroup, deletePage, fetchPage, fetchPages, listCloud, metaFromRow, pushMeta, pushPage, renameCloudGroup } from "./files.js";
+import { removeMember } from "./sharing.js";
 
 var PUSH_DELAY = 800;
 /* Store calls that change a file's record, not its pages. */
@@ -240,9 +241,12 @@ function createMirrorHub() {
       later(function () { return store.getProject(pid).then(function (meta) { return meta && meta.cloud ? deletePage(sb, meta.cloud, pageId) : null; }).catch(fail); });
       return hub.metaChanged(pid);
     },
+    /* Deleting here deletes there, for a file of your own; one shared with
+       you, you leave instead, and it stays for the others. */
     fileDeleted: function (meta) {
       if (stopped || !meta || !meta.cloud) return;
-      later(function () { return deleteCloudFile(sb, meta.cloud).catch(fail); });
+      var leave = meta.cloudOwner && hooks.me && meta.cloudOwner !== hooks.me;
+      later(function () { return (leave ? removeMember(sb, meta.cloud, hooks.me) : deleteCloudFile(sb, meta.cloud)).catch(fail); });
     },
     groupChanged: function (gid) {
       if (stopped) return;

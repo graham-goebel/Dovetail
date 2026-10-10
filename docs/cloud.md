@@ -128,6 +128,18 @@ Not yet mirrored: the Content library and the assistant's conversations
 device while a file is open, which arrive on the next sync rather than as
 they happen.
 
+## Sharing a file
+
+The people in the top bar open **Share** (`assets/builder/app/Share.js`,
+over `cloud/sharing.js`): who's on the file, an invite by email, withdraw,
+Remove (the owner) and Leave (anyone else). The rows are `project_members`
+and `project_invites`; the database decides who may do what, as under "How
+it keeps things private". An invite turns into membership when that address
+signs in, confirmed (`accept_invites`), and the file then comes down to them
+on the sync that follows. Deleting a file shared with you leaves it instead,
+so it stays for the others. A shared file's edits still meet on the next
+sync; live editing on it is the next step.
+
 ## Live editing
 
 Each edit in the Builder is already a small list of changes (the same ones its
@@ -219,5 +231,5 @@ the cloud and brought level on sign-in, the assistant and live agent
 sessions, and the sync engine for live editing. The Builder fetches nothing
 until the address and key are set.
 
-Next: sharing a file (invite by email, from the people in the top bar), live
-editing and presence on shared pages, and conversations shared in a file.
+Next: live editing and presence on shared pages, and conversations shared in
+a file.
