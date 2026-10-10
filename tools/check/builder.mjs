@@ -1517,6 +1517,8 @@ try {
     await pickLayer(page, "StatsBlock");
     await page.mouse.click(st.x + st.width / 2, st.y + 8);
     await page.waitForFunction(() => /^Canvas$/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    /* The marks redraw a moment after the inspector does. */
+    await page.waitForFunction(() => !document.querySelector(".bd-ring") && !document.querySelector(".bd-mark-sel"), null, { timeout: 5000 }).catch(() => {});
     expect(await page.locator(".bd-ring").count() === 0 && await page.locator(".bd-mark-sel").count() === 0, "a press on the canvas lets go of the layer and the frame");
     const secs = await page.$$eval(".bd-right .bd-sec-h", (h) => h.map((x) => x.textContent.trim()));
     expect(["Primitives", "Styles"].every((x) => secs.includes(x)) && !secs.includes("Variables") && !secs.includes("Frames"), `with nothing selected the inspector shows Primitives and Styles, and Variables only on the left, got ${secs.join(", ")}`);
