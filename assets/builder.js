@@ -5796,6 +5796,7 @@
     { name: "list_components", description: "The file's own components, from My components: each one's id, name, what it's made of, how many layers, the tokens it's built on and how many instances this page has. Reuse them before building the same thing again.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
     { name: "insert_instance", description: "Put down one of the file's own components (an id from list_components) as a linked instance: when the component is updated, the instance follows. Into a container at an index, after the selection when parent is omitted, or in place of a layer with replace. Change its text with set_text like any layer.", input_schema: { type: "object", properties: { id: { type: "string" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 }, replace: { type: "string" } }, required: ["id"], additionalProperties: false } },
     { name: "make_component", description: "Turn a layer into one of the file's own components, named, so it can be reused with insert_instance. The layer becomes its first instance. It must be built on the system's tokens, with no custom colours and nothing placed by position inside it. Do it when the person asks, or when a part repeats on the page and they agree.", input_schema: { type: "object", properties: { id: { type: "string" }, name: { type: "string" } }, required: ["id", "name"], additionalProperties: false } },
+    { name: "remember", description: `Keep a rule the person taught you, so every later conversation on this file follows it: one short line in their words, like "Never use brand fills on cards" or "Headlines are sentence case". It goes in a Lessons doc in the file's context (scope project to keep it for every file in the project), which they can edit in the Context panel. Use it when they correct you or state how things should always or never be, not for a one-off request.`, input_schema: { type: "object", properties: { lesson: { type: "string" }, scope: { type: "string", enum: ["file", "project"] } }, required: ["lesson"], additionalProperties: false } },
     { name: "set_text", description: "Set a layer's text: a heading's or a paragraph's words, a button's label, a card's title.", input_schema: { type: "object", properties: { id: { type: "string" }, text: { type: "string" } }, required: ["id", "text"], additionalProperties: false } },
     { name: "move", description: "Move layers into a container, at an index (the end when omitted), in the order given.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["ids", "parent"], additionalProperties: false } },
     { name: "wrap", description: "Put a layer inside a new container of the given type, or several sibling layers inside one Group.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, type: { type: "string", enum: WRAPS } }, required: ["ids"], additionalProperties: false } },
@@ -5942,6 +5943,7 @@
       "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
       "- Write real, short copy in the brand's voice. Never lorem ipsum.",
       "- When the person attaches a picture, it's a reference to build from: read its sections and hierarchy, rebuild them with layouts and components (its structure and rhythm, not its colours or fonts, unless they ask), then screenshot what you made and say plainly how it compares and what you left out.",
+      "- When the person corrects you, or says how things should always or never be, call remember with it as one short rule, then follow it. The Lessons doc in the context holds what earlier conversations taught you: follow it over your own taste. Don't save one-off requests.",
       "- Use the person's pictures: find_images lists their Content uploads; put one in with its content:<id> wherever a picture goes (a layout's image field, an Image or Cover src). Leave a placeholder only when nothing fits.",
       "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish. For a page, look at 390 wide and in dark mode too (screenshot with width or dark) when the change touches layout or colour, or the checks flag them.",
       "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
@@ -6433,6 +6435,17 @@
         if (!madeC || madeC.error) return fail(madeC && madeC.error || "It couldn't be made a component.");
         return { ok: true, result: JSON.stringify({ component: madeC.id, name: madeC.name, tokens: madeC.tokens }) + " It's in My components, and " + nameOf3(input.id) + " is its first instance.", change: { ids: [input.id], label: "Component", value: madeC.name, on: "from " + nameOf3(input.id) } };
       }
+      case "remember": {
+        if (!api.remember) return fail("Lessons can't be kept here.");
+        var kept = api.remember(String(input.lesson || ""), input.scope === "project" ? "project" : "file");
+        if (!kept || kept.error) return fail(kept && kept.error || "Give the lesson as one short line.");
+        var where = kept.scope === "project" ? "the project's" : "this file's";
+        return {
+          ok: true,
+          result: kept.added ? "Kept in " + where + " Lessons (" + kept.count + (kept.count === 1 ? " lesson" : " lessons") + "). Follow it from now on." : "That's already in " + where + " Lessons.",
+          step: (kept.added ? "Kept a lesson: " : "Already knew: ") + short3(kept.lesson, 80)
+        };
+      }
       case "set_text": {
         var tat = locate(doc2, input.id);
         if (!tat || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
@@ -6729,6 +6742,7 @@
         return "- " + t;
       }).join("\n") + (top.length > 8 ? "\n- and " + (top.length - 8) + " more" : "") : ""), calls: [] };
     }
+    if (names[0] === "remember") return { text: "Practice mode: " + body(0) + " You'll find it in the Context panel, under Lessons.", calls: [] };
     if (names[0] === "screenshot") {
       var seen = results.map(function(r, i) {
         return body(i).replace(/, \d+×\d+ pixels\..*$/, "");
@@ -6866,6 +6880,12 @@
         return b && b.type === "image";
       }).length;
       if (pictures) return { text: "Practice mode: I can see " + (pictures === 1 ? "your picture" : "your " + pictures + " pictures") + ". A model would read its sections, rebuild them from the system's layouts and components, then look at both side by side and say how they differ.", calls: [] };
+      var rule = /^\s*(?:please\s+)?remember(?: that)?[:,]?\s+(.+)$/i.exec(blocks.map(function(b) {
+        return b && b.type !== "image" ? b.text || "" : "";
+      }).join(" ").trim());
+      if (rule && (request.tools || []).some(function(t) {
+        return t.name === "remember";
+      })) return { text: "", calls: [{ name: "remember", input: { lesson: rule[1].replace(/[.!]+$/, "") } }] };
       var edits = blocks.filter(function(b) {
         return /^Since your last reply, the person changed/.test(b.text || "");
       })[0];
@@ -7137,6 +7157,8 @@
         return [{ icon: "component", title: input.replace ? who([input.replace]) : "A component", detail: input.replace ? "Swapped for an instance" : "Instance added " + (input.parent && input.parent !== "root" ? "in " + who([input.parent]) : "to the page") }];
       case "make_component":
         return [{ icon: "component", title: who([input.id]), detail: "Made a component: " + short4(input.name, 40) }];
+      case "remember":
+        return [{ icon: "book", title: "Kept a lesson", detail: short4(input.lesson, 60) }];
       case "list_components":
         return [{ icon: "component", title: "Listed the file's components", detail: "" }];
       case "move":
@@ -12040,6 +12062,40 @@
     }
     return null;
   }
+  var LESSONS = "Lessons";
+  var LESSONS_HEAD = "# Lessons\n\nRules the person taught the assistant while working. Edit or remove any of them; the assistant follows what's here.\n";
+  function lessonLine(text2) {
+    return String(text2 || "").replace(/\s+/g, " ").replace(/^[-*•\s]+/, "").trim().slice(0, 300);
+  }
+  function lessonsOf(doc2) {
+    return doc2 ? doc2.body.split("\n").filter(function(l) {
+      return /^- /.test(l);
+    }).map(function(l) {
+      return l.slice(2).trim();
+    }) : [];
+  }
+  function addLesson(items, text2) {
+    var lesson = lessonLine(text2);
+    var list2 = (items || []).slice();
+    if (!lesson) return { items: list2, added: false, count: 0, lesson: "" };
+    var at2 = -1;
+    list2.forEach(function(it, i) {
+      if (at2 < 0 && it.kind === "doc" && it.source === "generated" && it.title === LESSONS) at2 = i;
+    });
+    var doc2 = at2 >= 0 ? list2[at2] : Object.assign(newDoc(LESSONS), { source: "generated", body: LESSONS_HEAD });
+    var have = lessonsOf(doc2);
+    var key = function(s) {
+      return s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    };
+    if (have.some(function(l) {
+      return key(l) === key(lesson);
+    })) return { items: list2, added: false, count: have.length, lesson };
+    var body = (doc2.body.replace(/\s+$/, "") + "\n" + (have.length ? "" : "\n") + "- " + lesson + "\n").slice(0, LIMIT.body);
+    var next = Object.assign({}, doc2, { body, use: doc2.use === "off" ? "always" : doc2.use, updatedAt: Date.now() });
+    if (at2 >= 0) list2[at2] = next;
+    else list2.push(next);
+    return { items: list2, added: true, count: have.length + 1, lesson };
+  }
   function forPage(it, pageId) {
     return !it.pages.length || it.pages.indexOf(pageId) >= 0;
   }
@@ -16483,6 +16539,24 @@
       },
       createFrame: function(opts) {
         return frameOps.add(null, false, null, opts);
+      },
+      /* A rule the person taught it, kept in a Lessons doc in the file's (or
+         the project's) context: { added, count, lesson, scope } or { error }. */
+      remember: function(lesson, scope) {
+        var sc = scope === "project" && ctxKey("project") ? "project" : "file";
+        if (!ctxKey(sc)) return { error: "This file has nowhere to keep lessons yet." };
+        var got = addLesson(ctxRef.current[sc] || [], lesson);
+        if (!got.lesson) return { error: "Give the lesson as one short line." };
+        if (got.added) {
+          ctxRef.current = Object.assign({}, ctxRef.current, (function() {
+            var o = {};
+            o[sc] = got.items;
+            return o;
+          })());
+          putCtx(sc, got.items);
+          announce("Kept a lesson in " + (sc === "project" ? "the project's" : "this file's") + " context");
+        }
+        return { added: got.added, count: got.count, lesson: got.lesson, scope: sc };
       },
       /* A template as a frame of its own beside yours; its frame's id. */
       addTemplate: function(id) {
