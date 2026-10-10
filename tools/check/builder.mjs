@@ -3534,18 +3534,19 @@ try {
     await page.keyboard.press("Escape");
     await page.waitForFunction(() => !document.querySelector(".bd-acct[open]"));
     await page.locator(".bd-rail .bd-tab", { hasText: "Assistant" }).click();
-    expect(await page.locator(".bd-as-badge", { hasText: "Practice" }).count() === 1, "signed in, the assistant still starts in practice mode");
+    await page.waitForSelector(".bd-as-badge.is-live");
+    expect((await page.evaluate(() => localStorage.getItem("dovetail-assistant"))) === null, "signed in with the cloud connected, the assistant starts live without being asked");
     await page.locator(".bd-as-menu-btn").click();
     const liveSwitch = page.locator(".bd-as-pop [role=switch][aria-labelledby=bd-as-m-live]");
-    expect(!(await liveSwitch.isDisabled()), "signed in, the Live assistant switch is on offer");
-    await liveSwitch.click();
-    await page.waitForSelector(".bd-as-badge.is-live");
-    expect((await page.evaluate(() => localStorage.getItem("dovetail-assistant"))) === "live", "the switch turns live mode on for this browser");
+    expect(!(await liveSwitch.isDisabled()) && (await liveSwitch.getAttribute("aria-checked")) === "true", "signed in, the Live assistant switch is on offer and on");
     await liveSwitch.click();
     await page.waitForSelector(".bd-as-badge:not(.is-live)");
-    expect((await page.evaluate(() => localStorage.getItem("dovetail-assistant"))) === null, "and off again");
+    expect((await page.evaluate(() => localStorage.getItem("dovetail-assistant"))) === "practice", "the switch turns practice on for this browser, and that is kept");
+    await liveSwitch.click();
+    await page.waitForSelector(".bd-as-badge.is-live");
+    expect((await page.evaluate(() => localStorage.getItem("dovetail-assistant"))) === "live", "and live again");
     await page.keyboard.press("Escape");
-    ok("signed in, the assistant's menu switches between live and practice, and the badge follows");
+    ok("signed in, the assistant is live; its menu switches to practice and back, and the badge follows");
     await page.locator(".bd-rail-account").click();
     await page.waitForSelector(".bd-acct[open] .bd-acct-who");
 

@@ -356,7 +356,10 @@ function App(props) {
   /* An invite accepted at sign-in: the shared files come down straight away. */
   useEffect(function () { if (mirror && account.joined) mirror.sync(); }, [account.joined]);
   /* Live or practice, as this browser has it; the panel's menu switches it. */
-  var asModeState = useState(assistantMode());
+  var asModeState = useState(assistantMode(false));
+  /* Signed in with the cloud connected, the assistant is live unless practice
+     was chosen; signed out it practises. */
+  useEffect(function () { asModeState[1](assistantMode(account.status === "in")); }, [account.status]);
   var rightRef = useRef(null);
   var leftPanelRef = useRef(null);
   var hidePanelsRef = useRef(false);
@@ -859,7 +862,7 @@ function App(props) {
       return sendAssistant({ stable: systemPrompt(), system: system, messages: asMsgs.current, tools: tools, effort: asEffortState[0] }, function (ev) {
         c.add(ev);
         if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") { shown += ev.delta.text; var now = shown; patchTurn(turn.id, function (x) { return { text: (x.base || "") + now }; }); }
-      }, { script: script, signal: abort && abort.signal }).then(function () {
+      }, { script: script, signal: abort && abort.signal, mode: asModeState[0] }).then(function () {
         var r = c.result();
         asMsgs.current = asMsgs.current.concat([{ role: "assistant", content: r.content.length ? r.content : [{ type: "text", text: r.text || "…" }] }]);
         if (r.error) throw new Error(r.error);
@@ -7294,7 +7297,7 @@ function App(props) {
           e("div", { className: cx("bd-left-main", left === "configure" && "bd-config-main") },
             left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null)
               : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps)
-              : left === "assistant" ? e(AssistantPanel, { thread: asThread, busy: asBusy, draft: asDraftState[0], setDraft: asDraftState[1], mode: asModeState[0], setMode: function (m) { setAssistantMode(m); asModeState[1](assistantMode()); }, canLive: cloudReady() && account.status === "in", cloudOn: cloudReady(), signIn: openAccount,
+              : left === "assistant" ? e(AssistantPanel, { thread: asThread, busy: asBusy, draft: asDraftState[0], setDraft: asDraftState[1], mode: asModeState[0], setMode: function (m) { setAssistantMode(m); asModeState[1](assistantMode(account.status === "in")); }, canLive: cloudReady() && account.status === "in", cloudOn: cloudReady(), signIn: openAccount,
                   target: selectedNodes.length ? (selectedNodes.length === 1 ? (selectedNodes[0].name || selectedNodes[0].type) : selectedNodes.length + " layers") : null,
                   includeSel: asSelState[0], toggleSel: function () { asSelState[1](!asSelState[0]); }, reach: asReachState[0], setReach: asReachState[1],
                   docs: asContext().docs, skills: asContext().skills, dropDoc: function (id) { asDropState[1](asDropState[0].concat([id])); },
