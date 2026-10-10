@@ -20,6 +20,7 @@ import { Assets } from "./Assets.js";
 import { Content } from "./Content.js";
 import { ContextPanel } from "./ContextPanel.js";
 import { addLesson, cleanItem, contextFor, contextText } from "../model/context.js";
+import { addUsage, estimateRequest, requestUsage } from "../model/tokens.js";
 import { AssistantPanel } from "./AssistantPanel.js";
 import { plainGuide, practiceScript, runTool, systemPrompt, toolsFor } from "../model/agent.js";
 import { checksFrom, checksText, lintFrame } from "../model/lint.js";
@@ -1095,11 +1096,17 @@ function App(props) {
     var round = function (n) {
       var c = collector();
       var shown = "";
-      return sendAssistant({ stable: systemPrompt(), messages: asMsgs.current, tools: tools, effort: asEffortState[0] }, function (ev) {
+      var reqNow = { stable: systemPrompt(), messages: asMsgs.current, tools: tools, effort: asEffortState[0] };
+      /* Until it answers, the reply shows an estimate of what's being sent. */
+      patchTurn(turn.id, { live: estimateRequest(reqNow) });
+      return sendAssistant(reqNow, function (ev) {
         c.add(ev);
         if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") { shown += ev.delta.text; var now = shown; patchTurn(turn.id, function (x) { return { text: (x.base || "") + now }; }); }
       }, { script: script, signal: abort && abort.signal, mode: asModeState[0] }).then(function () {
         var r = c.result();
+        /* What this request used, added to the reply's count. */
+        var used = requestUsage(r.usage && (r.usage.input_tokens != null || r.usage.output_tokens) ? r.usage : null, reqNow, r.content);
+        patchTurn(turn.id, function (x) { return { usage: addUsage(x.usage, used), live: 0 }; });
         asMsgs.current = asMsgs.current.concat([{ role: "assistant", content: r.content.length ? r.content : [{ type: "text", text: r.text || "…" }] }]);
         if (r.error) throw new Error(r.error);
         if (r.stop === "refusal") throw new Error("The model declined that request.");
@@ -1139,6 +1146,7 @@ function App(props) {
       });
     };
     var finish = function () {
+      patchTurn(turn.id, { live: 0 });
       patchTurn(turn.id, function (x) { return x.steps.some(function (s) { return s.running; }) ? { steps: x.steps.map(function (s) { return s.running ? Object.assign({}, s, { running: false, ok: false, text: s.text + " (stopped)" }) : s; }) } : {}; });
       setAsBusy(false);
       asAbort.current = null;

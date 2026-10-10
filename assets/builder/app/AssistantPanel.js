@@ -10,6 +10,23 @@ import { Icon } from "../ui/icons.js";
 import { Segmented, Switch } from "../ui/parts.js";
 import { senderOf } from "../model/threads.js";
 import { mdBlocks, mdInline } from "../model/markdown.js";
+import { shortCount, threadUsage, totalOf, usageDetail, usageLabel } from "../model/tokens.js";
+
+/* What a reply used, in tokens: an estimate of what's being sent while it
+   works, the counts the model reported once it's done. */
+function turnTokens(t) {
+  if (!t.usage && !t.live) return null;
+  var working = t.status === "working";
+  return e("p", { className: "bd-as-tok", title: usageDetail(t.usage) || "An estimate of what's being sent" },
+    e(Icon, { name: "bolt" }), usageLabel(t.usage, working ? t.live : 0) + (working ? " so far" : ""));
+}
+/* The conversation's total, at the foot of the thread. */
+function threadTokens(thread) {
+  var u = threadUsage(thread);
+  if (!u) return null;
+  return e("p", { className: "bd-as-total", title: usageDetail(u) },
+    "This conversation: " + (u.estimated ? "≈ " : "") + shortCount(totalOf(u)) + " tokens over " + u.replies + (u.replies === 1 ? " reply" : " replies") + (u.cacheRead ? ", " + Math.round((u.cacheRead / Math.max(1, totalOf(u))) * 100) + "% from the cache" : ""));
+}
 
 /* A reply's words, drawn from Markdown as React elements: nothing in a
    reply becomes markup. */
@@ -312,8 +329,10 @@ function AssistantPanel(p) {
           askCard(p, t),
           variantsCard(p, t),
           t.error ? e("p", { className: "bd-as-text bd-as-err" }, t.error) : null,
-          changeCard(cp, t));
-      })),
+          changeCard(cp, t),
+          turnTokens(t));
+      }),
+      threadTokens(p.thread)),
     p.edits && p.view !== "list" ? e("div", { className: "bd-as-edits is-pending" },
       e("div", { className: "bd-as-edits-h" }, e(Icon, { name: "cursor" }), e("b", null, "You changed " + p.edits.count + (p.edits.count === 1 ? " thing" : " things") + " since its last reply"),
         e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Don't send these changes", title: "Don't send these changes", onClick: p.dropEdits }, e(Icon, { name: "close" }))),

@@ -8147,6 +8147,29 @@ input.bd-folder-name {
   width: 12px;
   height: 12px;
 }
+/* What a reply used, and the conversation's total. */
+.bd-as-tok {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-2xs, 11px);
+  font-variant-numeric: tabular-nums;
+}
+.bd-as-tok .bd-ic {
+  width: 11px;
+  height: 11px;
+}
+.bd-as-total {
+  margin: var(--dt-space-stack-2xs, 6px) 0 0;
+  padding-top: var(--dt-space-stack-2xs, 6px);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-2xs, 11px);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
 /* A reply's words, from Markdown. */
 .bd-md {
   display: flex;

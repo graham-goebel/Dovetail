@@ -6450,6 +6450,12 @@ try {
     await fold.click();
     expect(await reply(2).locator(".bd-as-act-list .bd-as-step").count() >= 1, "pressing it opens every step again");
     ok("a reply's Markdown is styled, and its steps fold into one row that opens to each step");
+    const tok = (await reply(2).locator(".bd-as-tok").textContent()).trim();
+    expect(/^≈ [\d.]+k? tokens$/.test(tok), `the finished reply says about how many tokens it used, got ${tok}`);
+    expect(/^Sent [\d,]+, wrote back [\d,]+ in 2 requests\. Estimated/.test(await reply(2).locator(".bd-as-tok").getAttribute("title")), "its tooltip says what was sent and written back, over its two requests, and that practice mode estimates");
+    const total = (await page.locator(".bd-as-total").textContent()).trim();
+    expect(/^This conversation: ≈ [\d.]+k? tokens over 3 replies$/.test(total), `the thread's foot totals the conversation, got ${total}`);
+    ok("each reply says how many tokens it used, and the conversation's total sits at the foot of the thread");
     await page.locator(".bd-as-input").fill("Take a look at it");
     await page.keyboard.press("Enter");
     await reply(3).locator(".bd-as-act-shot, .bd-as-step-shot").first().waitFor({ timeout: 20000 });
