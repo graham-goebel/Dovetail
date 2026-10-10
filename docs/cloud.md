@@ -99,6 +99,35 @@ It starts a throwaway database, stands in for Supabase's `auth` and
 `realtime` schemas, loads the schema twice, and walks through who can do what.
 It ends with `access: all checks passed`.
 
+## Files in the cloud
+
+Signed in, every file is kept in the cloud as well as in this browser
+(`assets/builder/cloud/mirror.js`, over `cloud/files.js`). The local store
+stays what the Builder reads and writes, so files open at once and offline;
+the mirror watches it and sends each change on:
+
+- **Signing in** reconciles: files in this browser the cloud lacks are
+  uploaded (a `projects` row with the file's pages, folders, colour and theme
+  in `settings`, and a `pages` row per page); cloud files this browser lacks
+  are downloaded; a file both have is brought level page by page. Home's
+  projects mirror to `file_groups`. The Playground the Builder makes for
+  itself stays local.
+- **Each save** goes up a moment later, naming the page version it was made
+  from. If someone saved that page first, the cloud wins: what was here is
+  kept under Versions as "Before reloading from the cloud", and the cloud's
+  copy replaces it on the canvas.
+- **Offline**, saves land here and the page is marked to go up on the next
+  sync, which runs when the browser is back online, when the tab wakes, and
+  on sign-in. The Account dialog says how the last sync went.
+- **Deleting** a file here deletes it in the cloud (only its owner can; a
+  file shared with you comes back on the next sync until sharing has a
+  "leave"). A file deleted elsewhere stays here as a file of its own.
+
+Not yet mirrored: the Content library and the assistant's conversations
+(each stays in the browser it was made in), and live updates from another
+device while a file is open, which arrive on the next sync rather than as
+they happen.
+
 ## Live editing
 
 Each edit in the Builder is already a small list of changes (the same ones its
@@ -185,9 +214,10 @@ The Builder's design assistant reads context (docs and skills) and makes changes
 ## What's built and what's next
 
 Built: the schema and its tests, signing in and out, new accounts with a
-confirmed email, password resets, invites accepted on sign-in, and the sync
-engine. The Builder fetches nothing until the address and key are set.
+confirmed email, password resets, invites accepted on sign-in, files kept in
+the cloud and brought level on sign-in, the assistant and live agent
+sessions, and the sync engine for live editing. The Builder fetches nothing
+until the address and key are set.
 
-Next, once a project is connected: keeping projects in the cloud (and listing
-them on Home beside the ones in this browser), inviting people, and turning
-on live editing and presence for shared pages.
+Next: sharing a file (invite by email, from the people in the top bar), live
+editing and presence on shared pages, and conversations shared in a file.

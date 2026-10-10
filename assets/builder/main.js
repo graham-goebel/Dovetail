@@ -34,15 +34,19 @@ import { App } from "./app/App.js";
 import { installTips } from "./ui/tips.js";
 import { openStore } from "./model/store.js";
 import { openStart } from "./model/share.js";
+import { createMirrorHub, watchStore } from "./cloud/mirror.js";
 
 /* The store opens first (IndexedDB is asynchronous), then the project to
-   show; the page says it's loading until then. */
+   show; the page says it's loading until then. The mirror watches the
+   store from the start, and begins sending once someone signs in. */
 if (mountEl && window.DovetailBuilderData && window.React && window.ReactDOM) {
   installTips();
-  openStore().then(function (store) {
+  openStore().then(function (local) {
+    var mirror = createMirrorHub();
+    var store = watchStore(local, mirror);
     return openStart(store).then(function (init) {
       mountEl.textContent = "";
-      ReactDOM.createRoot(mountEl).render(e(App, { init: init, store: store }));
+      ReactDOM.createRoot(mountEl).render(e(App, { init: init, store: store, mirror: mirror }));
     });
   }).catch(function (err) {
     mountEl.textContent = "The builder couldn't open: " + (err && err.message ? err.message : err) + ". Reload to try again.";

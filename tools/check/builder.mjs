@@ -3434,7 +3434,40 @@ try {
             updateUser: async ({ password }) => { call("updateUser", password.length); emit("USER_UPDATED"); return { data: { user: session.user }, error: null }; },
           },
           rpc: async (name) => { call("rpc", name); return { data: 0, error: null }; },
+          from,
         };
+      }
+      /* The three tables files mirror to, with pages counting their saves. */
+      const db = { projects: [], pages: [], file_groups: [] };
+      let seq = 1;
+      const uuid = () => "00000000-0000-4000-8000-" + String(seq++).padStart(12, "0");
+      function from(table) {
+        window.__fakeSb.db = db;
+        let op = "select", payload = null, single = false, maybe = false;
+        const filters = [];
+        const match = (r) => filters.every(([k, v]) => r[k] === v);
+        const api = {
+          select() { return api; }, order() { return api; },
+          insert(p) { op = "insert"; payload = p; return api; },
+          update(p) { op = "update"; payload = p; return api; },
+          delete() { op = "delete"; return api; },
+          eq(k, v) { filters.push([k, v]); return api; },
+          single() { single = true; return api; }, maybeSingle() { maybe = true; return api; },
+          then(res, rej) { return Promise.resolve().then(run).then(res, rej); },
+        };
+        const run = () => {
+          if (op === "insert") {
+            const rows = [].concat(payload).map((p) => table === "pages" ? { ...p, version: 1 } : { id: uuid(), owner: "u1", group_id: null, updated_at: new Date().toISOString(), ...p });
+            db[table].push(...rows);
+            return { data: single ? rows[0] : rows, error: null };
+          }
+          if (op === "update") { const hit = db[table].filter(match); hit.forEach((r) => { Object.assign(r, payload); if (table === "pages") r.version += 1; }); return { data: hit.map((r) => ({ ...r })), error: null }; }
+          if (op === "delete") { const gone = db[table].filter(match); db[table] = db[table].filter((r) => !match(r)); if (table === "projects") db.pages = db.pages.filter((p) => !gone.some((g) => g.id === p.project_id)); return { data: null, error: null }; }
+          const rows = db[table].filter(match).map((r) => ({ ...r }));
+          if (single || maybe) return { data: rows[0] || null, error: single && !rows[0] ? { message: "no rows" } : null };
+          return { data: rows, error: null };
+        };
+        return api;
       }`;
     const withCloud = async (p) => {
       await p.addInitScript(() => { window.DovetailCloud = { url: "https://stand-in.supabase.co/", anonKey: "stand-in-anon-key-0123456789" }; });
@@ -3460,6 +3493,14 @@ try {
     expect(/ann@example\.com/.test(await page.locator(".bd-acct-who").textContent()), "signed in, it names the account");
     expect(/ann@example\.com/.test(await page.locator(".bd-rail-account").getAttribute("aria-label")), "and so does the Account button");
     expect(/ann@example\.com \(you\)/.test(await page.locator(".bd-tb-right .bd-people").getAttribute("title")) && await page.locator(".bd-tb-right .bd-people .bd-av").count() === 1, "the top bar shows your avatar, alone until others join the file");
+    /* Signed in, the file here goes to the cloud, and a save follows it. */
+    await page.waitForFunction(() => window.__fakeSb.db && window.__fakeSb.db.projects.length === 1 && window.__fakeSb.db.pages.length >= 1 && window.__builder.project().cloud, null, { timeout: 8000 });
+    const up = await page.evaluate(() => ({ name: window.__fakeSb.db.projects[0].name, pages: window.__fakeSb.db.pages.map((p) => p.page_id), v: window.__fakeSb.db.pages[0].version, local: window.__builder.project().cloud }));
+    expect(up.pages.includes("main") && up.v === 1 && up.local === (await page.evaluate(() => window.__fakeSb.db.projects[0].id)), `the open file went up with its page, and remembers its cloud id, got ${JSON.stringify(up)}`);
+    await page.evaluate(() => { const d = window.__builder.doc(); const f = d.frames.find((x) => x.id === d.active) || d.frames[0]; window.__builder.edit(f.root.children[0].id, "name", "Edited for the cloud"); });
+    await page.waitForFunction(() => window.__fakeSb.db.pages[0].version === 2, null, { timeout: 8000 });
+    expect(/Synced|Syncing/.test(await page.locator(".bd-acct-cloud").textContent()), "the Account dialog says how the sync went");
+    ok("signed in, the file here is in the cloud, a save follows it up, and the dialog says so");
     expect(await page.evaluate(() => window.__fakeSb.calls.some((c) => c[0] === "rpc" && c[1] === "accept_invites")), "signing in accepts waiting invites");
     ok("on: the PKCE client, a friendly error, then signed in with invites accepted");
 

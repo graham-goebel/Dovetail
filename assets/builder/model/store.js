@@ -595,6 +595,40 @@ function makeStore(b) {
         });
       });
     },
+    /* The cloud (cloud/mirror.js): a file's row id there, the page versions
+       last seen, and what's waiting to go up. null drops a field. */
+    setCloud: function (id, patch) {
+      return b.get("projects", id).then(function (meta) {
+        if (!meta) return null;
+        ["cloud", "cloudVersions", "cloudDirty", "cloudOwner"].forEach(function (k) {
+          if (!(k in patch)) return;
+          if (patch[k] == null) delete meta[k]; else meta[k] = patch[k];
+        });
+        return b.put("projects", meta).then(function () { return meta; });
+      });
+    },
+    setGroupCloud: function (id, cloudId) {
+      return b.get("groups", id).then(function (g) {
+        if (!g) return null;
+        if (cloudId) g.cloud = cloudId; else delete g.cloud;
+        return b.put("groups", g).then(function () { return g; });
+      });
+    },
+    /* A file that arrived whole from the cloud: its record as given (name,
+       pages, folders, settings, cloud fields), with a local id and times,
+       and its documents, { pageId: doc }. */
+    adopt: function (given, docs) {
+      var pages = Array.isArray(given.pages) && given.pages.length ? given.pages : [{ id: MAIN, name: "Page 1" }];
+      var meta = Object.assign({ id: "p" + uid(), createdAt: now(), updatedAt: now(), thumb: null }, given, {
+        name: String(given.name || "Untitled").slice(0, 80), pages: pages,
+        page: pages.some(function (p) { return p.id === given.page; }) ? given.page : pages[0].id,
+      });
+      var steps = b.put("projects", meta);
+      pages.forEach(function (p) {
+        steps = steps.then(function () { return b.put("docs", { id: docKey(meta.id, p.id), doc: docs[p.id] || emptyDoc() }); });
+      });
+      return steps.then(function () { return meta; });
+    },
     lastOpened: function () { return storage(function (s) { return s.getItem(LAST_KEY); }); },
     setLastOpened: function (id) { storage(function (s) { s.setItem(LAST_KEY, id); }); },
 

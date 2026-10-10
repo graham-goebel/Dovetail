@@ -28,6 +28,7 @@ import { metaOf } from "../model/threads.js";
 import { collector } from "../model/assistant.js";
 import { assistantMode, sendAssistant, setAssistantMode } from "../cloud/assistant.js";
 import { cloudReady } from "../cloud/config.js";
+import { getClient } from "../cloud/client.js";
 import { EditorAt, Labels, Marks, Resizers, Rulers, SpacingLines, ViewMarks, World, camera, onStage, placeMarks } from "./Stage.js";
 import { STARTERS } from "../model/starters.js";
 import { addPlayground } from "../model/playground.js";
@@ -318,6 +319,38 @@ function App(props) {
   /* Who's signed in to the cloud, if it's connected (cloud/Account.js). */
   var accountRef = useRef(null);
   var accountState = useAccount(), account = accountState[0];
+  /* Files in the cloud (cloud/mirror.js): the mirror sends while someone is
+     signed in, and brings down what changed elsewhere when the tab wakes
+     or the browser comes back online. */
+  var mirror = props.mirror;
+  var mirrorSt = useState(mirror ? mirror.state() : { status: "off" }), mirrorState = mirrorSt[0], setMirrorState = mirrorSt[1];
+  useEffect(function () {
+    if (!mirror) return undefined;
+    if (account.status !== "in") { mirror.stop(); setMirrorState(mirror.state()); return undefined; }
+    var live = true;
+    getClient().then(function (sb) {
+      if (!live) return;
+      mirror.start(sb, {
+        me: account.account ? account.account.id : null,
+        onState: setMirrorState,
+        onFilesChanged: function () { refreshProjects(); },
+        /* The open file's record, as the cloud left it (its cloud id, say). */
+        onFileChanged: function (pid, meta) {
+          if (pid === projectRef.current.id) { projectRef.current = meta; setProject(meta); }
+          refreshProjects();
+        },
+        /* A page the cloud replaced: if it's the one on screen, it's reloaded there. */
+        onPageReplaced: function (pid, pageId, d, meta) {
+          if (pid === projectRef.current.id && pageId === pageRef.current) switchTo(meta, d, "This page was changed elsewhere; the cloud's copy is on the canvas. The one that was here is under Versions.", pageId);
+          else refreshProjects();
+        },
+      });
+    }, function () { /* the account hook says why */ });
+    var again = function () { if (document.visibilityState !== "hidden") mirror.sync(); };
+    window.addEventListener("online", again);
+    document.addEventListener("visibilitychange", again);
+    return function () { live = false; window.removeEventListener("online", again); document.removeEventListener("visibilitychange", again); };
+  }, [account.status]);
   /* Live or practice, as this browser has it; the panel's menu switches it. */
   var asModeState = useState(assistantMode());
   var rightRef = useRef(null);
@@ -1283,7 +1316,7 @@ function App(props) {
   /* For the checks: the document and project on screen, and a way to wait
      for the save. */
   useEffect(function () {
-    window.__builder = { doc: function () { return docRef.current; }, project: function () { return projectRef.current; }, library: function () { return libRef.current; }, flush: flush, store: store,
+    window.__builder = { doc: function () { return docRef.current; }, project: function () { return projectRef.current; }, library: function () { return libRef.current; }, flush: flush, store: store, mirror: mirror,
       /* The assistant's checks on a frame (the active one by default), as the lint tool runs them. */
       checks: function (fid) { return runChecks(fid || docRef.current.active); },
       /* One prop on one layer, through the same undoable change a control makes. */
@@ -7269,7 +7302,7 @@ function App(props) {
     e(ComponentDialog, { dialogRef: compRef, draft: compDraft, setDraft: setCompDraft, node: compNode, onClose: closeComponent, onSave: onSaveComponent, onFix: onFixComponent }),
     e(PlayDialog, { dialogRef: playRef, frameRef: playFrameRef, stageRef: playStageRef, play: play, setPlay: setPlay, box: playBox, frame: play ? frameById(doc, play.fid) : null,
       pageName: playPageName, frameSrc: frameSrc, onClose: onPlayClosed, onBack: onPlayBack, onLoad: onRenderPlay }),
-    e(AccountDialog, { dialogRef: accountRef, state: account, setState: accountState[1] }),
+    e(AccountDialog, { dialogRef: accountRef, state: account, setState: accountState[1], cloud: mirrorState }),
     menu ? e(ContextMenu, { x: menu.x, y: menu.y, label: "Actions", options: menuOptions(menu.ids), onClose: function () { setMenu(null); }, onChoose: onMenu }) : null,
     e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));
 }

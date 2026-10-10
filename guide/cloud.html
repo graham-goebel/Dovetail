@@ -84,6 +84,10 @@
 <p>To try the rules yourself, with Postgres 16 installed:</p>
 <pre class="code" data-lang="sh"><code>sh supabase/tests/run.sh      # as a user that isn't root</code></pre>
 <p>It starts a throwaway database, stands in for Supabase's <code>auth</code> and <code>realtime</code> schemas, loads the schema twice, and walks through who can do what. It ends with <code>access: all checks passed</code>.</p>
+<h2 id="files-in-the-cloud">Files in the cloud</h2>
+<p>Signed in, every file is kept in the cloud as well as in this browser (<code>assets/builder/cloud/mirror.js</code>, over <code>cloud/files.js</code>). The local store stays what the Builder reads and writes, so files open at once and offline; the mirror watches it and sends each change on:</p>
+<ul><li><strong>Signing in</strong> reconciles: files in this browser the cloud lacks are uploaded (a <code>projects</code> row with the file's pages, folders, colour and theme in <code>settings</code>, and a <code>pages</code> row per page); cloud files this browser lacks are downloaded; a file both have is brought level page by page. Home's projects mirror to <code>file_groups</code>. The Playground the Builder makes for itself stays local.</li><li><strong>Each save</strong> goes up a moment later, naming the page version it was made from. If someone saved that page first, the cloud wins: what was here is kept under Versions as &quot;Before reloading from the cloud&quot;, and the cloud's copy replaces it on the canvas.</li><li><strong>Offline</strong>, saves land here and the page is marked to go up on the next sync, which runs when the browser is back online, when the tab wakes, and on sign-in. The Account dialog says how the last sync went.</li><li><strong>Deleting</strong> a file here deletes it in the cloud (only its owner can; a file shared with you comes back on the next sync until sharing has a &quot;leave&quot;). A file deleted elsewhere stays here as a file of its own.</li></ul>
+<p>Not yet mirrored: the Content library and the assistant's conversations (each stays in the browser it was made in), and live updates from another device while a file is open, which arrive on the next sync rather than as they happen.</p>
 <h2 id="live-editing">Live editing</h2>
 <p>Each edit in the Builder is already a small list of changes (the same ones its undo history keeps). Once live editing is on, on a shared page the Builder sends each list to everyone else on that page's channel, and applies theirs as they arrive, without adding them to its own undo history. Changes to different things all survive, in any order; on the very same field, the last to arrive wins. Undo takes back only your own edits. A change too big for one message (a large uploaded image, say) is saved with the page instead, and everyone else loads it.</p>
 <p><code>npm run check:unit</code> runs the sync engine against an in-memory channel: <code>tools/check/unit/sync.test.mjs</code>.</p>
@@ -114,8 +118,8 @@
 <ol><li>Run <code>supabase/bridge.sql</code> in the SQL editor, after <code>schema.sql</code>. It's safe to run again, and adds the two tables to Realtime when the project has it.</li><li>Deploy the function without a session check, since Claude has no Supabase account: <code>supabase functions deploy bridge --no-verify-jwt</code>. The session key is what it checks instead.</li><li>Optionally set <strong><code>BRIDGE_HOURLY_LIMIT</code></strong> (steps per session per hour, 900 by default).</li></ol>
 <p><code>sh supabase/tests/run.sh</code> tries who can see and answer a session, too.</p>
 <h2 id="what-s-built-and-what-s-next">What's built and what's next</h2>
-<p>Built: the schema and its tests, signing in and out, new accounts with a confirmed email, password resets, invites accepted on sign-in, and the sync engine. The Builder fetches nothing until the address and key are set.</p>
-<p>Next, once a project is connected: keeping projects in the cloud (and listing them on Home beside the ones in this browser), inviting people, and turning on live editing and presence for shared pages.</p>
+<p>Built: the schema and its tests, signing in and out, new accounts with a confirmed email, password resets, invites accepted on sign-in, files kept in the cloud and brought level on sign-in, the assistant and live agent sessions, and the sync engine for live editing. The Builder fetches nothing until the address and key are set.</p>
+<p>Next: sharing a file (invite by email, from the people in the top bar), live editing and presence on shared pages, and conversations shared in a file.</p>
 </article>
 <p class="muted">Source: <a href="../docs/cloud.md">docs/cloud.md</a></p>
 
@@ -126,6 +130,7 @@
     <li><a href="#what-s-where">What's where</a></li>
     <li><a href="#connecting-a-supabase-project">Connecting a Supabase project</a></li>
     <li><a href="#how-it-keeps-things-private">How it keeps things private</a></li>
+    <li><a href="#files-in-the-cloud">Files in the cloud</a></li>
     <li><a href="#live-editing">Live editing</a></li>
     <li><a href="#the-assistant">The assistant</a></li>
     <li><a href="#letting-agents-edit-an-open-canvas">Letting agents edit an open canvas</a></li>
