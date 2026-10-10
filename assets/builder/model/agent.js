@@ -543,7 +543,8 @@ function practiceAnswer(request, results) {
   if (names[0] === "lint") {
     var rows = body(0).split("\n").filter(function (l) { return /^- /.test(l); });
     var open = rows.filter(function (l) { return /^- (FAIL|WARN) /.test(l); }).map(function (l) { return l.replace(/^- (FAIL|WARN) /, "").replace(/ \[layers:.*$/, "").replace(/\.$/, ""); });
-    var asked = /^fix this check/i.test(String(request.messages.filter(function (m) { return m.role === "user" && typeof m.content === "string"; }).slice(-1).map(function (m) { return m.content; })[0] || ""));
+    var lastAsk = request.messages.filter(function (m) { return m.role === "user" && askText(m); }).slice(-1)[0];
+    var asked = !!lastAsk && (typeof lastAsk.content === "string" ? [lastAsk.content] : lastAsk.content.filter(function (b) { return b && b.type === "text"; }).map(function (b) { return b.text; })).some(function (t) { return /^fix this check/i.test(t); });
     return { text: "Practice mode: I ran the checks. " + (open.length ? open.length + (open.length === 1 ? " wants" : " want") + " attention: " + open.join("; ") + "." : "Everything passes.") + (asked && open.length ? " A model would now fix them with the edit tools and check again." : ""), calls: [] };
   }
   if (names[0] === "batch") return { text: "Practice mode, with the real tools: a new structured frame with a hero, three plan cards and a dark closing band, as one step you can undo at once.", calls: [] };
@@ -585,6 +586,14 @@ function practiceAnswer(request, results) {
   return null;
 }
 
+/* What the person typed in a message to the assistant: its text, without
+   the canvas and context block the Builder puts before it. */
+function askText(m) {
+  if (!m) return "";
+  if (typeof m.content === "string") return m.content;
+  return (m.content || []).filter(function (b) { return b && b.type === "text" && String(b.text).indexOf("<builder-context>") !== 0; }).map(function (b) { return b.text; }).join(" ");
+}
+
 /* The practice assistant's script: a few plain requests it can carry out
    with the real tools, so the panel and the canvas can be tried with
    nothing sent. sel: the selected layers. */
@@ -593,7 +602,7 @@ function practiceScript(sel) {
     var last = request.messages[request.messages.length - 1];
     var results = Array.isArray(last.content) ? last.content.filter(function (b) { return b && b.type === "tool_result"; }) : [];
     if (results.length) return practiceAnswer(request, results);
-    var blocks = typeof last.content === "string" ? [{ text: last.content }] : (last.content || []);
+    var blocks = typeof last.content === "string" ? [{ text: last.content }] : (last.content || []).filter(function (b) { return !(b && b.type === "text" && String(b.text).indexOf("<builder-context>") === 0); });
     var edits = blocks.filter(function (b) { return /^Since your last reply, the person changed/.test(b.text || ""); })[0];
     var text = blocks.filter(function (b) { return b !== edits; }).map(function (b) { return b.text || ""; }).join(" ").toLowerCase();
     if (/what (did|have) i changed?|my (changes|edits)/.test(text)) {

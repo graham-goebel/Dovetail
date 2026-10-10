@@ -184,7 +184,8 @@ The Builder's design assistant reads context (docs and skills) and makes changes
 **What the function does with a request:**
 
 - checks the session and the hourly limit, and that a named file is shared with the person;
-- puts a short fixed preamble and the Builder's brief first, cached for an hour, then the Builder's text for this request (the context docs and the selection). The brief (`systemPrompt` in `assets/builder/model/agent.js`) holds the system's rules, its components and its token values, and is the same on every request, so it's read once and served from the cache after that;
+- puts a short fixed preamble and the Builder's brief first, cached for an hour, and keeps that system prompt the same for the whole conversation. The brief (`systemPrompt` in `assets/builder/model/agent.js`) holds the system's rules, its components and its token values, and is the same on every request, so it's read once and served from the cache after that. The canvas, the selection and the context docs go in the person's message instead, inside `<builder-context>`, and only when they changed since the last one in the conversation: nothing already sent ever changes, which keeps the model's earlier thinking valid (the API checks that everything before a thinking block is as it was) and the conversation cached as it grows;
+- asks the API to drop, rather than refuse, any earlier thinking that no longer matches (`thinking-binding-controls-2026-08-01`, `prefix_mismatch_behavior: "drop_block"`): a conversation saved before this change, or a shared one whose pictures were left out of the cloud's copy, carries on without that thinking instead of failing;
 - sends it to Claude Opus 5.5 at medium effort, with fallbacks on, so a request a safety check declines is retried on another model in the same call;
 - asks for short progress notes between tool calls, which the panel shows as steps;
 - streams the model's events back unchanged.
