@@ -19,6 +19,8 @@ small change here.
 | `assets/builder/cloud/client.js` | Sign in, sign up, reset a password; a live channel per page. |
 | `assets/builder/cloud/sync.js` | Live editing: sends each edit as small changes and applies everyone else's. |
 | `assets/builder/cloud/Account.js` | The Account button's dialog. |
+| `supabase/bridge.sql`, `supabase/functions/bridge` | Live sessions in which Claude edits an open canvas from outside the Builder. |
+| `assets/builder/cloud/bridge.js` | Starts a session and answers its steps. |
 
 ## Connecting a Supabase project
 
@@ -160,6 +162,22 @@ The Builder's design assistant reads context (docs and skills) and makes changes
 **What it knows about the system.** The brief gives each component's purpose, when to use it and when not to, and each token value's meaning, all read from the system's own docs when the site is built. It can read any guideline in full and the file's theme (brand colours, fonts, corners, density and context). The checks include a usage row that flags a component used against its docs, such as a danger button that doesn't destroy anything or a card inside a card. `tools/evals/assistant-cases.json` holds requests with the components and values a good answer uses, for judging it once live mode is on.
 
 **How it works with you.** Before a new page or frame, or a change that adds more than about 10 layers, it shows a plan and waits for **Build it** (or **Change plan**); the Builder refuses such changes until one is approved. **Plan before big changes** in the ⋯ menu turns this off. After every reply that changes the canvas, the checks run and show under the change card. **Quick** or **Careful** under the message box sets how hard it thinks (low or high effort; the function uses medium if neither is sent). Each file keeps its conversations in this browser: the list button in the panel's header shows them, newest first, with what was said last and the changes still standing, and **+** starts a new one. The one left open reopens with the file.
+
+## Letting Claude edit an open canvas
+
+**Let Claude edit…** in a file's ⋯ menu starts a live session. Claude, working outside the Builder (in the app, a terminal or an editor), then edits the open canvas with the assistant's own tools while you watch. You choose whether it may make changes or only look, and whether each change waits for you to apply it. While a session runs, the top bar says so, with **Pause** and **End**, and the Session panel lists each step with an icon for its kind and an undo for each change. Asking first, a change waits in the panel, where **Apply** makes it and a note sends Claude something else to do instead.
+
+**How a step travels.** Starting a session stores a row in `bridge_sessions` with the SHA-256 of a random key; the key itself stays in the browser and in the link the dialog shows. Claude reads the link (a GET on `functions/v1/bridge`) for how to call, then POSTs each step with the session and key. The function checks the key, writes the step to `bridge_calls` and waits up to 25 seconds. The Builder tab hears the step (through Realtime, and by looking every few seconds), runs it on the canvas with `runTool` from `assets/builder/model/agent.js`, and writes the answer back, which the function passes on. Besides the assistant's tools, a session offers `describe` (the brief and every tool's schema) and `edit_by_name` (an edit in the format Paste a layout reads).
+
+**What stays private.** Only you see or answer your sessions' steps, and no browser can add one: the function adds them with the service key, on the server. Claude sees only what its steps ask for (an outline, a picture, a check). A session ends when you end it or after an hour without a step, and ended sessions are deleted with their steps after a day.
+
+**Setting it up:**
+
+1. Run `supabase/bridge.sql` in the SQL editor, after `schema.sql`. It's safe to run again, and adds the two tables to Realtime when the project has it.
+2. Deploy the function without a session check, since Claude has no Supabase account: `supabase functions deploy bridge --no-verify-jwt`. The session key is what it checks instead.
+3. Optionally set **`BRIDGE_HOURLY_LIMIT`** (steps per session per hour, 900 by default).
+
+`sh supabase/tests/run.sh` tries who can see and answer a session, too.
 
 ## What's built and what's next
 

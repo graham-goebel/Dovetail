@@ -4,7 +4,10 @@ import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_I
 import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
-import { applyOps, opsOf } from "../model/nameedit.js";
+import { applyOps, opsOf, planEdit, readEdit } from "../model/nameedit.js";
+import { allowed as bridgeAllowed, bridgeTools, describeText, isRead as bridgeRead, rowsOf as bridgeRows } from "../model/bridge.js";
+import { startBridge } from "../cloud/bridge.js";
+import { BridgeDialog, BridgePill, SessionPanel } from "./Bridge.js";
 import { mergeUsage, usageOf, usesToken } from "../model/usage.js";
 import { absorbComponents, componentsFor, copyText, encode, loadLibrary, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
 import { foldersOf, itemsOf, libScopeOf, pageOf, pagesOf } from "../model/store.js";
@@ -172,6 +175,13 @@ function App(props) {
   var editMarksState = useState(null);
   var editMarks = editMarksState[0], setEditMarks = editMarksState[1];
   var editMarksRef = useRef(null);
+  /* A live session in which Claude edits this canvas from outside
+     (app/Bridge.js, cloud/bridge.js): { status: starting | live | error,
+     link, error, canEdit, askFirst, paused, steps, pending, open }. */
+  var bridgeState = useState(null);
+  var bridge = bridgeState[0], setBridge = bridgeState[1];
+  var bridgeOptsState = useState({ canEdit: true, askFirst: false });
+  var bridgeRef = useRef(null), bridgeLive = useRef(null), bridgeWait = useRef(null), bridgeDlgRef = useRef(null), bridgeCallRef = useRef(null);
   var savedState = useState({ ok: true, at: null });
   var saved = savedState[0], setSaved = savedState[1];
   var savedRef = useRef(saved); savedRef.current = saved;
@@ -4895,6 +4905,141 @@ function App(props) {
     setEditMarks(marks);
     setTimeout(remeasure, 60);
   };
+  /* ------------------------------------------------ the live bridge */
+
+  var patchBridge = function (fn) { setBridge(function (b) { return b ? Object.assign({}, b, typeof fn === "function" ? fn(b) : fn) : b; }); };
+  var bridgeName = function (id) {
+    var d = docRef.current, hit = null;
+    d.frames.some(function (f) { if (f.id === id) { hit = f.name; return true; } var at = locate(d, id, f.id); if (at && id !== "root") hit = nameOf(at.node); return !!hit; });
+    return hit || id;
+  };
+  /* A tool's answer as the bridge sends it: text, and a picture as a data address. */
+  var bridgeOut = function (res) {
+    if (Array.isArray(res.result)) {
+      var img = res.result.filter(function (b) { return b.type === "image"; })[0];
+      return { ok: !!res.ok, result: res.result.filter(function (b) { return b.type === "text"; }).map(function (b) { return b.text; }).join("\n"), image: img ? "data:" + img.source.media_type + ";base64," + img.source.data : undefined };
+    }
+    return { ok: !!res.ok, result: typeof res.result === "string" ? res.result : JSON.stringify(res.result) };
+  };
+  var bridgeEditByName = function (input) {
+    var edit = readEdit(input && input.edit);
+    if (!edit) return { ok: false, result: "That isn't an edit: start with a \"## Edit\" heading and a list, or send JSON with changes." };
+    var plan = planEdit(docRef.current, edit), ops = opsOf(plan, {});
+    var said = plan.rows.map(function (r) { return "- " + r.title + ": " + r.detail; }).join("\n");
+    if (!ops.length) return { ok: false, result: "Nothing changed:\n" + said };
+    var touched = [];
+    change(function (d) { touched = applyOps(d, plan.frame.id, ops); return touched.length ? undefined : null; });
+    return { ok: true, result: "Done on " + plan.frame.name + ":\n" + said, changes: [{ ids: touched }] };
+  };
+  var bridgeCall = function (call) {
+    var live = bridgeLive.current;
+    if (!live) return { ok: false, result: "This session has ended." };
+    var tools = bridgeTools(toolsFor({ look: true, plan: false }), live.canEdit);
+    var why = bridgeAllowed(call, live, tools);
+    if (why) return { ok: false, result: why };
+    if (live.paused) return { ok: false, result: "The person paused the session. Wait a minute and try again, or ask them to resume it." };
+    var rows = bridgeRows(call, bridgeName, docRef.current);
+    var sid = uid();
+    var go = function () {
+      var before = docRef.current, edits = !bridgeRead(call.name);
+      patchBridge(function (b) { return { steps: [{ id: sid, rows: rows, ok: true, running: edits }].concat(b.steps).slice(0, 200) }; });
+      var run = call.name === "describe" ? { ok: true, result: describeText(systemPrompt(), tools, live) }
+        : call.name === "edit_by_name" ? bridgeEditByName(call.input)
+        : runTool(Object.assign({}, toolApi, { needsPlan: null, selection: function () { return []; } }), { name: call.name, input: call.input || {} });
+      return Promise.resolve(run).then(function (res) {
+        var diff = docRef.current !== before ? diffDocs(before, docRef.current) : null;
+        var ids = [].concat(res.change ? [res.change] : [], res.changes || []).reduce(function (a, c) { return a.concat(c.ids || []); }, []);
+        patchBridge(function (b) { return { steps: b.steps.map(function (s) { return s.id === sid ? Object.assign({}, s, { running: false, ok: !!res.ok, why: res.ok ? "" : String(res.result).slice(0, 200), diff: diff && diff.length ? diff : null, shot: res.shot ? res.shot.url : undefined }) : s; }) }; });
+        if (diff && ids.length) {
+          var marks = { fid: docRef.current.active, doc: docRef.current, quiet: true, items: ids.filter(function (id) { return locate(docRef.current, id); }).slice(0, 24).map(function (id) { return { id: id, icon: rows[0].icon, label: "Claude · " + String(rows[0].detail || "changed").charAt(0).toLowerCase() + String(rows[0].detail || "changed").slice(1) }; }) };
+          editMarksRef.current = marks;
+          setEditMarks(marks);
+          setTimeout(remeasure, 60);
+        }
+        return bridgeOut(res);
+      }, function (err) {
+        patchBridge(function (b) { return { steps: b.steps.map(function (s) { return s.id === sid ? Object.assign({}, s, { running: false, ok: false, why: String((err && err.message) || err) }) : s; }) }; });
+        return { ok: false, result: String((err && err.message) || err) };
+      });
+    };
+    if (!bridgeRead(call.name) && live.askFirst) {
+      return new Promise(function (resolve) {
+        bridgeWait.current = resolve;
+        patchBridge({ pending: { rows: rows }, open: true });
+      }).then(function (ans) {
+        if (ans && ans.apply) return go();
+        return { ok: false, result: ans && ans.note ? "The person didn't apply that, and said: " + ans.note : "The person didn't apply that change. Ask them what they'd like instead." };
+      });
+    }
+    return go();
+  };
+  /* The session holds this ref, so each step runs with this render's canvas. */
+  bridgeCallRef.current = bridgeCall;
+  var answerBridge = function (apply, note) {
+    var r = bridgeWait.current;
+    bridgeWait.current = null;
+    patchBridge({ pending: null });
+    if (r) r({ apply: apply, note: note || "" });
+  };
+  var openBridge = function () {
+    if (bridge && bridge.status === "live") { patchBridge({ open: true }); return; }
+    var dlg = bridgeDlgRef.current;
+    if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+  };
+  var startSession = function () {
+    var o = bridgeOptsState[0];
+    bridgeLive.current = { canEdit: o.canEdit, askFirst: o.canEdit && o.askFirst, paused: false, label: projectRef.current.name };
+    setBridge({ status: "starting", steps: [], open: true, canEdit: o.canEdit, askFirst: bridgeLive.current.askFirst, paused: false });
+    startBridge({ canEdit: o.canEdit, askFirst: bridgeLive.current.askFirst, label: projectRef.current.name, onCall: function (c) { return bridgeCallRef.current(c); }, onStatus: announce }).then(function (h) {
+      bridgeRef.current = h;
+      patchBridge({ status: "live", link: h.link });
+      announce("The session has started. Copy the link and give it to Claude.");
+    }, function (err) {
+      bridgeLive.current = null;
+      setBridge({ status: "error", error: String((err && err.message) || err), steps: [] });
+    });
+  };
+  var endSession = function () {
+    var h = bridgeRef.current;
+    bridgeRef.current = null;
+    bridgeLive.current = null;
+    if (bridgeWait.current) answerBridge(false, "");
+    if (h) h.end().catch(function () {});
+    setBridge(null);
+    var dlg = bridgeDlgRef.current;
+    if (dlg && dlg.open) dlg.close();
+    announce("The session has ended. Claude can't make more changes.");
+  };
+  var pauseSession = function () {
+    var live = bridgeLive.current, h = bridgeRef.current;
+    if (!live || !h) return;
+    live.paused = !live.paused;
+    patchBridge({ paused: live.paused });
+    h.update({ paused: live.paused }).catch(function () {});
+    announce(live.paused ? "Paused: Claude's steps wait until you resume." : "Resumed.");
+  };
+  var undoBridgeStep = function (id) {
+    var s = (bridge ? bridge.steps : []).filter(function (x) { return x.id === id; })[0];
+    if (!s || !s.diff || s.undone) return;
+    commit(applyChanges(docRef.current, invert(s.diff)), undefined, "Undid Claude's step: " + s.rows[0].title);
+    patchBridge(function (b) { return { steps: b.steps.map(function (x) { return x.id === id ? Object.assign({}, x, { undone: true }) : x; }) }; });
+  };
+  var undoBridgeAll = function () {
+    var list = (bridge ? bridge.steps : []).filter(function (x) { return x.diff && !x.undone; });
+    if (!list.length) return;
+    var next = list.reduce(function (d, x) { return applyChanges(d, invert(x.diff)); }, docRef.current);
+    commit(next, undefined, "Undid Claude's " + list.length + (list.length === 1 ? " step" : " steps"));
+    patchBridge(function (b) { return { steps: b.steps.map(function (x) { return x.diff ? Object.assign({}, x, { undone: true }) : x; }) }; });
+  };
+  var copyBridgeLink = function () {
+    if (!bridge || !bridge.link) return;
+    copyText(bridge.link).then(function () { announce("Link copied. Paste it into Claude."); }, function () { announce("This browser didn't allow copying."); });
+  };
+  useEffect(function () {
+    var leave = function () { if (bridgeRef.current) bridgeRef.current.end().catch(function () {}); };
+    window.addEventListener("pagehide", leave);
+    return function () { window.removeEventListener("pagehide", leave); };
+  }, []);
   var copyLayout = function () {
     var out = withoutUploads(docRef.current);
     copyText(JSON.stringify(out.doc, null, 2)).then(function () {
@@ -6233,6 +6378,7 @@ function App(props) {
         ].concat(project.thumbSet ? [{ value: "auto-picture", label: "Picture follows the canvas", icon: "rotate" }] : [])
           .concat([
             { value: "import", label: "Paste a layout…", icon: "upload" },
+            { value: "bridge", label: bridge && bridge.status === "live" ? "Claude's session" : "Let Claude edit…", icon: "wand" },
             { value: "blank", label: "Start over with a blank frame", icon: "trash", danger: true },
           ]),
         onChange: function (v) {
@@ -6245,9 +6391,11 @@ function App(props) {
           else if (v === "keys") openKeys();
           else if (v === "duplicate") duplicateProject(project.id);
           else if (v === "export") exportProject(project.id);
+          else if (v === "bridge") openBridge();
           else if (v === "import" || v === "blank") startFrom(v);
         } })),
     e("span", { className: "bd-tb-side bd-tb-right" },
+      e(BridgePill, { bridge: bridge, frameName: frame.name, onPause: pauseSession, onEnd: endSession, onOpen: openBridge }),
       /* What the canvas shows and snaps to: its own button, beside zoom. */
       e(Dropdown, { menu: true, label: "View", placeholder: "View", icon: "layout", iconOnly: true, compact: true, narrow: true, alignEnd: true, className: "bd-dd-icon bd-view-menu",
         options: [
@@ -6859,6 +7007,8 @@ function App(props) {
   var onSaveComponent = useEvent(saveComponent), onFixComponent = useEvent(fixComponent);
   var onImportLayout = useEvent(importLayout);
   var onGetDoc = useEvent(function () { return docRef.current; }), onEditPreview = useEvent(editPreview), onApplyEdit = useEvent(applyEdit);
+  var onStartSession = useEvent(startSession), onEndSession = useEvent(endSession), onPauseSession = useEvent(pauseSession), onOpenBridge = useEvent(openBridge), onCopyBridge = useEvent(copyBridgeLink);
+  var onUndoBridge = useEvent(undoBridgeStep), onUndoBridgeAll = useEvent(undoBridgeAll), onAnswerBridge = useEvent(answerBridge), onCloseBridge = useEvent(function () { patchBridge({ open: false }); });
   var onCopyCode = useEvent(function () { copyText(code).then(function () { announce("Code copied"); }); });
   var onExportImage = useEvent(function (type) { exportImage(frame.id, type, { scale: exportScale, id: codePick }); });
   var onCopyLayout = useEvent(copyLayout), onShare = useEvent(function () { share(); });
@@ -6969,7 +7119,9 @@ function App(props) {
     e(CodeDialog, { dialogRef: dialogRef, code: code, notes: codeNotes, title: codeTitle, picked: !!codePick, frameName: frame.name, scale: exportScale, setScale: setExportScale, hasSelection: !!sel,
       onCopyCode: onCopyCode, onExportImage: onExportImage, onCopyLayout: onCopyLayout, onShare: onShare, onDownloadProject: onDownloadProject }),
     e(ImportDialog, { dialogRef: importRef, text: importText, setText: setImportText, onImport: onImportLayout, getDoc: onGetDoc, preview: onEditPreview, onApplyEdit: onApplyEdit }),
-    editMarks ? e("div", { className: "bd-toast", role: "status" },
+    e(BridgeDialog, { dialogRef: bridgeDlgRef, account: account, bridge: bridge, options: bridgeOptsState[0], setOptions: bridgeOptsState[1], onStart: onStartSession, onEnd: onEndSession, onCopy: onCopyBridge, onSignIn: openAccount }),
+    e(SessionPanel, { bridge: bridge, onUndo: onUndoBridge, onUndoAll: onUndoBridgeAll, onAnswer: onAnswerBridge, onClose: onCloseBridge }),
+    editMarks && !editMarks.quiet ? e("div", { className: "bd-toast", role: "status" },
       e(Icon, { name: "check" }),
       e("span", null, e("b", null, "Applied " + editMarks.n + (editMarks.n === 1 ? " change" : " changes")), " from the edit" + (editMarks.removed ? ", " + editMarks.removed + " removed" : "") + "."),
       e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { undo(); } }, e(Icon, { name: "undo" }), "Undo"),
