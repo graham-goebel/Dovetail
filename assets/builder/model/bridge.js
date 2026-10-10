@@ -152,6 +152,7 @@ function rowsOf(call, name, doc) {
     case "insert_template": return [{ icon: "file", title: "The " + String(input.id || "") + " template", detail: input.new_frame ? "As a new frame" : "Added " + (input.parent && input.parent !== "root" ? "in " + who([input.parent]) : "to the page") }];
     case "insert_instance": return [{ icon: "component", title: input.replace ? who([input.replace]) : "A component", detail: input.replace ? "Swapped for an instance" : "Instance added " + (input.parent && input.parent !== "root" ? "in " + who([input.parent]) : "to the page") }];
     case "make_component": return [{ icon: "component", title: who([input.id]), detail: "Made a component: " + short(input.name, 40) }];
+    case "remember": return [{ icon: "book", title: "Kept a lesson", detail: short(input.lesson, 60) }];
     case "list_components": return [{ icon: "component", title: "Listed the file's components", detail: "" }];
     case "move": return [{ icon: "layers2", title: who(input.ids), detail: "Moved into " + who([input.parent]) }];
     case "wrap": return [{ icon: "group", title: who(input.ids), detail: "Wrapped in a " + (input.type || "Group") }];

@@ -19,7 +19,7 @@ import { Pages } from "./Pages.js";
 import { Assets } from "./Assets.js";
 import { Content } from "./Content.js";
 import { ContextPanel } from "./ContextPanel.js";
-import { cleanItem, contextFor, contextText } from "../model/context.js";
+import { addLesson, cleanItem, contextFor, contextText } from "../model/context.js";
 import { AssistantPanel } from "./AssistantPanel.js";
 import { practiceScript, runTool, systemPrompt, toolsFor } from "../model/agent.js";
 import { checksFrom, checksText, lintFrame } from "../model/lint.js";
@@ -909,6 +909,20 @@ function App(props) {
     },
     rename: function (id, name) { return change(function (d) { var at = locate(d, id); if (!at || at.node.name === name) return null; at.node.name = name; return undefined; }); },
     createFrame: function (opts) { return frameOps.add(null, false, null, opts); },
+    /* A rule the person taught it, kept in a Lessons doc in the file's (or
+       the project's) context: { added, count, lesson, scope } or { error }. */
+    remember: function (lesson, scope) {
+      var sc = scope === "project" && ctxKey("project") ? "project" : "file";
+      if (!ctxKey(sc)) return { error: "This file has nowhere to keep lessons yet." };
+      var got = addLesson(ctxRef.current[sc] || [], lesson);
+      if (!got.lesson) return { error: "Give the lesson as one short line." };
+      if (got.added) {
+        ctxRef.current = Object.assign({}, ctxRef.current, (function () { var o = {}; o[sc] = got.items; return o; })());
+        putCtx(sc, got.items);
+        announce("Kept a lesson in " + (sc === "project" ? "the project's" : "this file's") + " context");
+      }
+      return { added: got.added, count: got.count, lesson: got.lesson, scope: sc };
+    },
     /* A template as a frame of its own beside yours; its frame's id. */
     addTemplate: function (id) { return addTemplate(id) || null; },
     /* A layer as one of the file's own components: { id, name, tokens }, or

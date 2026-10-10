@@ -6327,6 +6327,29 @@ try {
     await page.close();
   });
 
+  await step("The assistant keeps a lesson it's taught in the file's context, sends it with every later request, and doesn't keep it twice", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    await page.locator(".bd-rail .bd-tab", { hasText: "Assistant" }).click();
+    await page.locator(".bd-as").waitFor();
+    const ask = async (t, until) => { await page.locator(".bd-as-input").fill(t); await page.keyboard.press("Enter"); await page.waitForFunction((re) => { const b = [...document.querySelectorAll(".bd-as-bot")].pop(); return b && new RegExp(re).test(b.textContent); }, until, { timeout: 20000 }); await page.locator('.bd-as-send[aria-label="Send"]').waitFor({ timeout: 20000 }); };
+    await ask("Remember that cards never get brand fills.", "Lessons");
+    expect(/Kept in this file's Lessons/.test(await page.locator(".bd-as-bot").last().textContent()), "the reply says where the lesson went");
+    await ask("Remember that cards never get brand fills", "already");
+    await page.locator(".bd-rail .bd-tab", { hasText: "Context" }).click();
+    await page.locator('.bd-cx-group[data-scope="file"] .bd-cx-title', { hasText: "Lessons" }).waitFor();
+    expect(/1 doc sent/.test(await page.locator(".bd-cx-meter").textContent()), "the Lessons doc is sent with every request");
+    await page.getByRole("button", { name: "Open Lessons" }).click();
+    const body = await page.locator(".bd-cx-body").inputValue();
+    expect((body.match(/^- cards never get brand fills$/gm) || []).length === 1, `the doc holds the lesson once, got ${body}`);
+    ok("a lesson goes into a Lessons doc in the file's context, once, where the person can edit it");
+    await page.locator(".bd-rail .bd-tab", { hasText: "Assistant" }).click();
+    await ask("What's the theme?", "brand is");
+    const sent = await page.evaluate(() => window.__builder.assistantMsgs().filter((m) => m.role === "user" && Array.isArray(m.content)).map((m) => m.content.filter((b) => b.type === "text").map((b) => b.text).join("\n")).filter((t) => /<builder-context>/.test(t)).pop());
+    expect(/## Lessons[\s\S]*- cards never get brand fills/.test(sent || ""), `the next request carries the lesson in its context, got ${(sent || "").slice(0, 300)}`);
+    ok("the next request carries the lesson");
+    await page.close();
+  });
+
   await step("Assistant: in practice mode a request changes the selection with system tokens, lists what changed, and Undo all takes it back; it reads the page, looks at the canvas, plans and builds a page, and keeps the thread; nothing is sent", async () => {
     const { page } = await open({ width: 1440, height: 900 });
     /* A reply's steps fold into one row, and a long change card folds too:

@@ -91,6 +91,30 @@ function cleanItem(it) {
   return null;
 }
 
+/* Lessons: rules the person taught the assistant, kept as one doc in a
+   scope so every later request carries them. A lesson is one short line;
+   one already there (by its words, whatever the case) isn't added twice.
+   Returns { items, added, count, lesson } with the scope's items updated. */
+var LESSONS = "Lessons";
+var LESSONS_HEAD = "# Lessons\n\nRules the person taught the assistant while working. Edit or remove any of them; the assistant follows what's here.\n";
+function lessonLine(text) { return String(text || "").replace(/\s+/g, " ").replace(/^[-*•\s]+/, "").trim().slice(0, 300); }
+function lessonsOf(doc) { return doc ? doc.body.split("\n").filter(function (l) { return /^- /.test(l); }).map(function (l) { return l.slice(2).trim(); }) : []; }
+function addLesson(items, text) {
+  var lesson = lessonLine(text);
+  var list = (items || []).slice();
+  if (!lesson) return { items: list, added: false, count: 0, lesson: "" };
+  var at = -1;
+  list.forEach(function (it, i) { if (at < 0 && it.kind === "doc" && it.source === "generated" && it.title === LESSONS) at = i; });
+  var doc = at >= 0 ? list[at] : Object.assign(newDoc(LESSONS), { source: "generated", body: LESSONS_HEAD });
+  var have = lessonsOf(doc);
+  var key = function (s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); };
+  if (have.some(function (l) { return key(l) === key(lesson); })) return { items: list, added: false, count: have.length, lesson: lesson };
+  var body = (doc.body.replace(/\s+$/, "") + "\n" + (have.length ? "" : "\n") + "- " + lesson + "\n").slice(0, LIMIT.body);
+  var next = Object.assign({}, doc, { body: body, use: doc.use === "off" ? "always" : doc.use, updatedAt: Date.now() });
+  if (at >= 0) list[at] = next; else list.push(next);
+  return { items: list, added: true, count: have.length + 1, lesson: lesson };
+}
+
 /* Whether an item is for a page: one with no pages listed is for them all. */
 function forPage(it, pageId) { return !it.pages.length || it.pages.indexOf(pageId) >= 0; }
 
@@ -119,4 +143,4 @@ function contextText(ctx) {
   return out.join("\n\n");
 }
 
-export { DOC_USES, LIMIT, SCOPES, cleanItem, contextFor, contextText, docFromMarkdown, forPage, newDoc, newSkill, readSkillMd, skillFromFiles, skillName, tokens, words };
+export { DOC_USES, LESSONS, LIMIT, SCOPES, addLesson, cleanItem, lessonsOf, contextFor, contextText, docFromMarkdown, forPage, newDoc, newSkill, readSkillMd, skillFromFiles, skillName, tokens, words };
