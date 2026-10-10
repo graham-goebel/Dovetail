@@ -6466,6 +6466,55 @@
       }).then(unwrap);
     }
   };
+  function supabaseTransport(sb) {
+    return {
+      open: function(topic, h) {
+        var ch = null, closed = false;
+        var ready = Promise.resolve(sb.realtime && sb.realtime.setAuth ? sb.realtime.setAuth() : null).catch(function() {
+        }).then(function() {
+          if (closed) return null;
+          ch = sb.channel(topic, { config: { private: true, broadcast: { self: false }, presence: { key: h.key } } });
+          ch.on("broadcast", { event: "sync" }, function(m) {
+            h.onMessage(m.payload);
+          });
+          ch.on("presence", { event: "sync" }, function() {
+            var st = ch.presenceState(), list = [];
+            Object.keys(st).forEach(function(key) {
+              var last = st[key][st[key].length - 1] || {};
+              list.push(Object.assign({}, last, { key }));
+            });
+            h.onPeers(list);
+          });
+          ch.subscribe(function(status) {
+            if (status === "SUBSCRIBED") {
+              ch.track(h.state || {});
+              h.onStatus("joined");
+            } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") h.onStatus("error");
+            else if (status === "CLOSED") h.onStatus("closed");
+          });
+          return ch;
+        });
+        return {
+          send: function(msg) {
+            return ready.then(function(c) {
+              return c ? c.send({ type: "broadcast", event: "sync", payload: msg }) : null;
+            });
+          },
+          track: function(state) {
+            ready.then(function(c) {
+              if (c) c.track(state || {});
+            });
+          },
+          close: function() {
+            closed = true;
+            ready.then(function(c) {
+              if (c) sb.removeChannel(c);
+            });
+          }
+        };
+      }
+    };
+  }
 
   // assets/builder/cloud/bridge.js
   var POLL_MS = 4e3;
@@ -7088,14 +7137,26 @@
     );
   });
 
-  // assets/builder/app/People.js
+  // assets/builder/cloud/live.js
+  var TAB = Math.random().toString(36).slice(2, 8);
   var COLORS = ["var(--dt-color-amber-500)", "var(--dt-color-cyan-500)", "var(--dt-color-green-500)", "var(--dt-color-violet-500)", "var(--dt-color-red-500)", "var(--dt-color-primary-500)"];
-  var SHOWN = 4;
   function colorFor(id) {
     var h = 0, s = String(id || "");
     for (var i = 0; i < s.length; i++) h = h * 31 + s.charCodeAt(i) >>> 0;
     return COLORS[h % COLORS.length];
   }
+  function othersFrom(peers, myId) {
+    var seen = {}, out = [];
+    (peers || []).forEach(function(p) {
+      if (!p || !p.id || p.id === myId || seen[p.id]) return;
+      seen[p.id] = true;
+      out.push({ id: p.id, name: p.name || "Someone", color: p.color || colorFor(p.id) });
+    });
+    return out;
+  }
+
+  // assets/builder/app/People.js
+  var SHOWN = 4;
   function People(p) {
     var me = p.account && p.account.status === "in" ? p.account.account : null;
     if (!me) {
@@ -13659,6 +13720,126 @@
     );
   }
 
+  // assets/builder/cloud/sync.js
+  var MAX_MESSAGE = 2e5;
+  var MAX_WAITING = 200;
+  function createSync(opts) {
+    var transport = opts.transport;
+    var me = opts.clientId;
+    var onRemote = opts.onRemote || function() {
+    };
+    var onReload = opts.onReload || function() {
+    };
+    var onPeers = opts.onPeers || function() {
+    };
+    var onStatus = opts.onStatus || function() {
+    };
+    var channel = null, topic = null, joined = false, seq2 = 0;
+    var waiting = [];
+    var seen = {};
+    var peers = [];
+    var state = {};
+    function deliver(msg) {
+      if (!msg || typeof msg !== "object" || msg.from === me || typeof msg.from !== "string") return;
+      if (typeof msg.seq !== "number" || msg.seq <= (seen[msg.from] || 0)) return;
+      seen[msg.from] = msg.seq;
+      if (msg.type === "changes" && Array.isArray(msg.changes)) onRemote(msg.changes, msg.from);
+      else if (msg.type === "reload") onReload(msg.from);
+    }
+    function post(msg) {
+      if (!joined) {
+        waiting.push(msg);
+        if (waiting.length > MAX_WAITING) {
+          waiting = [{ type: "reload", from: me, seq: msg.seq }];
+        }
+        return;
+      }
+      channel.send(msg);
+    }
+    function flush() {
+      var list = waiting;
+      waiting = [];
+      list.forEach(function(m) {
+        channel.send(m);
+      });
+    }
+    return {
+      /* Joins topic (leaving any other), as state ({ name, colour, ... }). */
+      join: function(nextTopic, nextState) {
+        if (channel && topic === nextTopic) return;
+        this.leave();
+        topic = nextTopic;
+        state = nextState || {};
+        var mine = channel = transport.open(topic, {
+          key: me,
+          state,
+          onMessage: function(msg) {
+            if (channel === mine) deliver(msg);
+          },
+          onPeers: function(list) {
+            if (channel !== mine) return;
+            peers = (list || []).filter(function(p) {
+              return p && p.key !== me;
+            });
+            onPeers(peers.slice());
+          },
+          onStatus: function(status) {
+            if (channel !== mine) return;
+            joined = status === "joined";
+            onStatus(status);
+            if (joined) flush();
+          }
+        });
+      },
+      leave: function() {
+        var was = channel;
+        channel = null;
+        topic = null;
+        joined = false;
+        waiting = [];
+        seen = {};
+        if (peers.length) {
+          peers = [];
+          onPeers([]);
+        }
+        if (was) was.close();
+      },
+      /* One step's changes. Returns false when they were too big to send, in
+         which case the caller saves the page and calls reload(). */
+      send: function(changes) {
+        if (!topic || !changes || !changes.length) return true;
+        var msg = { type: "changes", from: me, seq: ++seq2, changes };
+        if (JSON.stringify(msg).length > MAX_MESSAGE) {
+          seq2--;
+          return false;
+        }
+        post(msg);
+        return true;
+      },
+      /* Tells everyone else to load the saved page. */
+      reload: function() {
+        if (topic) post({ type: "reload", from: me, seq: ++seq2 });
+      },
+      /* What others see of this person: their selection, say. */
+      track: function(next) {
+        state = Object.assign({}, state, next);
+        if (channel) channel.track(state);
+      },
+      peers: function() {
+        return peers.slice();
+      },
+      joined: function() {
+        return joined;
+      },
+      topic: function() {
+        return topic;
+      }
+    };
+  }
+  function topicFor(projectId, pageId) {
+    return "project:" + projectId + ":" + pageId;
+  }
+
   // assets/builder/model/instances.js
   var FLAGS = ["name", "hide", "lock"];
   function same3(a, b) {
@@ -14414,6 +14595,58 @@
     useEffect(function() {
       if (mirror && account2.joined) mirror.sync();
     }, [account2.joined]);
+    var syncRef = useRef(null);
+    var liveSt = useState(0), liveTick = liveSt[0], setLiveTick = liveSt[1];
+    var othersSt = useState([]), others = othersSt[0], setOthers = othersSt[1];
+    var receiveRef = useRef(null);
+    useEffect(function() {
+      if (account2.status !== "in" || !account2.account) return void 0;
+      var live = true, me = account2.account;
+      getClient().then(function(sb) {
+        if (!live) return;
+        syncRef.current = createSync({
+          transport: supabaseTransport(sb),
+          clientId: me.id + ":" + TAB,
+          onRemote: function(changes) {
+            if (receiveRef.current) receiveRef.current(changes);
+          },
+          onReload: function() {
+            if (mirror) mirror.sync();
+          },
+          onPeers: function(list) {
+            setOthers(othersFrom(list, me.id));
+          }
+        });
+        setLiveTick(function(t) {
+          return t + 1;
+        });
+      }, function() {
+      });
+      return function() {
+        live = false;
+        if (syncRef.current) {
+          syncRef.current.leave();
+          syncRef.current = null;
+        }
+        setOthers([]);
+      };
+    }, [account2.status]);
+    useEffect(function() {
+      var live = syncRef.current, me = account2.account;
+      if (!live) return;
+      if (me && project.cloud && pageId) live.join(topicFor(project.cloud, pageId), { id: me.id, name: me.email, color: colorFor(me.id) });
+      else live.leave();
+    }, [liveTick, project.cloud, pageId]);
+    var liveSend = function(changes) {
+      var live = syncRef.current;
+      if (!live || live.send(changes)) return;
+      flush().then(function() {
+        return mirror ? mirror.sync() : null;
+      }).then(function() {
+        live.reload();
+      }, function() {
+      });
+    };
     var asModeState = useState(assistantMode(false));
     useEffect(function() {
       asModeState[1](assistantMode(account2.status === "in"));
@@ -15790,6 +16023,7 @@
       history.current.past.push({ redo: redo2, undo: invert(redo2) });
       if (history.current.past.length > HISTORY_MAX) history.current.past.shift();
       history.current.future = [];
+      liveSend(redo2);
     }, []);
     var commit = useCallback(function(next, nextSel, message) {
       next = freeze(next, true);
@@ -15843,6 +16077,7 @@
       var step = h.past.pop();
       h.future.push(step);
       place(step.undo);
+      liveSend(step.undo);
       announce("Undone");
     }, [announce, place]);
     var redo = useCallback(function() {
@@ -15851,11 +16086,13 @@
       var step = h.future.pop();
       h.past.push(step);
       place(step.redo);
+      liveSend(step.redo);
       announce("Redone");
     }, [announce, place]);
     var receive = useCallback(function(changes) {
       place(changes);
     }, [place]);
+    receiveRef.current = receive;
     var saving = useRef({ busy: false, next: null, done: Promise.resolve() });
     var persist = useCallback(function(pid, d, pg) {
       var q = saving.current;
@@ -15911,6 +16148,9 @@
         flush,
         store,
         mirror,
+        live: function() {
+          return syncRef.current;
+        },
         /* The assistant's checks on a frame (the active one by default), as the lint tool runs them. */
         checks: function(fid) {
           return runChecks(fid || docRef.current.active);
@@ -20179,10 +20419,10 @@
       })[0];
       if (pagesOf(meta).length < 2 || !gone) return;
       var here = pg === pageRef.current;
-      var others = pagesOf(meta).filter(function(x) {
+      var others2 = pagesOf(meta).filter(function(x) {
         return x.id !== pg;
       });
-      (here ? openPage(others[0].id) : flush()).then(function() {
+      (here ? openPage(others2[0].id) : flush()).then(function() {
         return store.deletePage(meta.id, pg);
       }).then(function(m) {
         delete histories.current[pg];
@@ -20572,10 +20812,10 @@
           return void 0;
         }, null);
         var pid = projectRef.current.id, pageNow = pageRef.current;
-        var others = pagesOf(projectRef.current).filter(function(pg) {
+        var others2 = pagesOf(projectRef.current).filter(function(pg) {
           return pg.id !== pageNow;
         });
-        Promise.all(others.map(function(pg) {
+        Promise.all(others2.map(function(pg) {
           return store.loadDoc(pid, pg.id).then(function(d) {
             if (!d) return 0;
             var n = 0;
@@ -23757,7 +23997,7 @@
         /* Saving is quiet; the bar speaks up only when this browser can't keep the work. */
         saved.ok ? null : e("span", { className: "bd-saved is-error", title: savedTitle, role: "status" }, e(Icon, { name: "alert" }), e("span", { className: "bd-saved-text" }, "Not saved")),
         /* Who's on the file: you, and others once live editing brings them. */
-        e(People, { account: account2, others: [], onOpen: account2.status === "in" ? openShare : openAccount }),
+        e(People, { account: account2, others, onOpen: account2.status === "in" ? openShare : openAccount }),
         e("button", { type: "button", className: "bd-act", title: "Play: see " + frame2.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame2.id], onClick: function() {
           openPlay();
         } }, e(Icon, { name: "play" })),
@@ -24440,10 +24680,10 @@
     }).join() + "|" + pageId;
     useEffect(function() {
       var meta = projectRef.current, live = true;
-      var others = pagesOf(meta).filter(function(p) {
+      var others2 = pagesOf(meta).filter(function(p) {
         return p.id !== pageRef.current;
       });
-      Promise.all(others.map(function(p) {
+      Promise.all(others2.map(function(p) {
         return store.loadDoc(meta.id, p.id);
       })).then(function(docs) {
         if (live) setOtherUse(usageOf(docs.filter(Boolean)));

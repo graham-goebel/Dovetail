@@ -1,22 +1,15 @@
 /* Who's on this file, in the top bar: you, from your account, and the
-   others as they join, once live editing is on (cloud files, still to
-   come). Signed out, the spot offers to sign in, so it's always there and
-   says what it's for. The agents' avatars live in the bridge pill, on the
-   other side of the bar. */
+   others on the open page as they join (cloud/live.js). Signed out, the
+   spot offers to sign in, so it's always there and says what it's for.
+   The agents' avatars live in the bridge pill, on the other side of the
+   bar. */
 
 import { e } from "../config.js";
 import { Icon } from "../ui/icons.js";
 import { Avatar } from "./Bridge.js";
+import { colorFor } from "../cloud/live.js";
 
-var COLORS = ["var(--dt-color-amber-500)", "var(--dt-color-cyan-500)", "var(--dt-color-green-500)", "var(--dt-color-violet-500)", "var(--dt-color-red-500)", "var(--dt-color-primary-500)"];
 var SHOWN = 4;
-
-/* A colour a person keeps, from their id. */
-function colorFor(id) {
-  var h = 0, s = String(id || "");
-  for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return COLORS[h % COLORS.length];
-}
 
 /* p: { account (useAccount's state), others: [{ id, name, color?, mark? }], onOpen }. */
 function People(p) {

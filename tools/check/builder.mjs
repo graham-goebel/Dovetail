@@ -3435,7 +3435,29 @@ try {
           },
           rpc: async (name) => { call("rpc", name); return { data: 0, error: null }; },
           from,
+          channel: openChannel,
+          removeChannel: (ch) => { delete rt.channels[ch.topic]; return Promise.resolve("ok"); },
+          realtime: { setAuth: async () => {} },
         };
+      }
+      /* Realtime, as far as live editing uses it: a channel per topic with
+         broadcast and presence, and a way for a check to be someone else
+         on it (join, leave, push). */
+      const rt = window.__fakeSb_rt = { channels: {}, sent: [],
+        join(topic, key, state) { const c = rt.channels[topic]; c.present[key] = state; c.presence(); },
+        leave(topic, key) { const c = rt.channels[topic]; delete c.present[key]; c.presence(); },
+        push(topic, payload) { rt.channels[topic].handlers.broadcast.forEach((f) => f({ payload })); } };
+      function openChannel(topic, cfg) {
+        const key = cfg && cfg.config && cfg.config.presence ? cfg.config.presence.key : "me";
+        const ch = { topic, cfg, present: {}, handlers: { broadcast: [], presence: [] }, status: null,
+          on(type, filter, cb) { (ch.handlers[type] || []).push(cb); return ch; },
+          subscribe(cb) { ch.status = "SUBSCRIBED"; setTimeout(() => cb("SUBSCRIBED"), 0); return ch; },
+          track(state) { ch.present[key] = state; ch.presence(); return Promise.resolve("ok"); },
+          presenceState() { const out = {}; Object.keys(ch.present).forEach((k) => { out[k] = [ch.present[k]]; }); return out; },
+          presence() { ch.handlers.presence.forEach((f) => f()); },
+          send(m) { rt.sent.push([topic, m.payload]); return Promise.resolve("ok"); } };
+        rt.channels[topic] = ch;
+        return ch;
       }
       /* The tables files mirror to (pages count their saves) and the two
          sharing reads, with the owner's membership row added on insert. */
@@ -3529,6 +3551,27 @@ try {
     await page.locator(".bd-share-dlg .bd-br-foot button", { hasText: "Done" }).click();
     await page.waitForFunction(() => !document.querySelector(".bd-share-dlg[open]"));
     ok("the people in the top bar open Share: the owner, an invite, a caught duplicate, a withdrawal");
+
+    /* Live: the open page has a channel; someone joining shows in the top
+       bar; their edit lands on the canvas without a step in the history;
+       an edit here goes out as changes. */
+    const topic = await page.evaluate(() => "project:" + window.__builder.project().cloud + ":main");
+    await page.waitForFunction((t) => window.__fakeSb_rt && window.__fakeSb_rt.channels[t] && window.__fakeSb_rt.channels[t].status === "SUBSCRIBED", topic);
+    expect(await page.evaluate((t) => window.__fakeSb_rt.channels[t].cfg.config.private === true, topic), "the page's channel is private, as the database's policies expect");
+    await page.evaluate((t) => window.__fakeSb_rt.join(t, "u2:tab", { id: "u2", name: "ben@example.com" }), topic);
+    await page.waitForFunction(() => document.querySelectorAll(".bd-tb-right .bd-people .bd-av").length === 2);
+    expect(/ben@example\.com/.test(await page.locator(".bd-tb-right .bd-people").getAttribute("title")), "someone on the page shows in the top bar, named");
+    const steps = await page.evaluate(() => window.__builder.history().past);
+    await page.evaluate((t) => { const d = window.__builder.doc(); const i = Math.max(0, d.frames.findIndex((x) => x.id === d.active)); const next = JSON.parse(JSON.stringify(d)); next.frames[i].root.children[0].props.name = "From Ben"; window.__fakeSb_rt.push(t, { type: "changes", from: "u2:tab", seq: 1, changes: window.__builder.diff(d, next) }); }, topic);
+    await page.waitForFunction(() => { const d = window.__builder.doc(); const f = d.frames.find((x) => x.id === d.active) || d.frames[0]; return f.root.children[0].props.name === "From Ben"; });
+    expect((await page.evaluate(() => window.__builder.history().past)) === steps, "their edit lands without a step in your history");
+    await page.evaluate(() => { const d = window.__builder.doc(); const f = d.frames.find((x) => x.id === d.active) || d.frames[0]; window.__builder.edit(f.root.children[0].id, "name", "From Ann"); });
+    await page.waitForFunction((t) => window.__fakeSb_rt.sent.some((s) => s[0] === t && s[1].type === "changes"), topic);
+    const went = await page.evaluate((t) => window.__fakeSb_rt.sent.filter((s) => s[0] === t && s[1].type === "changes").pop()[1], topic);
+    expect(JSON.stringify(went.changes).includes("From Ann") && went.from.startsWith("u1:"), `your edit goes out as changes from you, got ${JSON.stringify(went).slice(0, 200)}`);
+    await page.evaluate((t) => window.__fakeSb_rt.leave(t, "u2:tab"), topic);
+    await page.waitForFunction(() => document.querySelectorAll(".bd-tb-right .bd-people .bd-av").length === 1);
+    ok("live: the page's channel, someone joining shown in the top bar, their edit on the canvas with no history step, yours sent out");
 
     /* Signed in with the cloud on, the assistant goes live from its menu. */
     await page.keyboard.press("Escape");
