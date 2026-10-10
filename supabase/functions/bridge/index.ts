@@ -22,6 +22,8 @@ const HOURLY = Number(Deno.env.get("BRIDGE_HOURLY_LIMIT") ?? "900");
 const IDLE_MS = 60 * 60 * 1000;
 const WAIT_MS = 25_000;
 const MAX_BODY = 1_000_000;
+// place_image carries a picture the agent made: up to 5 MB, about 7 MB as base64.
+const MAX_PICTURE = 7_200_000;
 const SESSION = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 const headers = {
@@ -61,6 +63,8 @@ function howTo(link: string): string {
     "- Each answer is JSON: `{ \"ok\": true, \"result\": \"…\" }`, or `ok: false` with why. A picture comes as `image`, a `data:image/jpeg;base64,` address; save it to a file to look at it.",
     "- A step waits up to 25 seconds for the canvas. If it's still running, the answer is `{ \"waiting\": true, \"id\": 12 }`: send `{ \"s\", \"k\", \"wait\": 12 }` to keep waiting.",
     "- `edit_by_name` takes an edit in the Markdown or JSON the Builder's Paste a layout reads, naming layers the way Layers does. It's the quickest way to change several layers.",
+    "- `place_image` puts a picture you made on the canvas: a `data:image/png`, `jpeg` or `webp` address up to 5 MB, into an Image layer (`id`) or as a new Image (`parent`). Call `working_on` first to show the person where it's coming.",
+    "- Other agents may be on the same canvas. Call `hello` with your name first; a layer another agent is changing is held for a moment.",
     "- The session ends after an hour without a step, or when the person ends it.",
     "",
   ].join("\n");
@@ -78,8 +82,10 @@ Deno.serve(async (req) => {
     key = q.get("k") ?? "";
   } else if (req.method === "POST") {
     const raw = await req.text();
-    if (raw.length > MAX_BODY) return json(413, { error: "That step is too big. Send a smaller edit, or split it." });
+    if (raw.length > MAX_PICTURE) return json(413, { error: "That step is too big. A picture can be up to 5 MB; an edit, 1 MB." });
     try { body = JSON.parse(raw); } catch { return json(400, { error: "Send JSON: { s, k, call: { name, input } }." }); }
+    const name = (body.call as { name?: unknown } | undefined)?.name;
+    if (raw.length > MAX_BODY && name !== "place_image") return json(413, { error: "That step is too big. Send a smaller edit, or split it." });
     sid = String(body.s ?? "");
     key = String(body.k ?? "");
   } else return json(405, { error: "Use GET for how to call, POST for a step." });

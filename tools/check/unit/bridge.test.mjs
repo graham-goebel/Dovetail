@@ -5,7 +5,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { make, emptyDoc } from "../../../assets/builder/model/tree.js";
 import { TOOLS } from "../../../assets/builder/model/agent.js";
-import { agentFrom, allowed, bridgeTools, describeText, isRead, rowsOf, targetsOf } from "../../../assets/builder/model/bridge.js";
+import { PICTURE_MAX, agentFrom, allowed, bridgeTools, describeText, isRead, pictureFrom, rowsOf, targetsOf } from "../../../assets/builder/model/bridge.js";
 import { randomKey, sha256 } from "../../../assets/builder/cloud/bridge.js";
 
 test("a session offers the assistant's tools less those that answer in its panel, plus edit_by_name; a look-only session only the reading ones", () => {
@@ -80,4 +80,31 @@ test("the layers a step means to change, so two agents don't change one at once"
   assert.deepEqual(targetsOf({ name: "edit_by_name", input: { edit: '## Edit\n- "$284,120": size display-2xl' } }, d), [head.id]);
   assert.deepEqual(targetsOf({ name: "read_page", input: {} }, d), []);
   assert.deepEqual(targetsOf({ name: "set_style", input: { ids: ["root"], family: "padding", value: "xl" } }, d), [], "the frame itself is never held");
+});
+
+test("a picture an agent sends is checked before it's opened", () => {
+  const png = "data:image/png;base64,iVBORw0KGgo=";
+  assert.deepEqual(pictureFrom({ image: png, id: "n1", alt: "  A red\n kite " }), { image: png, alt: "A red kite" });
+  assert.equal(pictureFrom({ image: png, parent: "root" }).image, png);
+  assert.match(pictureFrom({ image: png }).why, /id .* or parent/, "it needs somewhere to go");
+  assert.match(pictureFrom({ image: png, id: "n1", parent: "n2" }).why, /one of them/);
+  assert.match(pictureFrom({ image: "https://example.com/a.png", id: "n1" }).why, /aren't fetched/, "no address that would fetch from elsewhere");
+  assert.match(pictureFrom({ image: "data:image/svg+xml;base64,PHN2Zz4=", id: "n1" }).why, /png, jpeg or webp/, "no drawings that could carry script");
+  assert.match(pictureFrom({ image: "data:image/jpeg;base64," + "A".repeat(PICTURE_MAX), id: "n1" }).why, /over 5 MB/);
+  assert.match(pictureFrom({ id: "n1" }).why, /Send image/);
+});
+
+test("pictures and working_on are offered only where changes are, hold their layer and read as rows", () => {
+  assert.ok(bridgeTools(TOOLS, true).some((t) => t.name === "place_image") && bridgeTools(TOOLS, true).some((t) => t.name === "working_on"));
+  assert.ok(!bridgeTools(TOOLS, false).some((t) => t.name === "place_image" || t.name === "working_on"));
+  assert.match(allowed({ name: "place_image" }, { canEdit: false }, bridgeTools(TOOLS, false)), /no tool called place_image/);
+  const d = emptyDoc();
+  const pic = make("Image", {}); pic.name = "Hero picture";
+  d.frames[0].root.children = [pic];
+  assert.deepEqual(targetsOf({ name: "place_image", input: { image: "x", id: pic.id } }, d), [pic.id]);
+  assert.deepEqual(targetsOf({ name: "working_on", input: { id: pic.id, text: "Making a picture" } }, d), [pic.id]);
+  const name = (id) => (id === pic.id ? "Hero picture" : id);
+  assert.deepEqual(rowsOf({ name: "place_image", input: { id: pic.id, alt: "A kite" } }, name, d), [{ icon: "image", title: "Hero picture", detail: "Picture placed: A kite" }]);
+  assert.deepEqual(rowsOf({ name: "place_image", input: { parent: "root" } }, name, d), [{ icon: "image", title: "A new picture", detail: "Added to the page" }]);
+  assert.deepEqual(rowsOf({ name: "working_on", input: { id: pic.id, text: "Making a picture" } }, name, d), [{ icon: "wand", title: "Hero picture", detail: "Making a picture" }]);
 });

@@ -6084,8 +6084,28 @@
     description: "Say who you are, so the person sees your name and mark on your cursor and in the Session panel. name: what to call you (up to 40 characters). mark: optional, a small square picture as a data:image/png, jpeg or webp address, up to 48 KB. Send it once, first.",
     input_schema: { type: "object", properties: { name: { type: "string" }, mark: { type: "string" } }, required: ["name"], additionalProperties: false }
   };
+  var PLACE_IMAGE = {
+    name: "place_image",
+    description: "Put a picture you made on the canvas, kept with the file like an upload (scaled to fit 1600px). image: a data:image/png, jpeg or webp address, up to 5 MB. Send id for a layer that shows pictures (an Image, a Cover, or a Video's poster), or parent (and at, an index) to add a new Image there. alt: what the picture shows, for people who can't see it. To show the person where a picture is coming while you make it, add an <Image> with insert_jsx, call working_on with its id, then place_image into it.",
+    input_schema: { type: "object", properties: { image: { type: "string" }, id: { type: "string" }, parent: { type: "string" }, at: { type: "integer", minimum: 0 }, alt: { type: "string" } }, required: ["image"], additionalProperties: false }
+  };
+  var WORKING_ON = {
+    name: "working_on",
+    description: `Show the person what you're making before it lands: a few words (like "Making a picture") on your cursor at a layer, by id. The layer is held for you until your next step on it, or a minute; other agents wait for it.`,
+    input_schema: { type: "object", properties: { id: { type: "string" }, text: { type: "string" } }, required: ["id", "text"], additionalProperties: false }
+  };
+  var PICTURE_MAX = 7e6;
   function isRead(name) {
     return !!READS[name] || name === "describe" || name === "hello";
+  }
+  function pictureFrom(input) {
+    var image = String(input && input.image || "");
+    var alt = String(input && input.alt || "").replace(/[\u0000-\u001f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
+    if (!image) return { why: "Send image: a data:image/png, jpeg or webp address." };
+    if (image.length > PICTURE_MAX) return { why: "That picture is over 5 MB. Send it smaller: about 1600px across is plenty." };
+    if (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(image)) return { why: "image takes a data:image/png, jpeg or webp address with base64 data. Links to pictures elsewhere aren't fetched." };
+    if (!(input.id || input.parent) || input.id && input.parent) return { why: "Send id (a layer that shows pictures) or parent (to add a new Image), one of them." };
+    return { image, alt };
   }
   function agentFrom(input) {
     var name = String(input && input.name || "").replace(/[\u0000-\u001f]/g, "").replace(/\s+/g, " ").trim().slice(0, 40);
@@ -6131,6 +6151,13 @@
       case "insert_jsx":
         add(input.parent);
         break;
+      case "place_image":
+        add(input.id);
+        add(input.parent);
+        break;
+      case "working_on":
+        add(input.id);
+        break;
       default:
         break;
     }
@@ -6140,7 +6167,7 @@
     var list = tools.filter(function(t) {
       return !LEFT_OUT[t.name] && (canEdit || READS[t.name]);
     });
-    if (canEdit) list = list.concat([EDIT_BY_NAME]);
+    if (canEdit) list = list.concat([EDIT_BY_NAME, PLACE_IMAGE, WORKING_ON]);
     return [HELLO].concat(list);
   }
   function allowed(call, session, tools) {
@@ -6227,6 +6254,10 @@
         return [{ icon: "check", title: "Ran the checks", detail: "" }];
       case "measure":
         return [{ icon: "fit", title: "Measured", detail: who([input.a, input.b]) }];
+      case "place_image":
+        return [{ icon: "image", title: input.id ? who([input.id]) : "A new picture", detail: input.id ? "Picture placed" + (input.alt ? ": " + short4(input.alt, 40) : "") : "Added " + (input.parent && input.parent !== "root" ? "in " + who([input.parent]) : "to the page") }];
+      case "working_on":
+        return [{ icon: "wand", title: who([input.id]), detail: short4(input.text, 60) || "Working on it" }];
       case "describe":
         return [{ icon: "book", title: "Read the brief", detail: "The system's rules and the tools" }];
       case "hello":
@@ -6431,7 +6462,8 @@
     }).then(function(res) {
       id = check(res).id;
       channel = sb.channel("bridge:" + id).on("postgres_changes", { event: "INSERT", schema: "public", table: "bridge_calls", filter: "session_id=eq." + id }, function(m) {
-        handle(m.new);
+        if (m.new && m.new.call && typeof m.new.call.name === "string") handle(m.new);
+        else look();
       });
       channel.subscribe(function(s) {
         if (s === "SUBSCRIBED") look();
@@ -19330,7 +19362,7 @@
       });
     };
     var THUMB_W = 480, THUMB_H = 360;
-    var pictureFrom = function(file) {
+    var pictureFrom2 = function(file) {
       return new Promise(function(resolve2) {
         if (!file || !/^image\//.test(file.type)) {
           resolve2(null);
@@ -19356,7 +19388,7 @@
       });
     };
     var setPicture = function(id, file) {
-      pictureFrom(file).then(function(thumb) {
+      pictureFrom2(file).then(function(thumb) {
         if (!thumb) {
           announce("That file isn't a picture this browser can read.");
           return;
@@ -19571,7 +19603,7 @@
       });
     };
     var setGroupPicture = function(id, file) {
-      pictureFrom(file).then(function(thumb) {
+      pictureFrom2(file).then(function(thumb) {
         if (!thumb) {
           announce("That file isn't a picture this browser can read.");
           return;
@@ -20395,6 +20427,46 @@
       });
       return { ok: true, result: "Done on " + plan.frame.name + ":\n" + said2, changes: [{ ids: touched }] };
     };
+    var bridgePicture = function(input) {
+      var pic = pictureFrom(input);
+      if (pic.why) return { ok: false, result: pic.why };
+      var d = docRef.current, fid = input.parent === "root" ? d.active : frameOfId(input.id || input.parent);
+      var at2 = fid && locate(d, input.id || input.parent, fid);
+      if (!at2) return { ok: false, result: "There's no layer " + (input.id || input.parent) + " on this page." };
+      var prop = input.id ? mediaPropFor(at2.node.type, "image") : null;
+      if (input.id && !prop) return { ok: false, result: nameOf(at2.node) + " doesn't show pictures. Send the id of an Image, a Cover or a Video, or parent to add a new Image." };
+      var bytes;
+      try {
+        bytes = Uint8Array.from(atob(pic.image.slice(pic.image.indexOf(",") + 1)), function(c) {
+          return c.charCodeAt(0);
+        });
+      } catch (err) {
+        return { ok: false, result: "That picture's base64 couldn't be read." };
+      }
+      var type = pic.image.slice(5, pic.image.indexOf(";"));
+      return readForLibrary(new File([bytes], "picture", { type }), "images").then(function(src) {
+        if (input.id) {
+          var hasAlt = (META[at2.node.type].props || []).some(function(p) {
+            return p.name === "alt";
+          }) && prop !== "poster";
+          var ok = change(function(d2) {
+            var a = locate(d2, input.id, fid);
+            if (!a) return null;
+            a.node.props[prop] = src;
+            if (hasAlt && pic.alt) a.node.props.alt = pic.alt;
+            return void 0;
+          });
+          if (!ok) return { ok: false, result: "That layer has gone." };
+          return { ok: true, result: "Placed in " + nameOf(at2.node) + (hasAlt && !pic.alt ? ". Send alt next time: what the picture shows." : "."), changes: [{ ids: [input.id] }] };
+        }
+        if (input.parent !== "root" && !isContainer(at2.node.type)) return { ok: false, result: nameOf(at2.node) + " can't hold layers. Send a container as parent." };
+        var made = toolApi.insert(input.parent, typeof input.at === "number" ? input.at : null, [make("Image", pic.alt ? { src, alt: pic.alt } : { src })]);
+        if (!made.length) return { ok: false, result: "A picture can't go there." };
+        return { ok: true, result: JSON.stringify({ added: made }), changes: [{ ids: made }] };
+      }, function(err) {
+        return { ok: false, result: String(err && err.message || err).replace(/^picture /, "The picture ") };
+      });
+    };
     var heldBy = function(key, ids) {
       var now = Date.now(), holds = bridgeHolds.current, hit = null;
       ids.some(function(id) {
@@ -20442,6 +20514,20 @@
         });
         return { ok: true, result: "Hello, " + who.name + "." + (who.markRefused ? " The mark wasn't shown: send a data:image/png, jpeg or webp address up to 48 KB." : who.mark ? " Your mark is on your cursor." : "") };
       }
+      if (call.name === "working_on") {
+        var wid = call.input && call.input.id, wfid = wid && frameOfId(wid);
+        if (!wfid) return { ok: false, result: "There's no layer " + wid + " on this page." };
+        var wh = heldBy(key, [wid]);
+        if (wh) return { ok: false, result: ((agentOf(wh.key) || {}).name || "Another agent") + " is working on " + bridgeName(wid) + ". Pick another layer, or wait a moment." };
+        var wrows = rowsOf(call, bridgeName, docRef.current);
+        bridgeHolds.current[wid] = { key, until: Date.now() + 6e4, running: false };
+        patchAgent(key, { at: { id: wid, fid: wfid, label: wrows[0].detail } });
+        patchBridge(function(b) {
+          return { steps: [{ id: uid(), key, rows: wrows, ok: true }].concat(b.steps).slice(0, 300) };
+        });
+        setTimeout(remeasure, 60);
+        return { ok: true, result: "The person sees “" + wrows[0].detail + "” at " + bridgeName(wid) + "." };
+      }
       var rows = rowsOf(call, bridgeName, docRef.current);
       var targets = isRead(call.name) ? [] : targetsOf(call, docRef.current);
       var sid = uid();
@@ -20453,7 +20539,7 @@
           var waitRow = waitedFor ? [{ id: uid(), key, rows: [{ icon: "clock", title: bridgeName(waitedFor.id), detail: "Waited for " + ((agentOf(waitedFor.key) || {}).name || "another agent") + " to finish, then went on" }], ok: true }] : [];
           return { steps: [{ id: sid, key, rows, ok: true, running: edits }].concat(waitRow, b.steps).slice(0, 300) };
         });
-        var run = call.name === "describe" ? { ok: true, result: describeText(systemPrompt(), tools2, live) } : call.name === "edit_by_name" ? bridgeEditByName(call.input) : runTool(Object.assign({}, toolApi, { needsPlan: null, selection: function() {
+        var run = call.name === "describe" ? { ok: true, result: describeText(systemPrompt(), tools2, live) } : call.name === "edit_by_name" ? bridgeEditByName(call.input) : call.name === "place_image" ? bridgePicture(call.input || {}) : runTool(Object.assign({}, toolApi, { needsPlan: null, selection: function() {
           return [];
         } }), { name: call.name, input: call.input || {} });
         return Promise.resolve(run).then(function(res) {

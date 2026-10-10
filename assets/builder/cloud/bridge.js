@@ -68,7 +68,11 @@ function startBridge(opts) {
     return sb.from("bridge_sessions").insert({ key_hash: hash, can_edit: !!opts.canEdit, ask_first: !!opts.askFirst, label: String(opts.label || "").slice(0, 120) }).select("id").single();
   }).then(function (res) {
     id = check(res).id;
-    channel = sb.channel("bridge:" + id).on("postgres_changes", { event: "INSERT", schema: "public", table: "bridge_calls", filter: "session_id=eq." + id }, function (m) { handle(m.new); });
+    channel = sb.channel("bridge:" + id).on("postgres_changes", { event: "INSERT", schema: "public", table: "bridge_calls", filter: "session_id=eq." + id }, function (m) {
+      /* A step too big for a Realtime message (a picture) comes without its
+         call: read it from the table instead. */
+      if (m.new && m.new.call && typeof m.new.call.name === "string") handle(m.new); else look();
+    });
     channel.subscribe(function (s) { if (s === "SUBSCRIBED") look(); });
     timer = setInterval(look, POLL_MS);
     return {

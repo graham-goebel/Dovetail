@@ -5,7 +5,7 @@ import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
 import { applyOps, opsOf, planEdit, readEdit } from "../model/nameedit.js";
-import { agentFrom, allowed as bridgeAllowed, bridgeTools, describeText, isRead as bridgeRead, rowsOf as bridgeRows, targetsOf as bridgeTargets } from "../model/bridge.js";
+import { agentFrom, pictureFrom as agentPicture, allowed as bridgeAllowed, bridgeTools, describeText, isRead as bridgeRead, rowsOf as bridgeRows, targetsOf as bridgeTargets } from "../model/bridge.js";
 import { startBridge } from "../cloud/bridge.js";
 import { BridgeDialog, BridgePill, SessionPanel } from "./Bridge.js";
 import { mergeUsage, usageOf, usesToken } from "../model/usage.js";
@@ -4950,6 +4950,32 @@ function App(props) {
     change(function (d) { touched = applyOps(d, plan.frame.id, ops); return touched.length ? undefined : null; });
     return { ok: true, result: "Done on " + plan.frame.name + ":\n" + said, changes: [{ ids: touched }] };
   };
+  /* A picture an agent made: opened and scaled like an upload, then put in
+     a layer that shows pictures or added as a new Image. */
+  var bridgePicture = function (input) {
+    var pic = agentPicture(input);
+    if (pic.why) return { ok: false, result: pic.why };
+    var d = docRef.current, fid = input.parent === "root" ? d.active : frameOfId(input.id || input.parent);
+    var at = fid && locate(d, input.id || input.parent, fid);
+    if (!at) return { ok: false, result: "There's no layer " + (input.id || input.parent) + " on this page." };
+    var prop = input.id ? mediaPropFor(at.node.type, "image") : null;
+    if (input.id && !prop) return { ok: false, result: nameOf(at.node) + " doesn't show pictures. Send the id of an Image, a Cover or a Video, or parent to add a new Image." };
+    var bytes;
+    try { bytes = Uint8Array.from(atob(pic.image.slice(pic.image.indexOf(",") + 1)), function (c) { return c.charCodeAt(0); }); } catch (err) { return { ok: false, result: "That picture's base64 couldn't be read." }; }
+    var type = pic.image.slice(5, pic.image.indexOf(";"));
+    return readForLibrary(new File([bytes], "picture", { type: type }), "images").then(function (src) {
+      if (input.id) {
+        var hasAlt = (META[at.node.type].props || []).some(function (p) { return p.name === "alt"; }) && prop !== "poster";
+        var ok = change(function (d2) { var a = locate(d2, input.id, fid); if (!a) return null; a.node.props[prop] = src; if (hasAlt && pic.alt) a.node.props.alt = pic.alt; return undefined; });
+        if (!ok) return { ok: false, result: "That layer has gone." };
+        return { ok: true, result: "Placed in " + nameOf(at.node) + (hasAlt && !pic.alt ? ". Send alt next time: what the picture shows." : "."), changes: [{ ids: [input.id] }] };
+      }
+      if (input.parent !== "root" && !isContainer(at.node.type)) return { ok: false, result: nameOf(at.node) + " can't hold layers. Send a container as parent." };
+      var made = toolApi.insert(input.parent, typeof input.at === "number" ? input.at : null, [make("Image", pic.alt ? { src: src, alt: pic.alt } : { src: src })]);
+      if (!made.length) return { ok: false, result: "A picture can't go there." };
+      return { ok: true, result: JSON.stringify({ added: made }), changes: [{ ids: made }] };
+    }, function (err) { return { ok: false, result: String((err && err.message) || err).replace(/^picture /, "The picture ") }; });
+  };
   /* Who else holds any of these layers right now: { key, id } or null. */
   var heldBy = function (key, ids) {
     var now = Date.now(), holds = bridgeHolds.current, hit = null;
@@ -4987,6 +5013,18 @@ function App(props) {
       patchBridge(function (b) { return { steps: [{ id: uid(), key: key, rows: [{ icon: "user", title: "Said hello", detail: "As " + who.name }], ok: true }].concat(b.steps).slice(0, 300) }; });
       return { ok: true, result: "Hello, " + who.name + "." + (who.markRefused ? " The mark wasn't shown: send a data:image/png, jpeg or webp address up to 48 KB." : who.mark ? " Your mark is on your cursor." : "") };
     }
+    if (call.name === "working_on") {
+      var wid = call.input && call.input.id, wfid = wid && frameOfId(wid);
+      if (!wfid) return { ok: false, result: "There's no layer " + wid + " on this page." };
+      var wh = heldBy(key, [wid]);
+      if (wh) return { ok: false, result: ((agentOf(wh.key) || {}).name || "Another agent") + " is working on " + bridgeName(wid) + ". Pick another layer, or wait a moment." };
+      var wrows = bridgeRows(call, bridgeName, docRef.current);
+      bridgeHolds.current[wid] = { key: key, until: Date.now() + 60000, running: false };
+      patchAgent(key, { at: { id: wid, fid: wfid, label: wrows[0].detail } });
+      patchBridge(function (b) { return { steps: [{ id: uid(), key: key, rows: wrows, ok: true }].concat(b.steps).slice(0, 300) }; });
+      setTimeout(remeasure, 60);
+      return { ok: true, result: "The person sees “" + wrows[0].detail + "” at " + bridgeName(wid) + "." };
+    }
     var rows = bridgeRows(call, bridgeName, docRef.current);
     var targets = bridgeRead(call.name) ? [] : bridgeTargets(call, docRef.current);
     var sid = uid();
@@ -5000,6 +5038,7 @@ function App(props) {
       });
       var run = call.name === "describe" ? { ok: true, result: describeText(systemPrompt(), tools, live) }
         : call.name === "edit_by_name" ? bridgeEditByName(call.input)
+        : call.name === "place_image" ? bridgePicture(call.input || {})
         : runTool(Object.assign({}, toolApi, { needsPlan: null, selection: function () { return []; } }), { name: call.name, input: call.input || {} });
       return Promise.resolve(run).then(function (res) {
         var diff = docRef.current !== before ? diffDocs(before, docRef.current) : null;
