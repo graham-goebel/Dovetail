@@ -156,6 +156,8 @@ const PAGE = `<!doctype html>
 <div id="store-checkout-root"></div>
 <div id="carousel-root"></div>
 <div id="split-root" style="width:1100px"></div>
+<style>#pgrid-root ul { justify-items: start; }</style>
+<div id="pgrid-root" style="width:1100px"></div>
 <div id="menu-root"></div>
 <div id="voice-root"></div>
 <div style="height:3000px"></div>
@@ -452,6 +454,16 @@ const h = React.createElement;
 createRoot(document.getElementById("split-root")).render(h(SplitBlock, { title: "Four steps", media: h("div", { style: { height: 200, background: "var(--dt-surface-raised)" } }),
   points: ["Add components from Assets in the left rail", "Select any layer and double-click text to edit it", "Ok"] }));
 window.__splitReady = true;
+</script>
+<script type="module">
+/* ProductGridBlock in a grid that doesn't stretch its items (the style above),
+   as some browsers sized them: the cards still fill their columns. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { ProductGridBlock } from "@dovetail-ds/react";
+createRoot(document.getElementById("pgrid-root")).render(React.createElement(ProductGridBlock, { title: "New in", columns: 3,
+  products: [{ name: "Fern mug", price: 24 }, { name: "Tide bowl", price: 18 }, { name: "Clay jug", price: 32, compareAt: 48 }] }));
+window.__pgridReady = true;
 </script>
 <script type="module">
 /* MenuSheet: opened from a button, with a list layer, a filter layer and search. */
@@ -1215,6 +1227,17 @@ try {
     }));
     expect(rows.every((x) => Math.abs(x.row - x.text) <= 1 && x.width > 200), `each point's text reaches the end of its row, short ones too, got ${JSON.stringify(rows)}`);
     ok("each point's text fills the rest of its row, so it never collapses to one word a line");
+  });
+
+  await step("ProductGridBlock: each card fills its column, even where the grid doesn't stretch it", async () => {
+    await page.waitForFunction(() => window.__pgridReady === true && document.querySelectorAll("#pgrid-root li").length === 3);
+    const got = await page.evaluate(() => {
+      const ul = document.querySelector("#pgrid-root ul");
+      const cols = getComputedStyle(ul).gridTemplateColumns.split(" ").map(parseFloat);
+      return [...ul.children].map((li, i) => ({ card: Math.round(li.getBoundingClientRect().width), col: Math.round(cols[i]) }));
+    });
+    expect(got.every((x) => Math.abs(x.card - x.col) <= 1 && x.card > 200), `each card is as wide as its column, got ${JSON.stringify(got)}`);
+    ok("each product card fills its column, so it never shrinks to a sliver narrower than its price");
   });
 
   await step("Carousel: named slides, only the focused one live, keyboard and buttons move it, pause holds it", async () => {
