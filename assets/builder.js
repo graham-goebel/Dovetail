@@ -15093,6 +15093,16 @@
     pageRef.current = pageId;
     var histories = useRef({});
     var docRef = useRef(doc2);
+    var openCarousels = (function() {
+      var ids = [];
+      selection.forEach(function(id) {
+        var at2 = locate(doc2, id);
+        (at2 ? at2.path : []).forEach(function(n) {
+          if (n.type === "Carousel" && ids.indexOf(n.id) < 0) ids.push(n.id);
+        });
+      });
+      return ids.join(" ");
+    })();
     var selRef = useRef(selection);
     var camRef = useRef(camera.get());
     var camSetRef = useRef(false);
@@ -18501,10 +18511,11 @@
         if (!a) return;
         any = any || a;
         var last = rendered.current[f.id];
-        if (last && last.frame === f && last.preview === preview) return;
-        rendered.current[f.id] = { frame: f, preview };
+        var open = f.id === doc2.active ? openCarousels : "";
+        if (last && last.frame === f && last.preview === preview && last.open === open) return;
+        rendered.current[f.id] = { frame: f, preview, open };
         grows.current[f.id] = 0;
-        a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale, pageWidth: f.pageWidth, gutter: f.gutter, flow: f.flow, clip: f.clip, scroll: f.scroll }, root: f.root }, { preview, hug: f.hug || !!f.bare, bare: !!f.bare, sized: !!(f.bare && f.sized), screen: f.bare ? null : { w: f.width, h: f.height } });
+        a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale, pageWidth: f.pageWidth, gutter: f.gutter, flow: f.flow, clip: f.clip, scroll: f.scroll }, root: f.root }, { preview, hug: f.hug || !!f.bare, bare: !!f.bare, sized: !!(f.bare && f.sized), screen: f.bare ? null : { w: f.width, h: f.height }, open: open ? open.split(" ") : [] });
       });
       if (any && !placeable) {
         var ok = {}, sc = {}, det = {};
@@ -18517,7 +18528,7 @@
         setScalars(sc);
         setDetachable(det);
       }
-    }, [ready, doc2, preview]);
+    }, [ready, doc2, preview, openCarousels]);
     useEffect(function() {
       var a = api(doc2.active);
       if (!a || !a.measure) return;

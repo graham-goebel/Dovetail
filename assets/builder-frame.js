@@ -528,10 +528,13 @@
         e("div", { className: node.style && node.style.dark ? "dark" : undefined, style: isLine ? lineStyle(node) : shapeStyle(node), role: "presentation" },
           isLine ? [e("span", { key: "hit", className: "bf-line-hit", "aria-hidden": true })].concat(capParts(node).map(capElement)) : null));
     }
-    if (node.type === "Carousel" && !opts.preview) return carouselBoard(node);
+    /* A Carousel being edited lies flat; otherwise it's drawn as it will
+       look, held still at its first item, and moves only in Play. */
+    if (node.type === "Carousel" && !opts.preview && (opts.open || []).indexOf(node.id) >= 0) return carouselBoard(node);
     var Comp = NS[node.type];
     if (!Comp) return e("div", { key: node.id, className: "bf-error", "data-bf-id": node.id }, "Unknown component " + node.type);
     var p = propsOf(node);
+    if (node.type === "Carousel" && !opts.preview) { p.paused = true; p.entrance = false; }
     /* Its slots, rendered into the props they stand for. */
     slotsOf(node).forEach(function (sl) {
       index[sl.id] = { node: sl, parent: node.id };
@@ -690,7 +693,8 @@
     if (!entry) return null;
     var w = wrapper(id);
     if (!w) return null;
-    if (entry.node.type === "Carousel" && !opts.preview) return w.querySelector('[data-bf-items="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
+    var board = entry.node.type === "Carousel" && !opts.preview ? w.querySelector('[data-bf-items="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]') : null;
+    if (board) return board;
     var kids0 = entry.node.type === "Slot" ? entry.node.children || [] : flowOf(entry.node);
     var first = kids0.length ? wrapper(kids0[0].id) : w.querySelector('[data-bf-slot="' + id + '"]');
     if (!first) return null;

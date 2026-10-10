@@ -315,6 +315,17 @@ function App(props) {
      from a frame, and copying would put the older document back under the
      next edit. */
   var docRef = useRef(doc);
+  /* The Carousels laid flat for editing: those selected or holding the
+     selection, as ids joined by spaces. The rest are drawn as they'll look,
+     held still at their first item. */
+  var openCarousels = (function () {
+    var ids = [];
+    selection.forEach(function (id) {
+      var at = locate(doc, id);
+      (at ? at.path : []).forEach(function (n) { if (n.type === "Carousel" && ids.indexOf(n.id) < 0) ids.push(n.id); });
+    });
+    return ids.join(" ");
+  })();
   var selRef = useRef(selection);
   var camRef = useRef(camera.get());
   /* Whether the camera has been placed yet: the first fit waits on the stage's size. */
@@ -2915,10 +2926,11 @@ function App(props) {
          comparing identity costs nothing, where serialising the frame cost
          its whole size on every edit. */
       var last = rendered.current[f.id];
-      if (last && last.frame === f && last.preview === preview) return;
-      rendered.current[f.id] = { frame: f, preview: preview };
+      var open = f.id === doc.active ? openCarousels : "";
+      if (last && last.frame === f && last.preview === preview && last.open === open) return;
+      rendered.current[f.id] = { frame: f, preview: preview, open: open };
       grows.current[f.id] = 0;
-      a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale, pageWidth: f.pageWidth, gutter: f.gutter, flow: f.flow, clip: f.clip, scroll: f.scroll }, root: f.root }, { preview: preview, hug: f.hug || !!f.bare, bare: !!f.bare, sized: !!(f.bare && f.sized), screen: f.bare ? null : { w: f.width, h: f.height } });
+      a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale, pageWidth: f.pageWidth, gutter: f.gutter, flow: f.flow, clip: f.clip, scroll: f.scroll }, root: f.root }, { preview: preview, hug: f.hug || !!f.bare, bare: !!f.bare, sized: !!(f.bare && f.sized), screen: f.bare ? null : { w: f.width, h: f.height }, open: open ? open.split(" ") : [] });
     });
     if (any && !placeable) {
       var ok = {}, sc = {}, det = {};
@@ -2927,7 +2939,7 @@ function App(props) {
       setScalars(sc);
       setDetachable(det);
     }
-  }, [ready, doc, preview]);
+  }, [ready, doc, preview, openCarousels]);
 
   /* Every token option's size in pixels, measured in the active frame, so
      the inspector can say "48 control-lg" rather than a name alone. Measured
