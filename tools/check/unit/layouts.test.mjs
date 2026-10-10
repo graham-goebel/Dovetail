@@ -87,3 +87,25 @@ test("insert_layout runs in a batch, and the brief points at the library", () =>
   assert.deepEqual(doc.frames[0].root.children.slice(-2).map((n) => n.type), ["FeatureGridBlock", "FaqBlock"]);
   assert.match(systemPrompt(), /search_layouts/);
 });
+
+test("find_images lists Content uploads as content: pictures, which the edit tools swap for the upload", () => {
+  const { doc, band, api } = harness();
+  api.library = () => ({ images: [{ id: "up1", name: "Fern mug on a table", src: "data:image/png;base64,FERN" }, { id: "up2", name: "Studio", src: "data:image/png;base64,STU" }], illustrations: [{ id: "il1", name: "Kiln", src: "data:image/svg+xml;base64,K" }] });
+  const found = runTool(api, { name: "find_images", input: { query: "mug" } });
+  assert.ok(found.ok && /content:up1/.test(found.result) && !/content:up2/.test(found.result), found.result);
+  const all = runTool(api, { name: "find_images", input: { query: "zebra" } });
+  assert.match(all.result, /Nothing in Content is named for "zebra"/);
+  assert.match(all.result, /content:il1 · illustrations/);
+  const r = runTool(api, { name: "insert_layout", input: { id: "split-points", content: { image: "content:up1", imageAlt: "A fern mug" } } });
+  assert.ok(r.ok, r.result);
+  const split = doc.frames[0].root.children.at(-1);
+  assert.ok(JSON.stringify(split).includes("data:image/png;base64,FERN") && !JSON.stringify(split).includes("content:up1"), "the layout's picture is the upload itself");
+  assert.equal(runTool(api, { name: "insert_jsx", input: { jsx: '<Image src="content:nope" alt="x" />' } }).ok, false, "an unknown upload is refused");
+  const img = make("Image", { alt: "" });
+  band.children.push(img);
+  api.setProp = (ids, name, value) => { ids.forEach((id) => { locate(doc, id).node.props[name] = value; }); return true; };
+  const set = runTool(api, { name: "set_prop", input: { ids: [img.id], name: "src", value: "content:up2" } });
+  assert.ok(set.ok && img.props.src === "data:image/png;base64,STU" && set.change.value === "a Content upload", JSON.stringify(set));
+  const none = runTool({ doc: () => doc, library: () => ({}) }, { name: "find_images", input: {} });
+  assert.match(none.result, /no images or illustrations in Content yet/);
+});
