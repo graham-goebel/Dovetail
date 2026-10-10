@@ -22770,7 +22770,9 @@
             options: [{ value: "free", label: "Freeform" }, { value: "structured", label: "Structured" }]
           })
         )),
-        frame2.typeScale === "social" ? frameRatio() : null
+        frame2.typeScale === "social" ? frameRatio() : null,
+        /* How the frame lays out what's in it comes before how it looks. */
+        frameAuto()
       ].concat(look, [
         sec("frame-flow", "Page layout", [
           e(
@@ -22847,7 +22849,6 @@
             )
           )
         ]),
-        frameAuto(),
         frameOverflow()
       ]);
       return e(
@@ -23147,15 +23148,14 @@
         return isFree(n.style);
       });
       var body = [
-        contentRows.length ? sec("content", "Content", contentRows, null, propsSet(nodes, propNames("content"))) : null,
-        styleRows.length ? sec("props-style", "Style", styleRows, null, propsSet(nodes, propNames("appearance"))) : null,
-        arrange2 ? sec("props-arrange", "Arrangement", arrange2, null, propsSet(nodes, propNames("layout"))) : null,
-        meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
         sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "z", "x", "y"].concat(placedFree ? ["fw", "fh", "rw", "rh", "rot"] : []))),
-        sec("size", "Size", placedFree ? [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes, "mins")] : [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, placedFree ? ["minW", "h", "textWrap"] : ["w", "minW", "height", "h", "self", "textWrap", "fw", "fh", "rw", "rh"]))
-      ].concat(lookSections(nodes, null), [
-        sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS))
-      ]);
+        sec("size", "Size", placedFree ? [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes, "mins")] : [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, placedFree ? ["minW", "h", "textWrap"] : ["w", "minW", "height", "h", "self", "textWrap", "fw", "fh", "rw", "rh"])),
+        meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
+        arrange2 ? sec("props-arrange", "Arrangement", arrange2, null, propsSet(nodes, propNames("layout"))) : null,
+        sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
+        contentRows.length ? sec("content", "Content", contentRows, null, propsSet(nodes, propNames("content"))) : null,
+        styleRows.length ? sec("props-style", "Style", styleRows, null, propsSet(nodes, propNames("appearance"))) : null
+      ].concat(lookSections(nodes, null));
       var title = many ? nodes.length + " " + (sameType ? first.type + (first.type.endsWith("s") ? "" : "s") : "items") : null;
       var arrangeTools = arrangeRow(nodes);
       return e(
