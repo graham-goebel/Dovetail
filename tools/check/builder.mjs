@@ -1808,6 +1808,21 @@ try {
     await pg.page.close();
   });
 
+  await step("frame_spec hands over a frame as a spec with its code, written by the canvas as Export writes it", async () => {
+    const pg = await open({ width: 1440, height: 900 }, { hash: "#jsx=" + Buffer.from('<Section tone="brand"><Stack gap="md"><Heading size="display-md">Fired by hand</Heading><Button variant="secondary">Shop</Button></Stack></Section>').toString("base64url") });
+    await pg.page.waitForFunction(() => window.__builder.doc().frames.some((f) => JSON.stringify(f.root).includes("Fired by hand")));
+    await pg.page.waitForFunction(() => { const f = document.querySelector("iframe.bd-frame.is-active"); return f && f.contentDocument && f.contentDocument.querySelector('[data-bf-type="Heading"]'); });
+    const r = await pg.page.evaluate(() => window.__builder.tool({ name: "frame_spec", input: {} }));
+    expect(r.ok, `frame_spec answers, got ${JSON.stringify(r).slice(0, 200)}`);
+    expect(/## Components[\s\S]*Button ×1: variant secondary/.test(r.result) && /Section ×1: tone brand/.test(r.result), `it names the components and their variants, got ${r.result.slice(0, 400)}`);
+    expect(/## Code\n```jsx\n[\s\S]*<Section[\s\S]*tone="brand"[\s\S]*<Button[\s\S]*variant="secondary"/.test(r.result), `its code is the frame as React with Dovetail components, got ${(r.result.split("## Code")[1] || "").slice(0, 400)}`);
+    const sectionId = await pg.page.evaluate(() => { const d = window.__builder.doc(); let id = null; d.frames.forEach((f) => (f.root.children || []).forEach((c) => { if (c.type === "Section" && JSON.stringify(c).includes("Fired")) id = c.id; })); return id; });
+    const one = await pg.page.evaluate((id) => window.__builder.tool({ name: "frame_spec", input: { id } }), sectionId);
+    expect(one.ok && /## Code/.test(one.result) && /Heading ×1/.test(one.result), `one layer's spec and code, got ${one.result.slice(0, 200)}`);
+    ok("frame_spec writes the components, variants, tokens, layers and code of a frame, or of one layer");
+    await pg.page.close();
+  });
+
   await step("The assistant reuses what the file has: a template into the frame or as its own, and the file's own components as linked instances", async () => {
     const pg = await open({ width: 1440, height: 900 }, { hash: "#jsx=" + Buffer.from('<Section><Stack gap="md"><Heading>Kiln tour</Heading><Text>Saturdays at ten.</Text></Stack></Section>').toString("base64url") });
     await pg.page.waitForFunction(() => window.__builder.doc().frames.some((f) => JSON.stringify(f.root).includes("Kiln tour")));

@@ -21,7 +21,7 @@ import { Content } from "./Content.js";
 import { ContextPanel } from "./ContextPanel.js";
 import { addLesson, cleanItem, contextFor, contextText } from "../model/context.js";
 import { AssistantPanel } from "./AssistantPanel.js";
-import { practiceScript, runTool, systemPrompt, toolsFor } from "../model/agent.js";
+import { plainGuide, practiceScript, runTool, systemPrompt, toolsFor } from "../model/agent.js";
 import { checksFrom, checksText, lintFrame } from "../model/lint.js";
 import { editsText, recentEdits } from "../model/recent.js";
 import { metaOf } from "../model/threads.js";
@@ -822,9 +822,7 @@ function App(props) {
   var guidelineText = function (g) {
     var c = guideCache.current;
     if (!c[g.id]) c[g.id] = fetch("system/guidelines/" + g.file).then(function (r) { if (!r.ok) throw new Error("missing"); return r.text(); }).then(function (t) {
-      if (/\.md$/.test(g.file)) return t;
-      return t.replace(/<!--[\s\S]*?-->/g, " ").replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ").replace(/<[^>]+>/g, " ")
-        .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#39;|&rsquo;/g, "'").replace(/&quot;|&ldquo;|&rdquo;/g, '"').replace(/\s+/g, " ").trim();
+      return plainGuide(g.file, t);
     }).catch(function (err) { delete c[g.id]; throw err; });
     return c[g.id];
   };
@@ -909,6 +907,13 @@ function App(props) {
     },
     rename: function (id, name) { return change(function (d) { var at = locate(d, id); if (!at || at.node.name === name) return null; at.node.name = name; return undefined; }); },
     createFrame: function (opts) { return frameOps.add(null, false, null, opts); },
+    /* A frame's code (or one layer's), as the Export dialog writes it. */
+    frameCode: function (fid, id) {
+      var d = docRef.current, fr = frameById(d, fid) || active(d);
+      var at = id ? locate(d, id, fr.id) : null;
+      var got = codeOf(fr, at ? (at.node.type === "Slot" ? at.node.children : [at.node]) : null);
+      return got ? got.code : null;
+    },
     /* A rule the person taught it, kept in a Lessons doc in the file's (or
        the project's) context: { added, count, lesson, scope } or { error }. */
     remember: function (lesson, scope) {
@@ -4274,32 +4279,35 @@ function App(props) {
     pages.forEach(function (pg, i) { files[pg.id] = "./" + pageFile(pg, i); });
     return JSON.parse(JSON.stringify(tree), function (k, v) { var m = typeof v === "string" ? PAGE_LINK.exec(v) : null; return m ? files[m[1]] : v; });
   };
-  var openCode = function () {
+  /* A frame's code, or some of its layers' (parts): { code, leftOut }, or
+     null when no frame is drawn to write it. Instances of My components
+     become calls, with the components above. */
+  var codeOf = function (fr, parts) {
     var f = api();
-    if (!f) return;
+    if (!f) return null;
+    var withComps = function (roots) {
+      var got = codeWithComponents(roots, libRef.current);
+      return { leftOut: got.leftOut, roots: withPageLinks(got.roots), opts: { components: got.components.map(function (c) { return Object.assign({}, c, { node: withPageLinks(c.node) }); }) } };
+    };
+    if (parts && parts.length && f.jsxNodes) {
+      var gotParts = withComps(parts);
+      return { leftOut: gotParts.leftOut, code: f.jsxNodes(gotParts.roots, parts.length === 1 ? (parts[0].name || parts[0].type) : fr.name + " parts", gotParts.opts) };
+    }
+    var gotFrame = withComps([fr.root]);
+    return { leftOut: gotFrame.leftOut, code: f.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: gotFrame.roots[0] }, fr.name, gotFrame.opts) };
+  };
+  var openCode = function () {
     var d = docRef.current;
     var fr = active(d);
     var picked = selRef.current.map(function (id) { return locate(d, id); }).filter(Boolean).map(function (a) { return a.node; });
     var parts = [];
     picked.forEach(function (n) { if (n.type === "Slot") parts = parts.concat(n.children); else parts.push(n); });
-    /* Instances of My components become calls, with the components above. */
-    var withComps = function (roots) {
-      var got = codeWithComponents(roots, libRef.current);
-      setCodeNotes(got.leftOut);
-      return { roots: withPageLinks(got.roots), opts: { components: got.components.map(function (c) { return Object.assign({}, c, { node: withPageLinks(c.node) }); }) } };
-    };
-    if (parts.length && f.jsxNodes) {
-      var title = parts.length === 1 ? nameOf(parts[0]) : parts.length + " layers";
-      setCodeTitle(title);
-      setCodePick(parts.length === 1 ? parts[0].id : null);
-      var gotParts = withComps(parts);
-      setCode(f.jsxNodes(gotParts.roots, parts.length === 1 ? (parts[0].name || parts[0].type) : fr.name + " parts", gotParts.opts));
-    } else {
-      setCodeTitle(fr.name);
-      setCodePick(null);
-      var gotFrame = withComps([fr.root]);
-      setCode(f.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: gotFrame.roots[0] }, fr.name, gotFrame.opts));
-    }
+    var got = codeOf(fr, parts);
+    if (!got) return;
+    setCodeNotes(got.leftOut);
+    setCodeTitle(parts.length ? (parts.length === 1 ? nameOf(parts[0]) : parts.length + " layers") : fr.name);
+    setCodePick(parts.length === 1 ? parts[0].id : null);
+    setCode(got.code);
     var dlg = dialogRef.current;
     if (dlg && dlg.showModal) dlg.showModal();
   };

@@ -5602,6 +5602,98 @@
     return { lines, alike };
   }
 
+  // assets/builder/model/spec.js
+  var SKIP = { Root: 1, Slot: 1 };
+  function styleTokens(key, value2) {
+    var fam = DATA.tokens[key] || DATA.tokens[key.replace(/(Top|Right|Bottom|Left|TopLeft|TopRight|BottomLeft|BottomRight)$/, "")];
+    if (!fam || value2 == null || value2 === "") return [];
+    var o = (fam.options || []).filter(function(x) {
+      return x.value === value2;
+    })[0];
+    return o ? o.tokens || [] : [];
+  }
+  function specOf(frame2, library) {
+    var comps = {}, toks = {}, own = {}, layers2 = 0;
+    var names = {};
+    (library && library.components || []).forEach(function(c) {
+      names[c.id] = c.name;
+    });
+    (function walk2(n) {
+      (n.children || []).forEach(function(c) {
+        if (!SKIP[c.type]) {
+          layers2++;
+          var rec = comps[c.type] || (comps[c.type] = { type: c.type, count: 0, variants: {} });
+          rec.count++;
+          var specs = META[c.type] && META[c.type].props || [];
+          specs.forEach(function(sp) {
+            var v = c.props && c.props[sp.name];
+            if (sp.kind !== "enum" || v == null || v === "" || v === sp.default) return;
+            var list2 = rec.variants[sp.name] || (rec.variants[sp.name] = []);
+            if (list2.indexOf(String(v)) < 0) list2.push(String(v));
+          });
+          Object.keys(c.style || {}).forEach(function(k) {
+            styleTokens(k, c.style[k]).forEach(function(t) {
+              var fams = toks[t] || (toks[t] = []);
+              var fam = k.replace(/(Top|Right|Bottom|Left|TopLeft|TopRight|BottomLeft|BottomRight)$/, "");
+              if (fams.indexOf(fam) < 0) fams.push(fam);
+            });
+          });
+          if (c.type === "Group" && c.props && c.props.gap && c.props.gap !== "none") {
+            var gt = "--dt-space-" + (c.props.direction === "row" ? "inline" : "stack") + "-" + c.props.gap;
+            var gf = toks[gt] || (toks[gt] = []);
+            if (gf.indexOf("gap") < 0) gf.push("gap");
+          }
+          if (c.inst && c.inst.of) {
+            var nm = names[c.inst.of] || c.name || "A component";
+            own[nm] = (own[nm] || 0) + 1;
+          }
+        }
+        walk2(c);
+      });
+    })(frame2.root || { children: [] });
+    return {
+      name: frame2.name,
+      mode: frame2.mode || "free",
+      width: frame2.width,
+      dark: !!frame2.dark,
+      layers: layers2,
+      components: Object.keys(comps).sort().map(function(k) {
+        return comps[k];
+      }),
+      tokens: Object.keys(toks).sort().map(function(t) {
+        return { token: t, families: toks[t] };
+      }),
+      own: Object.keys(own).sort().map(function(k) {
+        return { name: k, count: own[k] };
+      })
+    };
+  }
+  function specText(spec, outlineText, code) {
+    var out = ["# " + spec.name, "", spec.mode + " frame, " + spec.width + " wide" + (spec.dark ? ", dark" : "") + ", " + spec.layers + (spec.layers === 1 ? " layer" : " layers") + ". Built only from Dovetail components and tokens: use them as they are, and don't swap in raw values."];
+    out.push("", "## Components");
+    if (!spec.components.length) out.push("None yet.");
+    spec.components.forEach(function(c) {
+      var vs = Object.keys(c.variants).map(function(k) {
+        return k + " " + c.variants[k].join("/");
+      });
+      out.push("- " + c.type + " ×" + c.count + (vs.length ? ": " + vs.join(", ") : ""));
+    });
+    if (spec.own.length) {
+      out.push("", "## The file's own components", "Each is written once as a function and called where it's used.");
+      spec.own.forEach(function(o) {
+        out.push("- " + o.name + " ×" + o.count);
+      });
+    }
+    out.push("", "## Tokens");
+    if (!spec.tokens.length) out.push("Only the components' own defaults.");
+    spec.tokens.forEach(function(t) {
+      out.push("- " + t.token + " (" + t.families.join(", ") + ")");
+    });
+    if (outlineText) out.push("", "## Layers", "```", outlineText, "```");
+    if (code) out.push("", "## Code", "```jsx", code, "```");
+    return out.join("\n");
+  }
+
   // assets/builder/model/instances.js
   var FLAGS = ["name", "hide", "lock"];
   function same3(a, b) {
@@ -5797,6 +5889,7 @@
     { name: "insert_instance", description: "Put down one of the file's own components (an id from list_components) as a linked instance: when the component is updated, the instance follows. Into a container at an index, after the selection when parent is omitted, or in place of a layer with replace. Change its text with set_text like any layer.", input_schema: { type: "object", properties: { id: { type: "string" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 }, replace: { type: "string" } }, required: ["id"], additionalProperties: false } },
     { name: "make_component", description: "Turn a layer into one of the file's own components, named, so it can be reused with insert_instance. The layer becomes its first instance. It must be built on the system's tokens, with no custom colours and nothing placed by position inside it. Do it when the person asks, or when a part repeats on the page and they agree.", input_schema: { type: "object", properties: { id: { type: "string" }, name: { type: "string" } }, required: ["id", "name"], additionalProperties: false } },
     { name: "remember", description: `Keep a rule the person taught you, so every later conversation on this file follows it: one short line in their words, like "Never use brand fills on cards" or "Headlines are sentence case". It goes in a Lessons doc in the file's context (scope project to keep it for every file in the project), which they can edit in the Context panel. Use it when they correct you or state how things should always or never be, not for a one-off request.`, input_schema: { type: "object", properties: { lesson: { type: "string" }, scope: { type: "string", enum: ["file", "project"] } }, required: ["lesson"], additionalProperties: false } },
+    { name: "frame_spec", description: "A frame (the one you're in unless frame names another) as a spec to build from elsewhere: the components it uses and the variants each is set to, the design tokens behind its styles, the file's own components in it, its layers, and its code as React with Dovetail components. Give id for one layer and what's in it. Use it when the person asks for the code, a spec, or a handoff.", input_schema: { type: "object", properties: { frame: { type: "string" }, id: { type: "string" } }, additionalProperties: false } },
     { name: "set_text", description: "Set a layer's text: a heading's or a paragraph's words, a button's label, a card's title.", input_schema: { type: "object", properties: { id: { type: "string" }, text: { type: "string" } }, required: ["id", "text"], additionalProperties: false } },
     { name: "move", description: "Move layers into a container, at an index (the end when omitted), in the order given.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["ids", "parent"], additionalProperties: false } },
     { name: "wrap", description: "Put a layer inside a new container of the given type, or several sibling layers inside one Group.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, type: { type: "string", enum: WRAPS } }, required: ["ids"], additionalProperties: false } },
@@ -5893,6 +5986,10 @@
     });
     if (left) out.push("… and " + left + " more layers. Read one frame at a time with frame.");
     return out.join("\n");
+  }
+  function plainGuide(file, text2) {
+    if (/\.md$/.test(file)) return String(text2 || "");
+    return String(text2 || "").replace(/<!--[\s\S]*?-->/g, " ").replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#39;|&rsquo;/g, "'").replace(/&quot;|&ldquo;|&rdquo;/g, '"').replace(/\s+/g, " ").trim();
   }
   var brief = null;
   var SIDES = /^(padding|margin|border|radius)(Top|Right|Bottom|Left|TopLeft|TopRight|BottomLeft|BottomRight)$/;
@@ -6434,6 +6531,36 @@
         var madeC = api.makeComponent(input.id, cname);
         if (!madeC || madeC.error) return fail(madeC && madeC.error || "It couldn't be made a component.");
         return { ok: true, result: JSON.stringify({ component: madeC.id, name: madeC.name, tokens: madeC.tokens }) + " It's in My components, and " + nameOf3(input.id) + " is its first instance.", change: { ids: [input.id], label: "Component", value: madeC.name, on: "from " + nameOf3(input.id) } };
+      }
+      case "frame_spec": {
+        var sf = input.frame ? (doc2.frames || []).filter(function(x) {
+          return x.id === input.frame;
+        })[0] : (doc2.frames || []).filter(function(x) {
+          return x.id === doc2.active;
+        })[0] || (doc2.frames || [])[0];
+        if (!sf) return fail("There's no frame " + input.frame + " on this page.");
+        var part = null;
+        if (input.id) {
+          var pat = locate(doc2, input.id, sf.id);
+          if (!pat || input.id === "root") return fail("There's no layer " + input.id + " in " + sf.name + ".");
+          part = pat.node;
+        }
+        var target2 = part ? { name: layerName(part), mode: sf.mode, width: sf.width, dark: sf.dark, root: { children: [part] } } : sf;
+        var spec = specOf(target2, api.library ? api.library() : null);
+        var lines = part ? [line(part, 0)].concat((function() {
+          var o = [];
+          (function walk2(n, dep) {
+            (n.children || []).forEach(function(c) {
+              o.push(line(c, dep));
+              walk2(c, dep + 1);
+            });
+          })(part, 1);
+          return o;
+        })()).join("\n") : outline(doc2, sf.id).split("\n").slice(1).join("\n");
+        var codeNow = api.frameCode ? api.frameCode(sf.id, part ? part.id : null) : null;
+        return Promise.resolve(codeNow).then(function(code) {
+          return { ok: true, result: specText(spec, lines, code || null), step: "Wrote the spec for " + spec.name + (code ? ", with its code" : "") };
+        });
       }
       case "remember": {
         if (!api.remember) return fail("Lessons can't be kept here.");
@@ -6987,7 +7114,7 @@
   }
 
   // assets/builder/model/bridge.js
-  var READS = { list_pages: 1, read_page: 1, read_selection: 1, screenshot: 1, read_guideline: 1, read_theme: 1, lint: 1, measure: 1, search_components: 1, read_component: 1, list_tokens: 1, read_skill: 1, list_components: 1 };
+  var READS = { list_pages: 1, read_page: 1, read_selection: 1, screenshot: 1, read_guideline: 1, read_theme: 1, lint: 1, measure: 1, search_components: 1, read_component: 1, list_tokens: 1, read_skill: 1, list_components: 1, frame_spec: 1 };
   var LEFT_OUT = { propose_plan: 1, ask_user: 1, select: 1 };
   var EDIT_BY_NAME = {
     name: "edit_by_name",
@@ -7157,6 +7284,8 @@
         return [{ icon: "component", title: input.replace ? who([input.replace]) : "A component", detail: input.replace ? "Swapped for an instance" : "Instance added " + (input.parent && input.parent !== "root" ? "in " + who([input.parent]) : "to the page") }];
       case "make_component":
         return [{ icon: "component", title: who([input.id]), detail: "Made a component: " + short4(input.name, 40) }];
+      case "frame_spec":
+        return [{ icon: "code", title: "Wrote a spec", detail: input.id ? name(input.id) : "" }];
       case "remember":
         return [{ icon: "book", title: "Kept a lesson", detail: short4(input.lesson, 60) }];
       case "list_components":
@@ -16359,8 +16488,7 @@
         if (!r.ok) throw new Error("missing");
         return r.text();
       }).then(function(t) {
-        if (/\.md$/.test(g.file)) return t;
-        return t.replace(/<!--[\s\S]*?-->/g, " ").replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#39;|&rsquo;/g, "'").replace(/&quot;|&ldquo;|&rdquo;/g, '"').replace(/\s+/g, " ").trim();
+        return plainGuide(g.file, t);
       }).catch(function(err) {
         delete c[g.id];
         throw err;
@@ -16539,6 +16667,13 @@
       },
       createFrame: function(opts) {
         return frameOps.add(null, false, null, opts);
+      },
+      /* A frame's code (or one layer's), as the Export dialog writes it. */
+      frameCode: function(fid, id) {
+        var d = docRef.current, fr = frameById(d, fid) || active(d);
+        var at2 = id ? locate(d, id, fr.id) : null;
+        var got = codeOf(fr, at2 ? at2.node.type === "Slot" ? at2.node.children : [at2.node] : null);
+        return got ? got.code : null;
       },
       /* A rule the person taught it, kept in a Lessons doc in the file's (or
          the project's) context: { added, count, lesson, scope } or { error }. */
@@ -21114,9 +21249,23 @@
         return m ? files[m[1]] : v;
       });
     };
-    var openCode = function() {
+    var codeOf = function(fr, parts) {
       var f = api();
-      if (!f) return;
+      if (!f) return null;
+      var withComps = function(roots) {
+        var got = codeWithComponents(roots, libRef.current);
+        return { leftOut: got.leftOut, roots: withPageLinks(got.roots), opts: { components: got.components.map(function(c) {
+          return Object.assign({}, c, { node: withPageLinks(c.node) });
+        }) } };
+      };
+      if (parts && parts.length && f.jsxNodes) {
+        var gotParts = withComps(parts);
+        return { leftOut: gotParts.leftOut, code: f.jsxNodes(gotParts.roots, parts.length === 1 ? parts[0].name || parts[0].type : fr.name + " parts", gotParts.opts) };
+      }
+      var gotFrame = withComps([fr.root]);
+      return { leftOut: gotFrame.leftOut, code: f.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: gotFrame.roots[0] }, fr.name, gotFrame.opts) };
+    };
+    var openCode = function() {
       var d = docRef.current;
       var fr = active(d);
       var picked2 = selRef.current.map(function(id) {
@@ -21129,25 +21278,12 @@
         if (n.type === "Slot") parts = parts.concat(n.children);
         else parts.push(n);
       });
-      var withComps = function(roots) {
-        var got = codeWithComponents(roots, libRef.current);
-        setCodeNotes(got.leftOut);
-        return { roots: withPageLinks(got.roots), opts: { components: got.components.map(function(c) {
-          return Object.assign({}, c, { node: withPageLinks(c.node) });
-        }) } };
-      };
-      if (parts.length && f.jsxNodes) {
-        var title = parts.length === 1 ? nameOf(parts[0]) : parts.length + " layers";
-        setCodeTitle(title);
-        setCodePick(parts.length === 1 ? parts[0].id : null);
-        var gotParts = withComps(parts);
-        setCode(f.jsxNodes(gotParts.roots, parts.length === 1 ? parts[0].name || parts[0].type : fr.name + " parts", gotParts.opts));
-      } else {
-        setCodeTitle(fr.name);
-        setCodePick(null);
-        var gotFrame = withComps([fr.root]);
-        setCode(f.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: gotFrame.roots[0] }, fr.name, gotFrame.opts));
-      }
+      var got = codeOf(fr, parts);
+      if (!got) return;
+      setCodeNotes(got.leftOut);
+      setCodeTitle(parts.length ? parts.length === 1 ? nameOf(parts[0]) : parts.length + " layers" : fr.name);
+      setCodePick(parts.length === 1 ? parts[0].id : null);
+      setCode(got.code);
       var dlg = dialogRef.current;
       if (dlg && dlg.showModal) dlg.showModal();
     };

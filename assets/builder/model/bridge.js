@@ -11,7 +11,7 @@ import { familyWord } from "./agent.js";
 import { planEdit, readEdit } from "./nameedit.js";
 
 /* Tools that only look. */
-var READS = { list_pages: 1, read_page: 1, read_selection: 1, screenshot: 1, read_guideline: 1, read_theme: 1, lint: 1, measure: 1, search_components: 1, read_component: 1, list_tokens: 1, read_skill: 1, list_components: 1 };
+var READS = { list_pages: 1, read_page: 1, read_selection: 1, screenshot: 1, read_guideline: 1, read_theme: 1, lint: 1, measure: 1, search_components: 1, read_component: 1, list_tokens: 1, read_skill: 1, list_components: 1, frame_spec: 1 };
 /* Tools that need the person to answer in the assistant panel, which a
    session doesn't use: Claude asks in its own conversation instead. */
 var LEFT_OUT = { propose_plan: 1, ask_user: 1, select: 1 };
@@ -152,6 +152,7 @@ function rowsOf(call, name, doc) {
     case "insert_template": return [{ icon: "file", title: "The " + String(input.id || "") + " template", detail: input.new_frame ? "As a new frame" : "Added " + (input.parent && input.parent !== "root" ? "in " + who([input.parent]) : "to the page") }];
     case "insert_instance": return [{ icon: "component", title: input.replace ? who([input.replace]) : "A component", detail: input.replace ? "Swapped for an instance" : "Instance added " + (input.parent && input.parent !== "root" ? "in " + who([input.parent]) : "to the page") }];
     case "make_component": return [{ icon: "component", title: who([input.id]), detail: "Made a component: " + short(input.name, 40) }];
+    case "frame_spec": return [{ icon: "code", title: "Wrote a spec", detail: input.id ? name(input.id) : "" }];
     case "remember": return [{ icon: "book", title: "Kept a lesson", detail: short(input.lesson, 60) }];
     case "list_components": return [{ icon: "component", title: "Listed the file's components", detail: "" }];
     case "move": return [{ icon: "layers2", title: who(input.ids), detail: "Moved into " + who([input.parent]) }];
