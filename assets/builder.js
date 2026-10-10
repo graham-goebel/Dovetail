@@ -6724,7 +6724,9 @@
         var m = /^  - (\w+)(?: "([^"]+)")?/.exec(l);
         return m ? m[2] ? m[2] + " (" + m[1] + ")" : m[1] : "";
       }).filter(Boolean);
-      return { text: "Practice mode: this page has " + frames + (frames === 1 ? " frame" : " frames") + " and " + layers2 + (layers2 === 1 ? " layer" : " layers") + (top.length ? ". At the top level: " + top.slice(0, 8).join(", ") + (top.length > 8 ? ", and " + (top.length - 8) + " more" : "") : "") + ".", calls: [] };
+      return { text: "Practice mode: this page has **" + frames + (frames === 1 ? " frame" : " frames") + "** and **" + layers2 + (layers2 === 1 ? " layer" : " layers") + "**." + (top.length ? "\n\nAt the top level:\n" + top.slice(0, 8).map(function(t) {
+        return "- " + t;
+      }).join("\n") + (top.length > 8 ? "\n- and " + (top.length - 8) + " more" : "") : ""), calls: [] };
     }
     if (names[0] === "screenshot") {
       var seen = results.map(function(r, i) {
@@ -12703,19 +12705,197 @@
     return item.by.name || "Someone";
   }
 
+  // assets/builder/model/markdown.js
+  function mdBlocks(src) {
+    var lines = String(src == null ? "" : src).replace(/\r\n?/g, "\n").split("\n");
+    var out = [], para = [], list2 = null, quote = null, code = null;
+    var flush = function() {
+      if (para.length) {
+        out.push({ type: "p", text: para.join("\n") });
+        para = [];
+      }
+      if (list2) {
+        out.push(list2);
+        list2 = null;
+      }
+      if (quote) {
+        out.push({ type: "quote", text: quote.join("\n") });
+        quote = null;
+      }
+    };
+    for (var i = 0; i < lines.length; i++) {
+      var line2 = lines[i];
+      if (code) {
+        if (/^\s*```/.test(line2)) {
+          out.push(code);
+          code = null;
+        } else code.lines.push(line2);
+        continue;
+      }
+      var fence = /^\s*```\s*([\w-]*)\s*$/.exec(line2);
+      if (fence) {
+        flush();
+        code = { type: "code", lang: fence[1] || "", lines: [] };
+        continue;
+      }
+      if (!line2.trim()) {
+        flush();
+        continue;
+      }
+      var h = /^\s{0,3}(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line2);
+      if (h) {
+        flush();
+        out.push({ type: "h", level: Math.min(3, h[1].length), text: h[2] });
+        continue;
+      }
+      var ul = /^\s*[-*•]\s+(.*)$/.exec(line2);
+      var ol = /^\s*(\d{1,3})[.)]\s+(.*)$/.exec(line2);
+      if (ul || ol) {
+        var kind = ul ? "ul" : "ol";
+        if (para.length || quote || list2 && list2.type !== kind) flush();
+        if (!list2) list2 = ol ? { type: "ol", start: Number(ol[1]), items: [] } : { type: "ul", items: [] };
+        list2.items.push(ul ? ul[1] : ol[2]);
+        continue;
+      }
+      var q = /^\s*>\s?(.*)$/.exec(line2);
+      if (q) {
+        if (para.length || list2) flush();
+        quote = (quote || []).concat([q[1]]);
+        continue;
+      }
+      if (list2 && /^\s{2,}\S/.test(line2)) {
+        list2.items[list2.items.length - 1] += " " + line2.trim();
+        continue;
+      }
+      if (list2 || quote) flush();
+      para.push(line2);
+    }
+    if (code) out.push(code);
+    flush();
+    return out;
+  }
+  var INLINE = /(`+)([^`]+?)\1|\*\*([^*\n]+?)\*\*|__([^_\n]+?)__|\*([^*\s][^*\n]*?)\*|(^|[^\w])_([^_\s][^_\n]*?)_(?!\w)|\[([^\]\n]+)\]\(([^)\s]+)\)|\n/g;
+  function mdInline(text2) {
+    var s = String(text2 == null ? "" : text2), out = [], last = 0, m;
+    INLINE.lastIndex = 0;
+    var push = function(part) {
+      var prev = out[out.length - 1];
+      if (part.t === "text" && prev && prev.t === "text") prev.text += part.text;
+      else out.push(part);
+    };
+    while (m = INLINE.exec(s)) {
+      var start = m.index;
+      if (m[6] != null) start += m[6].length;
+      if (start > last) push({ t: "text", text: s.slice(last, start) });
+      if (m[2] != null) push({ t: "code", text: m[2] });
+      else if (m[3] != null || m[4] != null) push({ t: "b", text: m[3] != null ? m[3] : m[4] });
+      else if (m[5] != null) push({ t: "i", text: m[5] });
+      else if (m[7] != null) push({ t: "i", text: m[7] });
+      else if (m[8] != null) {
+        var href = m[9];
+        if (/^(https?:\/\/|mailto:)/i.test(href)) push({ t: "a", text: m[8], href });
+        else push({ t: "text", text: m[8] });
+      } else push({ t: "br" });
+      last = INLINE.lastIndex;
+    }
+    if (last < s.length) push({ t: "text", text: s.slice(last) });
+    return out;
+  }
+
   // assets/builder/app/AssistantPanel.js
-  function changeCard(p, turn) {
-    if (!turn.changes.length) return null;
+  function inline(text2) {
+    return mdInline(text2).map(function(r, i) {
+      if (r.t === "b") return e("strong", { key: i }, r.text);
+      if (r.t === "i") return e("em", { key: i }, r.text);
+      if (r.t === "code") return e("code", { key: i }, r.text);
+      if (r.t === "a") return e("a", { key: i, href: r.href, target: "_blank", rel: "noopener noreferrer" }, r.text);
+      if (r.t === "br") return e("br", { key: i });
+      return r.text;
+    });
+  }
+  function Markdown(p) {
+    return e("div", { className: cx("bd-md", p.className) }, mdBlocks(p.text).map(function(b, i) {
+      if (b.type === "h") return e("p", { key: i, className: "bd-md-h is-h" + b.level, role: "heading", "aria-level": b.level + 2 }, inline(b.text));
+      if (b.type === "ul") return e("ul", { key: i }, b.items.map(function(it, k) {
+        return e("li", { key: k }, inline(it));
+      }));
+      if (b.type === "ol") return e("ol", { key: i, start: b.start }, b.items.map(function(it, k) {
+        return e("li", { key: k }, inline(it));
+      }));
+      if (b.type === "quote") return e("blockquote", { key: i }, inline(b.text));
+      if (b.type === "code") return e("pre", { key: i }, e("code", null, b.lines.join("\n")));
+      return e("p", { key: i }, inline(b.text));
+    }));
+  }
+  function Activity(p) {
+    var steps = p.steps;
+    if (!steps.length) return null;
+    var acts = steps.filter(function(s) {
+      return !s.note;
+    });
+    var failed = acts.filter(function(s) {
+      return !s.ok && !s.running;
+    }).length;
+    var running = steps.some(function(s) {
+      return s.running;
+    }) || p.working;
+    var latest2 = steps[steps.length - 1];
+    var shot = steps.filter(function(s) {
+      return s.shot;
+    }).slice(-1)[0];
+    var head3 = running ? latest2.text : acts.length + (acts.length === 1 ? " step" : " steps") + (failed ? ", " + failed + " didn't work" : "");
+    var icon = running ? null : failed ? "alert" : "check";
     return e(
       "div",
-      { className: "bd-as-card" },
+      { className: cx("bd-as-act", p.open && "is-open", running && "is-running", failed && !running && "has-failed") },
       e(
-        "div",
-        { className: "bd-as-card-h" },
-        e("span", null, turn.changes.length + (turn.changes.length === 1 ? " change" : " changes")),
-        turn.kept ? e("span", { className: "bd-as-note" }, "Kept") : turn.undone ? e("span", { className: "bd-as-note" }, "Undone") : null
+        "button",
+        { type: "button", className: "bd-as-act-h", "aria-expanded": !!p.open, onClick: p.onToggle, title: p.open ? "Hide the steps" : "Show every step" },
+        e("span", { className: "bd-as-act-i", "aria-hidden": "true" }, icon ? e(Icon, { name: icon }) : e("span", { className: "bd-as-spin" })),
+        e("span", { className: cx("bd-as-act-t", running && latest2.note && "is-note") }, head3),
+        shot && !p.open ? e("img", { className: "bd-as-act-shot", src: shot.shot, alt: "" }) : null,
+        running && acts.length > 1 ? e("span", { className: "bd-as-act-n" }, acts.length) : null,
+        e("span", { className: "bd-as-act-chev", "aria-hidden": "true" }, e(Icon, { name: "down" }))
       ),
-      turn.changes.map(function(c, i) {
+      p.open ? e("ol", { className: "bd-as-act-list" }, steps.map(function(s, i) {
+        if (s.note) return e("li", { key: s.id || i, className: "bd-as-note-step" }, s.text);
+        return e(
+          "li",
+          { key: s.id || i, className: cx("bd-as-step", !s.ok && !s.running && "is-failed", s.running && "is-running") },
+          e("span", { className: "bd-as-ok", "aria-hidden": "true" }, s.running ? e("span", { className: "bd-as-spin" }) : e(Icon, { name: !s.ok ? "close" : s.icon || "check" })),
+          e("span", { className: "bd-as-step-t" }, s.text),
+          s.shot ? e("img", { className: "bd-as-step-shot", src: s.shot, alt: "" }) : null
+        );
+      })) : null
+    );
+  }
+  function changeCard(p, turn) {
+    if (!turn.changes.length) return null;
+    var open = p.isOpen(turn.id + ":changes", turn.changes.length <= 3);
+    var bad = (turn.checks || []).filter(function(r) {
+      return r.status === "fail" || r.status === "warn";
+    });
+    var passed = (turn.checks || []).filter(function(r) {
+      return r.status === "pass";
+    }).length;
+    var shownChecks = open ? turn.checks : bad;
+    return e(
+      "div",
+      { className: cx("bd-as-card bd-as-changes", open && "is-open") },
+      e(
+        "button",
+        { type: "button", className: "bd-as-card-h bd-as-fold", "aria-expanded": open, onClick: function() {
+          p.toggle(turn.id + ":changes", !open);
+        }, title: open ? "Fold the changes" : "Show each change and check" },
+        e("span", null, turn.changes.length + (turn.changes.length === 1 ? " change" : " changes")),
+        e(
+          "span",
+          { className: "bd-as-fold-r" },
+          turn.kept ? e("span", { className: "bd-as-note" }, "Kept") : turn.undone ? e("span", { className: "bd-as-note" }, "Undone") : turn.checking ? e("span", { className: "bd-as-note" }, "Checking…") : turn.checks && !open ? e("span", { className: cx("bd-as-note", bad.length && "is-warn") }, bad.length ? bad.length + " to look at" : passed + " checks pass") : null,
+          e("span", { className: "bd-as-act-chev", "aria-hidden": "true" }, e(Icon, { name: "down" }))
+        )
+      ),
+      (open ? turn.changes : []).map(function(c, i) {
         var can = turn.status === "done" && !turn.kept && !turn.undone && !c.undone && !p.busy;
         return e(
           "div",
@@ -12727,11 +12907,11 @@
           } }, e(Icon, { name: "undo" })) : null
         );
       }),
-      turn.undone ? null : turn.checking ? e("div", { className: "bd-as-checks" }, e("div", { className: "bd-as-checks-h" }, e("span", null, "Checks"), e("span", { className: "bd-as-note" }, "Checking…"))) : turn.checks ? e(
+      turn.undone ? null : turn.checking ? open ? e("div", { className: "bd-as-checks" }, e("div", { className: "bd-as-checks-h" }, e("span", null, "Checks"), e("span", { className: "bd-as-note" }, "Checking…"))) : null : turn.checks && shownChecks.length ? e(
         "div",
         { className: "bd-as-checks" },
-        e("div", { className: "bd-as-checks-h" }, e("span", null, "Checks"), e("span", { className: "bd-as-note" }, "ran after the last step")),
-        turn.checks.map(function(r) {
+        open ? e("div", { className: "bd-as-checks-h" }, e("span", null, "Checks"), e("span", { className: "bd-as-note" }, "ran after the last step")) : null,
+        shownChecks.map(function(r) {
           var icon = r.status === "pass" ? "check" : r.status === "skip" ? "minus" : "alert";
           return e(
             "div",
@@ -12769,19 +12949,25 @@
   function planCard(p, turn) {
     var pl = turn.plan;
     if (!pl) return null;
+    var settled = pl.status !== "pending";
+    var open = !settled || p.isOpen(turn.id + ":plan", false);
+    var note3 = pl.status === "approved" ? e("span", { className: "bd-as-note" }, "Approved") : pl.status === "changing" ? e("span", { className: "bd-as-note" }, "Changing") : pl.frame ? e("span", { className: "bd-as-note" }, [pl.frame.preset, pl.frame.mode].filter(Boolean).join(" · ")) : null;
+    var title = e("span", null, e(Icon, { name: "frame" }), pl.title);
     return e(
       "div",
-      { className: "bd-as-card bd-as-plan" },
-      e(
-        "div",
-        { className: "bd-as-card-h" },
-        e("span", null, e(Icon, { name: "frame" }), pl.title),
-        pl.status === "approved" ? e("span", { className: "bd-as-note" }, "Approved") : pl.status === "changing" ? e("span", { className: "bd-as-note" }, "Changing") : pl.frame ? e("span", { className: "bd-as-note" }, [pl.frame.preset, pl.frame.mode].filter(Boolean).join(" · ")) : null
-      ),
-      e("ol", { className: "bd-as-plan-steps" }, pl.steps.map(function(st, i) {
+      { className: cx("bd-as-card bd-as-plan", open && "is-open") },
+      settled ? e(
+        "button",
+        { type: "button", className: "bd-as-card-h bd-as-fold", "aria-expanded": open, onClick: function() {
+          p.toggle(turn.id + ":plan", !open);
+        }, title: open ? "Fold the plan" : "Show the plan" },
+        title,
+        e("span", { className: "bd-as-fold-r" }, note3, e("span", { className: "bd-as-act-chev", "aria-hidden": "true" }, e(Icon, { name: "down" })))
+      ) : e("div", { className: "bd-as-card-h" }, title, note3),
+      open ? e("ol", { className: "bd-as-plan-steps" }, pl.steps.map(function(st, i) {
         return e("li", { key: i }, e("b", null, st.title), st.detail ? e("span", null, st.detail) : null);
-      })),
-      pl.notes && pl.notes.length ? e("div", { className: "bd-as-plan-notes" }, pl.notes.map(function(n, i) {
+      })) : null,
+      open && pl.notes && pl.notes.length ? e("div", { className: "bd-as-plan-notes" }, pl.notes.map(function(n, i) {
         return e("p", { key: i }, e(Icon, { name: "alert" }), e("span", null, n));
       })) : null,
       pl.status === "pending" ? e(
@@ -13034,6 +13220,19 @@
   }
   function AssistantPanel(p) {
     var listRef = useRef(null);
+    var foldState = useState({});
+    var folds = foldState[0];
+    var isOpen = function(key, dflt) {
+      return Object.prototype.hasOwnProperty.call(folds, key) ? folds[key] : dflt;
+    };
+    var toggle = function(key, v) {
+      foldState[1](function(f) {
+        var n = Object.assign({}, f);
+        n[key] = v;
+        return n;
+      });
+    };
+    var cp = Object.assign({}, p, { isOpen, toggle });
     var last = p.thread[p.thread.length - 1];
     var tail = last ? [p.thread.length, last.text, (last.steps || []).length, (last.changes || []).length, last.checking ? 1 : 0, last.checks ? last.checks.length : 0, last.status].join("|") : "";
     useEffect(function() {
@@ -13085,17 +13284,15 @@
           return e(
             "div",
             { key: t.id, className: cx("bd-as-bot", t.status === "error" && "is-error") },
-            t.steps.map(function(s, i) {
-              if (s.note) return e("p", { key: i, className: "bd-as-note-step" }, s.text);
-              if (s.shot) return e("div", { key: i, className: "bd-as-look" }, e("img", { src: s.shot, alt: "" }), e("span", null, e(Icon, { name: "eye" }), s.text));
-              return e("div", { key: i, className: cx("bd-as-step", !s.ok && "is-failed") }, e("span", { className: "bd-as-ok" }, e(Icon, { name: s.ok ? "check" : "close" })), s.text);
-            }),
-            t.text ? e("p", { className: "bd-as-text" }, t.text) : t.status === "working" ? e("p", { className: "bd-as-text bd-as-wait" }, "Working…") : null,
-            planCard(p, t),
+            e(Activity, { steps: t.steps || [], working: t.status === "working" && !t.text, open: isOpen(t.id + ":steps", false), onToggle: function() {
+              toggle(t.id + ":steps", !isOpen(t.id + ":steps", false));
+            } }),
+            t.text ? e(Markdown, { className: "bd-as-text", text: t.text }) : t.status === "working" && !(t.steps || []).length ? e("p", { className: "bd-as-text bd-as-wait" }, "Working…") : null,
+            planCard(cp, t),
             askCard(p, t),
             variantsCard(p, t),
             t.error ? e("p", { className: "bd-as-text bd-as-err" }, t.error) : null,
-            changeCard(p, t)
+            changeCard(cp, t)
           );
         })
       ),
@@ -15798,6 +15995,21 @@
       pullOthers();
     }, [project ? project.cloud : null, account2.status]);
     var asAbort = useRef(null);
+    var liveStep = function(call2) {
+      var rows = rowsOf(call2, bridgeName, docRef.current);
+      var r0 = rows[0] || { icon: "book", title: call2.name, detail: "" };
+      var text2 = call2.name === "batch" ? rows.length + (rows.length === 1 ? " edit" : " edits") + " in one step" : [r0.title, r0.detail].filter(Boolean).join(" · ");
+      return { id: uid(), ok: true, running: true, icon: call2.name === "batch" ? "layers2" : r0.icon, text: text2, tool: call2.name };
+    };
+    var doneText = function(live, res, changes) {
+      if (res.step) return res.step;
+      if (changes.length === 1) {
+        var c = changes[0];
+        return [c.label, c.value].filter(Boolean).join(" ") + (c.on ? " · " + c.on : "");
+      }
+      if (changes.length > 1) return changes.length + " changes in one step";
+      return live.text;
+    };
     var patchTurn = function(id, patch) {
       setAsThread(function(t) {
         return t.map(function(x) {
@@ -16388,7 +16600,10 @@
             });
             return null;
           }
-          var results = [], changes = [], steps = noted.slice();
+          var results = [], changes = [];
+          if (noted.length) patchTurn(turn.id, function(x) {
+            return { steps: x.steps.concat(noted) };
+          });
           return r.tools.reduce(function(p, call2) {
             return p.then(function() {
               if (call2.bad) {
@@ -16396,15 +16611,28 @@
                 return;
               }
               var at2 = history.current.past.length;
+              var live = liveStep(call2);
+              patchTurn(turn.id, function(x) {
+                return { steps: x.steps.concat([live]) };
+              });
+              var settle2 = function(patch) {
+                patchTurn(turn.id, function(x) {
+                  return { steps: x.steps.map(function(s) {
+                    return s.id === live.id ? Object.assign({}, s, { running: false }, patch) : s;
+                  }) };
+                });
+              };
               return Promise.resolve(runTool(api2, call2)).then(function(res) {
                 var mine2 = [].concat(res.change ? [res.change] : [], res.changes || []).map(function(ch) {
                   return Object.assign({}, ch, { at: at2 });
                 });
                 if (res.variants && res.ok) patchTurn(turn.id, { variants: res.variants });
                 changes.push.apply(changes, mine2);
-                if (res.step && res.ok) steps.push({ ok: true, text: res.step, shot: res.shot ? res.shot.url : void 0 });
-                if (!res.ok) steps.push({ ok: false, text: res.result });
+                settle2(res.ok ? { ok: true, text: doneText(live, res, mine2), shot: res.shot ? res.shot.url : void 0 } : { ok: false, text: String(res.result) });
                 results.push({ type: "tool_result", tool_use_id: call2.id, content: res.result, is_error: !res.ok });
+              }, function(err) {
+                settle2({ ok: false, text: String(err && err.message || err) });
+                throw err;
               });
             });
           }, Promise.resolve()).then(function() {
@@ -16414,7 +16642,7 @@
               return x.text;
             }).join("\n") });
             patchTurn(turn.id, function(x) {
-              return { changes: x.changes.concat(changes), steps: x.steps.concat(steps), base: x.text ? x.text + " " : "" };
+              return { changes: x.changes.concat(changes), base: x.text ? x.text.replace(/\s+$/, "") + "\n\n" : "" };
             });
             if (notes2.length) setAsThread(function(t) {
               return t.map(function(x) {
@@ -16429,6 +16657,13 @@
         });
       };
       var finish = function() {
+        patchTurn(turn.id, function(x) {
+          return x.steps.some(function(s) {
+            return s.running;
+          }) ? { steps: x.steps.map(function(s) {
+            return s.running ? Object.assign({}, s, { running: false, ok: false, text: s.text + " (stopped)" }) : s;
+          }) } : {};
+        });
         setAsBusy(false);
         asAbort.current = null;
         if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" });
