@@ -80,6 +80,7 @@
     "check:builder": "node tools/check/builder.mjs",
     "check:behavior": "node tools/check/behavior.mjs",
     "serve": "node tools/check/serve.mjs",
+    "mcp": "node tools/mcp/server.mjs",
     "changelog": "node tools/changelog.mjs",
     "change": "node tools/changelog.mjs --new"
   },

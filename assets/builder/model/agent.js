@@ -15,6 +15,7 @@ import { cleanNode, fresh, locate } from "./tree.js";
 import { layerName } from "./names.js";
 import { KINDS, findLayouts, layoutById, layoutLine } from "./layouts.js";
 import { compareText } from "./compare.js";
+import { specOf, specText } from "./spec.js";
 import { STARTERS } from "./starters.js";
 import { instancesOf } from "./instances.js";
 
@@ -50,6 +51,7 @@ var TOOLS = [
   { name: "insert_instance", description: "Put down one of the file's own components (an id from list_components) as a linked instance: when the component is updated, the instance follows. Into a container at an index, after the selection when parent is omitted, or in place of a layer with replace. Change its text with set_text like any layer.", input_schema: { type: "object", properties: { id: { type: "string" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 }, replace: { type: "string" } }, required: ["id"], additionalProperties: false } },
   { name: "make_component", description: "Turn a layer into one of the file's own components, named, so it can be reused with insert_instance. The layer becomes its first instance. It must be built on the system's tokens, with no custom colours and nothing placed by position inside it. Do it when the person asks, or when a part repeats on the page and they agree.", input_schema: { type: "object", properties: { id: { type: "string" }, name: { type: "string" } }, required: ["id", "name"], additionalProperties: false } },
   { name: "remember", description: "Keep a rule the person taught you, so every later conversation on this file follows it: one short line in their words, like \"Never use brand fills on cards\" or \"Headlines are sentence case\". It goes in a Lessons doc in the file's context (scope project to keep it for every file in the project), which they can edit in the Context panel. Use it when they correct you or state how things should always or never be, not for a one-off request.", input_schema: { type: "object", properties: { lesson: { type: "string" }, scope: { type: "string", enum: ["file", "project"] } }, required: ["lesson"], additionalProperties: false } },
+  { name: "frame_spec", description: "A frame (the one you're in unless frame names another) as a spec to build from elsewhere: the components it uses and the variants each is set to, the design tokens behind its styles, the file's own components in it, its layers, and its code as React with Dovetail components. Give id for one layer and what's in it. Use it when the person asks for the code, a spec, or a handoff.", input_schema: { type: "object", properties: { frame: { type: "string" }, id: { type: "string" } }, additionalProperties: false } },
   { name: "set_text", description: "Set a layer's text: a heading's or a paragraph's words, a button's label, a card's title.", input_schema: { type: "object", properties: { id: { type: "string" }, text: { type: "string" } }, required: ["id", "text"], additionalProperties: false } },
   { name: "move", description: "Move layers into a container, at an index (the end when omitted), in the order given.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["ids", "parent"], additionalProperties: false } },
   { name: "wrap", description: "Put a layer inside a new container of the given type, or several sibling layers inside one Group.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, type: { type: "string", enum: WRAPS } }, required: ["ids"], additionalProperties: false } },
@@ -124,6 +126,14 @@ function outline(doc, fid) {
   });
   if (left) out.push("… and " + left + " more layers. Read one frame at a time with frame.");
   return out.join("\n");
+}
+
+/* A guideline's text as the assistant reads it: Markdown as it is, an HTML
+   page as its words. */
+function plainGuide(file, text) {
+  if (/\.md$/.test(file)) return String(text || "");
+  return String(text || "").replace(/<!--[\s\S]*?-->/g, " ").replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ").replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#39;|&rsquo;/g, "'").replace(/&quot;|&ldquo;|&rdquo;/g, '"').replace(/\s+/g, " ").trim();
 }
 
 /* The brief: what the assistant is working with and how. Built from the
@@ -552,6 +562,23 @@ function runTool(api, call) {
       if (!madeC || madeC.error) return fail((madeC && madeC.error) || "It couldn't be made a component.");
       return { ok: true, result: JSON.stringify({ component: madeC.id, name: madeC.name, tokens: madeC.tokens }) + " It's in My components, and " + nameOf(input.id) + " is its first instance.", change: { ids: [input.id], label: "Component", value: madeC.name, on: "from " + nameOf(input.id) } };
     }
+    case "frame_spec": {
+      var sf = input.frame ? (doc.frames || []).filter(function (x) { return x.id === input.frame; })[0] : (doc.frames || []).filter(function (x) { return x.id === doc.active; })[0] || (doc.frames || [])[0];
+      if (!sf) return fail("There's no frame " + input.frame + " on this page.");
+      var part = null;
+      if (input.id) {
+        var pat = locate(doc, input.id, sf.id);
+        if (!pat || input.id === "root") return fail("There's no layer " + input.id + " in " + sf.name + ".");
+        part = pat.node;
+      }
+      var target = part ? { name: layerName(part), mode: sf.mode, width: sf.width, dark: sf.dark, root: { children: [part] } } : sf;
+      var spec = specOf(target, api.library ? api.library() : null);
+      var lines = part ? [line(part, 0)].concat((function () { var o = []; (function walk(n, dep) { (n.children || []).forEach(function (c) { o.push(line(c, dep)); walk(c, dep + 1); }); })(part, 1); return o; })()).join("\n") : outline(doc, sf.id).split("\n").slice(1).join("\n");
+      var codeNow = api.frameCode ? api.frameCode(sf.id, part ? part.id : null) : null;
+      return Promise.resolve(codeNow).then(function (code) {
+        return { ok: true, result: specText(spec, lines, code || null), step: "Wrote the spec for " + spec.name + (code ? ", with its code" : "") };
+      });
+    }
     case "remember": {
       if (!api.remember) return fail("Lessons can't be kept here.");
       var kept = api.remember(String(input.lesson || ""), input.scope === "project" ? "project" : "file");
@@ -908,4 +935,4 @@ function practiceScript(sel) {
   };
 }
 
-export { TOOLS, describe, familyWord, outline, practiceScript, runTool, systemPrompt, toolsFor };
+export { describe, familyWord, outline, plainGuide, practiceScript, runTool, systemPrompt, TOOLS, toolsFor };
