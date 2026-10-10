@@ -21,6 +21,15 @@ function assistantMode() {
   return asked === "live" && cloudReady() ? "live" : "practice";
 }
 
+/* Turns live mode on or off for this browser (the assistant panel's menu);
+   the next request goes the new way. */
+function setAssistantMode(mode) {
+  try {
+    if (mode === "live") window.localStorage.setItem(MODE_KEY, "live");
+    else window.localStorage.removeItem(MODE_KEY);
+  } catch (err) { /* no storage */ }
+}
+
 /* Sends one request and hands each stream event to onEvent as it comes.
    request: { system, messages, tools, file_id }. Resolves when the stream
    ends; rejects with a message to show. opts.script and opts.delay shape
@@ -63,4 +72,4 @@ function sendAssistant(request, onEvent, opts) {
   });
 }
 
-export { MODE_KEY, assistantMode, sendAssistant };
+export { MODE_KEY, assistantMode, sendAssistant, setAssistantMode };

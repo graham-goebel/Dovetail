@@ -116,10 +116,7 @@ is saved with the page instead, and everyone else loads it.
 
 The Builder's design assistant reads context (docs and skills) and makes changes on the canvas through tools that run in the browser. The model is called from a Supabase Edge Function, so its key never reaches a browser or this repository.
 
-**Practice mode is the default.** Until live mode is turned on, every request is answered in the browser by a scripted practice assistant (`assets/builder/model/assistant.js`). Nothing is sent anywhere and nothing is charged, so the panels can be tried with no account or cloud. Live mode needs the cloud connected, a signed-in person, and one of:
-
-- `window.DovetailAssistant = { mode: "live" }` set before `builder.js` loads;
-- `localStorage["dovetail-assistant"] = "live"` in that browser.
+**Practice mode is the default.** Until live mode is turned on, every request is answered in the browser by a scripted practice assistant (`assets/builder/model/assistant.js`). Nothing is sent anywhere and nothing is charged, so the panels can be tried with no account or cloud. The panel's badge says which mode it's in. Live mode needs the cloud connected and a signed-in person; then the **Live assistant** switch in the panel's ⋯ menu turns it on for that browser (signed out, the menu offers to sign in instead). It's remembered as `localStorage["dovetail-assistant"] = "live"`, and a page can also set `window.DovetailAssistant = { mode: "live" }` before `builder.js` loads.
 
 **Setting it up:**
 

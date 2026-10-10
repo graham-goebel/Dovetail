@@ -3461,6 +3461,25 @@ try {
     expect(await page.evaluate(() => window.__fakeSb.calls.some((c) => c[0] === "rpc" && c[1] === "accept_invites")), "signing in accepts waiting invites");
     ok("on: the PKCE client, a friendly error, then signed in with invites accepted");
 
+    /* Signed in with the cloud on, the assistant goes live from its menu. */
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector(".bd-acct[open]"));
+    await page.locator(".bd-rail .bd-tab", { hasText: "Assistant" }).click();
+    expect(await page.locator(".bd-as-badge", { hasText: "Practice" }).count() === 1, "signed in, the assistant still starts in practice mode");
+    await page.locator(".bd-as-menu-btn").click();
+    const liveSwitch = page.locator(".bd-as-pop [role=switch][aria-labelledby=bd-as-m-live]");
+    expect(!(await liveSwitch.isDisabled()), "signed in, the Live assistant switch is on offer");
+    await liveSwitch.click();
+    await page.waitForSelector(".bd-as-badge.is-live");
+    expect((await page.evaluate(() => localStorage.getItem("dovetail-assistant"))) === "live", "the switch turns live mode on for this browser");
+    await liveSwitch.click();
+    await page.waitForSelector(".bd-as-badge:not(.is-live)");
+    expect((await page.evaluate(() => localStorage.getItem("dovetail-assistant"))) === null, "and off again");
+    await page.keyboard.press("Escape");
+    ok("signed in, the assistant's menu switches between live and practice, and the badge follows");
+    await page.locator(".bd-rail-account").click();
+    await page.waitForSelector(".bd-acct[open] .bd-acct-who");
+
     await acct.locator("button", { hasText: "Sign out" }).click();
     await page.waitForSelector(".bd-acct[open] #bd-acct-email");
     await acct.locator(".bd-acct-link", { hasText: "Create an account" }).click();

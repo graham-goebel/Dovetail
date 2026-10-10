@@ -25,7 +25,8 @@ import { checksFrom, checksText, lintFrame } from "../model/lint.js";
 import { editsText, recentEdits } from "../model/recent.js";
 import { metaOf } from "../model/threads.js";
 import { collector } from "../model/assistant.js";
-import { assistantMode, sendAssistant } from "../cloud/assistant.js";
+import { assistantMode, sendAssistant, setAssistantMode } from "../cloud/assistant.js";
+import { cloudReady } from "../cloud/config.js";
 import { EditorAt, Labels, Marks, Resizers, Rulers, SpacingLines, ViewMarks, World, camera, onStage, placeMarks } from "./Stage.js";
 import { STARTERS } from "../model/starters.js";
 import { addPlayground } from "../model/playground.js";
@@ -316,6 +317,8 @@ function App(props) {
   /* Who's signed in to the cloud, if it's connected (cloud/Account.js). */
   var accountRef = useRef(null);
   var accountState = useAccount(), account = accountState[0];
+  /* Live or practice, as this browser has it; the panel's menu switches it. */
+  var asModeState = useState(assistantMode());
   var rightRef = useRef(null);
   var leftPanelRef = useRef(null);
   var hidePanelsRef = useRef(false);
@@ -7212,7 +7215,7 @@ function App(props) {
           e("div", { className: cx("bd-left-main", left === "configure" && "bd-config-main") },
             left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null)
               : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps)
-              : left === "assistant" ? e(AssistantPanel, { thread: asThread, busy: asBusy, draft: asDraftState[0], setDraft: asDraftState[1], mode: assistantMode(),
+              : left === "assistant" ? e(AssistantPanel, { thread: asThread, busy: asBusy, draft: asDraftState[0], setDraft: asDraftState[1], mode: asModeState[0], setMode: function (m) { setAssistantMode(m); asModeState[1](assistantMode()); }, canLive: cloudReady() && account.status === "in", cloudOn: cloudReady(), signIn: openAccount,
                   target: selectedNodes.length ? (selectedNodes.length === 1 ? (selectedNodes[0].name || selectedNodes[0].type) : selectedNodes.length + " layers") : null,
                   includeSel: asSelState[0], toggleSel: function () { asSelState[1](!asSelState[0]); }, reach: asReachState[0], setReach: asReachState[1],
                   docs: asContext().docs, skills: asContext().skills, dropDoc: function (id) { asDropState[1](asDropState[0].concat([id])); },
