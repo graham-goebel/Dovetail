@@ -5941,6 +5941,7 @@
       "- Reuse what the file already has. list_components shows its own components (My components); put one down with insert_instance rather than building it again, and when a part you built repeats, offer make_component. When the ask matches a template (a landing page, a store page, a settings form, a support chat), insert_template gives you its sections to start from; then set the person's copy in place of the sample copy.",
       "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
       "- Write real, short copy in the brand's voice. Never lorem ipsum.",
+      "- When the person attaches a picture, it's a reference to build from: read its sections and hierarchy, rebuild them with layouts and components (its structure and rhythm, not its colours or fonts, unless they ask), then screenshot what you made and say plainly how it compares and what you left out.",
       "- Use the person's pictures: find_images lists their Content uploads; put one in with its content:<id> wherever a picture goes (a layout's image field, an Image or Cover src). Leave a placeholder only when nothing fits.",
       "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish. For a page, look at 390 wide and in dark mode too (screenshot with width or dark) when the change touches layout or colour, or the checks flag them.",
       "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
@@ -6861,6 +6862,10 @@
       var blocks = typeof last.content === "string" ? [{ text: last.content }] : (last.content || []).filter(function(b) {
         return !(b && b.type === "text" && String(b.text).indexOf("<builder-context>") === 0);
       });
+      var pictures = blocks.filter(function(b) {
+        return b && b.type === "image";
+      }).length;
+      if (pictures) return { text: "Practice mode: I can see " + (pictures === 1 ? "your picture" : "your " + pictures + " pictures") + ". A model would read its sections, rebuild them from the system's layouts and components, then look at both side by side and say how they differ.", calls: [] };
       var edits = blocks.filter(function(b) {
         return /^Since your last reply, the person changed/.test(b.text || "");
       })[0];
@@ -12677,9 +12682,11 @@
     };
   }
   var GONE = "(A picture of the canvas was here. Take another if you need it.)";
+  var GONE_REF = "(The person attached a picture here as a reference. The shared copy doesn't keep it; ask for it again if you need it.)";
   function forCloud(value2) {
     if (!value2) return value2;
     var thread = (value2.thread || []).map(function(t) {
+      if (t.pics) t = Object.assign({}, t, { pics: void 0, picCount: t.pics.length });
       if (!t.steps || !t.steps.some(function(s) {
         return s.shot;
       })) return t;
@@ -12690,7 +12697,7 @@
     var msgs = (value2.msgs || []).map(function(m) {
       if (!Array.isArray(m.content)) return m;
       return Object.assign({}, m, { content: m.content.map(function(b) {
-        if (b && b.type === "image") return { type: "text", text: GONE };
+        if (b && b.type === "image") return { type: "text", text: GONE_REF };
         if (b && b.type === "tool_result" && Array.isArray(b.content)) return Object.assign({}, b, { content: b.content.map(function(c) {
           return c && c.type === "image" ? { type: "text", text: GONE } : c;
         }) });
@@ -13241,9 +13248,17 @@
     }, [tail]);
     var send = function() {
       var t = p.draft.trim();
-      if (!t) return;
-      if (p.busy) p.note(t);
-      else p.send(t);
+      var pics = (p.pics || []).length;
+      if (!t && !pics) return;
+      if (p.busy) {
+        if (t) p.note(t);
+      } else p.send(t);
+    };
+    var fileRef = useRef(null);
+    var dropState = useState(false), dragOver = dropState[0], setDragOver = dropState[1];
+    var hasFiles = function(ev) {
+      var ty = ev.dataTransfer && ev.dataTransfer.types;
+      return !!ty && Array.prototype.indexOf.call(ty, "Files") >= 0;
     };
     return e(
       "div",
@@ -13280,6 +13295,14 @@
             editLines(t.lines, t.count, 6)
           );
           if (t.role === "divider") return e("p", { key: t.id, className: "bd-as-divider" }, t.text);
+          var picsOf = function(t2) {
+            if (t2.pics && t2.pics.length) return e("div", { className: "bd-as-me-pics" }, t2.pics.map(function(src, i) {
+              return e("img", { key: i, src, alt: "Picture " + (i + 1) + " sent with this message" });
+            }));
+            if (t2.picCount) return e("span", { className: "bd-as-me-picnote" }, e(Icon, { name: "image" }), t2.picCount === 1 ? "A picture was sent here" : t2.picCount + " pictures were sent here");
+            return null;
+          };
+          if (t.role === "user" && (t.pics || t.picCount) && !t.queued) return e("div", { key: t.id, className: "bd-as-me-wrap" }, senderOf(t, p.me) ? e("span", { className: "bd-as-from" }, senderOf(t, p.me)) : null, picsOf(t), e("div", { className: "bd-as-me" }, t.text));
           if (t.role === "user") return t.queued ? e("div", { key: t.id, className: "bd-as-me-wrap" }, e("div", { className: "bd-as-me is-queued" }, t.text), e("span", { className: "bd-as-queued" }, e(Icon, { name: "chat" }), "Lands after this step")) : senderOf(t, p.me) ? e("div", { key: t.id, className: "bd-as-me-wrap" }, e("span", { className: "bd-as-from" }, senderOf(t, p.me)), e("div", { className: "bd-as-me" }, t.text)) : e("div", { key: t.id, className: "bd-as-me" }, t.text);
           return e(
             "div",
@@ -13311,7 +13334,34 @@
       ) : null,
       p.view === "list" ? null : e(
         "div",
-        { className: "bd-as-comp" },
+        {
+          className: cx("bd-as-comp", dragOver && "is-drop"),
+          onDragOver: function(ev) {
+            if (hasFiles(ev)) {
+              ev.preventDefault();
+              if (!dragOver) setDragOver(true);
+            }
+          },
+          onDragLeave: function(ev) {
+            if (!ev.currentTarget.contains(ev.relatedTarget)) setDragOver(false);
+          },
+          onDrop: function(ev) {
+            if (!hasFiles(ev)) return;
+            ev.preventDefault();
+            setDragOver(false);
+            p.addPictures(ev.dataTransfer.files);
+          }
+        },
+        (p.pics || []).length ? e("div", { className: "bd-as-pics", role: "list", "aria-label": "Pictures to send" }, p.pics.map(function(pc) {
+          return e(
+            "span",
+            { key: pc.id, className: "bd-as-pic", role: "listitem" },
+            e("img", { src: pc.thumb, alt: pc.name }),
+            e("button", { type: "button", className: "bd-as-pic-x", "aria-label": "Leave out " + pc.name, title: "Leave out " + pc.name, onClick: function() {
+              p.dropPicture(pc.id);
+            } }, e(Icon, { name: "close" }))
+          );
+        })) : null,
         e(
           "div",
           { className: "bd-as-chips" },
@@ -13341,7 +13391,7 @@
           className: "bd-as-input",
           rows: 2,
           value: p.draft,
-          placeholder: p.waiting ? "Answer the question, or pick an option…" : p.busy ? "Add a note while it works…" : "Ask for a change, or describe a new page…",
+          placeholder: p.waiting ? "Answer the question, or pick an option…" : p.busy ? "Add a note while it works…" : (p.pics || []).length ? "Say what to build from the picture, or send it as it is…" : "Ask for a change, describe a new page, or paste a picture…",
           "aria-label": p.busy ? "Add a note for the assistant" : "Message the assistant",
           onChange: function(ev) {
             p.setDraft(ev.target.value);
@@ -13351,6 +13401,23 @@
               ev.preventDefault();
               send();
             }
+          },
+          onPaste: function(ev) {
+            var cd = ev.clipboardData;
+            if (cd && cd.files && cd.files.length && p.addPictures(cd.files)) ev.preventDefault();
+          }
+        }),
+        e("input", {
+          ref: fileRef,
+          type: "file",
+          accept: "image/png,image/jpeg,image/webp,image/gif",
+          multiple: true,
+          hidden: true,
+          tabIndex: -1,
+          "aria-hidden": "true",
+          onChange: function(ev) {
+            p.addPictures(ev.target.files);
+            ev.target.value = "";
           }
         }),
         e(
@@ -13373,7 +13440,10 @@
             options: [{ value: "low", label: "Quick", title: "Quicker, for small edits" }, { value: "high", label: "Careful", title: "Thinks it through, for pages and redesigns" }]
           }),
           e("span", { className: "bd-as-sp" }),
-          p.busy && p.draft.trim() ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Add the note", onClick: send }, e(Icon, { name: "up" })) : p.busy ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Stop", onClick: p.stop }, e(Icon, { name: "close" })) : e("button", { type: "button", className: "bd-as-send", "aria-label": "Send", disabled: !p.draft.trim(), onClick: send }, e(Icon, { name: "up" }))
+          e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-attach", "aria-label": "Attach a picture", title: "Attach a picture to build from (or paste or drop one)", disabled: (p.pics || []).length >= 3, onClick: function() {
+            if (fileRef.current) fileRef.current.click();
+          } }, e(Icon, { name: "image" })),
+          p.busy && p.draft.trim() ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Add the note", onClick: send }, e(Icon, { name: "up" })) : p.busy ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Stop", onClick: p.stop }, e(Icon, { name: "close" })) : e("button", { type: "button", className: "bd-as-send", "aria-label": "Send", disabled: !p.draft.trim() && !(p.pics || []).length, onClick: send }, e(Icon, { name: "up" }))
         )
       )
     );
@@ -15808,6 +15878,7 @@
     var asBusyState = useState(false);
     var asBusy = asBusyState[0], setAsBusy = asBusyState[1];
     var asDraftState = useState("");
+    var asPicsState = useState([]);
     var asSelState = useState(true);
     var asReachState = useState("selection");
     var asDropState = useState([]);
@@ -16507,7 +16578,71 @@
       }
     };
     var AS_MSGS_MAX = 6e6;
-    var runAssistant = function(text2) {
+    var PICS_MAX = 3;
+    var PICS_NOTE = "The person attached the picture above as a reference. Build to match its structure, hierarchy and spacing with the system's components and tokens (not its exact colours or fonts unless asked), then look at what you made and say how it compares.";
+    var readPicture = function(file) {
+      return new Promise(function(resolve2, reject) {
+        if (!file || !/^image\/(png|jpeg|webp|gif)$/.test(file.type)) {
+          reject(new Error((file && file.name ? file.name + " isn't" : "That isn't") + " a PNG, JPEG, WebP or GIF picture."));
+          return;
+        }
+        if (file.size > 2e7) {
+          reject(new Error((file.name || "That picture") + " is over 20 MB."));
+          return;
+        }
+        var url = URL.createObjectURL(file), img = new Image();
+        img.onload = function() {
+          var scale = Math.min(1, 1568 / Math.max(img.naturalWidth, img.naturalHeight));
+          var w = Math.max(1, Math.round(img.naturalWidth * scale)), h = Math.max(1, Math.round(img.naturalHeight * scale));
+          var c = document.createElement("canvas");
+          c.width = w;
+          c.height = h;
+          var g = c.getContext("2d");
+          g.fillStyle = "#fff";
+          g.fillRect(0, 0, w, h);
+          g.drawImage(img, 0, 0, w, h);
+          var out = c.toDataURL("image/jpeg", 0.85);
+          var t = Math.min(1, 160 / Math.max(w, h)), tc = document.createElement("canvas");
+          tc.width = Math.max(1, Math.round(w * t));
+          tc.height = Math.max(1, Math.round(h * t));
+          tc.getContext("2d").drawImage(c, 0, 0, tc.width, tc.height);
+          URL.revokeObjectURL(url);
+          resolve2({ id: uid(), name: file.name || "Picture", media_type: "image/jpeg", data: out.slice(out.indexOf(",") + 1), width: w, height: h, thumb: tc.toDataURL("image/jpeg", 0.8) });
+        };
+        img.onerror = function() {
+          URL.revokeObjectURL(url);
+          reject(new Error((file.name || "That picture") + " couldn't be read."));
+        };
+        img.src = url;
+      });
+    };
+    var addPictures = function(files) {
+      var list2 = Array.prototype.slice.call(files || []).filter(function(f) {
+        return /^image\//.test(f.type);
+      });
+      if (!list2.length) return false;
+      var room = PICS_MAX - asPicsState[0].length;
+      if (room <= 0) {
+        announce("A message takes up to " + PICS_MAX + " pictures");
+        return true;
+      }
+      Promise.all(list2.slice(0, room).map(function(f) {
+        return readPicture(f).catch(function(err) {
+          announce(err.message);
+          return null;
+        });
+      })).then(function(got) {
+        var ok = got.filter(Boolean);
+        if (ok.length) asPicsState[1](function(cur) {
+          return cur.concat(ok).slice(0, PICS_MAX);
+        });
+        if (list2.length > room) announce("A message takes up to " + PICS_MAX + " pictures; the rest were left out");
+      });
+      return true;
+    };
+    var runAssistant = function(text2, picsIn) {
+      var pics = (picsIn || []).slice(0, PICS_MAX);
+      if (!text2 && pics.length) text2 = "Build this with the system.";
       if (asBusy || !text2) return;
       var sel2 = toolApi.selection().map(function(id) {
         var at2 = locate(docRef.current, id);
@@ -16522,7 +16657,9 @@
       var system = [contextText(ctx), canvas].filter(Boolean).join("\n\n");
       var tools2 = toolsFor({ look: canLook(), plan: planOn });
       var planned = false;
-      var me = { id: uid(), role: "user", text: text2, by: account2.account ? { id: account2.account.id, name: account2.account.email } : void 0 };
+      var me = { id: uid(), role: "user", text: text2, by: account2.account ? { id: account2.account.id, name: account2.account.email } : void 0, pics: pics.length ? pics.map(function(pc) {
+        return pc.thumb;
+      }) : void 0 };
       var base = asBase.current;
       var mine = base && base.page === pageRef.current ? recentEdits(base.doc, docRef.current) : null;
       var told = mine && mine.count ? { id: uid(), role: "edits", count: mine.count, lines: mine.lines } : null;
@@ -16564,11 +16701,15 @@
         return t.concat(fresh0 ? [{ id: uid(), role: "divider", text: "A fresh conversation from here: the last one got too long to send. The assistant still sees the canvas." }] : [], told ? [told] : [], [me, turn]);
       });
       asDraftState[1]("");
+      if (pics.length) asPicsState[1]([]);
       setAsBusy(true);
       asNotes.current = [];
       var ctxBlock = system ? CTX_OPEN + system + CTX_CLOSE : "";
       var ctxNew = ctxBlock && ctxBlock !== lastContext(asMsgs.current) ? [{ type: "text", text: ctxBlock }] : [];
-      var parts = ctxNew.concat(told ? [{ type: "text", text: editsText(mine) }] : [], [{ type: "text", text: text2 }]);
+      var picParts = pics.length ? pics.map(function(pc) {
+        return { type: "image", source: { type: "base64", media_type: pc.media_type, data: pc.data } };
+      }).concat([{ type: "text", text: PICS_NOTE }]) : [];
+      var parts = ctxNew.concat(told ? [{ type: "text", text: editsText(mine) }] : [], picParts, [{ type: "text", text: text2 }]);
       asMsgs.current = asMsgs.current.concat([{ role: "user", content: parts.length === 1 ? text2 : parts }]);
       var abort = typeof AbortController !== "undefined" ? new AbortController() : null;
       asAbort.current = abort;
@@ -16712,7 +16853,9 @@
     var runRef = useRef(runAssistant);
     runRef.current = runAssistant;
     var asApi = {
-      send: runAssistant,
+      send: function(text2) {
+        runAssistant(text2, asPicsState[0]);
+      },
       stop: function() {
         if (asAbort.current) asAbort.current.abort();
         if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" });
@@ -26380,6 +26523,15 @@
                 },
                 suggestions: selectedNodes.length ? ["Make it feel more premium", "Round the corners", "Add a button"] : ["Add a pricing section"],
                 send: asApi.send,
+                pics: asPicsState[0],
+                addPictures,
+                dropPicture: function(id) {
+                  asPicsState[1](function(cur) {
+                    return cur.filter(function(pc) {
+                      return pc.id !== id;
+                    });
+                  });
+                },
                 stop: asApi.stop,
                 clear: asApi.clear,
                 fresh: asApi.fresh,

@@ -34,6 +34,17 @@ test("the cloud's copy leaves the pictures out, and says where one was", () => {
   assert.equal(value.thread[1].steps[0].shot, "data:image/jpeg;base64,AAAA", "the browser's own copy keeps its pictures");
 });
 
+test("pictures the person attached stay out of the cloud too: the bubble keeps a count, the message a line", () => {
+  const value = { thread: [{ id: "1", role: "user", text: "Build this", pics: ["data:image/jpeg;base64,BBBB", "data:image/jpeg;base64,CCCC"] }],
+    msgs: [{ role: "user", content: [{ type: "image", source: { type: "base64", media_type: "image/jpeg", data: "BBBB" } }, { type: "text", text: "Build this" }] }] };
+  const out = forCloud(value);
+  assert.equal(out.thread[0].pics, undefined);
+  assert.equal(out.thread[0].picCount, 2);
+  assert.match(out.msgs[0].content[0].text, /attached a picture here as a reference/);
+  assert.ok(!/BBBB|CCCC/.test(JSON.stringify(out)), "no picture data goes up");
+  assert.equal(value.thread[0].pics.length, 2, "the browser's own copy keeps them");
+});
+
 test("a shared conversation names the sender, except to themselves", () => {
   assert.equal(senderOf(thread[0], { id: "u2" }), "amy@example.com");
   assert.equal(senderOf(thread[0], { id: "u1" }), "");

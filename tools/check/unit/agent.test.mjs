@@ -456,3 +456,10 @@ test("the judgement cases name components and token values the system has", asyn
     }
   }
 });
+
+test("in practice mode a picture from the person is answered, not ignored", () => {
+  const script = practiceScript([]);
+  const r = script({ tools: TOOLS, messages: [{ role: "user", content: [{ type: "image", source: { type: "base64", media_type: "image/jpeg", data: "AA" } }, { type: "text", text: "Build this with the system." }] }] });
+  assert.match(r.text, /I can see your picture/);
+  assert.match(systemPrompt(), /attaches a picture/);
+});

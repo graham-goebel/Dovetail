@@ -8072,6 +8072,81 @@ input.bd-folder-name {
 .bd-as-err {
   color: var(--dt-text-danger, #e5484d);
 }
+/* Pictures going with the next message, and the ones a message carried. */
+.bd-as-pics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dt-space-inline-xs, 6px);
+  padding-bottom: var(--dt-space-stack-2xs, 6px);
+}
+.bd-as-pic {
+  position: relative;
+  display: block;
+  width: 56px;
+  height: 56px;
+}
+.bd-as-pic img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-control, 8px);
+  background: #fff;
+}
+.bd-as-pic-x {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: 50%;
+  background: var(--bd-panel, var(--dt-surface-raised));
+  color: var(--dt-text-secondary);
+  cursor: pointer;
+}
+.bd-as-pic-x .bd-ic {
+  width: 11px;
+  height: 11px;
+}
+.bd-as-pic-x:hover,
+.bd-as-pic-x:focus-visible {
+  color: var(--dt-text-primary);
+}
+.bd-as-comp.is-drop {
+  outline: 2px dashed var(--dt-border-strong, currentColor);
+  outline-offset: -2px;
+}
+.bd-as-me-pics {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+  max-width: 88%;
+  margin-left: auto;
+}
+.bd-as-me-pics img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: var(--dt-radius-control, 8px);
+  background: #fff;
+}
+.bd-as-me-picnote {
+  display: inline-flex;
+  align-self: flex-end;
+  align-items: center;
+  gap: 4px;
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-2xs, 11px);
+}
+.bd-as-me-picnote .bd-ic {
+  width: 12px;
+  height: 12px;
+}
 /* A reply's words, from Markdown. */
 .bd-md {
   display: flex;

@@ -6569,6 +6569,26 @@ try {
     await lastBot().locator(".bd-as-variants button", { hasText: "Keep the original" }).click();
     expect(await page.evaluate(() => window.__builder.doc().frames.length) === countNow, "keeping the original removes the variants");
     ok("Try them all on a question makes the variants, and the original can be kept instead");
+    /* A picture to build from: attached with the button (paste and drop
+       take the same path), shown in the box, sent as an image block. */
+    const png = await page.evaluate(() => { const c = document.createElement("canvas"); c.width = 2400; c.height = 1200; const g = c.getContext("2d"); g.fillStyle = "#234"; g.fillRect(0, 0, 2400, 1200); g.fillStyle = "#fc6"; g.fillRect(200, 200, 900, 300); return c.toDataURL("image/png").split(",")[1]; });
+    await page.locator(".bd-as-comp input[type=file]").setInputFiles({ name: "reference.png", mimeType: "image/png", buffer: Buffer.from(png, "base64") });
+    await page.locator(".bd-as-pic img").waitFor();
+    expect(/picture/.test(await page.locator(".bd-as-input").getAttribute("placeholder")), "the box says the picture can go as it is");
+    await page.locator(".bd-as-pic-x").click();
+    expect(await page.locator(".bd-as-pic").count() === 0, "a picture can be left out before sending");
+    await page.locator(".bd-as-comp input[type=file]").setInputFiles({ name: "reference.png", mimeType: "image/png", buffer: Buffer.from(png, "base64") });
+    await page.locator(".bd-as-pic img").waitFor();
+    await page.locator(".bd-as-input").fill("Build this hero");
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => { const b = [...document.querySelectorAll(".bd-as-bot")].pop(); return b && /I can see your picture/.test(b.textContent); }, null, { timeout: 20000 });
+    await settled();
+    const sentPic = await page.evaluate(() => { const m = window.__builder.assistantMsgs().filter((x) => x.role === "user" && Array.isArray(x.content) && x.content.some((b) => b.type === "image")).pop(); if (!m) return null; const img = m.content.find((b) => b.type === "image"); return { type: img.source.media_type, size: img.source.data.length, note: m.content.some((b) => b.type === "text" && /as a reference/.test(b.text)), last: m.content[m.content.length - 1].text }; });
+    expect(sentPic && sentPic.type === "image/jpeg" && sentPic.note && sentPic.last === "Build this hero", `the picture goes as a JPEG image block with a line on what it's for, before the words, got ${JSON.stringify(sentPic)}`);
+    const dims = await page.locator(".bd-as-me-pics img").last().evaluate((i) => ({ w: i.naturalWidth, h: i.naturalHeight }));
+    expect(dims.w > 0 && dims.w <= 160, `the bubble shows a small copy, got ${JSON.stringify(dims)}`);
+    expect(await page.locator(".bd-as-pic").count() === 0, "the box empties once it's sent");
+    ok("a picture attached to a message shows in the box, goes to the model as a reference, and stays in the bubble as a small copy");
     const said = await page.locator(".bd-as-me").count();
     await page.waitForTimeout(400);
     await page.reload();

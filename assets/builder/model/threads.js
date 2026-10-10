@@ -36,16 +36,18 @@ function metaOf(thread, opts) {
    and each picture sent to the model replaced by a line saying one was
    there, so it can still be carried on. */
 var GONE = "(A picture of the canvas was here. Take another if you need it.)";
+var GONE_REF = "(The person attached a picture here as a reference. The shared copy doesn't keep it; ask for it again if you need it.)";
 function forCloud(value) {
   if (!value) return value;
   var thread = (value.thread || []).map(function (t) {
+    if (t.pics) t = Object.assign({}, t, { pics: undefined, picCount: t.pics.length });
     if (!t.steps || !t.steps.some(function (s) { return s.shot; })) return t;
     return Object.assign({}, t, { steps: t.steps.map(function (s) { return s.shot ? Object.assign({}, s, { shot: undefined }) : s; }) });
   });
   var msgs = (value.msgs || []).map(function (m) {
     if (!Array.isArray(m.content)) return m;
     return Object.assign({}, m, { content: m.content.map(function (b) {
-      if (b && b.type === "image") return { type: "text", text: GONE };
+      if (b && b.type === "image") return { type: "text", text: GONE_REF };
       if (b && b.type === "tool_result" && Array.isArray(b.content)) return Object.assign({}, b, { content: b.content.map(function (c) { return c && c.type === "image" ? { type: "text", text: GONE } : c; }) });
       return b;
     }) });

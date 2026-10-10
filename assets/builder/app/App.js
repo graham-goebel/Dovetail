@@ -514,6 +514,8 @@ function App(props) {
   var asBusyState = useState(false);
   var asBusy = asBusyState[0], setAsBusy = asBusyState[1];
   var asDraftState = useState("");
+  /* Pictures waiting to go with the next message: references to build to. */
+  var asPicsState = useState([]);
   var asSelState = useState(true);
   var asReachState = useState("selection");
   var asDropState = useState([]);
@@ -972,7 +974,45 @@ function App(props) {
   /* A conversation this long (pictures and all) is past what's sent in one
      request, so the next message starts a fresh one. */
   var AS_MSGS_MAX = 6000000;
-  var runAssistant = function (text) {
+  /* Up to three pictures a message, each scaled to fit 1568px, as JPEG. */
+  var PICS_MAX = 3;
+  var PICS_NOTE = "The person attached the picture above as a reference. Build to match its structure, hierarchy and spacing with the system's components and tokens (not its exact colours or fonts unless asked), then look at what you made and say how it compares.";
+  var readPicture = function (file) {
+    return new Promise(function (resolve, reject) {
+      if (!file || !/^image\/(png|jpeg|webp|gif)$/.test(file.type)) { reject(new Error((file && file.name ? file.name + " isn't" : "That isn't") + " a PNG, JPEG, WebP or GIF picture.")); return; }
+      if (file.size > 20000000) { reject(new Error((file.name || "That picture") + " is over 20 MB.")); return; }
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var scale = Math.min(1, 1568 / Math.max(img.naturalWidth, img.naturalHeight));
+        var w = Math.max(1, Math.round(img.naturalWidth * scale)), h = Math.max(1, Math.round(img.naturalHeight * scale));
+        var c = document.createElement("canvas"); c.width = w; c.height = h;
+        var g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, w, h); g.drawImage(img, 0, 0, w, h);
+        var out = c.toDataURL("image/jpeg", 0.85);
+        var t = Math.min(1, 160 / Math.max(w, h)), tc = document.createElement("canvas");
+        tc.width = Math.max(1, Math.round(w * t)); tc.height = Math.max(1, Math.round(h * t));
+        tc.getContext("2d").drawImage(c, 0, 0, tc.width, tc.height);
+        URL.revokeObjectURL(url);
+        resolve({ id: uid(), name: file.name || "Picture", media_type: "image/jpeg", data: out.slice(out.indexOf(",") + 1), width: w, height: h, thumb: tc.toDataURL("image/jpeg", 0.8) });
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error((file.name || "That picture") + " couldn't be read.")); };
+      img.src = url;
+    });
+  };
+  var addPictures = function (files) {
+    var list = Array.prototype.slice.call(files || []).filter(function (f) { return /^image\//.test(f.type); });
+    if (!list.length) return false;
+    var room = PICS_MAX - asPicsState[0].length;
+    if (room <= 0) { announce("A message takes up to " + PICS_MAX + " pictures"); return true; }
+    Promise.all(list.slice(0, room).map(function (f) { return readPicture(f).catch(function (err) { announce(err.message); return null; }); })).then(function (got) {
+      var ok = got.filter(Boolean);
+      if (ok.length) asPicsState[1](function (cur) { return cur.concat(ok).slice(0, PICS_MAX); });
+      if (list.length > room) announce("A message takes up to " + PICS_MAX + " pictures; the rest were left out");
+    });
+    return true;
+  };
+  var runAssistant = function (text, picsIn) {
+    var pics = (picsIn || []).slice(0, PICS_MAX);
+    if (!text && pics.length) text = "Build this with the system.";
     if (asBusy || !text) return;
     var sel = toolApi.selection().map(function (id) { var at = locate(docRef.current, id); return at && at.node; }).filter(Boolean);
     var ctx = asContext();
@@ -984,7 +1024,7 @@ function App(props) {
     var system = [contextText(ctx), canvas].filter(Boolean).join("\n\n");
     var tools = toolsFor({ look: canLook(), plan: planOn });
     var planned = false;
-    var me = { id: uid(), role: "user", text: text, by: account.account ? { id: account.account.id, name: account.account.email } : undefined };
+    var me = { id: uid(), role: "user", text: text, by: account.account ? { id: account.account.id, name: account.account.email } : undefined, pics: pics.length ? pics.map(function (pc) { return pc.thumb; }) : undefined };
     var base = asBase.current;
     var mine = base && base.page === pageRef.current ? recentEdits(base.doc, docRef.current) : null;
     var told = mine && mine.count ? { id: uid(), role: "edits", count: mine.count, lines: mine.lines } : null;
@@ -1015,6 +1055,7 @@ function App(props) {
     if (ctx.docs.length || ctx.skills.length) turn.steps.push({ ok: true, text: "Read " + (sel.length ? sel.length + (sel.length === 1 ? " layer" : " layers") + ", " : "") + ctx.docs.length + (ctx.docs.length === 1 ? " doc" : " docs") + " and " + ctx.skills.length + (ctx.skills.length === 1 ? " skill" : " skills") });
     setAsThread(function (t) { return t.concat(fresh0 ? [{ id: uid(), role: "divider", text: "A fresh conversation from here: the last one got too long to send. The assistant still sees the canvas." }] : [], told ? [told] : [], [me, turn]); });
     asDraftState[1]("");
+    if (pics.length) asPicsState[1]([]);
     setAsBusy(true);
     asNotes.current = [];
     /* The canvas and the context docs ride in the person's message, and only
@@ -1023,7 +1064,10 @@ function App(props) {
        keeps the model's earlier thinking valid and the cache warm. */
     var ctxBlock = system ? CTX_OPEN + system + CTX_CLOSE : "";
     var ctxNew = ctxBlock && ctxBlock !== lastContext(asMsgs.current) ? [{ type: "text", text: ctxBlock }] : [];
-    var parts = ctxNew.concat(told ? [{ type: "text", text: editsText(mine) }] : [], [{ type: "text", text: text }]);
+    /* Pictures the person attached go just before their words, with a line
+       saying what they're for. */
+    var picParts = pics.length ? pics.map(function (pc) { return { type: "image", source: { type: "base64", media_type: pc.media_type, data: pc.data } }; }).concat([{ type: "text", text: PICS_NOTE }]) : [];
+    var parts = ctxNew.concat(told ? [{ type: "text", text: editsText(mine) }] : [], picParts, [{ type: "text", text: text }]);
     asMsgs.current = asMsgs.current.concat([{ role: "user", content: parts.length === 1 ? text : parts }]);
     var abort = typeof AbortController !== "undefined" ? new AbortController() : null;
     asAbort.current = abort;
@@ -1110,7 +1154,7 @@ function App(props) {
   };
   var runRef = useRef(runAssistant); runRef.current = runAssistant;
   var asApi = {
-    send: runAssistant,
+    send: function (text) { runAssistant(text, asPicsState[0]); },
     stop: function () { if (asAbort.current) asAbort.current.abort(); if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" }); if (askWait.current) askWait.current.resolve(null); },
     /* A new conversation; the one open stays in the list. */
     fresh: function () {
@@ -7538,7 +7582,7 @@ function App(props) {
                   includeSel: asSelState[0], toggleSel: function () { asSelState[1](!asSelState[0]); }, reach: asReachState[0], setReach: asReachState[1],
                   docs: asContext().docs, skills: asContext().skills, dropDoc: function (id) { asDropState[1](asDropState[0].concat([id])); },
                   suggestions: selectedNodes.length ? ["Make it feel more premium", "Round the corners", "Add a button"] : ["Add a pricing section"],
-                  send: asApi.send, stop: asApi.stop, clear: asApi.clear, fresh: asApi.fresh, view: asViewState[0], showList: asApi.showList, list: asList, currentId: asId, openThread: asApi.openThread, removeThread: asApi.removeThread, me: account.account, cloudFile: !!(project && project.cloud && account.status === "in"), shareLine: asList.filter(function (x) { return x.id === asId; })[0] || null, setShared: asApi.setShared, keep: asApi.keep, undoTurn: asApi.undoTurn, retry: asApi.retry, fix: asApi.fix, show: asApi.show,
+                  send: asApi.send, pics: asPicsState[0], addPictures: addPictures, dropPicture: function (id) { asPicsState[1](function (cur) { return cur.filter(function (pc) { return pc.id !== id; }); }); }, stop: asApi.stop, clear: asApi.clear, fresh: asApi.fresh, view: asViewState[0], showList: asApi.showList, list: asList, currentId: asId, openThread: asApi.openThread, removeThread: asApi.removeThread, me: account.account, cloudFile: !!(project && project.cloud && account.status === "in"), shareLine: asList.filter(function (x) { return x.id === asId; })[0] || null, setShared: asApi.setShared, keep: asApi.keep, undoTurn: asApi.undoTurn, retry: asApi.retry, fix: asApi.fix, show: asApi.show,
                   note: asApi.note, waiting: asBusy && asThread.some(function (t) { return t.ask && t.ask.status === "pending"; }), answerAsk: asApi.answerAsk, answerAskAll: asApi.answerAskAll, showVariant: asApi.showVariant, keepVariant: asApi.keepVariant, otherAsk: asApi.otherAsk, edits: asEditsNow, dropEdits: asApi.dropEdits, approvePlan: asApi.approvePlan, changePlan: asApi.changePlan, undoFrom: asApi.undoFrom, exportThread: asApi.exportThread,
                   plans: asPlanState[0], setPlans: asApi.setPlans, effort: asEffortState[0], setEffort: asApi.setEffort, look: canLook(), setLook: asApi.setLook })
               : left === "context" ? e(ContextPanel, { items: ctxItems, query: contextQuery, hasProject: !!(project && project.group), projectName: groupName, fileName: project ? project.name : "",
