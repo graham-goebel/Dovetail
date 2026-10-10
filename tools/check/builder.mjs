@@ -1376,8 +1376,9 @@ try {
 
     const bar = await page.locator("#app-toolbar .bd-toolbar").boundingBox();
     const exp = await page.locator(".bd-export").boundingBox();
-    expect((await page.locator(".bd-export").textContent()).trim() === "Export" && bar.x + bar.width - (exp.x + exp.width) < 24 && bar.width > 1000, `the top bar spans the header with Export at its right end (bar ${Math.round(bar.width)}px wide)`);
-    ok("the top bar spans the header, Export at its right end");
+    expect((await page.locator(".bd-export").getAttribute("aria-label")) === "Export" && (await page.locator(".bd-export").textContent()).trim() === "" && bar.x + bar.width - (exp.x + exp.width) < 24 && bar.width > 1000, `the top bar spans the header with Export, an icon with its name as its label, at its right end (bar ${Math.round(bar.width)}px wide)`);
+    expect(await page.locator(".bd-tb-right .bd-people-in[aria-label='Sign in']").count() === 1, "where the people on the file go, signed out, the bar offers to sign in");
+    ok("the top bar spans the header, Export an icon at its right end, with the sign-in spot beside it");
 
     await pickLayer(page, "StatsBlock");
     await page.waitForFunction(() => /StatsBlock/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
@@ -3458,6 +3459,7 @@ try {
     await page.waitForSelector(".bd-acct-who");
     expect(/ann@example\.com/.test(await page.locator(".bd-acct-who").textContent()), "signed in, it names the account");
     expect(/ann@example\.com/.test(await page.locator(".bd-rail-account").getAttribute("aria-label")), "and so does the Account button");
+    expect(/ann@example\.com \(you\)/.test(await page.locator(".bd-tb-right .bd-people").getAttribute("title")) && await page.locator(".bd-tb-right .bd-people .bd-av").count() === 1, "the top bar shows your avatar, alone until others join the file");
     expect(await page.evaluate(() => window.__fakeSb.calls.some((c) => c[0] === "rpc" && c[1] === "accept_invites")), "signing in accepts waiting invites");
     ok("on: the PKCE client, a friendly error, then signed in with invites accepted");
 

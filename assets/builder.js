@@ -7025,6 +7025,44 @@
     );
   });
 
+  // assets/builder/app/People.js
+  var COLORS = ["var(--dt-color-amber-500)", "var(--dt-color-cyan-500)", "var(--dt-color-green-500)", "var(--dt-color-violet-500)", "var(--dt-color-red-500)", "var(--dt-color-primary-500)"];
+  var SHOWN = 4;
+  function colorFor(id) {
+    var h = 0, s = String(id || "");
+    for (var i = 0; i < s.length; i++) h = h * 31 + s.charCodeAt(i) >>> 0;
+    return COLORS[h % COLORS.length];
+  }
+  function People(p) {
+    var me = p.account && p.account.status === "in" ? p.account.account : null;
+    if (!me) {
+      return e(
+        "button",
+        { type: "button", className: "bd-people-in", onClick: p.onOpen, "aria-label": "Sign in", title: "Sign in to keep files in the cloud and work with others" },
+        e("span", { className: "bd-av is-ghost", "aria-hidden": true }, e(Icon, { name: "user" }))
+      );
+    }
+    var others = p.others || [];
+    var names = others.map(function(o) {
+      return o.name;
+    }).join(", ");
+    return e(
+      "button",
+      {
+        type: "button",
+        className: "bd-people",
+        onClick: p.onOpen,
+        "aria-label": "Account, " + me.email + (others.length ? ", with " + others.length + (others.length === 1 ? " other person" : " other people") : ""),
+        title: me.email + " (you)" + (names ? ", with " + names : "")
+      },
+      others.slice(0, SHOWN).map(function(o) {
+        return e(Avatar, { key: o.id, agent: { name: o.name, color: o.color || colorFor(o.id), mark: o.mark } });
+      }),
+      others.length > SHOWN ? e("span", { className: "bd-av is-more", "aria-hidden": true }, "+" + (others.length - SHOWN)) : null,
+      e(Avatar, { agent: { name: me.email, color: colorFor(me.id) } })
+    );
+  }
+
   // assets/builder/model/usage.js
   var TEXT_KEYS4 = {};
   TEXT_STYLES.forEach(function(t) {
@@ -23365,11 +23403,13 @@
         }),
         /* Saving is quiet; the bar speaks up only when this browser can't keep the work. */
         saved.ok ? null : e("span", { className: "bd-saved is-error", title: savedTitle, role: "status" }, e(Icon, { name: "alert" }), e("span", { className: "bd-saved-text" }, "Not saved")),
+        /* Who's on the file: you, and others once live editing brings them. */
+        e(People, { account: account2, others: [], onOpen: openAccount }),
         e("button", { type: "button", className: "bd-act", title: "Play: see " + frame2.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame2.id], onClick: function() {
           openPlay();
         } }, e(Icon, { name: "play" })),
         e("button", { type: "button", className: "bd-act", "aria-pressed": String(preview), title: "Preview: use the components (Esc to stop)", "aria-label": "Preview", onClick: actions.preview }, e(Icon, { name: "eye" })),
-        e("button", { type: "button", className: "bd-btn bd-btn-primary bd-export", onClick: openCode, disabled: !ready[frame2.id], "aria-label": "Export", title: "Export: code, a picture, the layout or a link" }, e(Icon, { name: "exportOut" }), e("span", { className: "bd-export-text" }, "Export"))
+        e("button", { type: "button", className: "bd-btn bd-btn-primary bd-export", onClick: openCode, disabled: !ready[frame2.id], "aria-label": "Export", title: "Export: code, a picture, the layout or a link" }, e(Icon, { name: "exportOut" }))
       )
     );
     var toolbar = home ? homeBar : workBar;

@@ -1815,8 +1815,7 @@ span.bd-layer-twisty.is-open .bd-ic {
     flex: 1 1 100%;
   }
 
-  .bd-tb-right .bd-zoom .bd-dd-label,
-  .bd-tb-right .bd-export-text {
+  .bd-tb-right .bd-zoom .bd-dd-label {
     display: none;
   }
 
@@ -4124,6 +4123,55 @@ span.bd-layer-twisty.is-open .bd-ic {
 
 .bd-av.is-blank {
   visibility: hidden;
+}
+
+/* Who's on the file, in the top bar: a stack of avatars that opens the
+   account, or, signed out, an outlined one that offers to sign in. */
+.bd-people,
+.bd-people-in {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  padding: 2px;
+  border: 0;
+  border-radius: var(--dt-radius-pill);
+  background: none;
+  cursor: pointer;
+}
+
+.bd-people .bd-av + .bd-av {
+  margin-left: -8px;
+  box-shadow: 0 0 0 2px var(--dt-surface-base);
+}
+
+.bd-av.is-ghost {
+  border: var(--dt-border-width-default) dashed var(--dt-border-default);
+  background: none;
+  color: var(--dt-text-secondary);
+}
+
+.bd-av.is-more {
+  background: var(--dt-surface-raised);
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
+}
+
+.bd-people:hover .bd-av.is-ghost,
+.bd-people-in:hover .bd-av.is-ghost {
+  color: var(--dt-text-primary);
+  border-color: var(--dt-text-secondary);
+}
+
+.bd-people:focus-visible,
+.bd-people-in:focus-visible {
+  outline: 2px solid var(--bd-select);
+  outline-offset: 1px;
+}
+
+/* Export is its icon alone; its name is in its label. */
+.bd-export {
+  min-width: var(--dt-size-control-sm);
+  padding: 0;
 }
 
 .bd-br-stack {
