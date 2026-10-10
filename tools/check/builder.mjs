@@ -3461,7 +3461,7 @@ try {
       }
       /* The tables files mirror to (pages count their saves) and the two
          sharing reads, with the owner's membership row added on insert. */
-      const db = { projects: [], pages: [], file_groups: [], project_members: [], project_invites: [] };
+      const db = { projects: [], pages: [], file_groups: [], project_members: [], project_invites: [], assistant_threads: [] };
       let seq = 1;
       const uuid = () => "00000000-0000-4000-8000-" + String(seq++).padStart(12, "0");
       function from(table) {
@@ -3480,13 +3480,13 @@ try {
         };
         const run = () => {
           if (op === "insert") {
-            const rows = [].concat(payload).map((p) => table === "pages" ? { ...p, version: 1 } : { id: uuid(), owner: "u1", group_id: null, updated_at: new Date().toISOString(), ...p });
+            const rows = [].concat(payload).map((p) => table === "pages" ? { ...p, version: 1 } : table === "assistant_threads" ? { id: uuid(), created_by: "u1", shared: false, rev: 0, updated_at: new Date().toISOString(), ...p } : { id: uuid(), owner: "u1", group_id: null, updated_at: new Date().toISOString(), ...p });
             if (table === "project_invites" && db.project_invites.some((r) => rows.some((n) => r.project_id === n.project_id && r.email === n.email))) return { data: null, error: { message: 'duplicate key value violates unique constraint "project_invites_pkey"' } };
             db[table].push(...rows);
             if (table === "projects") rows.forEach((r) => db.project_members.push({ project_id: r.id, user_id: "u1", role: "owner", email: "ann@example.com", added_at: new Date().toISOString() }));
             return { data: single ? rows[0] : rows, error: null };
           }
-          if (op === "update") { const hit = db[table].filter(match); hit.forEach((r) => { Object.assign(r, payload); if (table === "pages") r.version += 1; }); return { data: hit.map((r) => ({ ...r })), error: null }; }
+          if (op === "update") { const hit = db[table].filter(match); hit.forEach((r) => { Object.assign(r, payload); if (table === "pages") r.version += 1; if (table === "assistant_threads") { r.rev += 1; r.updated_at = new Date().toISOString(); } }); return { data: single ? (hit[0] ? { ...hit[0] } : null) : hit.map((r) => ({ ...r })), error: single && !hit[0] ? { message: "no rows" } : null }; }
           if (op === "delete") { const gone = db[table].filter(match); db[table] = db[table].filter((r) => !match(r)); if (table === "projects") db.pages = db.pages.filter((p) => !gone.some((g) => g.id === p.project_id)); return { data: null, error: null }; }
           const rows = db[table].filter(match).map((r) => ({ ...r }));
           if (single || maybe) return { data: rows[0] || null, error: single && !rows[0] ? { message: "no rows" } : null };
@@ -3590,6 +3590,48 @@ try {
     expect((await page.evaluate(() => localStorage.getItem("dovetail-assistant"))) === "live", "and live again");
     await page.keyboard.press("Escape");
     ok("signed in, the assistant is live; its menu switches to practice and back, and the badge follows");
+    /* Conversations: one of yours shared in the file goes up as a row and
+       its saves follow; one someone else shared is listed, opens with its
+       sender named, and can't be deleted from here. */
+    /* In practice, so the replies come from the script. */
+    await page.locator(".bd-as-menu-btn").click();
+    await liveSwitch.click();
+    await page.waitForSelector(".bd-as-badge:not(.is-live)");
+    await page.keyboard.press("Escape");
+    await page.locator(".bd-as-input").fill("What's the theme?");
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => { const b = [...document.querySelectorAll(".bd-as-bot")].pop(); return b && /brand is/.test(b.textContent); }, null, { timeout: 20000 });
+    await page.waitForSelector(".bd-as-send[aria-label='Send']");
+    await page.locator(".bd-as-menu-btn").click();
+    const shareSwitch = page.locator(".bd-as-pop .bd-switch[aria-labelledby='bd-as-m-share']");
+    await page.waitForFunction(() => { const s = document.querySelector(".bd-as-pop .bd-switch[aria-labelledby='bd-as-m-share']"); return s && !s.disabled; });
+    await shareSwitch.click();
+    await page.waitForFunction(() => window.__fakeSb.db.assistant_threads.length === 1 && window.__fakeSb.db.assistant_threads[0].shared === true);
+    const row0 = await page.evaluate(() => { const r = window.__fakeSb.db.assistant_threads[0]; return { title: r.title, file: r.file_id === window.__builder.project().cloud, asked: (r.body.thread || []).some((t) => t.role === "user" && /theme/.test(t.text)), rev: r.rev }; });
+    expect(row0.file && row0.asked && /theme/.test(row0.title), `sharing writes the conversation to the file's row, got ${JSON.stringify(row0)}`);
+    await page.keyboard.press("Escape");
+    await page.locator(".bd-as-input").fill("And the font?");
+    await page.keyboard.press("Enter");
+    await page.waitForFunction((rev) => window.__fakeSb.db.assistant_threads[0].rev > rev && (window.__fakeSb.db.assistant_threads[0].body.thread || []).some((t) => /font/.test(t.text || "")), row0.rev, { timeout: 20000 });
+    await page.waitForSelector(".bd-as-send[aria-label='Send']");
+    await page.evaluate(() => {
+      const db = window.__fakeSb.db;
+      db.project_members.push({ project_id: window.__builder.project().cloud, user_id: "u2", role: "editor", email: "ben@example.com", added_at: new Date().toISOString() });
+      db.assistant_threads.push({ id: "00000000-0000-4000-8000-00000000bee1", file_id: window.__builder.project().cloud, created_by: "u2", title: "Ben's question", shared: true, rev: 1, updated_at: new Date().toISOString(),
+        body: { thread: [{ id: "b1", role: "user", text: "Hi from Ben", by: { id: "u2", name: "ben@example.com" } }, { id: "b2", role: "assistant", text: "Hello Ben.", steps: [], changes: [], status: "done" }], msgs: [{ role: "user", content: "Hi from Ben" }, { role: "assistant", content: [{ type: "text", text: "Hello Ben." }] }] } });
+    });
+    await page.locator(".bd-as-head button[aria-label='Conversations']").click();
+    const bens = page.locator(".bd-as-tr", { hasText: "Ben's question" });
+    await bens.waitFor();
+    expect(/Shared/.test(await bens.locator(".bd-as-tr-m").textContent()) && /ben@example\.com/.test(await bens.locator(".bd-as-tr-m").textContent()) && await bens.locator(".bd-as-tr-del").count() === 0, "someone else's shared conversation is listed as theirs, with no delete");
+    await bens.locator(".bd-as-tr-open").click();
+    await page.waitForSelector(".bd-as-from");
+    expect(/ben@example\.com/.test(await page.locator(".bd-as-from").textContent()) && /Hello Ben/.test(await page.locator(".bd-as-bot").last().textContent()), "it opens with its sender named");
+    await page.locator(".bd-as-menu-btn").click();
+    expect(await shareSwitch.isDisabled() && /only they/.test(await page.locator(".bd-as-pop .bd-as-mrow", { hasText: "Share in this file" }).textContent()), "only its starter can share or unshare it");
+    await page.keyboard.press("Escape");
+    ok("conversations: yours shared goes up and its saves follow; someone else's shared one is listed, opens with the sender named, and stays theirs");
+
     await page.locator(".bd-rail-account").click();
     await page.waitForSelector(".bd-acct[open] .bd-acct-who");
 

@@ -124,6 +124,12 @@ function AsMenu(p) {
     document.addEventListener("keydown", key);
     return function () { document.removeEventListener("pointerdown", away); document.removeEventListener("keydown", key); };
   }, [open]);
+  var line = p.shareLine, byOther = line && line.by && p.me && line.by.id !== p.me.id;
+  var canShare = !!(p.cloudFile && line && !byOther && !p.busy);
+  var shareHelp = !p.cloudFile ? (p.cloudOn ? "Sign in, and this file goes to the cloud; then a conversation can be shared with everyone on it." : "Sharing needs the cloud connected. Conversations stay in this browser.")
+    : !line ? "Say something first; then it can be shared with everyone on this file."
+    : byOther ? "Shared by " + (line.by.name || "someone else") + "; only they can change that."
+    : line.shared ? "Everyone on this file can read it and carry it on." : "Off, it's yours alone. On, everyone on this file can read it and carry it on.";
   var row = function (id, title, help, value, onChange) {
     return e("div", { className: "bd-as-mrow" },
       e("span", { className: "bd-as-mrow-t" }, e("b", { id: id }, title), e("span", null, help)),
@@ -144,9 +150,10 @@ function AsMenu(p) {
       row("bd-as-m-look", "Look at the canvas", "Sends a picture of what it built so it can check and fix it. Off keeps this file's canvas private.", p.look, p.setLook),
       e("p", { className: "bd-as-mnote" }, "Checks run after every change."),
       e("hr"),
-      e("div", { className: "bd-as-mrow is-off" },
-        e("span", { className: "bd-as-mrow-t" }, e("b", { id: "bd-as-m-share" }, "Share in this file"), e("span", null, p.cloudFile ? "Everyone on this file can read it and carry it on." : "Sharing needs this file in the cloud, which isn't built yet. Conversations stay in this browser for now.")),
-        e(Switch, { value: false, onChange: function () {}, labelledBy: "bd-as-m-share", disabled: !p.cloudFile })),
+      /* Sharing: the starter of a saved conversation on a cloud file. */
+      e("div", { className: cx("bd-as-mrow", !canShare && "is-off") },
+        e("span", { className: "bd-as-mrow-t" }, e("b", { id: "bd-as-m-share" }, "Share in this file"), e("span", null, shareHelp)),
+        e(Switch, { value: !!(line && line.shared), onChange: function (v) { p.setShared(v); }, labelledBy: "bd-as-m-share", disabled: !canShare })),
       e("hr"),
       e("button", { type: "button", className: "bd-as-mbtn", disabled: !p.thread.length, onClick: function () { setOpen(false); p.exportThread(); } }, e(Icon, { name: "download" }), "Export as .md"),
       e("button", { type: "button", className: "bd-as-mbtn", disabled: !p.thread.length || p.busy, onClick: function () { setOpen(false); p.clear(); } }, e(Icon, { name: "trash" }), "Delete this conversation")) : null);
@@ -176,7 +183,8 @@ function ThreadList(p) {
           x.changes ? e("span", null, e(Icon, { name: "pencil" }), x.changes + (x.changes === 1 ? " change" : " changes")) : null,
           x.shared ? e("span", null, e(Icon, { name: "user" }), "Shared") : null,
           x.by && p.me && x.by.id !== p.me.id ? e("span", null, x.by.name) : null)),
-      e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-tr-del", "aria-label": "Delete " + x.title, title: "Delete", onClick: function () { p.removeThread(x.id); }, disabled: p.busy }, e(Icon, { name: "trash" })));
+      x.by && p.me && x.by.id !== p.me.id ? null
+        : e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-tr-del", "aria-label": "Delete " + x.title, title: "Delete", onClick: function () { p.removeThread(x.id); }, disabled: p.busy }, e(Icon, { name: "trash" })));
   };
   return e("div", { className: "bd-as-list" },
     !p.list.length ? e("p", { className: "bd-as-empty-l" }, "No conversations on this file yet. Start one and it's kept here.") : null,

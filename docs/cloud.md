@@ -123,10 +123,11 @@ the mirror watches it and sends each change on:
   file shared with you comes back on the next sync until sharing has a
   "leave"). A file deleted elsewhere stays here as a file of its own.
 
-Not yet mirrored: the Content library and the assistant's conversations
-(each stays in the browser it was made in), and live updates from another
-device while a file is open, which arrive on the next sync rather than as
-they happen.
+Not yet mirrored: the Content library, and the assistant's conversations
+other than the shared ones (which have rows of their own, under "The
+assistant"); each stays in the browser it was made in. Edits to an open page
+arrive as they happen through its channel (under "Live editing"); other
+changes from another device arrive on the next sync.
 
 ## Sharing a file
 
@@ -212,11 +213,11 @@ The Builder's design assistant reads context (docs and skills) and makes changes
 
 **Variants.** Asked to try a few directions, or given Try them all on a question, it copies the frame once per direction, beside it, and builds each one. The card on its reply lists them with Show; Keep puts the one you choose where the original was, under its name, and removes the rest in one step (Keep the original removes them all). Undo brings them back.
 
-**Shared conversations.** `supabase/assistant.sql` adds `assistant_threads`: a conversation belongs to the person who started it until they share it, and then everyone on its file can read its history and carry it on, each message saying who sent it. Only its starter shares, unshares or deletes it, and a save made from an older copy is refused. Pictures of the canvas stay in the browser that took them. The panel's **Share in this file** waits for files to be kept in the cloud (below); until then conversations stay in each browser.
+**Shared conversations.** `supabase/assistant.sql` adds `assistant_threads`: a conversation belongs to the person who started it until they share it, and then everyone on its file can read its history and carry it on, each message saying who sent it. Only its starter shares, unshares or deletes it, and a save made from an older copy is refused. Pictures of the canvas stay in the browser that took them. Signed in, with the file in the cloud, **Share in this file** in the panel's ⋯ menu shares the open conversation (once it has been saved, that is, after its first message); each later reply goes up from the save it was made from, and if someone carried it on meanwhile, the panel takes their copy and says so. Conversations others shared appear in the list under "Shared with you", named after their starter, when the file opens and whenever the list is shown; opening one keeps a copy in this browser so it reopens with the file. Their bubbles name who sent them. Only the starter sees Delete on theirs; the switch is read-only to everyone else.
 
 **What it knows about the system.** The brief gives each component's purpose, when to use it and when not to, and each token value's meaning, all read from the system's own docs when the site is built. It can read any guideline in full and the file's theme (brand colours, fonts, corners, density and context). The checks include a usage row that flags a component used against its docs, such as a danger button that doesn't destroy anything or a card inside a card. `tools/evals/assistant-cases.json` holds requests with the components and values a good answer uses, for judging it once live mode is on.
 
-**How it works with you.** Before a new page or frame, or a change that adds more than about 10 layers, it shows a plan and waits for **Build it** (or **Change plan**); the Builder refuses such changes until one is approved. **Plan before big changes** in the ⋯ menu turns this off. After every reply that changes the canvas, the checks run and show under the change card. **Quick** or **Careful** under the message box sets how hard it thinks (low or high effort; the function uses medium if neither is sent). Each file keeps its conversations in this browser: the list button in the panel's header shows them, newest first, with what was said last and the changes still standing, and **+** starts a new one. The one left open reopens with the file.
+**How it works with you.** Before a new page or frame, or a change that adds more than about 10 layers, it shows a plan and waits for **Build it** (or **Change plan**); the Builder refuses such changes until one is approved. **Plan before big changes** in the ⋯ menu turns this off. After every reply that changes the canvas, the checks run and show under the change card. **Quick** or **Careful** under the message box sets how hard it thinks (low or high effort; the function uses medium if neither is sent). Each file keeps its conversations in this browser (and, shared, in the cloud): the list button in the panel's header shows them, newest first, with what was said last and the changes still standing, and **+** starts a new one. The one left open reopens with the file.
 
 ## Letting agents edit an open canvas
 
@@ -245,7 +246,8 @@ The Builder's design assistant reads context (docs and skills) and makes changes
 Built: the schema and its tests, signing in and out, new accounts with a
 confirmed email, password resets, invites accepted on sign-in, files kept in
 the cloud and brought level on sign-in, sharing a file, live editing with
-presence on its pages, the assistant and live agent sessions. The Builder
-fetches nothing until the address and key are set.
+presence on its pages, conversations shared in a file, the assistant and live
+agent sessions. The Builder fetches nothing until the address and key are set.
 
-Next: conversations shared in a file.
+Next: where others are on the canvas (their selection, drawn), and the Content
+library in the cloud.
