@@ -23,8 +23,11 @@ function person(hub, id, extra = {}) {
   return { sync, got, reloads, peers: () => peers };
 }
 
-test("the cloud is off until it has an address and a key", () => {
+test("the cloud is off without an address and a key", () => {
+  window.DovetailCloud = { url: "", anonKey: "" };
   assert.equal(cloudReady(), false);
+  window.DovetailCloud = { url: "https://abc.supabase.co", anonKey: "" };
+  assert.equal(cloudReady(), false, "an address alone isn't enough");
   window.DovetailCloud = { url: "https://abc.supabase.co", anonKey: "x".repeat(40) };
   assert.equal(cloudReady(), true);
   window.DovetailCloud = { url: "http://abc.supabase.co", anonKey: "x".repeat(40) };
