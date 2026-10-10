@@ -136,7 +136,7 @@ function AsMenu(p) {
          and needs a signed-in person; practice answers from a script here. */
       e("div", { className: cx("bd-as-mrow", !p.canLive && "is-off") },
         e("span", { className: "bd-as-mrow-t" }, e("b", { id: "bd-as-m-live" }, "Live assistant"),
-          e("span", null, p.canLive ? "Each request goes to the model through the cloud, on the account's usage. Off, a script in this browser answers, free." : p.cloudOn ? "Sign in to send requests to the model. Until then a script in this browser answers." : "Needs the cloud connected. A script in this browser answers.")),
+          e("span", null, p.canLive ? "On once you're signed in: each request goes to the model through the cloud, on the account's usage. Off, a script in this browser answers, free." : p.cloudOn ? "Sign in to send requests to the model. Until then a script in this browser answers." : "Needs the cloud connected. A script in this browser answers.")),
         p.cloudOn && !p.canLive ? e("button", { type: "button", className: "bd-as-mbtn bd-as-msign", onClick: function () { setOpen(false); p.signIn(); } }, e(Icon, { name: "user" }), "Sign in")
           : e(Switch, { value: p.mode === "live", onChange: function (v) { p.setMode(v ? "live" : "practice"); }, labelledBy: "bd-as-m-live", disabled: !p.canLive })),
       e("hr"),

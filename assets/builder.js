@@ -12003,7 +12003,7 @@
             "span",
             { className: "bd-as-mrow-t" },
             e("b", { id: "bd-as-m-live" }, "Live assistant"),
-            e("span", null, p.canLive ? "Each request goes to the model through the cloud, on the account's usage. Off, a script in this browser answers, free." : p.cloudOn ? "Sign in to send requests to the model. Until then a script in this browser answers." : "Needs the cloud connected. A script in this browser answers.")
+            e("span", null, p.canLive ? "On once you're signed in: each request goes to the model through the cloud, on the account's usage. Off, a script in this browser answers, free." : p.cloudOn ? "Sign in to send requests to the model. Until then a script in this browser answers." : "Needs the cloud connected. A script in this browser answers.")
           ),
           p.cloudOn && !p.canLive ? e("button", { type: "button", className: "bd-as-mbtn bd-as-msign", onClick: function() {
             setOpen(false);
@@ -12741,25 +12741,26 @@
 
   // assets/builder/cloud/assistant.js
   var MODE_KEY = "dovetail-assistant";
-  function assistantMode() {
+  function assistantMode(signedIn) {
     var asked = null;
     try {
       var over = typeof window !== "undefined" && window.DovetailAssistant;
       asked = over && over.mode ? over.mode : window.localStorage.getItem(MODE_KEY);
     } catch (err) {
     }
-    return asked === "live" && cloudReady() ? "live" : "practice";
+    if (!cloudReady()) return "practice";
+    if (asked === "live" || asked === "practice") return asked;
+    return signedIn ? "live" : "practice";
   }
   function setAssistantMode(mode) {
     try {
-      if (mode === "live") window.localStorage.setItem(MODE_KEY, "live");
-      else window.localStorage.removeItem(MODE_KEY);
+      window.localStorage.setItem(MODE_KEY, mode === "live" ? "live" : "practice");
     } catch (err) {
     }
   }
   function sendAssistant(request, onEvent, opts) {
     opts = opts || {};
-    if (assistantMode() !== "live") {
+    if ((opts.mode || assistantMode(false)) !== "live") {
       var events = practiceEvents(request, opts.script);
       var delay = opts.delay == null ? 18 : opts.delay;
       return new Promise(function(resolve, reject) {
@@ -14384,7 +14385,10 @@
     useEffect(function() {
       if (mirror && account2.joined) mirror.sync();
     }, [account2.joined]);
-    var asModeState = useState(assistantMode());
+    var asModeState = useState(assistantMode(false));
+    useEffect(function() {
+      asModeState[1](assistantMode(account2.status === "in"));
+    }, [account2.status]);
     var rightRef = useRef(null);
     var leftPanelRef = useRef(null);
     var hidePanelsRef = useRef(false);
@@ -15142,7 +15146,7 @@
               return { text: (x.base || "") + now };
             });
           }
-        }, { script, signal: abort && abort.signal }).then(function() {
+        }, { script, signal: abort && abort.signal, mode: asModeState[0] }).then(function() {
           var r = c.result();
           asMsgs.current = asMsgs.current.concat([{ role: "assistant", content: r.content.length ? r.content : [{ type: "text", text: r.text || "…" }] }]);
           if (r.error) throw new Error(r.error);
@@ -24803,7 +24807,7 @@
                 mode: asModeState[0],
                 setMode: function(m) {
                   setAssistantMode(m);
-                  asModeState[1](assistantMode());
+                  asModeState[1](assistantMode(account2.status === "in"));
                 },
                 canLive: cloudReady() && account2.status === "in",
                 cloudOn: cloudReady(),
