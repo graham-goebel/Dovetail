@@ -155,6 +155,7 @@ const PAGE = `<!doctype html>
 <div id="foodkit-root"></div>
 <div id="store-checkout-root"></div>
 <div id="carousel-root"></div>
+<div id="split-root" style="width:1100px"></div>
 <div id="menu-root"></div>
 <div id="voice-root"></div>
 <div style="height:3000px"></div>
@@ -441,6 +442,16 @@ function CarouselApp() {
 }
 createRoot(document.getElementById("carousel-root")).render(h(CarouselApp));
 window.__carouselReady = true;
+</script>
+<script type="module">
+/* SplitBlock: copy beside media, with points, on its own root. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { SplitBlock } from "@dovetail-ds/react";
+const h = React.createElement;
+createRoot(document.getElementById("split-root")).render(h(SplitBlock, { title: "Four steps", media: h("div", { style: { height: 200, background: "var(--dt-surface-raised)" } }),
+  points: ["Add components from Assets in the left rail", "Select any layer and double-click text to edit it", "Ok"] }));
+window.__splitReady = true;
 </script>
 <script type="module">
 /* MenuSheet: opened from a button, with a list layer, a filter layer and search. */
@@ -1194,6 +1205,16 @@ try {
     const group = await page.getByRole("group", { name: "Store delivery", exact: true }).count();
     expect(group === 1, "the delivery options should be a group named by its legend");
     ok('choosing a delivery option calls onDeliveryChange("store-express"); the options are grouped by their legend');
+  });
+
+  await step("SplitBlock: each point's text takes the rest of its row, however short", async () => {
+    await page.waitForFunction(() => window.__splitReady === true && document.querySelectorAll("#split-root li").length === 3);
+    const rows = await page.evaluate(() => [...document.querySelectorAll("#split-root li")].map((li) => {
+      const t = li.lastElementChild.getBoundingClientRect(), r = li.getBoundingClientRect();
+      return { row: Math.round(r.right), text: Math.round(t.right), width: Math.round(t.width) };
+    }));
+    expect(rows.every((x) => Math.abs(x.row - x.text) <= 1 && x.width > 200), `each point's text reaches the end of its row, short ones too, got ${JSON.stringify(rows)}`);
+    ok("each point's text fills the rest of its row, so it never collapses to one word a line");
   });
 
   await step("Carousel: named slides, only the focused one live, keyboard and buttons move it, pause holds it", async () => {

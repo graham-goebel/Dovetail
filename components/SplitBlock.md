@@ -119,13 +119,13 @@ export function SplitBlock({ eyebrow, title, titleSize = "heading-lg", body, poi
     <Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={width} {...rest}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: "var(--dt-space-inline-2xl)", alignItems: align === "top" ? "start" : "center" }}>
         {media && <div style={{ minWidth: 0, order: reverse ? 2 : 1 }}>{media}</div>}
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-md)", order: reverse ? 1 : 2 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-md)", minWidth: 0, order: reverse ? 1 : 2 }}>
           <BlockHeader eyebrow={eyebrow} title={title} size={titleSize} lead={body} />
           {points && points.length > 0 && (
             <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xs)" }}>
               {points.map((p) => (
                 <li key={typeof p === "string" ? p : undefined} style={{ display: "flex", gap: "var(--dt-space-inline-sm)", alignItems: "flex-start" }}>
-                  {CHECK}<Text as="span">{p}</Text>
+                  {CHECK}<Text as="span" style={{ flex: "1 1 0%", minWidth: 0 }}>{p}</Text>
                 </li>
               ))}
             </ul>
