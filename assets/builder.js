@@ -5621,7 +5621,7 @@
     { name: "set_prop", description: "Set one of a component's own props on layers of that type: its text, or one of the values its enum allows.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, name: { type: "string" }, value: { type: ["string", "number", "boolean"] } }, required: ["ids", "name", "value"], additionalProperties: false } },
     { name: "insert_jsx", description: "Add new layers written as JSX with the design system's components (for example <Section><Heading>…</Heading></Section>) into a container, at an index, or after the selection when parent is omitted.", input_schema: { type: "object", properties: { jsx: { type: "string" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["jsx"], additionalProperties: false } },
     { name: "replace_jsx", description: "Replace one layer with new layers written as JSX, in its place: the way to rebuild a section or a card in one step.", input_schema: { type: "object", properties: { id: { type: "string" }, jsx: { type: "string" } }, required: ["id", "jsx"], additionalProperties: false } },
-    { name: "find_images", description: "Find pictures for the page in this file's Content uploads (images and illustrations), by words in their names; with no match, or no query, it lists them all. Each comes back as content:<id>: use that wherever a picture goes, as an Image's or Cover's src, a layout's image field, or a prop set with set_prop. Prefer the person's own uploads to placeholders.", input_schema: { type: "object", properties: { query: { type: "string" } }, additionalProperties: false } },
+    { name: "find_images", description: `Find pictures for the page: first in this file's Content uploads (images and illustrations), by words in their names, each as content:<id>; when none fits and stock photos are set up, it searches stock photos for the query instead, each as stock:<id> with what it shows and who took it. Use the id wherever a picture goes: an Image's or Cover's src, a layout's image field, or a prop set with set_prop. Prefer the person's own uploads; describe a stock search in a few plain words ("stoneware mug on a table").`, input_schema: { type: "object", properties: { query: { type: "string" }, orientation: { type: "string", enum: ["landscape", "portrait", "squarish"] } }, additionalProperties: false } },
     { name: "search_layouts", description: "Find tested section layouts to build with: heroes, features, stories, proof, showcases, steps, questions and closes, each with its mood, when it fits and the content fields it takes. Filter by kind (" + KINDS.join(", ") + ") or words such as bold, calm, editorial, moving. Nothing given lists them all.", input_schema: { type: "object", properties: { query: { type: "string" }, kind: { type: "string", enum: KINDS } }, additionalProperties: false } },
     { name: "insert_layout", description: "Add a section from search_layouts, filled with your content: into a container at an index, after the selection when parent is omitted, or in place of a layer with replace. content takes the layout's fields (eyebrow, title, lead, action, secondary, image, items, stats, quotes, points, faqs, steps, slides); anything left out gets sample copy, so give real copy for every field the layout lists.", input_schema: { type: "object", properties: { id: { type: "string" }, content: { type: "object" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 }, replace: { type: "string" } }, required: ["id"], additionalProperties: false } },
     { name: "set_text", description: "Set a layer's text: a heading's or a paragraph's words, a button's label, a card's title.", input_schema: { type: "object", properties: { id: { type: "string" }, text: { type: "string" } }, required: ["id", "text"], additionalProperties: false } },
@@ -5818,7 +5818,8 @@
     out.missing = missing;
     return out;
   }
-  var CONTENT_REF = /^content:([\w-]+)$/;
+  var CONTENT_REF = /^(content|stock):([\w-]+)$/;
+  var STOCK = {};
   var PICTURE_KINDS = ["images", "illustrations"];
   function uploads(api) {
     var lib = api.library ? api.library() || {} : {};
@@ -5833,8 +5834,14 @@
   function fromContent(api, v) {
     var m = typeof v === "string" && CONTENT_REF.exec(v);
     if (!m) return v;
+    if (m[1] === "stock") {
+      var ph = STOCK[m[2]];
+      if (!ph) return v;
+      if (api.stockUsed) api.stockUsed(ph);
+      return ph.url;
+    }
     var hit = uploads(api).filter(function(u) {
-      return u.id === m[1];
+      return u.id === m[2];
     })[0];
     return hit ? hit.src : v;
   }
@@ -5854,8 +5861,8 @@
     })(nodes);
     return missing;
   }
-  function runTool(api, call) {
-    var input = call.input || {};
+  function runTool(api, call2) {
+    var input = call2.input || {};
     var fail = function(msg) {
       return { ok: false, result: msg };
     };
@@ -5869,7 +5876,7 @@
       var at2 = locate(doc2, id);
       return at2 ? layerName(at2.node) : id;
     };
-    switch (call.name) {
+    switch (call2.name) {
       case "list_pages": {
         var pages = api.pages ? api.pages() : [];
         var frames = (doc2.frames || []).map(function(f2) {
@@ -6069,13 +6076,13 @@
         })) return fail("Set a prop on layers of one type at a time.");
         if (spec && spec.kind === "enum" && spec.options.indexOf(input.value) < 0) return fail(input.value + " isn't one of " + input.name + "'s options: " + spec.options.join(", ") + ".");
         var val = fromContent(api, input.value);
-        if (typeof input.value === "string" && CONTENT_REF.test(input.value) && val === input.value) return fail("There's no upload " + input.value + ". find_images lists them.");
+        if (typeof input.value === "string" && CONTENT_REF.test(input.value) && val === input.value) return fail("There's no picture " + input.value + ". find_images lists them.");
         if (!api.setProp(pids, input.name, val)) return fail("Nothing changed.");
-        return { ok: true, result: "Done.", change: { ids: pids, label: input.name === "children" ? "Text" : input.name.charAt(0).toUpperCase() + input.name.slice(1), value: val !== input.value ? "a Content upload" : String(input.value).slice(0, 60), on: pids.map(nameOf3).join(", ") } };
+        return { ok: true, result: "Done.", change: { ids: pids, label: input.name === "children" ? "Text" : input.name.charAt(0).toUpperCase() + input.name.slice(1), value: val !== input.value ? /^stock:/.test(input.value) ? "a stock photo" : "a Content upload" : String(input.value).slice(0, 60), on: pids.map(nameOf3).join(", ") } };
       }
       case "insert_jsx": {
         var made = fromJsx(input.jsx, api);
-        if (made.missing.length) return fail("There's no upload " + made.missing[0] + ". find_images lists them.");
+        if (made.missing.length) return fail("There's no picture " + made.missing[0] + ". find_images lists them.");
         if (!made.length) return fail("That JSX has no components the system knows.");
         var owed = owesPlan(api, added(made));
         if (owed) return owed;
@@ -6089,7 +6096,7 @@
         var at0 = locate(doc2, input.id);
         if (!at0 || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
         var made2 = fromJsx(input.jsx, api);
-        if (made2.missing.length) return fail("There's no upload " + made2.missing[0] + ". find_images lists them.");
+        if (made2.missing.length) return fail("There's no picture " + made2.missing[0] + ". find_images lists them.");
         if (!made2.length) return fail("That JSX has no components the system knows.");
         var owed2 = owesPlan(api, added(made2));
         if (owed2) return owed2;
@@ -6102,8 +6109,26 @@
       }
       case "find_images": {
         var ups = uploads(api);
-        if (!ups.length) return { ok: true, result: "This file has no images or illustrations in Content yet. Use a layout's placeholder, or ask the person to upload some.", step: "Looked for pictures in Content" };
-        var qw = String(input.query || "").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+        var stockFor = function(fallback) {
+          var q2 = String(input.query || "").trim();
+          if (!api.stock || !q2) return fallback;
+          return Promise.resolve(api.stock(q2, { count: 6, orientation: input.orientation })).then(function(photos) {
+            if (!photos || !photos.length) return fallback;
+            photos.forEach(function(ph) {
+              STOCK[ph.id] = ph;
+            });
+            var rows = photos.map(function(ph) {
+              return "- stock:" + ph.id + " · photo" + (ph.width && ph.height ? " " + ph.width + "×" + ph.height : "") + ' · "' + short3(ph.alt || q2, 80) + '"' + (ph.credit ? " · by " + short3(ph.credit, 40) : "");
+            });
+            return { ok: true, result: 'Stock photos for "' + q2 + '" (nothing in Content fits):\n' + rows.join("\n") + (ups.length ? "\nIn Content:\n" + fallback.result : ""), step: "Found " + photos.length + " stock photo" + (photos.length === 1 ? "" : "s") + " for " + short3(q2, 40) };
+          }, function() {
+            return fallback;
+          });
+        };
+        if (!ups.length) return stockFor({ ok: true, result: "This file has no images or illustrations in Content yet. Use a layout's placeholder, or ask the person to upload some.", step: "Looked for pictures in Content" });
+        var qw = String(input.query || "").toLowerCase().split(/[^a-z0-9]+/).filter(function(w) {
+          return w.length > 2;
+        });
         var hits = qw.length ? ups.filter(function(u) {
           var hay = (u.name + " " + u.kind).toLowerCase();
           return qw.some(function(w) {
@@ -6115,7 +6140,9 @@
           return "- content:" + u.id + " · " + u.kind + ' · "' + short3(u.name || "untitled", 60) + '"';
         });
         var head3 = hits.length || !qw.length ? "" : 'Nothing in Content is named for "' + input.query + '"; these are all of them:\n';
-        return { ok: true, result: head3 + lines.join("\n") + (ups.length > shown2.length ? "\n… and " + (ups.length - shown2.length) + " more." : ""), step: "Found " + shown2.length + " picture" + (shown2.length === 1 ? "" : "s") + " in Content" };
+        var listed = { ok: true, result: head3 + lines.join("\n") + (ups.length > shown2.length ? "\n… and " + (ups.length - shown2.length) + " more." : ""), step: "Found " + shown2.length + " picture" + (shown2.length === 1 ? "" : "s") + " in Content" };
+        if (hits.length && qw.length) return listed;
+        return stockFor(listed);
       }
       case "search_layouts": {
         var found = findLayouts(input.query, input.kind);
@@ -6379,7 +6406,7 @@
         return { ok: true, result: file.body, skill: skill.name, step: "Read the " + skill.name + " skill" };
       }
       default:
-        return fail("There's no tool called " + call.name + ".");
+        return fail("There's no tool called " + call2.name + ".");
     }
   }
   var PRACTICE_CLOSES = {
@@ -6696,15 +6723,15 @@
     var okMark = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(mark) && mark.length <= 65536;
     return { name, mark: okMark ? mark : "", markRefused: !!mark && !okMark };
   }
-  function targetsOf(call, doc2) {
-    var input = call && call.input || {};
+  function targetsOf(call2, doc2) {
+    var input = call2 && call2.input || {};
     var out = [];
     var add = function(v) {
       [].concat(v || []).forEach(function(id) {
         if (typeof id === "string" && id !== "root" && out.indexOf(id) < 0) out.push(id);
       });
     };
-    switch (call && call.name) {
+    switch (call2 && call2.name) {
       case "batch":
         (input.calls || []).forEach(function(c) {
           add(targetsOf(c, doc2));
@@ -6753,8 +6780,8 @@
     if (canEdit) list2 = list2.concat([EDIT_BY_NAME, PLACE_IMAGE, WORKING_ON]);
     return [HELLO].concat(list2);
   }
-  function allowed(call, session, tools) {
-    var name = call && call.name;
+  function allowed(call2, session, tools) {
+    var name = call2 && call2.name;
     if (name === "describe" || name === "hello") return null;
     if (!name || !tools.some(function(t) {
       return t.name === name;
@@ -6782,12 +6809,12 @@
     var s = String(t == null ? "" : t).replace(/\s+/g, " ").trim();
     return s.length > n ? s.slice(0, n - 1) + "…" : s;
   }
-  function rowsOf(call, name, doc2) {
-    var input = call && call.input || {};
+  function rowsOf(call2, name, doc2) {
+    var input = call2 && call2.input || {};
     var who = function(ids) {
       return (ids || []).map(name).filter(Boolean).slice(0, 3).join(", ") + ((ids || []).length > 3 ? " and " + (ids.length - 3) + " more" : "");
     };
-    switch (call && call.name) {
+    switch (call2 && call2.name) {
       case "batch":
         return (input.calls || []).reduce(function(a, c) {
           return a.concat(rowsOf(c, name, doc2));
@@ -6846,7 +6873,7 @@
       case "hello":
         return [{ icon: "user", title: "Said hello", detail: "As " + (agentFrom(input).name || "an agent") }];
       default:
-        return [{ icon: "book", title: String(call && call.name || "A step").replace(/_/g, " ").replace(/^./, function(c) {
+        return [{ icon: "book", title: String(call2 && call2.name || "A step").replace(/_/g, " ").replace(/^./, function(c) {
           return c.toUpperCase();
         }), detail: "" }];
     }
@@ -13437,6 +13464,43 @@
     });
   }
 
+  // assets/builder/cloud/stock.js
+  function call(body) {
+    if (!cloudReady()) return Promise.resolve(null);
+    return getClient().then(function(sb) {
+      return sb.auth.getSession();
+    }).then(function(res) {
+      var session = res && res.data && res.data.session;
+      if (!session) return null;
+      var c = cloudConfig();
+      return fetch(c.url + "/functions/v1/images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token, apikey: c.anonKey },
+        body: JSON.stringify(body)
+      }).then(function(resp) {
+        if (resp.status === 503) return null;
+        return resp.json().catch(function() {
+          return {};
+        }).then(function(b) {
+          if (!resp.ok) throw new Error(b.error || "Stock photos couldn't be reached.");
+          return b;
+        });
+      });
+    });
+  }
+  function searchStock(query, opts) {
+    opts = opts || {};
+    return call({ query, count: opts.count, orientation: opts.orientation }).then(function(b) {
+      return b ? b.photos || [] : null;
+    });
+  }
+  function stockUsed(photo) {
+    if (!photo || !photo.download) return Promise.resolve();
+    return call({ used: photo.download }).then(function() {
+    }, function() {
+    });
+  }
+
   // assets/builder/app/Stage.js
   var camNow = { x: STAGE_PAD, y: STAGE_PAD + LABEL_ROOM, z: 1 };
   var camListeners = [];
@@ -14738,7 +14802,7 @@
       });
       comps[id] = { id, comp: f.comp, params, keys: keys2, instances: f.instances };
     });
-    var call = function(n) {
+    var call2 = function(n) {
       var c = comps[n.inst.of];
       if (!c.fn) {
         c.fn = functionName(c.comp.name, taken);
@@ -14763,7 +14827,7 @@
       return out2;
     };
     var swap = function(n) {
-      if (n.inst && comps[n.inst.of]) return call(n);
+      if (n.inst && comps[n.inst.of]) return call2(n);
       if (!n.children) return n;
       return Object.assign({}, n, { children: n.children.map(swap) });
     };
@@ -16051,6 +16115,23 @@
       library: function() {
         return libRef.current;
       },
+      /* Stock photos when Content has nothing that fits (null when not set up),
+         and what happens when one is used: it's kept in Content with its
+         credit, and the service is told. */
+      stock: function(q, o) {
+        return searchStock(q, o);
+      },
+      stockUsed: function(ph) {
+        var have = (libRef.current.images || []).some(function(it) {
+          return it.src === ph.url;
+        });
+        if (!have) setLibrary(function(l) {
+          var n = Object.assign({}, l);
+          n.images = [{ id: uid(), name: (ph.alt ? ph.alt.slice(0, 60) + " · " : "") + (ph.credit ? "Photo by " + ph.credit : "Stock photo"), src: ph.url, credit: ph.credit || "", creditUrl: ph.creditUrl || "" }].concat(l.images || []);
+          return n;
+        });
+        if (!have) stockUsed(ph);
+      },
       runChecks: function(fid) {
         return runChecks(fid);
       },
@@ -16164,14 +16245,14 @@
             return null;
           }
           var results = [], changes = [], steps = noted.slice();
-          return r.tools.reduce(function(p, call) {
+          return r.tools.reduce(function(p, call2) {
             return p.then(function() {
-              if (call.bad) {
-                results.push({ type: "tool_result", tool_use_id: call.id, content: "That input didn't parse; send it again.", is_error: true });
+              if (call2.bad) {
+                results.push({ type: "tool_result", tool_use_id: call2.id, content: "That input didn't parse; send it again.", is_error: true });
                 return;
               }
               var at2 = history.current.past.length;
-              return Promise.resolve(runTool(api2, call)).then(function(res) {
+              return Promise.resolve(runTool(api2, call2)).then(function(res) {
                 var mine2 = [].concat(res.change ? [res.change] : [], res.changes || []).map(function(ch) {
                   return Object.assign({}, ch, { at: at2 });
                 });
@@ -16179,7 +16260,7 @@
                 changes.push.apply(changes, mine2);
                 if (res.step && res.ok) steps.push({ ok: true, text: res.step, shot: res.shot ? res.shot.url : void 0 });
                 if (!res.ok) steps.push({ ok: false, text: res.result });
-                results.push({ type: "tool_result", tool_use_id: call.id, content: res.result, is_error: !res.ok });
+                results.push({ type: "tool_result", tool_use_id: call2.id, content: res.result, is_error: !res.ok });
               });
             });
           }, Promise.resolve()).then(function() {
@@ -21956,16 +22037,16 @@
         })();
       });
     };
-    var bridgeCall = function(key, call) {
+    var bridgeCall = function(key, call2) {
       var live = bridgeLives.current[key];
       if (!live) return { ok: false, result: "This session has ended." };
       var tools2 = bridgeTools(toolsFor({ look: true, plan: false }), live.canEdit);
-      var why = allowed(call, live, tools2);
+      var why = allowed(call2, live, tools2);
       if (why) return { ok: false, result: why };
       if (live.paused) return { ok: false, result: "The person paused the session. Wait a minute and try again, or ask them to resume it." };
       var me = agentOf(key) || { name: live.name };
-      if (call.name === "hello") {
-        var who = agentFrom(call.input);
+      if (call2.name === "hello") {
+        var who = agentFrom(call2.input);
         if (!who.name) return { ok: false, result: "Send a name: { name, mark? }." };
         live.name = who.name;
         patchAgent(key, { name: who.name, mark: who.mark || null });
@@ -21974,12 +22055,12 @@
         });
         return { ok: true, result: "Hello, " + who.name + "." + (who.markRefused ? " The mark wasn't shown: send a data:image/png, jpeg or webp address up to 48 KB." : who.mark ? " Your mark is on your cursor." : "") };
       }
-      if (call.name === "working_on") {
-        var wid = call.input && call.input.id, wfid = wid && frameOfId(wid);
+      if (call2.name === "working_on") {
+        var wid = call2.input && call2.input.id, wfid = wid && frameOfId(wid);
         if (!wfid) return { ok: false, result: "There's no layer " + wid + " on this page." };
         var wh = heldBy(key, [wid]);
         if (wh) return { ok: false, result: ((agentOf(wh.key) || {}).name || "Another agent") + " is working on " + bridgeName(wid) + ". Pick another layer, or wait a moment." };
-        var wrows = rowsOf(call, bridgeName, docRef.current);
+        var wrows = rowsOf(call2, bridgeName, docRef.current);
         bridgeHolds.current[wid] = { key, until: Date.now() + 6e4, running: false };
         patchAgent(key, { at: { id: wid, fid: wfid, label: wrows[0].detail } });
         patchBridge(function(b) {
@@ -21988,20 +22069,20 @@
         setTimeout(remeasure, 60);
         return { ok: true, result: "The person sees “" + wrows[0].detail + "” at " + bridgeName(wid) + "." };
       }
-      var rows = rowsOf(call, bridgeName, docRef.current);
-      var targets = isRead(call.name) ? [] : targetsOf(call, docRef.current);
+      var rows = rowsOf(call2, bridgeName, docRef.current);
+      var targets = isRead(call2.name) ? [] : targetsOf(call2, docRef.current);
       var sid = uid();
       var go = function(waitedFor) {
-        var before = docRef.current, edits = !isRead(call.name);
+        var before = docRef.current, edits = !isRead(call2.name);
         if (targets.length) hold(key, targets, true);
         if (targets[0]) patchAgent(key, { at: { id: targets[0], fid: frameOfId(targets[0]), label: rows[0].detail || rows[0].title } });
         patchBridge(function(b) {
           var waitRow = waitedFor ? [{ id: uid(), key, rows: [{ icon: "clock", title: bridgeName(waitedFor.id), detail: "Waited for " + ((agentOf(waitedFor.key) || {}).name || "another agent") + " to finish, then went on" }], ok: true }] : [];
           return { steps: [{ id: sid, key, rows, ok: true, running: edits }].concat(waitRow, b.steps).slice(0, 300) };
         });
-        var run = call.name === "describe" ? { ok: true, result: describeText(systemPrompt(), tools2, live) } : call.name === "edit_by_name" ? bridgeEditByName(call.input) : call.name === "place_image" ? bridgePicture(call.input || {}) : runTool(Object.assign({}, toolApi, { needsPlan: null, selection: function() {
+        var run = call2.name === "describe" ? { ok: true, result: describeText(systemPrompt(), tools2, live) } : call2.name === "edit_by_name" ? bridgeEditByName(call2.input) : call2.name === "place_image" ? bridgePicture(call2.input || {}) : runTool(Object.assign({}, toolApi, { needsPlan: null, selection: function() {
           return [];
-        } }), { name: call.name, input: call.input || {} });
+        } }), { name: call2.name, input: call2.input || {} });
         return Promise.resolve(run).then(function(res) {
           var diff2 = docRef.current !== before ? diff(before, docRef.current) : null;
           var ids = [].concat(res.change ? [res.change] : [], res.changes || []).reduce(function(a, c) {
@@ -22045,7 +22126,7 @@
           return go(first);
         });
       };
-      if (!isRead(call.name) && live.askFirst) {
+      if (!isRead(call2.name) && live.askFirst) {
         return new Promise(function(resolve2) {
           bridgeWait.current.push({ key, rows, resolve: resolve2 });
           patchBridge({ pending: bridgeWait.current[0] ? { key: bridgeWait.current[0].key, rows: bridgeWait.current[0].rows } : null, open: true });

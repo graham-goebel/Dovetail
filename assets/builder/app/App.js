@@ -27,6 +27,7 @@ import { editsText, recentEdits } from "../model/recent.js";
 import { metaOf } from "../model/threads.js";
 import { collector } from "../model/assistant.js";
 import { assistantMode, sendAssistant, setAssistantMode } from "../cloud/assistant.js";
+import { searchStock, stockUsed } from "../cloud/stock.js";
 import { cloudReady } from "../cloud/config.js";
 import { getClient } from "../cloud/client.js";
 import { EditorAt, Labels, Marks, Resizers, Rulers, SpacingLines, ViewMarks, World, camera, onStage, placeMarks } from "./Stage.js";
@@ -923,6 +924,15 @@ function App(props) {
     theme: function () { return themeSummary(); },
     /* The Content uploads, for find_images and the content: pictures it names. */
     library: function () { return libRef.current; },
+    /* Stock photos when Content has nothing that fits (null when not set up),
+       and what happens when one is used: it's kept in Content with its
+       credit, and the service is told. */
+    stock: function (q, o) { return searchStock(q, o); },
+    stockUsed: function (ph) {
+      var have = (libRef.current.images || []).some(function (it) { return it.src === ph.url; });
+      if (!have) setLibrary(function (l) { var n = Object.assign({}, l); n.images = [{ id: uid(), name: (ph.alt ? ph.alt.slice(0, 60) + " · " : "") + (ph.credit ? "Photo by " + ph.credit : "Stock photo"), src: ph.url, credit: ph.credit || "", creditUrl: ph.creditUrl || "" }].concat(l.images || []); return n; });
+      if (!have) stockUsed(ph);
+    },
     runChecks: function (fid) { return runChecks(fid); },
     measure: function (a, b) { return measureLayers(a, b); },
     batch: function (fn) {
