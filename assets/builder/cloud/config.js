@@ -10,8 +10,8 @@
    which is how the checks point it at a stand-in. See docs/cloud.md. */
 
 var CLOUD = {
-  url: "",
-  anonKey: "",
+  url: "https://hwdcdocfcdyzzclvhiwj.supabase.co",
+  anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3ZGNkb2NmY2R5enpjbHZoaXdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1OTIyOTcsImV4cCI6MjEwNzE2ODI5N30.Sok9aR7B83h95F8GiByTd-eeBd5utDmjeEizwRE87R4",
 };
 
 /* supabase-js, loaded only once the cloud is on and only when it's needed. */

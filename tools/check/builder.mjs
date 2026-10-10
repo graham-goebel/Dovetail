@@ -195,6 +195,10 @@ async function open(viewport, { hash = "", store = null, before = null, playgrou
      makes has a step of its own. The script runs before every load, so it
      outlasts the clear below. */
   if (!playground) await page.context().addInitScript(() => { try { if (!localStorage.getItem("dovetail-builder-playground")) localStorage.setItem("dovetail-builder-playground", "1"); } catch (err) { /* no storage */ } });
+  /* The checks test the Builder, not the cloud it ships pointed at: the
+     cloud is off unless a step's `before` points it at a stand-in (a later
+     init script wins). */
+  await page.addInitScript(() => { window.DovetailCloud = { url: "", anonKey: "" }; });
   page.setDefaultTimeout(8000);
   watch(page);
   if (before) await before(page);

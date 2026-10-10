@@ -6271,8 +6271,8 @@
 
   // assets/builder/cloud/config.js
   var CLOUD = {
-    url: "",
-    anonKey: ""
+    url: "https://hwdcdocfcdyzzclvhiwj.supabase.co",
+    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3ZGNkb2NmY2R5enpjbHZoaXdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1OTIyOTcsImV4cCI6MjEwNzE2ODI5N30.Sok9aR7B83h95F8GiByTd-eeBd5utDmjeEizwRE87R4"
   };
   var LIB_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/+esm";
   function cloudConfig() {
