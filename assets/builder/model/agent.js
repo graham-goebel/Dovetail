@@ -164,6 +164,7 @@ function systemPrompt() {
     "- Reuse what the file already has. list_components shows its own components (My components); put one down with insert_instance rather than building it again, and when a part you built repeats, offer make_component. When the ask matches a template (a landing page, a store page, a settings form, a support chat), insert_template gives you its sections to start from; then set the person's copy in place of the sample copy.",
     "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
     "- Write real, short copy in the brand's voice. Never lorem ipsum.",
+    "- When the person attaches a picture, it's a reference to build from: read its sections and hierarchy, rebuild them with layouts and components (its structure and rhythm, not its colours or fonts, unless they ask), then screenshot what you made and say plainly how it compares and what you left out.",
     "- Use the person's pictures: find_images lists their Content uploads; put one in with its content:<id> wherever a picture goes (a layout's image field, an Image or Cover src). Leave a placeholder only when nothing fits.",
     "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish. For a page, look at 390 wide and in dark mode too (screenshot with width or dark) when the change touches layout or colour, or the checks flag them.",
     "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
@@ -834,6 +835,8 @@ function practiceScript(sel) {
     var results = Array.isArray(last.content) ? last.content.filter(function (b) { return b && b.type === "tool_result"; }) : [];
     if (results.length) return practiceAnswer(request, results);
     var blocks = typeof last.content === "string" ? [{ text: last.content }] : (last.content || []).filter(function (b) { return !(b && b.type === "text" && String(b.text).indexOf("<builder-context>") === 0); });
+    var pictures = blocks.filter(function (b) { return b && b.type === "image"; }).length;
+    if (pictures) return { text: "Practice mode: I can see " + (pictures === 1 ? "your picture" : "your " + pictures + " pictures") + ". A model would read its sections, rebuild them from the system's layouts and components, then look at both side by side and say how they differ.", calls: [] };
     var edits = blocks.filter(function (b) { return /^Since your last reply, the person changed/.test(b.text || ""); })[0];
     var text = blocks.filter(function (b) { return b !== edits; }).map(function (b) { return b.text || ""; }).join(" ").toLowerCase();
     if (/what (did|have) i changed?|my (changes|edits)/.test(text)) {

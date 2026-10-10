@@ -275,7 +275,10 @@ function AssistantPanel(p) {
   var last = p.thread[p.thread.length - 1];
   var tail = last ? [p.thread.length, last.text, (last.steps || []).length, (last.changes || []).length, last.checking ? 1 : 0, last.checks ? last.checks.length : 0, last.status].join("|") : "";
   useEffect(function () { var el = listRef.current; if (el) el.scrollTop = el.scrollHeight; }, [tail]);
-  var send = function () { var t = p.draft.trim(); if (!t) return; if (p.busy) p.note(t); else p.send(t); };
+  var send = function () { var t = p.draft.trim(); var pics = (p.pics || []).length; if (!t && !pics) return; if (p.busy) { if (t) p.note(t); } else p.send(t); };
+  var fileRef = useRef(null);
+  var dropState = useState(false), dragOver = dropState[0], setDragOver = dropState[1];
+  var hasFiles = function (ev) { var ty = ev.dataTransfer && ev.dataTransfer.types; return !!ty && Array.prototype.indexOf.call(ty, "Files") >= 0; };
   return e("div", { className: "bd-as" },
     e("div", { className: "bd-as-head" },
       e("span", { className: "bd-as-title" }, "Assistant"),
@@ -293,6 +296,12 @@ function AssistantPanel(p) {
           e("div", { className: "bd-as-edits-h" }, e(Icon, { name: "cursor" }), e("b", null, "You changed " + t.count + (t.count === 1 ? " thing" : " things"))),
           editLines(t.lines, t.count, 6));
         if (t.role === "divider") return e("p", { key: t.id, className: "bd-as-divider" }, t.text);
+        var picsOf = function (t) {
+          if (t.pics && t.pics.length) return e("div", { className: "bd-as-me-pics" }, t.pics.map(function (src, i) { return e("img", { key: i, src: src, alt: "Picture " + (i + 1) + " sent with this message" }); }));
+          if (t.picCount) return e("span", { className: "bd-as-me-picnote" }, e(Icon, { name: "image" }), t.picCount === 1 ? "A picture was sent here" : t.picCount + " pictures were sent here");
+          return null;
+        };
+        if (t.role === "user" && (t.pics || t.picCount) && !t.queued) return e("div", { key: t.id, className: "bd-as-me-wrap" }, senderOf(t, p.me) ? e("span", { className: "bd-as-from" }, senderOf(t, p.me)) : null, picsOf(t), e("div", { className: "bd-as-me" }, t.text));
         if (t.role === "user") return t.queued ? e("div", { key: t.id, className: "bd-as-me-wrap" }, e("div", { className: "bd-as-me is-queued" }, t.text), e("span", { className: "bd-as-queued" }, e(Icon, { name: "chat" }), "Lands after this step"))
           : senderOf(t, p.me) ? e("div", { key: t.id, className: "bd-as-me-wrap" }, e("span", { className: "bd-as-from" }, senderOf(t, p.me)), e("div", { className: "bd-as-me" }, t.text))
           : e("div", { key: t.id, className: "bd-as-me" }, t.text);
@@ -310,7 +319,15 @@ function AssistantPanel(p) {
         e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Don't send these changes", title: "Don't send these changes", onClick: p.dropEdits }, e(Icon, { name: "close" }))),
       editLines(p.edits.lines, p.edits.count, 3),
       e("p", { className: "bd-as-edits-n" }, "Sent with your next message, so it builds on them.")) : null,
-    p.view === "list" ? null : e("div", { className: "bd-as-comp" },
+    p.view === "list" ? null : e("div", { className: cx("bd-as-comp", dragOver && "is-drop"),
+      onDragOver: function (ev) { if (hasFiles(ev)) { ev.preventDefault(); if (!dragOver) setDragOver(true); } },
+      onDragLeave: function (ev) { if (!ev.currentTarget.contains(ev.relatedTarget)) setDragOver(false); },
+      onDrop: function (ev) { if (!hasFiles(ev)) return; ev.preventDefault(); setDragOver(false); p.addPictures(ev.dataTransfer.files); } },
+      (p.pics || []).length ? e("div", { className: "bd-as-pics", role: "list", "aria-label": "Pictures to send" }, p.pics.map(function (pc) {
+        return e("span", { key: pc.id, className: "bd-as-pic", role: "listitem" },
+          e("img", { src: pc.thumb, alt: pc.name }),
+          e("button", { type: "button", className: "bd-as-pic-x", "aria-label": "Leave out " + pc.name, title: "Leave out " + pc.name, onClick: function () { p.dropPicture(pc.id); } }, e(Icon, { name: "close" })));
+      })) : null,
       e("div", { className: "bd-as-chips" },
         p.target ? e("span", { className: cx("bd-as-chip is-target", !p.includeSel && "is-off") },
           e(Icon, { name: "frame" }), p.target,
@@ -320,18 +337,22 @@ function AssistantPanel(p) {
             e("button", { type: "button", "aria-label": "Leave out " + d.title, onClick: function () { p.dropDoc(d.id); } }, "×"));
         }),
         p.skills.map(function (s) { return e("span", { key: s.id, className: "bd-as-chip is-skill", title: s.description }, e(Icon, { name: "bolt" }), s.name); })),
-      e("textarea", { className: "bd-as-input", rows: 2, value: p.draft, placeholder: p.waiting ? "Answer the question, or pick an option…" : p.busy ? "Add a note while it works…" : "Ask for a change, or describe a new page…", "aria-label": p.busy ? "Add a note for the assistant" : "Message the assistant",
+      e("textarea", { className: "bd-as-input", rows: 2, value: p.draft, placeholder: p.waiting ? "Answer the question, or pick an option…" : p.busy ? "Add a note while it works…" : (p.pics || []).length ? "Say what to build from the picture, or send it as it is…" : "Ask for a change, describe a new page, or paste a picture…", "aria-label": p.busy ? "Add a note for the assistant" : "Message the assistant",
         onChange: function (ev) { p.setDraft(ev.target.value); },
-        onKeyDown: function (ev) { if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); send(); } } }),
+        onKeyDown: function (ev) { if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); send(); } },
+        onPaste: function (ev) { var cd = ev.clipboardData; if (cd && cd.files && cd.files.length && p.addPictures(cd.files)) ev.preventDefault(); } }),
+      e("input", { ref: fileRef, type: "file", accept: "image/png,image/jpeg,image/webp,image/gif", multiple: true, hidden: true, tabIndex: -1, "aria-hidden": "true",
+        onChange: function (ev) { p.addPictures(ev.target.files); ev.target.value = ""; } }),
       e("div", { className: "bd-as-bar" },
         e(Segmented, { label: "What it may change", value: p.reach, onChange: function (v) { if (v) p.setReach(v); },
           options: [{ value: "selection", label: "Selection" }, { value: "page", label: "Page" }] }),
         e(Segmented, { label: "How hard it thinks", value: p.effort, onChange: function (v) { if (v) p.setEffort(v); },
           options: [{ value: "low", label: "Quick", title: "Quicker, for small edits" }, { value: "high", label: "Careful", title: "Thinks it through, for pages and redesigns" }] }),
         e("span", { className: "bd-as-sp" }),
+        e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-attach", "aria-label": "Attach a picture", title: "Attach a picture to build from (or paste or drop one)", disabled: (p.pics || []).length >= 3, onClick: function () { if (fileRef.current) fileRef.current.click(); } }, e(Icon, { name: "image" })),
         p.busy && p.draft.trim() ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Add the note", onClick: send }, e(Icon, { name: "up" }))
           : p.busy ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Stop", onClick: p.stop }, e(Icon, { name: "close" }))
-          : e("button", { type: "button", className: "bd-as-send", "aria-label": "Send", disabled: !p.draft.trim(), onClick: send }, e(Icon, { name: "up" })))));
+          : e("button", { type: "button", className: "bd-as-send", "aria-label": "Send", disabled: !p.draft.trim() && !(p.pics || []).length, onClick: send }, e(Icon, { name: "up" })))));
 }
 
 export { AssistantPanel };
