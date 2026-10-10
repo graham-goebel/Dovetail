@@ -109,3 +109,22 @@ test("find_images lists Content uploads as content: pictures, which the edit too
   const none = runTool({ doc: () => doc, library: () => ({}) }, { name: "find_images", input: {} });
   assert.match(none.result, /no images or illustrations in Content yet/);
 });
+
+test("with nothing in Content that fits, find_images searches stock photos, and a stock: photo used is kept with its credit", async () => {
+  const { doc, api } = harness();
+  const used = [], asked = [];
+  api.library = () => ({ images: [{ id: "up1", name: "Studio", src: "data:image/png;base64,STU" }] });
+  api.stock = (q, o) => { asked.push([q, o.orientation]); return Promise.resolve([{ id: "ph1", alt: "A mug on oak", url: "https://images.example/ph1.jpg", width: 1200, height: 800, credit: "Ana Ruiz", download: "https://api.example/dl/ph1" }]); };
+  api.stockUsed = (ph) => used.push(ph.id);
+  const own = runTool(api, { name: "find_images", input: { query: "studio" } });
+  assert.ok(own.ok && /content:up1/.test(own.result) && asked.length === 0, "an upload that fits is offered without a stock search");
+  const r = await runTool(api, { name: "find_images", input: { query: "mug on a table", orientation: "landscape" } });
+  assert.deepEqual(asked, [["mug on a table", "landscape"]]);
+  assert.ok(/stock:ph1 · photo 1200×800 · "A mug on oak" · by Ana Ruiz/.test(r.result) && /In Content:/.test(r.result), r.result);
+  const placed = runTool(api, { name: "insert_layout", input: { id: "hero-split", content: { image: "stock:ph1" } } });
+  assert.ok(placed.ok, placed.result);
+  assert.ok(JSON.stringify(doc.frames[0].root.children.at(-1)).includes("https://images.example/ph1.jpg"));
+  assert.deepEqual(used, ["ph1"], "the photo is kept in Content and the service told");
+  const off = await runTool(Object.assign({}, api, { stock: () => Promise.resolve(null) }), { name: "find_images", input: { query: "zebra" } });
+  assert.match(off.result, /Nothing in Content is named for "zebra"/, "without stock photos set up, it lists the uploads");
+});
