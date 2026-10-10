@@ -48,25 +48,41 @@
 
 /* The builder is an app: the page itself never scrolls. Its header (the
    site's, or the app head on a phone) takes what it needs and the builder
-   fills the rest, so there's nothing below to scroll into. The site's
+   fills the rest, so there's nothing below to scroll into. The body is
+   pinned to the viewport so a touch can't drag the page either. The site's
    floating menu button and the room kept for it go too. */
 body.page-app {
+  position: fixed;
+  inset: 0;
   display: flex;
   flex-direction: column;
+  width: 100%;
   height: 100dvh;
   overflow: hidden;
   padding-bottom: 0;
+  overscroll-behavior: none;
 }
 
+/* The height comes down the tree as flex, never as a percentage: a
+   percentage of a grid row or a flex item resolves to the content's height
+   in some browsers, which left the panels as tall as what's in them and the
+   page scrolling under the top bar. */
 .page-app .layout {
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .page-app .main.app,
 .page-app .main.app > .doc {
-  height: 100%;
+  flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  overflow: hidden;
 }
 
 .page-app .fab {
@@ -74,9 +90,9 @@ body.page-app {
 }
 
 .builder {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100%;
   min-height: 0;
 }
 
@@ -5473,6 +5489,9 @@ span.bd-layer-twisty.is-open .bd-ic {
 @media (min-width: 901px) {
   .bd-shell {
     position: relative;
+    /* The room under the panels: a little more than at their other edges,
+       and clear of a home indicator. */
+    --bd-panel-foot: calc(var(--dt-space-inset-sm) + env(safe-area-inset-bottom, 0px));
     grid-template-rows: minmax(0, 1fr);
     /* The panels' widths, set from their edges and kept per browser. */
     grid-template-columns: var(--bd-left-w, 344px) minmax(0, 1fr) var(--bd-right-w, 312px);
@@ -5506,6 +5525,8 @@ span.bd-layer-twisty.is-open .bd-ic {
     z-index: 5;
     grid-row: 1;
     margin: var(--dt-space-inset-xs);
+    margin-bottom: var(--bd-panel-foot);
+    max-height: calc(100% - var(--dt-space-inset-xs) - var(--bd-panel-foot));
     border: var(--dt-border-width-default) solid var(--dt-border-subtle);
     border-radius: calc(var(--dt-radius-container) + 2px);
     box-shadow: var(--dt-elevation-2);
@@ -5536,7 +5557,7 @@ span.bd-layer-twisty.is-open .bd-ic {
     position: absolute;
     z-index: 6;
     top: var(--dt-space-inset-xs);
-    bottom: var(--dt-space-inset-xs);
+    bottom: var(--bd-panel-foot);
     width: 9px;
     cursor: col-resize;
     touch-action: none;
