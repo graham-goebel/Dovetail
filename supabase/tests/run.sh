@@ -1,5 +1,5 @@
 #!/bin/sh
-# Tries supabase/schema.sql and supabase/assistant.sql on a throwaway local
+# Tries supabase/schema.sql, supabase/assistant.sql and supabase/bridge.sql on a throwaway local
 # Postgres: runs each twice (they must be safe to re-run), then the access
 # checks as each kind of person.
 # Needs Postgres 16+ binaries (initdb, pg_ctl, postgres, psql) and a non-root
@@ -21,3 +21,6 @@ $PSQL -d cloud -tA -f "$HERE/access.sql"
 $PSQL -d cloud -f "$HERE/../assistant.sql" >/dev/null 2>&1 || $PSQL -d cloud -f "$HERE/../assistant.sql"
 $PSQL -d cloud -f "$HERE/../assistant.sql" >/dev/null 2>&1 || $PSQL -d cloud -f "$HERE/../assistant.sql"
 $PSQL -d cloud -tA -f "$HERE/assistant.sql"
+$PSQL -d cloud -f "$HERE/../bridge.sql" >/dev/null 2>&1 || $PSQL -d cloud -f "$HERE/../bridge.sql"
+$PSQL -d cloud -f "$HERE/../bridge.sql" >/dev/null 2>&1 || $PSQL -d cloud -f "$HERE/../bridge.sql"
+$PSQL -d cloud -tA -f "$HERE/bridge.sql"

@@ -5189,67 +5189,1215 @@
     })[0], ids };
   }
 
-  // assets/builder/model/usage.js
-  var TEXT_KEYS3 = {};
-  TEXT_STYLES.forEach(function(t) {
-    TEXT_KEYS3[t[0]] = true;
-  });
-  function emptyUsage() {
-    return { types: {}, tokens: {}, text: {} };
-  }
-  function note2(use, key, value2) {
-    if (typeof value2 !== "string" || !value2) return;
-    (use.tokens[key] = use.tokens[key] || {})[value2] = true;
-  }
-  function usageOf(docs, into) {
-    var use = into || emptyUsage();
-    (docs || []).forEach(function(doc2) {
-      if (!doc2 || !Array.isArray(doc2.frames)) return;
-      doc2.frames.forEach(function(f) {
-        note2(use, "surface", f.surface || "base");
-        (function walk2(n) {
-          if (n.type !== "Root" && n.type !== "Slot") use.types[n.type] = true;
-          var st = n.style || {};
-          Object.keys(st).forEach(function(k) {
-            if (DATA.tokens[k]) note2(use, k, st[k]);
-          });
-          var meta = META[n.type];
-          var props = n.props || {};
-          Object.keys(props).forEach(function(k) {
-            if (typeof props[k] === "string" && TEXT_KEYS3[props[k]]) use.text[props[k]] = true;
-          });
-          if (meta) meta.props.forEach(function(p) {
-            if (props[p.name] === void 0 && typeof p.default === "string" && TEXT_KEYS3[p.default] && Array.isArray(p.options) && p.options.some(function(o) {
-              return TEXT_KEYS3[o];
-            })) use.text[p.default] = true;
-          });
-          (n.children || []).forEach(walk2);
-        })(f.root);
-      });
+  // assets/builder/model/agent.js
+  var FAMILIES = Object.keys(DATA.tokens);
+  var BATCHABLE = ["set_style", "set_prop", "set_text", "insert_jsx", "replace_jsx", "move", "wrap", "duplicate", "rename", "remove"];
+  var TOOLS = [
+    { name: "list_pages", description: "The file's pages (the current one marked), and the frames on the current page with their ids, sizes and layer counts.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+    { name: "read_page", description: "An outline of every layer on a page: one line each, indented by depth, with its id, type, name, text, props and style tokens. Reads the current page unless page names another; frame narrows it to one frame. Read it before changing anything beyond the selection.", input_schema: { type: "object", properties: { page: { type: "string" }, frame: { type: "string" } }, additionalProperties: false } },
+    { name: "read_selection", description: "The selected layers (or the frame when nothing is selected): each one's id, type, name, props and style tokens, and its children's ids and types.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+    { name: "screenshot", description: "A picture of a frame or one layer on the current page, as it's drawn now. Look after visible changes and fix what looks wrong: overlaps, cramped spacing, weak contrast, text that wraps badly. Give width (390 for a phone, 768 for a tablet) or dark (true for dark mode, false for light) to see it drawn that way, out of sight, without changing the canvas.", input_schema: { type: "object", properties: { id: { type: "string" }, width: { type: "integer", minimum: 320, maximum: 2560 }, dark: { type: "boolean" } }, additionalProperties: false } },
+    { name: "read_guideline", description: "Read one of the system's guidelines, by topic id from the brief's Guidelines list (accessibility, tokens, theming, voice, colour, space, type…), when a choice depends on it.", input_schema: { type: "object", properties: { topic: { type: "string" } }, required: ["topic"], additionalProperties: false } },
+    { name: "read_theme", description: "The file's theme: its brand name and colours, whether actions are ink or brand, fonts, corner style, density, page and section tints, texture, whitespace, page width, and its context (product, marketing or social). Read it before a choice that depends on the brand or the context, such as a component's product or marketing variant.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+    { name: "lint", description: "Check a frame (the one you're in unless frame names another): text contrast as drawn, anything spilling past the edge at 390px wide, contrast in dark mode, labels, alt text, heading order, primary buttons and placeholder copy. Each finding names its layers. Run it after you change something and fix what fails.", input_schema: { type: "object", properties: { frame: { type: "string" } }, additionalProperties: false } },
+    { name: "measure", description: "The space between two layers as drawn, across and down, in pixels and as the nearest spacing token.", input_schema: { type: "object", properties: { a: { type: "string" }, b: { type: "string" } }, required: ["a", "b"], additionalProperties: false } },
+    { name: "search_components", description: "Find components by what they're for: each match's name, group and one-line purpose. An empty query lists every component by group.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false } },
+    { name: "read_component", description: "A component's props (kinds, options, defaults and notes) and its documentation: when to use it, examples and accessibility.", input_schema: { type: "object", properties: { name: { type: "string" } }, required: ["name"], additionalProperties: false } },
+    { name: "list_tokens", description: "The values a style family accepts. Families: " + FAMILIES.join(", ") + ".", input_schema: { type: "object", properties: { family: { type: "string", enum: FAMILIES } }, required: ["family"], additionalProperties: false } },
+    { name: "set_style", description: "Set one style family to one of its token values on layers, or clear it with an empty value. Only token values from list_tokens are allowed.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, family: { type: "string", enum: FAMILIES }, value: { type: "string" } }, required: ["ids", "family", "value"], additionalProperties: false } },
+    { name: "set_prop", description: "Set one of a component's own props on layers of that type: its text, or one of the values its enum allows.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, name: { type: "string" }, value: { type: ["string", "number", "boolean"] } }, required: ["ids", "name", "value"], additionalProperties: false } },
+    { name: "insert_jsx", description: "Add new layers written as JSX with the design system's components (for example <Section><Heading>…</Heading></Section>) into a container, at an index, or after the selection when parent is omitted.", input_schema: { type: "object", properties: { jsx: { type: "string" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["jsx"], additionalProperties: false } },
+    { name: "replace_jsx", description: "Replace one layer with new layers written as JSX, in its place: the way to rebuild a section or a card in one step.", input_schema: { type: "object", properties: { id: { type: "string" }, jsx: { type: "string" } }, required: ["id", "jsx"], additionalProperties: false } },
+    { name: "set_text", description: "Set a layer's text: a heading's or a paragraph's words, a button's label, a card's title.", input_schema: { type: "object", properties: { id: { type: "string" }, text: { type: "string" } }, required: ["id", "text"], additionalProperties: false } },
+    { name: "move", description: "Move layers into a container, at an index (the end when omitted), in the order given.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["ids", "parent"], additionalProperties: false } },
+    { name: "wrap", description: "Put a layer inside a new container of the given type, or several sibling layers inside one Group.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, type: { type: "string", enum: WRAPS } }, required: ["ids"], additionalProperties: false } },
+    { name: "duplicate", description: "Copy layers, each copy just after its original.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 } }, required: ["ids"], additionalProperties: false } },
+    { name: "rename", description: "Give a layer a name, so the layers list says what it is.", input_schema: { type: "object", properties: { id: { type: "string" }, name: { type: "string" } }, required: ["id", "name"], additionalProperties: false } },
+    { name: "create_frame", description: "Add a frame to this page and make it the one you're working in. structured frames are auto layout pages (they start with a Content group to fill, whose id comes back); free frames place layers anywhere. Presets: " + PRESETS.map(function(f) {
+      return f.id + " (" + f.width + "×" + f.height + ")";
+    }).join(", ") + ".", input_schema: { type: "object", properties: { name: { type: "string" }, preset: { type: "string", enum: PRESETS.map(function(f) {
+      return f.id;
+    }) }, mode: { type: "string", enum: ["structured", "free"] } }, required: ["name", "preset", "mode"], additionalProperties: false } },
+    { name: "make_variants", description: "Try a few directions side by side: copies a frame (the one you're in unless you name another) once per label, beside it, named after the label, and hands back each copy's id. Then use_frame into each copy and make its change. The person compares them on the canvas and keeps one, which takes the original's place. Use it when they ask to see options, or pick Try them all on a question.", input_schema: { type: "object", properties: { frame: { type: "string" }, labels: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } } }, required: ["labels"], additionalProperties: false } },
+    { name: "use_frame", description: "Work in another frame on this page: the edit tools act on the frame you're in.", input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false } },
+    { name: "propose_plan", description: "Before a new page or frame, or any change that adds more than about 10 layers, show the person a short plan and wait for their answer: the frame it goes in (when it's a new one), the steps in order (a title and a line each), and anything they should know (missing content you'll stand in for, a choice you made). It comes back approved, or with what they want changed.", input_schema: { type: "object", properties: { title: { type: "string" }, frame: { type: "object", properties: { name: { type: "string" }, preset: { type: "string" }, mode: { type: "string", enum: ["structured", "free"] } }, additionalProperties: false }, steps: { type: "array", minItems: 1, maxItems: 12, items: { type: "object", properties: { title: { type: "string" }, detail: { type: "string" } }, required: ["title"], additionalProperties: false } }, notes: { type: "array", maxItems: 4, items: { type: "string" } } }, required: ["title", "steps"], additionalProperties: false } },
+    { name: "ask_user", description: "Ask the person to choose when the request leaves a real choice open: two to four ways that would set a different tone or direction, which the request, the docs and the theme don't settle. Each option is a short label and a line on what it means (the components and tokens it would use). The answer comes back as the option they picked, or what they wrote instead. Don't ask about what you can decide yourself.", input_schema: { type: "object", properties: { question: { type: "string" }, options: { type: "array", minItems: 2, maxItems: 4, items: { type: "object", properties: { label: { type: "string" }, detail: { type: "string" } }, required: ["label"], additionalProperties: false } } }, required: ["question", "options"], additionalProperties: false } },
+    { name: "batch", description: "Run several edit calls in order as one step the person can undo at once. Each call is { name, input } for one of: " + BATCHABLE.join(", ") + ". It stops at the first call that fails, keeping the ones before it.", input_schema: { type: "object", properties: { calls: { type: "array", minItems: 1, maxItems: 40, items: { type: "object", properties: { name: { type: "string", enum: BATCHABLE }, input: { type: "object" } }, required: ["name", "input"], additionalProperties: false } } }, required: ["calls"], additionalProperties: false } },
+    { name: "remove", description: "Remove layers.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 } }, required: ["ids"], additionalProperties: false } },
+    { name: "select", description: "Select layers, so the person sees them.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" } } }, required: ["ids"], additionalProperties: false } },
+    { name: "read_skill", description: "Read a skill's files when a request fits its description: its SKILL.md, or another file by path.", input_schema: { type: "object", properties: { name: { type: "string" }, path: { type: "string" } }, required: ["name"], additionalProperties: false } }
+  ];
+  function toolsFor(opts) {
+    var look = !opts || opts.look !== false, plan = !opts || opts.plan !== false;
+    return TOOLS.filter(function(t) {
+      return (look || t.name !== "screenshot") && (plan || t.name !== "propose_plan");
     });
-    return use;
   }
-  function mergeUsage(a, b) {
-    var out = emptyUsage();
-    [a, b].forEach(function(u) {
-      if (!u) return;
-      Object.keys(u.types).forEach(function(t) {
-        out.types[t] = true;
+  var LABEL = { surface: "Fill", radius: "Corners", elevation: "Shadow", border: "Border", padding: "Padding", gap: "Gap", blur: "Blur", backdrop: "Behind", opacity: "Opacity", gradient: "Gradient" };
+  function familyWord(f) {
+    return LABEL[f] || f.replace(/([A-Z])/g, " $1").replace(/^./, function(c) {
+      return c.toUpperCase();
+    });
+  }
+  function describe(n) {
+    return {
+      id: n.id,
+      type: n.type,
+      name: n.name || void 0,
+      props: n.props,
+      style: n.style,
+      children: (n.children || []).map(function(c) {
+        return { id: c.id, type: c.type, name: c.name || void 0 };
+      })
+    };
+  }
+  var TEXT_KEYS3 = ["children", "title", "label", "text", "heading", "description", "alt"];
+  function short3(v, n) {
+    var t = String(v).replace(/\s+/g, " ").trim();
+    return t.length > n ? t.slice(0, n - 1) + "…" : t;
+  }
+  function line(n, depth) {
+    var bits = [n.type + (n.name && n.name !== n.type ? ' "' + short3(n.name, 40) + '"' : ""), n.id];
+    var props = n.props || {};
+    TEXT_KEYS3.forEach(function(k) {
+      if (typeof props[k] === "string" && props[k].trim()) bits.push(k === "children" ? '"' + short3(props[k], 80) + '"' : k + '="' + short3(props[k], 60) + '"');
+    });
+    Object.keys(props).sort().forEach(function(k) {
+      var v = props[k];
+      if (TEXT_KEYS3.indexOf(k) >= 0 || v == null || v === "" || typeof v === "object") return;
+      bits.push(k + "=" + short3(v, 40));
+    });
+    var st = n.style || {};
+    var toks = Object.keys(st).sort().filter(function(k) {
+      return st[k] != null && st[k] !== "" && typeof st[k] !== "object";
+    }).map(function(k) {
+      return k + ":" + st[k];
+    });
+    if (toks.length) bits.push("{" + toks.join(" ") + "}");
+    if (n.hidden) bits.push("hidden");
+    if (n.locked) bits.push("locked");
+    return new Array(depth + 1).join("  ") + "- " + bits.join(" · ");
+  }
+  var OUTLINE_MAX = 400;
+  function count2(n) {
+    return 1 + (n.children || []).reduce(function(a, c) {
+      return a + count2(c);
+    }, 0);
+  }
+  function outline(doc2, fid) {
+    var out = [], left = 0;
+    (doc2.frames || []).filter(function(f) {
+      return !fid || f.id === fid;
+    }).forEach(function(f) {
+      out.push('Frame "' + f.name + '" ' + f.id + " · " + (f.mode || "free") + " · " + f.width + (f.height ? "×" + f.height : "") + (f.id === doc2.active ? " · active" : "") + (f.dark ? " · dark" : ""));
+      (function walk2(n, depth) {
+        (n.children || []).forEach(function(c) {
+          if (out.length >= OUTLINE_MAX) {
+            left += count2(c);
+            return;
+          }
+          out.push(line(c, depth));
+          walk2(c, depth + 1);
+        });
+      })(f.root, 1);
+    });
+    if (left) out.push("… and " + left + " more layers. Read one frame at a time with frame.");
+    return out.join("\n");
+  }
+  var brief = null;
+  var SIDES = /^(padding|margin|border|radius)(Top|Right|Bottom|Left|TopLeft|TopRight|BottomLeft|BottomRight)$/;
+  function systemPrompt() {
+    if (brief) return brief;
+    var first = function(t) {
+      var m = /^.*?[.!?](?=\s|$)/.exec(String(t || ""));
+      return m ? m[0] : String(t || "");
+    };
+    var line2 = function(t) {
+      var m = META[t], g = m.guide || {};
+      var out = "- " + t + (m.container ? " (holds layers)" : "") + ": " + short3(first(g.lead || m.blurb), 120);
+      if (g.use && g.use.length) out += " Use: " + short3(g.use[0], 90);
+      if (g.avoid && g.avoid.length) out += " Not: " + short3(g.avoid[0], 90);
+      else if (g.rules && g.rules.length) out += " Rule: " + short3(g.rules[0], 90);
+      return out;
+    };
+    var comps = (DATA.groups || []).map(function(g) {
+      return "## " + g.label + "\n" + g.items.filter(function(t) {
+        return META[t];
+      }).map(line2).join("\n");
+    }).join("\n\n");
+    var fams = FAMILIES.filter(function(f) {
+      return !SIDES.test(f);
+    }).map(function(f) {
+      return "- " + f + ": " + DATA.tokens[f].options.map(function(o) {
+        return o.use ? o.value + " (" + short3(first(o.use), 48) + ")" : o.value;
+      }).join(", ");
+    }).join("\n");
+    var guides = {};
+    (DATA.guidelines || []).forEach(function(x) {
+      (guides[x.group] = guides[x.group] || []).push(x.id);
+    });
+    var sides = FAMILIES.filter(function(f) {
+      return SIDES.test(f);
+    });
+    brief = [
+      "# Working in the Dovetail Builder",
+      "You design on a canvas made only of the Dovetail design system: its components, laid out in frames, styled only with its tokens. The tools are your hands. Changes land on the canvas as you make them, and the person can undo any of them.",
+      "## How to work",
+      "- Read before you change. read_selection for the selection; read_page before anything wider, or when you need ids.",
+      "- Prefer a component that already does the job over a styled Group or Shape. Its Use and Not lines below say when; read_component for its variants, props and examples before you use one you haven't read in this conversation.",
+      "- Choose token values by what they're for (each family below says), not by how they look: raised for cards, subtle for a quiet band, brand-muted for a band with presence.",
+      "- When the brand or the context matters (a component's product or marketing variant, the voice of copy), read_theme first; read_guideline for the rules on a topic.",
+      "- A new page starts with create_frame (structured for web pages, a social preset for posts), then fills its Content group.",
+      "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
+      "- Write real, short copy in the brand's voice. Never lorem ipsum.",
+      "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish. For a page, look at 390 wide and in dark mode too (screenshot with width or dark) when the change touches layout or colour, or the checks flag them.",
+      "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
+      "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first. When it leaves a real choice of direction open (two good answers with a different tone), call ask_user with the options rather than guessing.",
+      "- When the person wants to see options, make_variants copies the frame once per option, side by side; build each in its copy and say how they differ. They keep one.",
+      "- A message may start with what the person changed on the canvas since your last reply. Keep those changes unless they ask otherwise, and build on them.",
+      "- Before a new page or frame, or a change that adds more than about 10 layers, call propose_plan and wait for the answer, unless the canvas notes say plans are off. Building without one is refused.",
+      "- Finish with a sentence or two on what you changed and anything the person should check.",
+      "## The system's rules",
+      "- Tokens only: every colour, size, space, radius and shadow is a token value from list_tokens. Never invent one.",
+      "- Dark areas: use a Section's dark tone (or a frame's dark mode) rather than dark fills on light layers, so text and controls follow.",
+      "- Every layout must work 390px wide, in dark mode, and with reduced motion.",
+      "- Accessibility: headings in order, one primary action per view, labels on every field, alt text on informative images, and text contrast of at least 4.5:1.",
+      "- Structured frames are auto layout: order matters, positions don't. Free frames place layers by x and y.",
+      "# Components",
+      comps,
+      "# Style token families",
+      "A layer's style maps a family to one value.",
+      fams,
+      sides.length ? "Per-side families take the same values as their base family: " + sides.join(", ") + "." : "",
+      "# Guidelines",
+      "Read any of these with read_guideline:",
+      Object.keys(guides).map(function(k) {
+        return "- " + k + ": " + guides[k].join(", ");
+      }).join("\n")
+    ].filter(Boolean).join("\n\n");
+    return brief;
+  }
+  var PLAN_OVER = 10;
+  function owesPlan(api, size) {
+    if (!api.needsPlan) return null;
+    var big = size === "frame" || size > PLAN_OVER;
+    if (!big || !api.needsPlan()) return null;
+    return { ok: false, result: (size === "frame" ? "A new frame" : "Adding " + size + " layers") + " is a big change. Call propose_plan first and wait for the person's answer." };
+  }
+  function added(nodes) {
+    return nodes.reduce(function(a, n) {
+      return a + count2(n);
+    }, 0);
+  }
+  function fromJsx(jsx) {
+    var els = readJsxElements(String(jsx || ""));
+    var raw = els.length ? jsxNodes(els, []) : [];
+    return raw.map(function(n) {
+      return cleanNode(n, null);
+    }).filter(Boolean).map(fresh);
+  }
+  function runTool(api, call) {
+    var input = call.input || {};
+    var fail = function(msg) {
+      return { ok: false, result: msg };
+    };
+    var doc2 = api.doc();
+    var known = function(ids4) {
+      return (ids4 || []).filter(function(id) {
+        return typeof id === "string" && locate(doc2, id);
       });
-      Object.keys(u.text).forEach(function(t) {
-        out.text[t] = true;
+    };
+    var nameOf3 = function(id) {
+      var at2 = locate(doc2, id);
+      return at2 ? layerName(at2.node) : id;
+    };
+    switch (call.name) {
+      case "list_pages": {
+        var pages = api.pages ? api.pages() : [];
+        var frames = (doc2.frames || []).map(function(f2) {
+          return { id: f2.id, name: f2.name, mode: f2.mode || "free", width: f2.width, height: f2.height || void 0, layers: count2(f2.root) - 1, active: f2.id === doc2.active || void 0 };
+        });
+        return { ok: true, result: JSON.stringify({ pages, frames }), step: "Listed " + pages.length + (pages.length === 1 ? " page" : " pages") };
+      }
+      case "read_page": {
+        var pagesNow = api.pages ? api.pages() : [];
+        var here = pagesNow.filter(function(pg) {
+          return pg.current;
+        })[0];
+        var other = input.page && (!here || input.page !== here.id) ? pagesNow.filter(function(pg) {
+          return pg.id === input.page || pg.name === input.page;
+        })[0] : null;
+        if (input.page && !other && !(here && (input.page === here.id || input.page === here.name))) return fail("There's no page called " + input.page + ". Call list_pages for them.");
+        var from = function(d, label2) {
+          if (!d) return fail("That page couldn't be read.");
+          if (input.frame && !(d.frames || []).some(function(f2) {
+            return f2.id === input.frame;
+          })) return fail("There's no frame " + input.frame + " on " + label2 + ".");
+          var n = (d.frames || []).filter(function(f2) {
+            return !input.frame || f2.id === input.frame;
+          }).reduce(function(a, f2) {
+            return a + count2(f2.root) - 1;
+          }, 0);
+          return { ok: true, result: outline(d, input.frame || null), step: "Read " + label2 + " · " + n + (n === 1 ? " layer" : " layers") };
+        };
+        if (other) return Promise.resolve(api.loadPage(other.id)).then(function(d) {
+          return from(d, other.name);
+        }, function() {
+          return fail("That page couldn't be read.");
+        });
+        return from(doc2, here ? here.name : "the page");
+      }
+      case "screenshot": {
+        if (!api.screenshot) return fail("Looking at the canvas is turned off for this file.");
+        var frameOf = (doc2.frames || []).filter(function(f2) {
+          return f2.id === input.id;
+        })[0];
+        var inFrame = null, shotAt = null;
+        if (input.id && !frameOf && input.id !== "root") (doc2.frames || []).some(function(f2) {
+          var at2 = locate(doc2, input.id, f2.id);
+          if (at2) {
+            inFrame = f2;
+            shotAt = at2;
+          }
+          return !!at2;
+        });
+        if (input.id && input.id !== "root" && !shotAt && !frameOf) return fail("There's no layer or frame " + input.id + " on this page.");
+        var fr = frameOf || inFrame || (doc2.frames || []).filter(function(f2) {
+          return f2.id === doc2.active;
+        })[0] || doc2.frames[0];
+        var what2 = shotAt ? layerName(shotAt.node) : fr.name;
+        var width = typeof input.width === "number" ? Math.max(320, Math.min(2560, Math.round(input.width))) : null;
+        var dark = typeof input.dark === "boolean" ? input.dark : null;
+        var how = [width ? "at " + width + " wide" : "", dark === true ? "in dark mode" : dark === false ? "in light mode" : ""].filter(Boolean).join(" ");
+        var opts = width || dark !== null ? { width, dark } : null;
+        var note3 = width && fr.mode !== "structured" ? " A freeform frame places layers by position, so it isn't reflowed at another width." : "";
+        return Promise.resolve(api.screenshot(fr.id, shotAt ? input.id : null, opts)).then(function(pic) {
+          if (!pic || !pic.data) return fail("The picture couldn't be made.");
+          return { ok: true, result: [{ type: "image", source: { type: "base64", media_type: pic.media_type, data: pic.data } }, { type: "text", text: what2 + (how ? " " + how : "") + ", " + pic.width + "×" + pic.height + " pixels." + note3 }], step: "Looked at " + what2 + (how ? " " + how : ""), shot: pic };
+        }, function(err) {
+          return fail(err && err.message || "The picture couldn't be made.");
+        });
+      }
+      case "read_guideline": {
+        var list = DATA.guidelines || [];
+        var want = String(input.topic || "").toLowerCase().trim();
+        var g = list.filter(function(x) {
+          return x.id === want;
+        })[0] || list.filter(function(x) {
+          return x.title.toLowerCase() === want;
+        })[0] || list.filter(function(x) {
+          return want && (x.id.indexOf(want) >= 0 || x.title.toLowerCase().indexOf(want) >= 0);
+        })[0];
+        if (!g) return fail("There's no guideline " + JSON.stringify(input.topic) + ". Topics: " + list.map(function(x) {
+          return x.id;
+        }).join(", ") + ".");
+        if (!api.guideline) return fail("Guidelines can't be read here.");
+        return Promise.resolve(api.guideline(g)).then(function(text3) {
+          if (!text3) return fail("The " + g.title + " guideline couldn't be read.");
+          return { ok: true, result: "# " + g.title + (g.about ? "\n" + g.about : "") + "\n\n" + String(text3).slice(0, 12e3), step: "Read the " + g.title + " guideline" };
+        }, function() {
+          return fail("The " + g.title + " guideline couldn't be read.");
+        });
+      }
+      case "read_theme": {
+        var th = api.theme ? api.theme() : null;
+        if (!th) return fail("The theme isn't loaded yet.");
+        return { ok: true, result: JSON.stringify(th), step: "Read the theme" };
+      }
+      case "lint": {
+        var lf = input.frame ? (doc2.frames || []).filter(function(f2) {
+          return f2.id === input.frame;
+        })[0] : (doc2.frames || []).filter(function(f2) {
+          return f2.id === doc2.active;
+        })[0] || doc2.frames[0];
+        if (!lf) return fail("There's no frame " + input.frame + " on this page.");
+        if (!api.runChecks) return fail("Checks can't run here.");
+        return Promise.resolve(api.runChecks(lf.id)).then(function(got) {
+          return { ok: true, result: got.text, step: "Checked " + lf.name, checks: got.rows, frame: lf.id };
+        }, function(err) {
+          return fail(err && err.message || "The checks couldn't run.");
+        });
+      }
+      case "measure": {
+        if (!locate(doc2, input.a) || !locate(doc2, input.b)) return fail("Both layers must be in the frame you're in.");
+        if (!api.measure) return fail("Measuring can't run here.");
+        return Promise.resolve(api.measure(input.a, input.b)).then(function(m2) {
+          if (!m2) return fail("Those layers aren't drawn.");
+          return { ok: true, result: JSON.stringify(m2), step: "Measured " + nameOf3(input.a) + " to " + nameOf3(input.b) };
+        });
+      }
+      case "search_components": {
+        var q = String(input.query || "").toLowerCase().trim();
+        var words3 = q.split(/[^a-z0-9]+/).filter(Boolean);
+        var all = Object.keys(META).filter(function(t) {
+          return !META[t].builder;
+        });
+        if (!words3.length) {
+          var byGroup = (DATA.groups || []).map(function(g2) {
+            return g2.label + ": " + g2.items.filter(function(t) {
+              return META[t];
+            }).join(", ");
+          }).join("\n");
+          return { ok: true, result: byGroup, step: "Listed the components" };
+        }
+        var scored = all.map(function(t) {
+          var hay = (t + " " + (META[t].blurb || "") + " " + (META[t].group || "")).toLowerCase();
+          var sc = words3.reduce(function(a, w) {
+            return a + (t.toLowerCase() === w ? 5 : t.toLowerCase().indexOf(w) >= 0 ? 3 : hay.indexOf(w) >= 0 ? 1 : 0);
+          }, 0);
+          return { t, sc };
+        }).filter(function(x) {
+          return x.sc > 0;
+        }).sort(function(a, b) {
+          return b.sc - a.sc || (a.t < b.t ? -1 : 1);
+        }).slice(0, 12);
+        if (!scored.length) return { ok: true, result: "No component matches " + JSON.stringify(input.query) + ". Try another word, or an empty query for the full list.", step: "Searched components for “" + short3(input.query, 30) + "”" };
+        return { ok: true, result: JSON.stringify(scored.map(function(x) {
+          return { name: x.t, group: META[x.t].group, purpose: META[x.t].blurb, holdsLayers: !!META[x.t].container || void 0 };
+        })), step: "Searched components for “" + short3(input.query, 30) + "”" };
+      }
+      case "read_component": {
+        var m = META[input.name];
+        if (!m) return fail("There's no component called " + input.name + ". Call search_components to find one.");
+        var spec2 = { name: input.name, purpose: m.blurb, group: m.group, holdsLayers: !!m.container, guide: m.guide || void 0, props: (m.props || []).map(function(pp) {
+          return { name: pp.name, kind: pp.kind, options: pp.options, default: pp.default, note: pp.note };
+        }) };
+        return Promise.resolve(api.componentDoc ? api.componentDoc(input.name) : null).then(function(md2) {
+          var text3 = JSON.stringify(spec2) + (md2 ? "\n\n# Documentation\n\n" + String(md2).slice(0, 8e3) : "");
+          return { ok: true, result: text3, step: "Read " + input.name + "'s docs" };
+        }, function() {
+          return { ok: true, result: JSON.stringify(spec2), step: "Read " + input.name + "'s props" };
+        });
+      }
+      case "read_selection": {
+        var sel = known(api.selection());
+        var nodes = sel.length ? sel.map(function(id) {
+          return locate(doc2, id).node;
+        }) : [locate(doc2, "root") && locate(doc2, "root").node].filter(Boolean);
+        return { ok: true, result: JSON.stringify(nodes.map(describe)), step: sel.length ? "Read " + sel.length + (sel.length === 1 ? " selected layer" : " selected layers") : "Read the frame" };
+      }
+      case "list_tokens": {
+        var fam = DATA.tokens[input.family];
+        if (!fam) return fail("There's no style family called " + input.family + ".");
+        return { ok: true, result: JSON.stringify(fam.options.map(function(o) {
+          return { value: o.value, token: o.tokens && o.tokens[0], use: o.use || void 0 };
+        })) };
+      }
+      case "set_style": {
+        var f = DATA.tokens[input.family];
+        if (!f) return fail("There's no style family called " + input.family + ".");
+        var v = String(input.value == null ? "" : input.value);
+        if (v && !f.options.some(function(o) {
+          return o.value === v;
+        })) return fail(v + " isn't one of " + input.family + "'s tokens. Call list_tokens for the ones it has.");
+        var ids = known(input.ids);
+        if (!ids.length) return fail("None of those layers are on the canvas.");
+        if (!api.setStyle(ids, input.family, v || void 0)) return fail("Nothing changed.");
+        return { ok: true, result: "Done.", change: { ids, label: familyWord(input.family), value: v || "none", on: ids.map(nameOf3).join(", ") } };
+      }
+      case "set_prop": {
+        var pids = known(input.ids);
+        if (!pids.length) return fail("None of those layers are on the canvas.");
+        var types = pids.map(function(id) {
+          return locate(doc2, id).node.type;
+        });
+        var spec = META[types[0]] && META[types[0]].props.filter(function(p) {
+          return p.name === input.name;
+        })[0];
+        var textProp = input.name === "children" || input.name === "title" || input.name === "label";
+        if (!spec && !textProp) return fail(types[0] + " has no prop called " + input.name + ".");
+        if (types.some(function(t) {
+          return t !== types[0];
+        })) return fail("Set a prop on layers of one type at a time.");
+        if (spec && spec.kind === "enum" && spec.options.indexOf(input.value) < 0) return fail(input.value + " isn't one of " + input.name + "'s options: " + spec.options.join(", ") + ".");
+        if (!api.setProp(pids, input.name, input.value)) return fail("Nothing changed.");
+        return { ok: true, result: "Done.", change: { ids: pids, label: input.name === "children" ? "Text" : input.name.charAt(0).toUpperCase() + input.name.slice(1), value: String(input.value).slice(0, 60), on: pids.map(nameOf3).join(", ") } };
+      }
+      case "insert_jsx": {
+        var made = fromJsx(input.jsx);
+        if (!made.length) return fail("That JSX has no components the system knows.");
+        var owed = owesPlan(api, added(made));
+        if (owed) return owed;
+        var ids2 = api.insert(input.parent || null, typeof input.index === "number" ? input.index : null, made);
+        if (!ids2 || !ids2.length) return fail("Those layers can't go there.");
+        return { ok: true, result: JSON.stringify({ added: ids2 }), change: { ids: ids2, label: "Added", value: made.map(function(n) {
+          return layerName(n);
+        }).join(", "), on: "" } };
+      }
+      case "replace_jsx": {
+        var at0 = locate(doc2, input.id);
+        if (!at0 || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
+        var made2 = fromJsx(input.jsx);
+        if (!made2.length) return fail("That JSX has no components the system knows.");
+        var owed2 = owesPlan(api, added(made2));
+        if (owed2) return owed2;
+        var was = nameOf3(input.id);
+        var ids3 = api.replace(input.id, made2);
+        if (!ids3 || !ids3.length) return fail("Those layers can't go there.");
+        return { ok: true, result: JSON.stringify({ added: ids3 }), change: { ids: ids3, label: "Rebuilt", value: was + " → " + made2.map(function(n) {
+          return layerName(n);
+        }).join(", "), on: "" } };
+      }
+      case "set_text": {
+        var tat = locate(doc2, input.id);
+        if (!tat || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
+        var tn = tat.node, specs = META[tn.type] && META[tn.type].props || [];
+        var key = TEXT_PROPS.filter(function(k) {
+          return typeof tn.props[k] === "string";
+        })[0] || TEXT_PROPS.filter(function(k) {
+          return specs.some(function(sp) {
+            return sp.name === k;
+          });
+        })[0];
+        if (!key) return fail(tn.type + " has no text of its own; set the text of a layer inside it.");
+        var text2 = String(input.text == null ? "" : input.text);
+        if (!api.setProp([input.id], key, text2)) return fail("Nothing changed.");
+        return { ok: true, result: "Done.", change: { ids: [input.id], label: "Text", value: short3(text2, 60), on: nameOf3(input.id) } };
+      }
+      case "move": {
+        var mids = known(input.ids);
+        if (!mids.length) return fail("None of those layers are in this frame.");
+        if (!locate(doc2, input.parent)) return fail("There's no container " + input.parent + " in this frame.");
+        var moved = api.move(mids, input.parent, typeof input.index === "number" ? input.index : null);
+        if (!moved || !moved.length) return fail("Those layers can't go there.");
+        return { ok: true, result: JSON.stringify({ moved }), change: { ids: moved, label: "Moved", value: moved.map(nameOf3).join(", "), on: "into " + nameOf3(input.parent) } };
+      }
+      case "wrap": {
+        var wids = known(input.ids);
+        if (!wids.length) return fail("None of those layers are in this frame.");
+        var type = input.type || "Group";
+        if (wids.length > 1 && type !== "Group") return fail("Several layers go into a Group; wrap them one at a time for a " + type + ".");
+        var box = wids.length > 1 ? api.group(wids) : api.wrap(wids[0], type);
+        if (!box) return fail("Those can't be wrapped there.");
+        return { ok: true, result: JSON.stringify({ container: box }), change: { ids: [box], label: "Wrapped", value: wids.map(nameOf3).join(", "), on: "in a " + type } };
+      }
+      case "duplicate": {
+        var dids = known(input.ids);
+        if (!dids.length) return fail("None of those layers are in this frame.");
+        var copies = api.duplicate(dids);
+        if (!copies || !copies.length) return fail("Those layers can't be copied.");
+        return { ok: true, result: JSON.stringify({ copies }), change: { ids: copies, label: "Copied", value: dids.map(nameOf3).join(", "), on: "" } };
+      }
+      case "rename": {
+        if (!locate(doc2, input.id) || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
+        var nm = short3(String(input.name || ""), 60);
+        if (!nm) return fail("Give it a name.");
+        var old = nameOf3(input.id);
+        if (!api.rename(input.id, nm)) return fail("Nothing changed.");
+        return { ok: true, result: "Done.", change: { ids: [input.id], label: "Named", value: nm, on: old } };
+      }
+      case "create_frame": {
+        var preset = PRESETS.filter(function(f2) {
+          return f2.id === input.preset;
+        })[0];
+        if (!preset) return fail("There's no preset " + input.preset + ".");
+        if (input.mode !== "structured" && input.mode !== "free") return fail("A frame is structured or free.");
+        var owed3 = owesPlan(api, "frame");
+        if (owed3) return owed3;
+        var made3 = api.createFrame({ name: short3(String(input.name || "Frame"), 60), preset: preset.id, mode: input.mode });
+        if (!made3) return fail("The frame couldn't be added.");
+        return { ok: true, result: JSON.stringify(made3), change: { ids: [], label: "New frame", value: short3(String(input.name || "Frame"), 60), on: preset.label + ", " + input.mode } };
+      }
+      case "make_variants": {
+        if (!api.makeVariants) return fail("Variants can't be made here.");
+        var src = input.frame ? (doc2.frames || []).filter(function(f2) {
+          return f2.id === input.frame;
+        })[0] : (doc2.frames || []).filter(function(f2) {
+          return f2.id === doc2.active;
+        })[0] || doc2.frames[0];
+        if (!src) return fail("There's no frame " + input.frame + " on this page.");
+        var labels = (input.labels || []).map(function(l) {
+          return short3(String(l || ""), 40);
+        }).filter(Boolean).slice(0, 4);
+        if (labels.length < 2) return fail("Give at least two labels.");
+        var made4 = api.makeVariants(src.id, labels);
+        if (!made4 || !made4.length) return fail("The variants couldn't be made.");
+        return {
+          ok: true,
+          result: JSON.stringify({ variants: made4.map(function(v2, i) {
+            return { label: labels[i], frame: v2 };
+          }) }) + " Now use_frame into each and make its change.",
+          step: "Copied " + src.name + " into " + labels.length + " variants",
+          change: { ids: [], label: "Variants", value: labels.length + " copies", on: src.name },
+          variants: { source: src.id, sourceName: src.name, items: made4.map(function(v2, i) {
+            return { label: labels[i], frame: v2 };
+          }) }
+        };
+      }
+      case "use_frame": {
+        var to = (doc2.frames || []).filter(function(f2) {
+          return f2.id === input.id;
+        })[0];
+        if (!to) return fail("There's no frame " + input.id + " on this page.");
+        api.useFrame(to.id);
+        return { ok: true, result: "Now working in " + to.name + ".", step: "Moved to " + to.name };
+      }
+      case "batch": {
+        var list = Array.isArray(input.calls) ? input.calls.slice(0, 40) : [];
+        if (!list.length) return fail("Send at least one call.");
+        var bad = list.filter(function(c) {
+          return !c || BATCHABLE.indexOf(c.name) < 0;
+        })[0];
+        if (bad) return fail((bad && bad.name) + " can't run in a batch. Batch runs: " + BATCHABLE.join(", ") + ".");
+        var size = list.reduce(function(a, c) {
+          return a + (c.name === "insert_jsx" || c.name === "replace_jsx" ? added(fromJsx((c.input || {}).jsx)) : 0);
+        }, 0);
+        var owed4 = owesPlan(api, size);
+        if (owed4) return owed4;
+        var inner = Object.assign({}, api, { needsPlan: null });
+        var changes = [], outs = [], stopped = null;
+        api.batch(function() {
+          for (var i = 0; i < list.length; i++) {
+            var r = runTool(inner, { name: list[i].name, input: list[i].input || {} });
+            outs.push(r.ok ? r.result : "Failed: " + r.result);
+            if (!r.ok) {
+              stopped = { at: i, why: r.result };
+              break;
+            }
+            if (r.change) changes.push(r.change);
+          }
+        });
+        var summary = JSON.stringify(outs);
+        if (stopped) return { ok: changes.length > 0, result: "Call " + (stopped.at + 1) + " (" + list[stopped.at].name + ") failed: " + stopped.why + " The " + stopped.at + " before it stand. Results: " + summary, changes };
+        return { ok: true, result: summary, changes };
+      }
+      case "propose_plan": {
+        if (!api.proposePlan) return fail("Plans can't be shown here; go ahead.");
+        var steps = (input.steps || []).slice(0, 12).map(function(st) {
+          return { title: short3(String(st.title || ""), 60), detail: st.detail ? short3(String(st.detail), 160) : "" };
+        }).filter(function(st) {
+          return st.title;
+        });
+        if (!steps.length) return fail("A plan needs at least one step.");
+        var plan = { title: short3(String(input.title || "Plan"), 80), frame: input.frame && input.frame.name ? { name: short3(String(input.frame.name), 60), preset: input.frame.preset || "", mode: input.frame.mode || "" } : null, steps, notes: (input.notes || []).slice(0, 4).map(function(t) {
+          return short3(String(t), 200);
+        }) };
+        return Promise.resolve(api.proposePlan(plan)).then(function(answer) {
+          if (answer && answer.approved) return { ok: true, result: "Approved. Build it now, as planned.", step: "Plan approved" };
+          return { ok: true, result: "Not approved yet: the person wants to change the plan" + (answer && answer.note ? ": " + answer.note : "") + ". Stop here and wait for their message.", step: "Plan set aside to change" };
+        });
+      }
+      case "ask_user": {
+        if (!api.askUser) return fail("Questions can't be shown here; ask in your reply instead.");
+        var opts = (input.options || []).slice(0, 4).map(function(o) {
+          return { label: short3(String(o && o.label || ""), 60), detail: o && o.detail ? short3(String(o.detail), 140) : "" };
+        }).filter(function(o) {
+          return o.label;
+        });
+        if (opts.length < 2) return fail("Give at least two options.");
+        var q = { question: short3(String(input.question || "Which way?"), 140), options: opts };
+        return Promise.resolve(api.askUser(q)).then(function(answer) {
+          if (answer && typeof answer.index === "number" && opts[answer.index]) return { ok: true, result: "They chose: " + opts[answer.index].label + ".", step: "You chose " + opts[answer.index].label };
+          if (answer && answer.text) return { ok: true, result: "They answered in their own words: " + answer.text, step: "You answered" };
+          return { ok: true, result: "They didn't choose. Stop here and wait for their message.", step: "Question set aside" };
+        });
+      }
+      case "remove": {
+        var rids = known(input.ids);
+        if (!rids.length) return fail("None of those layers are on the canvas.");
+        var names = rids.map(nameOf3).join(", ");
+        if (!api.remove(rids)) return fail("Those layers can't be removed.");
+        return { ok: true, result: "Done.", change: { ids: [], label: "Removed", value: names, on: "" } };
+      }
+      case "select": {
+        api.select(known(input.ids));
+        return { ok: true, result: "Done." };
+      }
+      case "read_skill": {
+        var skill = (api.skills() || []).filter(function(s) {
+          return s.name === input.name;
+        })[0];
+        if (!skill) return fail("There's no skill called " + input.name + " here.");
+        var path = input.path || "SKILL.md";
+        var file = skill.files.filter(function(x) {
+          return x.path === path;
+        })[0];
+        if (!file) return fail(input.name + " has no file " + path + ". It has: " + skill.files.map(function(x) {
+          return x.path;
+        }).join(", ") + ".");
+        return { ok: true, result: file.body, skill: skill.name, step: "Read the " + skill.name + " skill" };
+      }
+      default:
+        return fail("There's no tool called " + call.name + ".");
+    }
+  }
+  var PRACTICE_CLOSES = {
+    "Dark band, one button": '<Section dark><Stack gap="md" align="center"><Heading>Ready when you are</Heading><Button variant="primary">Start free</Button></Stack></Section>',
+    "Soft tint, two buttons": '<Section tone="brand-muted"><Stack gap="md" align="center"><Heading>Ready when you are</Heading><Inline gap="sm"><Button variant="primary">Start free</Button><Button variant="secondary">Talk to us</Button></Inline></Stack></Section>',
+    "Quiet line and a link": `<Section><Stack gap="sm" align="center"><Text>Questions first? We're happy to help.</Text><Link href="#">Talk to us</Link></Stack></Section>`
+  };
+  function practiceAnswer(request, results) {
+    var prev = request.messages[request.messages.length - 2];
+    var names = prev && Array.isArray(prev.content) ? prev.content.filter(function(b) {
+      return b.type === "tool_use";
+    }).map(function(b) {
+      return b.name;
+    }) : [];
+    var body = function(i) {
+      var c = results[i] && results[i].content;
+      return typeof c === "string" ? c : Array.isArray(c) ? c.filter(function(b) {
+        return b.type === "text";
+      }).map(function(b) {
+        return b.text;
+      }).join(" ") : "";
+    };
+    if (results.some(function(r) {
+      return r.is_error;
+    })) return { text: "Practice mode: " + body(0), calls: [] };
+    if (names[0] === "read_page") {
+      var lines = body(0).split("\n");
+      var frames = lines.filter(function(l) {
+        return /^Frame /.test(l);
+      }).length;
+      var layers2 = lines.filter(function(l) {
+        return /^\s+- /.test(l);
+      }).length;
+      var top = lines.filter(function(l) {
+        return /^  - /.test(l);
+      }).map(function(l) {
+        var m = /^  - (\w+)(?: "([^"]+)")?/.exec(l);
+        return m ? m[2] ? m[2] + " (" + m[1] + ")" : m[1] : "";
+      }).filter(Boolean);
+      return { text: "Practice mode: this page has " + frames + (frames === 1 ? " frame" : " frames") + " and " + layers2 + (layers2 === 1 ? " layer" : " layers") + (top.length ? ". At the top level: " + top.slice(0, 8).join(", ") + (top.length > 8 ? ", and " + (top.length - 8) + " more" : "") : "") + ".", calls: [] };
+    }
+    if (names[0] === "screenshot") {
+      var seen = results.map(function(r, i) {
+        return body(i).replace(/, \d+×\d+ pixels\..*$/, "");
       });
-      Object.keys(u.tokens).forEach(function(k) {
-        Object.keys(u.tokens[k]).forEach(function(v) {
-          note2(out, k, v);
+      return { text: "Practice mode: I looked at " + seen.join(", then ") + ". A model would now check " + (seen.length > 1 ? "them" : "it") + " for overlaps, spacing and contrast, and fix what it finds.", calls: [] };
+    }
+    if (names[0] === "propose_plan") {
+      if (!/^Approved/.test(body(0))) return { text: "Practice mode: tell me what to change in the plan, and I'll propose it again.", calls: [] };
+      var fr = (prev.content.filter(function(b) {
+        return b.type === "tool_use";
+      })[0].input || {}).frame || {};
+      return { text: "", calls: [{ name: "create_frame", input: { name: fr.name || "Page", preset: fr.preset || "desktop", mode: fr.mode || "structured" } }] };
+    }
+    if (names[0] === "create_frame") {
+      var made = {};
+      try {
+        made = JSON.parse(body(0));
+      } catch (err) {
+        made = {};
+      }
+      var into = made.content;
+      if (!into) return null;
+      var name = (prev.content.filter(function(b) {
+        return b.type === "tool_use";
+      })[0].input || {}).name || "Page";
+      return { text: "", calls: [{ name: "batch", input: { calls: [
+        { name: "insert_jsx", input: { parent: into, jsx: '<Section tone="brand-muted"><Stack gap="md" align="flex-start"><Badge tone="brand">New</Badge><Heading size="display-md">' + name + ' that keeps up</Heading><Text>Everything you need to start, and room to grow.</Text><Button variant="primary">Get started</Button></Stack></Section>' } },
+        { name: "insert_jsx", input: { parent: into, jsx: '<Section><Grid columns={3} gap="lg"><Card title="Free" description="For trying it out." /><Card title="Pro" description="For makers who ship." /><Card title="Team" description="For studios and teams." /></Grid></Section>' } },
+        { name: "insert_jsx", input: { parent: into, jsx: '<Section dark><Stack gap="md" align="center"><Heading>Ready when you are</Heading><Button variant="brand">Start free</Button></Stack></Section>' } }
+      ] } }] };
+    }
+    if (names[0] === "lint") {
+      var rows = body(0).split("\n").filter(function(l) {
+        return /^- /.test(l);
+      });
+      var open = rows.filter(function(l) {
+        return /^- (FAIL|WARN) /.test(l);
+      }).map(function(l) {
+        return l.replace(/^- (FAIL|WARN) /, "").replace(/ \[layers:.*$/, "").replace(/\.$/, "");
+      });
+      var asked = /^fix this check/i.test(String(request.messages.filter(function(m) {
+        return m.role === "user" && typeof m.content === "string";
+      }).slice(-1).map(function(m) {
+        return m.content;
+      })[0] || ""));
+      return { text: "Practice mode: I ran the checks. " + (open.length ? open.length + (open.length === 1 ? " wants" : " want") + " attention: " + open.join("; ") + "." : "Everything passes.") + (asked && open.length ? " A model would now fix them with the edit tools and check again." : ""), calls: [] };
+    }
+    if (names[0] === "batch") return { text: "Practice mode, with the real tools: a new structured frame with a hero, three plan cards and a dark closing band, as one step you can undo at once.", calls: [] };
+    if (names[0] === "read_theme") {
+      var th = {};
+      try {
+        th = JSON.parse(body(0));
+      } catch (err) {
+        th = {};
+      }
+      return { text: "Practice mode: this file's brand is " + (th.brand || "unnamed") + ", primary " + (th.primary || "?") + ", " + (th.context ? th.context + " context" : "no context set") + ", " + (th.fonts && th.fonts.body ? th.fonts.body + " type" : "the default type") + ". A model would use that to pick variants and copy.", calls: [] };
+    }
+    if (names[0] === "ask_user") {
+      var said0 = body(0);
+      var pick = /^They chose: (.+)\.$/.exec(said0);
+      if (/own words: Try (them )?all/i.test(said0)) {
+        var asked0 = (prev.content.filter(function(b) {
+          return b.type === "tool_use";
+        })[0].input || {}).options || [];
+        return { text: "", calls: [{ name: "make_variants", input: { labels: asked0.map(function(o) {
+          return o.label;
+        }) } }] };
+      }
+      if (!pick) return { text: /own words/.test(said0) ? "Practice mode: a model would build what you described. Pick an option to see the practice version." : "Practice mode: pick an option whenever you're ready.", calls: [] };
+      var jsx = PRACTICE_CLOSES[pick[1]];
+      if (!jsx) return { text: "Practice mode: you chose " + pick[1] + ".", calls: [] };
+      return { text: "", calls: [{ name: "insert_jsx", input: { jsx } }] };
+    }
+    if (names[0] === "make_variants") {
+      var got = {};
+      try {
+        got = JSON.parse(body(0).replace(/ Now use_frame.*$/, ""));
+      } catch (err) {
+        got = {};
+      }
+      var calls = [];
+      (got.variants || []).forEach(function(v) {
+        calls.push({ name: "use_frame", input: { id: v.frame } });
+        if (PRACTICE_CLOSES[v.label]) calls.push({ name: "insert_jsx", input: { jsx: PRACTICE_CLOSES[v.label] } });
+      });
+      return { text: "", calls };
+    }
+    if (names[0] === "use_frame" && names.length > 1) return { text: "Practice mode, with the real tools: one copy for each close, side by side. Compare them on the canvas and keep one; it takes the original's place.", calls: [] };
+    if (names[0] === "insert_jsx") return { text: "Practice mode, with the real tools: the close you picked is at the foot of the frame.", calls: [] };
+    if (names[0] === "read_guideline") return { text: "Practice mode: " + body(0).split("\n")[0].replace(/^# /, "") + " read. A model would apply it to the next change.", calls: [] };
+    if (names[0] === "search_components") {
+      var found = [];
+      try {
+        found = JSON.parse(body(0)).map(function(x) {
+          return x.name;
+        });
+      } catch (err) {
+        found = [];
+      }
+      return { text: found.length ? "Practice mode: these fit: " + found.slice(0, 5).join(", ") + "." : "Practice mode: " + body(0), calls: [] };
+    }
+    return null;
+  }
+  function practiceScript(sel) {
+    return function(request) {
+      var last = request.messages[request.messages.length - 1];
+      var results = Array.isArray(last.content) ? last.content.filter(function(b) {
+        return b && b.type === "tool_result";
+      }) : [];
+      if (results.length) return practiceAnswer(request, results);
+      var blocks = typeof last.content === "string" ? [{ text: last.content }] : last.content || [];
+      var edits = blocks.filter(function(b) {
+        return /^Since your last reply, the person changed/.test(b.text || "");
+      })[0];
+      var text2 = blocks.filter(function(b) {
+        return b !== edits;
+      }).map(function(b) {
+        return b.text || "";
+      }).join(" ").toLowerCase();
+      if (/what (did|have) i changed?|my (changes|edits)/.test(text2)) {
+        if (!edits) return { text: "Practice mode: you haven't changed anything since my last reply.", calls: [] };
+        var mine = edits.text.split("\n").filter(function(l) {
+          return /^- /.test(l);
+        }).map(function(l) {
+          return l.slice(2);
+        });
+        return { text: "Practice mode: since my last reply you changed " + mine.length + (mine.length === 1 ? " thing" : " things") + ": " + mine.join("; ") + ". I'd keep those.", calls: [] };
+      }
+      var ids = sel.map(function(n) {
+        return n.id;
+      });
+      var calls = [], said2 = [];
+      var offered = (request.tools || []).map(function(t) {
+        return t.name;
+      });
+      if (/what'?s on|what is on|describe|outline|read the page|summari[sz]e/.test(text2)) return { text: "", calls: [{ name: "read_page", input: {} }] };
+      if (/\b(phone|mobile|390|narrow|small screens?|dark mode)\b/.test(text2) && /look|hold up|work|check|see/.test(text2)) {
+        if (offered.indexOf("screenshot") < 0) return { text: "Looking at the canvas is turned off for this file.", calls: [] };
+        var at0 = ids.length ? { id: ids[0] } : {};
+        return { text: "", calls: [{ name: "screenshot", input: Object.assign({ width: 390 }, at0) }, { name: "screenshot", input: Object.assign({ width: 390, dark: true }, at0) }] };
+      }
+      if (/\blook\b|screenshot|how does it look|check (it|how)/.test(text2)) {
+        if (offered.indexOf("screenshot") < 0) return { text: "Looking at the canvas is turned off for this file.", calls: [] };
+        return { text: "", calls: [{ name: "screenshot", input: ids.length ? { id: ids[0] } : {} }] };
+      }
+      if (/^fix this check|\bcheck (it|this|the page|the frame)\b|\blint\b|run the checks/.test(text2)) return { text: "", calls: [{ name: "lint", input: {} }] };
+      var page = /(?:make|build|design|create|start)\b.*\b(pricing|landing|about|home|launch)\b.*\bpage\b/.exec(text2) || /\b(pricing|landing|about|launch)\s+page\b/.exec(text2);
+      if (page && /make|build|design|create|start/.test(text2)) {
+        var title = page[1].charAt(0).toUpperCase() + page[1].slice(1);
+        var first = { name: "create_frame", input: { name: title, preset: "desktop", mode: "structured" } };
+        if (offered.indexOf("propose_plan") < 0) return { text: "", calls: [first] };
+        return { text: "Here's what I'll build. It's a new page, so I'll check with you first.", calls: [{ name: "propose_plan", input: { title: "New page · " + title, frame: { name: title, preset: "desktop", mode: "structured" }, steps: [
+          { title: "Hero", detail: 'Display heading, one line under it, a "New" badge and one primary button' },
+          { title: "Plans", detail: "Three cards: Free, Pro and Team" },
+          { title: "Close", detail: "A dark band with one button" }
+        ], notes: ["Practice mode writes stand-in copy; a model would use your context docs."] } }] };
+      }
+      if (/\btry (all |them all|a few|three|3|some)\b.*\b(closes|closings|endings|options|versions|variants|ways)\b/.test(text2) && offered.indexOf("make_variants") >= 0) return { text: "", calls: [{ name: "make_variants", input: { labels: Object.keys(PRACTICE_CLOSES) } }] };
+      if (/\b(add|give it|needs?|want) (a |an )?(close|closing|ending|final call to action)\b/.test(text2) && offered.indexOf("ask_user") >= 0) return { text: "There are a few good ways to close a page, and they set different tones. Which fits?", calls: [{ name: "ask_user", input: { question: "How should it close?", options: [
+        { label: "Dark band, one button", detail: "Section dark · Button primary · a strong end" },
+        { label: "Soft tint, two buttons", detail: "Section brand-muted · primary and secondary" },
+        { label: "Quiet line and a link", detail: "No band · Text and a Link to contact" }
+      ] } }] };
+      if (/\btheme\b|brand colou?r|which fonts?/.test(text2)) return { text: "", calls: [{ name: "read_theme", input: {} }] };
+      var topic = /\b(voice|accessibility|tokens|theming)\b/.exec(text2);
+      if (topic && /guideline|guide|rule|say|how/.test(text2)) return { text: "", calls: [{ name: "read_guideline", input: { topic: topic[1] } }] };
+      var forWhat = /component (?:for|to)\s+(.+)$/.exec(text2) || /(?:which|find a|is there a) component\s+(?:for\s+)?(.+)$/.exec(text2);
+      if (forWhat) return { text: "", calls: [{ name: "search_components", input: { query: forWhat[1].replace(/[?.!]+$/, "") } }] };
+      var surface = DATA.tokens.surface.options.map(function(o) {
+        return o.value;
+      });
+      if (!ids.length && !/add|insert|section|pricing/.test(text2)) return { text: "Practice mode: select something on the canvas and ask me to restyle it, or ask me to add a section.", calls: [] };
+      if (/premium|calm|quiet|muted|soft/.test(text2) && surface.indexOf("brand-muted") >= 0) {
+        calls.push({ name: "set_style", input: { ids, family: "surface", value: "brand-muted" } });
+        said2.push("a quieter brand fill");
+      } else if (/bold|brand|loud|vivid/.test(text2) && surface.indexOf("brand") >= 0) {
+        calls.push({ name: "set_style", input: { ids, family: "surface", value: "brand" } });
+        said2.push("the brand fill");
+      }
+      if (/round|corner|soft/.test(text2)) {
+        var r = DATA.tokens.radius.options;
+        calls.push({ name: "set_style", input: { ids, family: "radius", value: (r[Math.min(2, r.length - 1)] || r[0]).value } });
+        said2.push("rounder corners");
+      }
+      if (/shadow|lift|float|premium/.test(text2)) {
+        var el = DATA.tokens.elevation.options;
+        calls.push({ name: "set_style", input: { ids, family: "elevation", value: (el[1] || el[0]).value } });
+        said2.push("a soft shadow");
+      }
+      var headings = sel.filter(function(n) {
+        return n.type === "Heading";
+      });
+      if (/bigger|larger|premium|bold/.test(text2) && headings.length) {
+        calls.push({ name: "set_prop", input: { ids: headings.map(function(n) {
+          return n.id;
+        }), name: "size", value: "display-md" } });
+        said2.push("a display-size heading");
+      }
+      if (/add|insert/.test(text2) && /button|cta|action/.test(text2)) {
+        calls.push({ name: "insert_jsx", input: { jsx: '<Button variant="primary">Get started</Button>' } });
+        said2.push("a button");
+      }
+      if (/add|insert/.test(text2) && /section|pricing|hero/.test(text2)) {
+        calls.push({ name: "insert_jsx", input: { jsx: '<Section><Stack><Heading size="heading-lg">Plans for every team</Heading><Text>Start free, upgrade when you need to.</Text><Button>See plans</Button></Stack></Section>' } });
+        said2.push("a section");
+      }
+      if (!calls.length) return { text: "Practice mode: I can try fills (premium, bold), corners, shadows, bigger headings, or adding a button or a section. Real requests go to the model once live mode is on.", calls: [] };
+      return { text: "Practice mode, with the real tools: " + said2.join(", ") + ".", calls };
+    };
+  }
+
+  // assets/builder/model/bridge.js
+  var READS = { list_pages: 1, read_page: 1, read_selection: 1, screenshot: 1, read_guideline: 1, read_theme: 1, lint: 1, measure: 1, search_components: 1, read_component: 1, list_tokens: 1, read_skill: 1 };
+  var LEFT_OUT = { propose_plan: 1, ask_user: 1, select: 1 };
+  var EDIT_BY_NAME = {
+    name: "edit_by_name",
+    description: `Change layers by the names the Layers list shows, in one step the person can undo: an edit in Markdown (a "## Edit" heading, then lines like "- Hero: padding xl", "- \\"$284,120\\": size display-2xl", "- remove Spending", "- add Heading \\"This week\\" to Bento, first") or JSON ({ "edit": frame, "changes": [{ "layer", "style", "props", "text" } | { "layer", "remove": true } | { "into", "at", "add": [nodes] }] }). A name two layers share is skipped; name the layer more exactly, or use ids with the other tools. Answers what changed and what couldn't be.`,
+    input_schema: { type: "object", properties: { edit: { type: "string" } }, required: ["edit"], additionalProperties: false }
+  };
+  function isRead(name) {
+    return !!READS[name] || name === "describe";
+  }
+  function bridgeTools(tools, canEdit) {
+    var list = tools.filter(function(t) {
+      return !LEFT_OUT[t.name] && (canEdit || READS[t.name]);
+    });
+    if (canEdit) list = list.concat([EDIT_BY_NAME]);
+    return list;
+  }
+  function allowed(call, session, tools) {
+    var name = call && call.name;
+    if (name === "describe") return null;
+    if (!name || !tools.some(function(t) {
+      return t.name === name;
+    })) return "There's no tool called " + name + " in this session. Call describe for the ones there are.";
+    if (!session.canEdit && !isRead(name)) return "This session can only look: the person didn't let it make changes.";
+    if (name === "batch" && !session.canEdit) return "This session can only look.";
+    return null;
+  }
+  function describeText(brief2, tools, session) {
+    return [
+      "You're in a live session on " + (session.label || "a Dovetail Builder file") + ". " + (session.canEdit ? "You may look and make changes" : "You may only look") + (session.askFirst ? "; each change waits for the person to apply it, and may come back declined with a note from them." : ". Each change lands on their canvas as you make it, and they can undo any of them."),
+      "Work in small steps and look (screenshot, lint) after visible changes. Say what you're doing in your own conversation; the person sees each step in their Session panel.",
+      "",
+      brief2,
+      "",
+      "## Tools",
+      JSON.stringify(tools.map(function(t) {
+        return { name: t.name, description: t.description, input_schema: t.input_schema };
+      }))
+    ].join("\n");
+  }
+  var ICON = { padding: "sliders", z: "layers2", w: "fit", h: "fit", height: "fit", minW: "fit" };
+  function short4(t, n) {
+    var s = String(t == null ? "" : t).replace(/\s+/g, " ").trim();
+    return s.length > n ? s.slice(0, n - 1) + "…" : s;
+  }
+  function rowsOf(call, name, doc2) {
+    var input = call && call.input || {};
+    var who = function(ids) {
+      return (ids || []).map(name).filter(Boolean).slice(0, 3).join(", ") + ((ids || []).length > 3 ? " and " + (ids.length - 3) + " more" : "");
+    };
+    switch (call && call.name) {
+      case "batch":
+        return (input.calls || []).reduce(function(a, c) {
+          return a.concat(rowsOf(c, name, doc2));
+        }, []);
+      case "edit_by_name": {
+        var edit = readEdit(input.edit);
+        if (!edit || !doc2) return [{ icon: "pencil", title: "An edit by name", detail: "Couldn't be read as an edit" }];
+        return planEdit(doc2, edit).rows.map(function(r) {
+          return { icon: r.icon === "ask" ? "alert" : r.icon, title: r.title, detail: r.choices ? r.choices.length + " layers have this name, so it's skipped" : r.detail };
+        });
+      }
+      case "set_style":
+        return [{ icon: ICON[input.family] || "sliders", title: who(input.ids), detail: familyWord(input.family) + " → " + (input.value || "none") }];
+      case "set_prop":
+        return [{ icon: input.name === "size" ? "fit" : input.name === "children" ? "type" : "sliders", title: who(input.ids), detail: (input.name === "children" ? "Text" : input.name.charAt(0).toUpperCase() + input.name.slice(1)) + " → " + short4(input.value, 40) }];
+      case "set_text":
+        return [{ icon: "type", title: who([input.id]), detail: "Text → “" + short4(input.text, 40) + "”" }];
+      case "remove":
+        return [{ icon: "trash", title: who(input.ids), detail: "Removed" }];
+      case "insert_jsx":
+        return [{ icon: "plus", title: "New layers", detail: "Added " + (input.parent ? "in " + who([input.parent]) : "to the page") }];
+      case "replace_jsx":
+        return [{ icon: "plus", title: who([input.id]), detail: "Rebuilt from new layers" }];
+      case "move":
+        return [{ icon: "layers2", title: who(input.ids), detail: "Moved into " + who([input.parent]) }];
+      case "wrap":
+        return [{ icon: "group", title: who(input.ids), detail: "Wrapped in a " + (input.type || "Group") }];
+      case "duplicate":
+        return [{ icon: "copy", title: who(input.ids), detail: "Copied" }];
+      case "rename":
+        return [{ icon: "pencil", title: who([input.id]), detail: "Renamed “" + short4(input.name, 40) + "”" }];
+      case "create_frame":
+        return [{ icon: "frame", title: input.name || "A new frame", detail: "New frame" }];
+      case "make_variants":
+        return [{ icon: "layers2", title: (input.labels || []).length + " variants", detail: (input.labels || []).join(", ") }];
+      case "use_frame":
+        return [{ icon: "frame", title: "Another frame", detail: "Working in it" }];
+      case "read_page":
+        return [{ icon: "file", title: "Read the page", detail: "" }];
+      case "read_selection":
+        return [{ icon: "file", title: "Read the selection", detail: "" }];
+      case "list_pages":
+        return [{ icon: "file", title: "Listed the pages", detail: "" }];
+      case "screenshot":
+        return [{ icon: input.width ? "phone" : "image", title: "Looked at " + (input.id ? who([input.id]) : "the frame"), detail: [input.width ? "at " + input.width + "px" : "", input.dark ? "in dark mode" : ""].filter(Boolean).join(", ") }];
+      case "lint":
+        return [{ icon: "check", title: "Ran the checks", detail: "" }];
+      case "measure":
+        return [{ icon: "fit", title: "Measured", detail: who([input.a, input.b]) }];
+      case "describe":
+        return [{ icon: "book", title: "Read the brief", detail: "The system's rules and the tools" }];
+      default:
+        return [{ icon: "book", title: String(call && call.name || "A step").replace(/_/g, " ").replace(/^./, function(c) {
+          return c.toUpperCase();
+        }), detail: "" }];
+    }
+  }
+
+  // assets/builder/cloud/config.js
+  var CLOUD = {
+    url: "",
+    anonKey: ""
+  };
+  var LIB_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/+esm";
+  function cloudConfig() {
+    var over = typeof window !== "undefined" && window.DovetailCloud;
+    var c = over && typeof over === "object" ? over : CLOUD;
+    return { url: String(c.url || "").replace(/\/+$/, ""), anonKey: String(c.anonKey || "") };
+  }
+  function cloudReady() {
+    var c = cloudConfig();
+    return /^https:\/\/[^\s/]+/.test(c.url) && c.anonKey.length > 20;
+  }
+
+  // assets/builder/cloud/client.js
+  var clientLoading = null;
+  function getClient() {
+    if (!cloudReady()) return Promise.reject(new Error("The cloud isn't connected."));
+    if (!clientLoading) {
+      var c = cloudConfig();
+      var lib = LIB_URL;
+      clientLoading = import(lib).then(function(mod) {
+        return mod.createClient(c.url, c.anonKey, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce" }
+        });
+      }, function() {
+        clientLoading = null;
+        throw new Error("Couldn't load the cloud. Check your connection and try again.");
+      });
+    }
+    return clientLoading;
+  }
+  var MESSAGES = {
+    invalid_credentials: "That email and password don't match an account.",
+    email_not_confirmed: "Confirm your email first: open the link we sent you.",
+    user_already_exists: "There's already an account with that email. Sign in instead.",
+    email_exists: "There's already an account with that email. Sign in instead.",
+    weak_password: "Choose a longer password: at least 8 characters.",
+    same_password: "That's your current password. Choose a new one.",
+    over_email_send_rate_limit: "Too many emails just now. Wait a minute and try again.",
+    over_request_rate_limit: "Too many tries just now. Wait a minute and try again.",
+    email_address_invalid: "That doesn't look like an email address.",
+    signup_disabled: "New accounts are turned off for this builder.",
+    session_not_found: "You've been signed out. Sign in again.",
+    otp_expired: "That link has expired. Ask for a new one.",
+    bad_code_verifier: "Your email is confirmed. Sign in with your password.",
+    flow_state_not_found: "Your email is confirmed. Sign in with your password.",
+    email_address_not_authorized: "This builder can't email that address yet (docs/cloud.md, step 4)."
+  };
+  function friendly(err) {
+    if (!err) return "";
+    var code = err.code || err.error_code || "";
+    if (MESSAGES[code]) return MESSAGES[code];
+    if (/fetch|network/i.test(String(err.message || err.name || ""))) return "Couldn't reach the cloud. Check your connection and try again.";
+    return String(err.message || "Something went wrong. Try again.");
+  }
+  function unwrap(res) {
+    if (res && res.error) throw new Error(friendly(res.error));
+    return res ? res.data : null;
+  }
+  function backHere() {
+    return location.origin + location.pathname;
+  }
+  function account(session) {
+    return session && session.user ? { id: session.user.id, email: session.user.email || "" } : null;
+  }
+  var auth = {
+    /* The signed-in account, or null. */
+    current: function() {
+      return getClient().then(function(sb) {
+        return sb.auth.getSession();
+      }).then(function(res) {
+        return account(unwrap(res).session);
+      });
+    },
+    /* Calls fn(event, account) on every change; returns a function to stop.
+       event is Supabase's: SIGNED_IN, SIGNED_OUT, PASSWORD_RECOVERY, ... */
+    watch: function(fn) {
+      var sub = null, stopped = false;
+      getClient().then(function(sb) {
+        if (stopped) return;
+        sub = sb.auth.onAuthStateChange(function(event, session) {
+          fn(event, account(session));
+        }).data.subscription;
+      }, function() {
+      });
+      return function() {
+        stopped = true;
+        if (sub) sub.unsubscribe();
+      };
+    },
+    /* A new account. Resolves { confirm: true } when an email must be
+       confirmed before signing in (the setting docs/cloud.md asks for). */
+    signUp: function(email, password) {
+      return getClient().then(function(sb) {
+        return sb.auth.signUp({ email, password, options: { emailRedirectTo: backHere() } });
+      }).then(function(res) {
+        var data = unwrap(res);
+        return { confirm: !data.session, account: account(data.session) };
+      });
+    },
+    signIn: function(email, password) {
+      return getClient().then(function(sb) {
+        return sb.auth.signInWithPassword({ email, password });
+      }).then(function(res) {
+        return account(unwrap(res).session);
+      });
+    },
+    signOut: function() {
+      return getClient().then(function(sb) {
+        return sb.auth.signOut();
+      }).then(unwrap);
+    },
+    /* Emails a link that brings you back here to choose a new password. */
+    resetPassword: function(email) {
+      return getClient().then(function(sb) {
+        return sb.auth.resetPasswordForEmail(email, { redirectTo: backHere() });
+      }).then(unwrap);
+    },
+    setPassword: function(password) {
+      return getClient().then(function(sb) {
+        return sb.auth.updateUser({ password });
+      }).then(unwrap);
+    },
+    /* Turns invites to this (confirmed) address into memberships; resolves
+       how many projects that joined. */
+    acceptInvites: function() {
+      return getClient().then(function(sb) {
+        return sb.rpc("accept_invites");
+      }).then(unwrap);
+    }
+  };
+
+  // assets/builder/cloud/bridge.js
+  var POLL_MS = 4e3;
+  function randomKey() {
+    var bytes = new Uint8Array(24);
+    crypto.getRandomValues(bytes);
+    return btoa(String.fromCharCode.apply(null, bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function sha256(text2) {
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(text2)).then(function(buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function(b) {
+        return ("0" + b.toString(16)).slice(-2);
+      }).join("");
+    });
+  }
+  function check(res) {
+    if (res && res.error) throw new Error(res.error.message || "The cloud didn't answer. Try again.");
+    return res ? res.data : null;
+  }
+  function startBridge(opts) {
+    var key = randomKey();
+    var sb = null, id = null, channel = null, timer = null, ended = false;
+    var seen = {}, queue = Promise.resolve();
+    var status = opts.onStatus || function() {
+    };
+    var handle = function(row) {
+      if (ended || !row || seen[row.id] || row.status === "done") return;
+      seen[row.id] = true;
+      queue = queue.then(function() {
+        if (ended) return null;
+        return Promise.resolve().then(function() {
+          return opts.onCall(row.call || {});
+        }).catch(function(err) {
+          return { ok: false, result: "The canvas couldn't run that step: " + String(err && err.message || err) };
+        }).then(function(result) {
+          return sb.from("bridge_calls").update({ result }).eq("id", row.id).then(check);
+        }).catch(function() {
+          status("An answer couldn't be sent back. Claude will see the step time out.");
         });
       });
-    });
-    return out;
-  }
-  function usesToken(use, keys2, value2) {
-    return [].concat(keys2).some(function(k) {
-      return !!(use.tokens[k] && use.tokens[k][value2]);
+    };
+    var look = function() {
+      if (ended) return;
+      sb.from("bridge_calls").select("id, call, status").eq("session_id", id).eq("status", "waiting").order("id", { ascending: true }).then(function(res) {
+        (check(res) || []).forEach(handle);
+      }).catch(function() {
+      });
+    };
+    return getClient().then(function(client) {
+      sb = client;
+      return sb.auth.getSession();
+    }).then(function(res) {
+      if (!(res && res.data && res.data.session)) throw new Error("Sign in first: a session is tied to your account.");
+      return sha256(key);
+    }).then(function(hash) {
+      return sb.from("bridge_sessions").insert({ key_hash: hash, can_edit: !!opts.canEdit, ask_first: !!opts.askFirst, label: String(opts.label || "").slice(0, 120) }).select("id").single();
+    }).then(function(res) {
+      id = check(res).id;
+      channel = sb.channel("bridge:" + id).on("postgres_changes", { event: "INSERT", schema: "public", table: "bridge_calls", filter: "session_id=eq." + id }, function(m) {
+        handle(m.new);
+      });
+      channel.subscribe(function(s) {
+        if (s === "SUBSCRIBED") look();
+      });
+      timer = setInterval(look, POLL_MS);
+      return {
+        id,
+        link: cloudConfig().url + "/functions/v1/bridge?s=" + id + "&k=" + key,
+        update: function(fields) {
+          var row = {};
+          if ("canEdit" in fields) row.can_edit = !!fields.canEdit;
+          if ("askFirst" in fields) row.ask_first = !!fields.askFirst;
+          if ("paused" in fields) row.paused = !!fields.paused;
+          return sb.from("bridge_sessions").update(row).eq("id", id).then(check);
+        },
+        end: function() {
+          if (ended) return Promise.resolve();
+          ended = true;
+          clearInterval(timer);
+          if (channel) sb.removeChannel(channel);
+          return sb.from("bridge_sessions").update({ ended_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", id).then(check);
+        }
+      };
     });
   }
 
@@ -5350,6 +6498,7 @@
     sliders: ["M5 21v-6", "M5 11V3", "M12 21v-9", "M12 8V3", "M19 21v-4", "M19 13V3", "M2.5 15h5", "M9.5 8h5", "M16.5 17h5"],
     folder: ["M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"],
     play: ["M7 4.5v15l12-7.5z"],
+    pause: ["M9 5v14", "M15 5v14"],
     wand: ["M4 20 15 9", "M14 4v3", "M19 9h-3", "M17.5 5.5l-2 2", "M19 14v2", "M20 15h-2", "M8 3v2", "M9 4H7"],
     pipette: ["m3 21 1.5-1.5h2.5l8-8", "M4.5 19.5V17l8-8", "m14.5 6.5 2.8-2.8a2.1 2.1 0 1 1 3 3l-2.8 2.8", "m12 5 7 7"],
     exportOut: ["M12 15V3", "m7 8 5-5 5 5", "M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"],
@@ -5522,6 +6671,273 @@
   var ENUM_LABEL = { "flex-start": "Start", "flex-end": "End", "space-between": "Space between", center: "Center", stretch: "Stretch", row: "Row", column: "Column" };
   var PROP_LABEL = { width: "Content width", spacing: "Section spacing", position: "Focal point" };
 
+  // assets/builder/app/Bridge.js
+  var memo = React.memo;
+  function Switch(p) {
+    return e(
+      "button",
+      { type: "button", role: "switch", "aria-checked": !!p.on, className: cx("bd-br-switch", p.on && "is-on"), disabled: p.disabled, onClick: function() {
+        p.set(!p.on);
+      }, "aria-label": p.label },
+      e("span", { className: "bd-br-knob" })
+    );
+  }
+  var BridgeDialog = memo(function BridgeDialog2(p) {
+    var b = p.bridge, o = p.options;
+    var live = b && b.status === "live";
+    var off = p.account.status === "off", out = p.account.status !== "in";
+    var close = function() {
+      if (p.dialogRef.current) p.dialogRef.current.close();
+    };
+    var row = function(key, icon, title, sub, on, disabled) {
+      return e(
+        "div",
+        { className: "bd-br-opt", key },
+        e(Icon, { name: icon }),
+        e("div", null, e("b", null, title), e("span", null, sub)),
+        e(Switch, { on, disabled, label: title, set: function(v) {
+          var n = Object.assign({}, o);
+          n[key] = v;
+          if (key === "canEdit" && !v) n.askFirst = false;
+          p.setOptions(n);
+        } })
+      );
+    };
+    return e(
+      "dialog",
+      { className: "bd-code bd-bridge-dlg", ref: p.dialogRef, "aria-labelledby": "bd-br-title" },
+      e(
+        "div",
+        { className: "bd-code-head" },
+        e(
+          "div",
+          { className: "bd-code-intro" },
+          e("h2", { id: "bd-br-title" }, "Let Claude edit this file"),
+          e("p", { className: "bd-inspect-sub" }, "Claude works on your open canvas with the assistant's own tools: it reads the page, makes changes, runs the checks and takes pictures. You watch each step and can undo it.")
+        ),
+        e("div", { className: "bd-code-actions" }, e("button", { type: "button", className: "bd-act", "aria-label": "Close", onClick: close }, e(Icon, { name: "close" })))
+      ),
+      e(
+        "div",
+        { className: "bd-br-body" },
+        off ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sessions run through the builder's cloud, which isn't connected here yet (docs/cloud.md).") : out ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: a session is tied to your account. ", e("button", { type: "button", className: "bd-link", onClick: p.onSignIn }, "Sign in")) : null,
+        e(
+          "div",
+          { className: "bd-br-step" },
+          e("span", { className: "bd-br-n" }, "1"),
+          e(
+            "div",
+            { className: "bd-br-st" },
+            e("b", null, "Choose what it can do"),
+            e(
+              "div",
+              { className: "bd-br-opts" },
+              row("canSee", "eye", "See the canvas", "Read layers, take pictures, run the checks", true, true),
+              row("canEdit", "sliders", "Make changes", "Add, change and remove layers in this file", o.canEdit, live),
+              row("askFirst", "ask", "Ask before each change", "Each change waits for you to apply it", o.askFirst, !o.canEdit)
+            )
+          )
+        ),
+        e(
+          "div",
+          { className: "bd-br-step" },
+          e("span", { className: "bd-br-n" }, "2"),
+          e(
+            "div",
+            { className: "bd-br-st" },
+            e("b", null, "Give Claude the link"),
+            e("span", null, "Paste it into Claude (in the app, the terminal or your editor). It works while this tab stays open, and ends after an hour without a step."),
+            live ? e("div", { className: "bd-br-code" }, e("code", null, b.link), e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: p.onCopy }, e(Icon, { name: "copy" }), "Copy")) : e("p", { className: "bd-br-wait" }, b && b.status === "starting" ? "Starting…" : b && b.error ? b.error : "Start the session to get the link.")
+          )
+        )
+      ),
+      e(
+        "div",
+        { className: "bd-br-foot" },
+        e("span", { className: "bd-edit-undo" }, e(Icon, { name: "lock" }), "Claude sees only what it asks for. Every step can be undone."),
+        e("span", { className: "bd-edit-sp" }),
+        live ? e("button", { type: "button", className: "bd-btn", onClick: p.onEnd }, "End session") : e("button", { type: "button", className: "bd-btn", onClick: close }, "Cancel"),
+        live ? e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: close }, "Done") : e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: out || b && b.status === "starting", onClick: p.onStart }, "Start session")
+      )
+    );
+  });
+  function BridgePill(p) {
+    var b = p.bridge;
+    if (!b || b.status !== "live") return null;
+    var what2 = b.paused ? "Paused" : b.pending ? "Claude is waiting on you in" : "Claude can edit";
+    return e(
+      "span",
+      { className: cx("bd-br-pill", b.paused && "is-paused"), role: "status" },
+      e(
+        "button",
+        { type: "button", className: "bd-br-pill-main", onClick: p.onOpen, title: "Show the session" },
+        e("i", { className: "bd-br-dot", "aria-hidden": true }),
+        e(Icon, { name: "wand" }),
+        e("span", { className: "bd-br-pill-text" }, what2, b.paused ? "" : e(React.Fragment, null, " ", e("b", null, p.frameName)))
+      ),
+      e("span", { className: "bd-br-vd", "aria-hidden": true }),
+      e("button", { type: "button", className: "bd-br-lk", onClick: p.onPause, "aria-label": b.paused ? "Resume" : "Pause" }, e(Icon, { name: b.paused ? "play" : "pause" }), e("span", { className: "bd-br-lk-text" }, b.paused ? "Resume" : "Pause")),
+      e("button", { type: "button", className: "bd-br-lk", onClick: p.onEnd }, "End")
+    );
+  }
+  function stepRow(s, onUndo) {
+    return s.rows.map(function(r, i) {
+      return e(
+        "li",
+        { key: s.id + ":" + i, className: cx("bd-br-a", s.undone && "is-undone", !s.ok && "is-off") },
+        e("span", { className: "bd-edit-ic" }, e(Icon, { name: r.icon })),
+        e(
+          "div",
+          { className: "bd-edit-t" },
+          e("b", null, r.title),
+          r.detail ? e("span", null, r.detail) : null,
+          s.running ? e("em", { className: "bd-br-now" }, "Making this change…") : null,
+          !s.ok && s.why ? e("em", { className: "bd-br-why" }, s.why) : null,
+          s.shot && i === 0 ? e("img", { className: "bd-br-thumb", src: s.shot, alt: "" }) : null
+        ),
+        i === 0 && s.diff && !s.undone ? e("button", { type: "button", className: "bd-act", "aria-label": "Undo " + r.title, title: "Undo this step", onClick: function() {
+          onUndo(s.id);
+        } }, e(Icon, { name: "undo" })) : null
+      );
+    });
+  }
+  var SessionPanel = memo(function SessionPanel2(p) {
+    var b = p.bridge;
+    var noteState = React.useState(""), note3 = noteState[0], setNote = noteState[1];
+    if (!b || b.status !== "live" || !b.open) return null;
+    var undoable = b.steps.filter(function(s) {
+      return s.diff && !s.undone;
+    }).length;
+    return e(
+      "section",
+      { className: "bd-br-panel", "aria-label": "Claude's session" },
+      e(
+        "div",
+        { className: "bd-br-sh" },
+        e(Icon, { name: "wand" }),
+        e("b", null, "Session"),
+        e("span", { className: "bd-edit-sp" }),
+        e("span", { className: "bd-edit-n" }, b.askFirst ? "Asks first" : b.steps.length + (b.steps.length === 1 ? " step" : " steps")),
+        e("button", { type: "button", className: "bd-act", "aria-label": "Hide the session", onClick: p.onClose }, e(Icon, { name: "close" }))
+      ),
+      e(
+        "div",
+        { className: "bd-br-scroll" },
+        b.pending ? e(
+          "div",
+          { className: "bd-br-card", role: "group", "aria-label": "A change waiting for you" },
+          e("div", { className: "bd-br-ch" }, e(Icon, { name: "wand" }), e("b", null, "Claude wants to make " + b.pending.rows.length + (b.pending.rows.length === 1 ? " change" : " changes"))),
+          e("ul", { className: "bd-br-list", role: "list" }, b.pending.rows.map(function(r, i) {
+            return e("li", { key: i, className: "bd-br-a" }, e("span", { className: "bd-edit-ic" }, e(Icon, { name: r.icon })), e("div", { className: "bd-edit-t" }, e("b", null, r.title), r.detail ? e("span", null, r.detail) : null));
+          })),
+          e("label", { className: "visually-hidden", htmlFor: "bd-br-note" }, "Tell Claude something instead"),
+          e("input", {
+            id: "bd-br-note",
+            className: "bd-br-tell",
+            placeholder: "Tell Claude something instead…",
+            value: note3,
+            onChange: function(ev) {
+              setNote(ev.target.value);
+            },
+            onKeyDown: function(ev) {
+              if (ev.key === "Enter" && note3.trim()) {
+                p.onAnswer(false, note3.trim());
+                setNote("");
+              }
+            }
+          }),
+          e(
+            "div",
+            { className: "bd-br-cf" },
+            e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+              p.onAnswer(false, note3.trim());
+              setNote("");
+            } }, note3.trim() ? "Send instead" : "Not now"),
+            e("span", { className: "bd-edit-sp" }),
+            e("button", { type: "button", className: "bd-btn bd-btn-sm bd-btn-primary", onClick: function() {
+              p.onAnswer(true);
+              setNote("");
+            } }, "Apply " + b.pending.rows.length + (b.pending.rows.length === 1 ? " change" : " changes"))
+          )
+        ) : null,
+        b.steps.length ? e("ul", { className: "bd-br-list", role: "list" }, b.steps.map(function(s) {
+          return stepRow(s, p.onUndo);
+        })) : !b.pending ? e("p", { className: "bd-sec-empty" }, "Waiting for Claude. Paste the link into Claude and ask for what you want; each step shows here as it happens.") : null
+      ),
+      e(
+        "div",
+        { className: "bd-br-sf" },
+        e("button", { type: "button", className: "bd-btn bd-btn-sm", disabled: !undoable, onClick: p.onUndoAll }, e(Icon, { name: "undo" }), undoable ? "Undo all " + undoable : "Undo all"),
+        e("span", { className: "bd-edit-sp" }),
+        e("span", { className: "bd-edit-n" }, "Each step is one undo")
+      )
+    );
+  });
+
+  // assets/builder/model/usage.js
+  var TEXT_KEYS4 = {};
+  TEXT_STYLES.forEach(function(t) {
+    TEXT_KEYS4[t[0]] = true;
+  });
+  function emptyUsage() {
+    return { types: {}, tokens: {}, text: {} };
+  }
+  function note2(use, key, value2) {
+    if (typeof value2 !== "string" || !value2) return;
+    (use.tokens[key] = use.tokens[key] || {})[value2] = true;
+  }
+  function usageOf(docs, into) {
+    var use = into || emptyUsage();
+    (docs || []).forEach(function(doc2) {
+      if (!doc2 || !Array.isArray(doc2.frames)) return;
+      doc2.frames.forEach(function(f) {
+        note2(use, "surface", f.surface || "base");
+        (function walk2(n) {
+          if (n.type !== "Root" && n.type !== "Slot") use.types[n.type] = true;
+          var st = n.style || {};
+          Object.keys(st).forEach(function(k) {
+            if (DATA.tokens[k]) note2(use, k, st[k]);
+          });
+          var meta = META[n.type];
+          var props = n.props || {};
+          Object.keys(props).forEach(function(k) {
+            if (typeof props[k] === "string" && TEXT_KEYS4[props[k]]) use.text[props[k]] = true;
+          });
+          if (meta) meta.props.forEach(function(p) {
+            if (props[p.name] === void 0 && typeof p.default === "string" && TEXT_KEYS4[p.default] && Array.isArray(p.options) && p.options.some(function(o) {
+              return TEXT_KEYS4[o];
+            })) use.text[p.default] = true;
+          });
+          (n.children || []).forEach(walk2);
+        })(f.root);
+      });
+    });
+    return use;
+  }
+  function mergeUsage(a, b) {
+    var out = emptyUsage();
+    [a, b].forEach(function(u) {
+      if (!u) return;
+      Object.keys(u.types).forEach(function(t) {
+        out.types[t] = true;
+      });
+      Object.keys(u.text).forEach(function(t) {
+        out.text[t] = true;
+      });
+      Object.keys(u.tokens).forEach(function(k) {
+        Object.keys(u.tokens[k]).forEach(function(v) {
+          note2(out, k, v);
+        });
+      });
+    });
+    return out;
+  }
+  function usesToken(use, keys2, value2) {
+    return [].concat(keys2).some(function(k) {
+      return !!(use.tokens[k] && use.tokens[k][value2]);
+    });
+  }
+
   // assets/builder/ui/parts.js
   function ColorPick(props) {
     return e(
@@ -5621,7 +7037,7 @@
         setAt(i, o);
       };
       var control;
-      if (f.kind === "boolean") return e("div", { key: f.name, className: "bd-list-field is-inline" }, e("span", { className: "bd-field-label", id }, words(f.name)), e(Switch, { labelledBy: id, value: !!val, onChange: set2 }));
+      if (f.kind === "boolean") return e("div", { key: f.name, className: "bd-list-field is-inline" }, e("span", { className: "bd-field-label", id }, words(f.name)), e(Switch2, { labelledBy: id, value: !!val, onChange: set2 }));
       if (f.kind === "enum") control = e(Dropdown, { labelledBy: id, value: val, placeholder: f.optional ? "None" : "Choose", onChange: function(v) {
         set2(v || void 0);
       }, options: (f.optional ? [{ value: "", label: "None" }] : []).concat(f.options.map(function(o) {
@@ -5970,7 +7386,7 @@
       })
     );
   }
-  function Switch(props) {
+  function Switch2(props) {
     return e("button", {
       type: "button",
       role: "switch",
@@ -7011,7 +8427,7 @@
   }
 
   // assets/builder/app/dialogs.js
-  var memo = React.memo;
+  var memo2 = React.memo;
   function head(id, title, sub, actions) {
     return e(
       "div",
@@ -7025,7 +8441,7 @@
       dialogRef.current.close();
     } }, e(Icon, { name: "close" }));
   };
-  var CodeDialog = memo(function CodeDialog2(p) {
+  var CodeDialog = memo2(function CodeDialog2(p) {
     var name = p.title || p.frameName;
     return e(
       "dialog",
@@ -7075,7 +8491,7 @@
       }))
     );
   }
-  var ImportDialog = memo(function ImportDialog2(p) {
+  var ImportDialog = memo2(function ImportDialog2(p) {
     var edit = readEdit(p.text);
     var dialogProps = { className: cx("bd-code bd-import", edit && "bd-edit"), ref: p.dialogRef, "aria-labelledby": "bd-import-title" };
     if (edit) return e("dialog", dialogProps, e(EditBody, Object.assign({}, p, { edit })));
@@ -7329,7 +8745,7 @@
       )
     );
   }
-  var VersionsDialog = memo(function VersionsDialog2(p) {
+  var VersionsDialog = memo2(function VersionsDialog2(p) {
     var dialogProps = { className: "bd-code bd-versions", ref: p.dialogRef, "aria-labelledby": "bd-versions-title", onClose: p.onClose };
     if (!p.open) return e("dialog", dialogProps);
     return e(
@@ -7357,7 +8773,7 @@
       })) : e("p", { className: "bd-sec-empty" }, "No versions yet. The first is kept after 10 minutes of work, or keep one now.")
     );
   });
-  var KeysDialog = memo(function KeysDialog2(p) {
+  var KeysDialog = memo2(function KeysDialog2(p) {
     var dialogProps = { className: "bd-code bd-keys", ref: p.dialogRef, "aria-labelledby": "bd-keys-title", onClose: p.onClose };
     if (!p.open) return e("dialog", dialogProps);
     var tools = Object.keys(TOOL_INFO).map(function(k) {
@@ -7429,12 +8845,12 @@
     if (count3 === 1 && !isContainer(node.type)) issues.push({ level: "warn", text: "It's a single " + node.type + ". As a component it saves its settings, nothing more." });
     return { issues, tokens: list, count: count3 };
   }
-  var ComponentDialog = memo(function ComponentDialog2(p) {
-    var check = p.node ? componentCheck(p.node) : null;
-    var errors2 = check ? check.issues.filter(function(i) {
+  var ComponentDialog = memo2(function ComponentDialog2(p) {
+    var check2 = p.node ? componentCheck(p.node) : null;
+    var errors2 = check2 ? check2.issues.filter(function(i) {
       return i.level === "error";
     }) : [];
-    var warns = check ? check.issues.filter(function(i) {
+    var warns = check2 ? check2.issues.filter(function(i) {
       return i.level === "warn";
     }) : [];
     var fixable = errors2.some(function(i) {
@@ -7449,7 +8865,7 @@
         "It goes in Assets, under Components › My components, to use again in any frame. A component is built from the system's tokens, so it follows the theme wherever it goes.",
         [closeButton(p.dialogRef)]
       ),
-      check ? e(
+      check2 ? e(
         "div",
         { className: "bd-comp-body" },
         e(
@@ -7467,16 +8883,16 @@
           "div",
           { className: cx("bd-comp-status", errors2.length ? "is-blocked" : "is-ready"), role: "status" },
           e(Icon, { name: errors2.length ? "alert" : "check" }),
-          errors2.length ? errors2.length + (errors2.length === 1 ? " thing stops" : " things stop") + " it becoming a component" : "Ready: " + check.count + (check.count === 1 ? " layer" : " layers") + " on " + check.tokens.length + (check.tokens.length === 1 ? " token" : " tokens")
+          errors2.length ? errors2.length + (errors2.length === 1 ? " thing stops" : " things stop") + " it becoming a component" : "Ready: " + check2.count + (check2.count === 1 ? " layer" : " layers") + " on " + check2.tokens.length + (check2.tokens.length === 1 ? " token" : " tokens")
         ),
         errors2.length || warns.length ? e("ul", { className: "bd-comp-issues" }, errors2.concat(warns).map(function(i, k) {
           return e("li", { key: k, className: "is-" + i.level }, e(Icon, { name: i.level === "error" ? "alert" : "bell" }), e("span", null, i.text));
         })) : null,
-        check.tokens.length ? e(
+        check2.tokens.length ? e(
           "details",
           { className: "bd-comp-tokens" },
-          e("summary", null, "The tokens it's built on (" + check.tokens.length + ")"),
-          e("ul", null, check.tokens.map(function(t) {
+          e("summary", null, "The tokens it's built on (" + check2.tokens.length + ")"),
+          e("ul", null, check2.tokens.map(function(t) {
             return e("li", { key: t }, e("code", null, t));
           }))
         ) : null,
@@ -7490,7 +8906,7 @@
     );
   });
   var PLAY_STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2, 3];
-  var PlayDialog = memo(function PlayDialog2(p) {
+  var PlayDialog = memo2(function PlayDialog2(p) {
     var play = p.play, fr = p.frame;
     if (!play || !fr) return null;
     var canBack = !!(play.stack && play.stack.length);
@@ -7636,7 +9052,7 @@
       "span",
       { className: cx("bd-mode", p.className) },
       e("span", { id: "bd-mode-label", className: "bd-mode-text" }, e(Icon, { name: p.dark ? "moon" : "sun" }), e("span", { className: "bd-mode-word" }, "Dark mode")),
-      e(Switch, { value: p.dark, labelledBy: "bd-mode-label", onChange: p.setDark })
+      e(Switch2, { value: p.dark, labelledBy: "bd-mode-label", onChange: p.setDark })
     );
   }
   function fileCard(p, file, showGroup, groupById, choosePicture) {
@@ -9774,7 +11190,7 @@
           scopeChips(p, it)
         )
       ),
-      e(Switch, {
+      e(Switch2, {
         label: (on ? "Turn off " : "Turn on ") + (isDoc ? it.title : it.name),
         value: on,
         onChange: function(v) {
@@ -9805,7 +11221,7 @@
             set2(isDoc ? { title: ev.target.value.slice(0, 120) } : { name: skillName(ev.target.value) });
           }
         }),
-        e(Switch, { label: isDoc ? "Use this doc" : "Use this skill", value: isDoc ? it.use !== "off" : it.enabled, onChange: function(v) {
+        e(Switch2, { label: isDoc ? "Use this doc" : "Use this skill", value: isDoc ? it.use !== "off" : it.enabled, onChange: function(v) {
           set2(isDoc ? { use: v ? "always" : "off" } : { enabled: v });
         } })
       ),
@@ -10068,16 +11484,16 @@
   }
 
   // assets/builder/model/threads.js
-  function short3(t, n) {
+  function short5(t, n) {
     var s = String(t || "").replace(/\s+/g, " ").trim();
     return s.length > n ? s.slice(0, n - 1) + "…" : s;
   }
   function titleOf(thread, named) {
-    if (named) return short3(named, 60);
+    if (named) return short5(named, 60);
     var first = (thread || []).filter(function(t) {
       return t.role === "user" && t.text;
     })[0];
-    return first ? short3(first.text, 60) : "New conversation";
+    return first ? short5(first.text, 60) : "New conversation";
   }
   function summaryOf(thread) {
     var said2 = "", changes = 0;
@@ -10088,7 +11504,7 @@
         return !c.undone;
       }).length;
     });
-    return { said: short3(said2.replace(/^Practice mode(, with the real tools)?: /, ""), 90), changes };
+    return { said: short5(said2.replace(/^Practice mode(, with the real tools)?: /, ""), 90), changes };
   }
   function metaOf(thread, opts) {
     opts = opts || {};
@@ -10330,7 +11746,7 @@
         "div",
         { className: "bd-as-mrow" },
         e("span", { className: "bd-as-mrow-t" }, e("b", { id }, title), e("span", null, help)),
-        e(Switch, { value: value2, onChange, labelledBy: id })
+        e(Switch2, { value: value2, onChange, labelledBy: id })
       );
     };
     return e(
@@ -10350,7 +11766,7 @@
           "div",
           { className: "bd-as-mrow is-off" },
           e("span", { className: "bd-as-mrow-t" }, e("b", { id: "bd-as-m-share" }, "Share in this file"), e("span", null, p.cloudFile ? "Everyone on this file can read it and carry it on." : "Sharing needs this file in the cloud, which isn't built yet. Conversations stay in this browser for now.")),
-          e(Switch, { value: false, onChange: function() {
+          e(Switch2, { value: false, onChange: function() {
           }, labelledBy: "bd-as-m-share", disabled: !p.cloudFile })
         ),
         e("hr"),
@@ -10563,888 +11979,6 @@
         )
       )
     );
-  }
-
-  // assets/builder/model/agent.js
-  var FAMILIES = Object.keys(DATA.tokens);
-  var BATCHABLE = ["set_style", "set_prop", "set_text", "insert_jsx", "replace_jsx", "move", "wrap", "duplicate", "rename", "remove"];
-  var TOOLS = [
-    { name: "list_pages", description: "The file's pages (the current one marked), and the frames on the current page with their ids, sizes and layer counts.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
-    { name: "read_page", description: "An outline of every layer on a page: one line each, indented by depth, with its id, type, name, text, props and style tokens. Reads the current page unless page names another; frame narrows it to one frame. Read it before changing anything beyond the selection.", input_schema: { type: "object", properties: { page: { type: "string" }, frame: { type: "string" } }, additionalProperties: false } },
-    { name: "read_selection", description: "The selected layers (or the frame when nothing is selected): each one's id, type, name, props and style tokens, and its children's ids and types.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
-    { name: "screenshot", description: "A picture of a frame or one layer on the current page, as it's drawn now. Look after visible changes and fix what looks wrong: overlaps, cramped spacing, weak contrast, text that wraps badly. Give width (390 for a phone, 768 for a tablet) or dark (true for dark mode, false for light) to see it drawn that way, out of sight, without changing the canvas.", input_schema: { type: "object", properties: { id: { type: "string" }, width: { type: "integer", minimum: 320, maximum: 2560 }, dark: { type: "boolean" } }, additionalProperties: false } },
-    { name: "read_guideline", description: "Read one of the system's guidelines, by topic id from the brief's Guidelines list (accessibility, tokens, theming, voice, colour, space, type…), when a choice depends on it.", input_schema: { type: "object", properties: { topic: { type: "string" } }, required: ["topic"], additionalProperties: false } },
-    { name: "read_theme", description: "The file's theme: its brand name and colours, whether actions are ink or brand, fonts, corner style, density, page and section tints, texture, whitespace, page width, and its context (product, marketing or social). Read it before a choice that depends on the brand or the context, such as a component's product or marketing variant.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
-    { name: "lint", description: "Check a frame (the one you're in unless frame names another): text contrast as drawn, anything spilling past the edge at 390px wide, contrast in dark mode, labels, alt text, heading order, primary buttons and placeholder copy. Each finding names its layers. Run it after you change something and fix what fails.", input_schema: { type: "object", properties: { frame: { type: "string" } }, additionalProperties: false } },
-    { name: "measure", description: "The space between two layers as drawn, across and down, in pixels and as the nearest spacing token.", input_schema: { type: "object", properties: { a: { type: "string" }, b: { type: "string" } }, required: ["a", "b"], additionalProperties: false } },
-    { name: "search_components", description: "Find components by what they're for: each match's name, group and one-line purpose. An empty query lists every component by group.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false } },
-    { name: "read_component", description: "A component's props (kinds, options, defaults and notes) and its documentation: when to use it, examples and accessibility.", input_schema: { type: "object", properties: { name: { type: "string" } }, required: ["name"], additionalProperties: false } },
-    { name: "list_tokens", description: "The values a style family accepts. Families: " + FAMILIES.join(", ") + ".", input_schema: { type: "object", properties: { family: { type: "string", enum: FAMILIES } }, required: ["family"], additionalProperties: false } },
-    { name: "set_style", description: "Set one style family to one of its token values on layers, or clear it with an empty value. Only token values from list_tokens are allowed.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, family: { type: "string", enum: FAMILIES }, value: { type: "string" } }, required: ["ids", "family", "value"], additionalProperties: false } },
-    { name: "set_prop", description: "Set one of a component's own props on layers of that type: its text, or one of the values its enum allows.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, name: { type: "string" }, value: { type: ["string", "number", "boolean"] } }, required: ["ids", "name", "value"], additionalProperties: false } },
-    { name: "insert_jsx", description: "Add new layers written as JSX with the design system's components (for example <Section><Heading>…</Heading></Section>) into a container, at an index, or after the selection when parent is omitted.", input_schema: { type: "object", properties: { jsx: { type: "string" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["jsx"], additionalProperties: false } },
-    { name: "replace_jsx", description: "Replace one layer with new layers written as JSX, in its place: the way to rebuild a section or a card in one step.", input_schema: { type: "object", properties: { id: { type: "string" }, jsx: { type: "string" } }, required: ["id", "jsx"], additionalProperties: false } },
-    { name: "set_text", description: "Set a layer's text: a heading's or a paragraph's words, a button's label, a card's title.", input_schema: { type: "object", properties: { id: { type: "string" }, text: { type: "string" } }, required: ["id", "text"], additionalProperties: false } },
-    { name: "move", description: "Move layers into a container, at an index (the end when omitted), in the order given.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["ids", "parent"], additionalProperties: false } },
-    { name: "wrap", description: "Put a layer inside a new container of the given type, or several sibling layers inside one Group.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, type: { type: "string", enum: WRAPS } }, required: ["ids"], additionalProperties: false } },
-    { name: "duplicate", description: "Copy layers, each copy just after its original.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 } }, required: ["ids"], additionalProperties: false } },
-    { name: "rename", description: "Give a layer a name, so the layers list says what it is.", input_schema: { type: "object", properties: { id: { type: "string" }, name: { type: "string" } }, required: ["id", "name"], additionalProperties: false } },
-    { name: "create_frame", description: "Add a frame to this page and make it the one you're working in. structured frames are auto layout pages (they start with a Content group to fill, whose id comes back); free frames place layers anywhere. Presets: " + PRESETS.map(function(f) {
-      return f.id + " (" + f.width + "×" + f.height + ")";
-    }).join(", ") + ".", input_schema: { type: "object", properties: { name: { type: "string" }, preset: { type: "string", enum: PRESETS.map(function(f) {
-      return f.id;
-    }) }, mode: { type: "string", enum: ["structured", "free"] } }, required: ["name", "preset", "mode"], additionalProperties: false } },
-    { name: "make_variants", description: "Try a few directions side by side: copies a frame (the one you're in unless you name another) once per label, beside it, named after the label, and hands back each copy's id. Then use_frame into each copy and make its change. The person compares them on the canvas and keeps one, which takes the original's place. Use it when they ask to see options, or pick Try them all on a question.", input_schema: { type: "object", properties: { frame: { type: "string" }, labels: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } } }, required: ["labels"], additionalProperties: false } },
-    { name: "use_frame", description: "Work in another frame on this page: the edit tools act on the frame you're in.", input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false } },
-    { name: "propose_plan", description: "Before a new page or frame, or any change that adds more than about 10 layers, show the person a short plan and wait for their answer: the frame it goes in (when it's a new one), the steps in order (a title and a line each), and anything they should know (missing content you'll stand in for, a choice you made). It comes back approved, or with what they want changed.", input_schema: { type: "object", properties: { title: { type: "string" }, frame: { type: "object", properties: { name: { type: "string" }, preset: { type: "string" }, mode: { type: "string", enum: ["structured", "free"] } }, additionalProperties: false }, steps: { type: "array", minItems: 1, maxItems: 12, items: { type: "object", properties: { title: { type: "string" }, detail: { type: "string" } }, required: ["title"], additionalProperties: false } }, notes: { type: "array", maxItems: 4, items: { type: "string" } } }, required: ["title", "steps"], additionalProperties: false } },
-    { name: "ask_user", description: "Ask the person to choose when the request leaves a real choice open: two to four ways that would set a different tone or direction, which the request, the docs and the theme don't settle. Each option is a short label and a line on what it means (the components and tokens it would use). The answer comes back as the option they picked, or what they wrote instead. Don't ask about what you can decide yourself.", input_schema: { type: "object", properties: { question: { type: "string" }, options: { type: "array", minItems: 2, maxItems: 4, items: { type: "object", properties: { label: { type: "string" }, detail: { type: "string" } }, required: ["label"], additionalProperties: false } } }, required: ["question", "options"], additionalProperties: false } },
-    { name: "batch", description: "Run several edit calls in order as one step the person can undo at once. Each call is { name, input } for one of: " + BATCHABLE.join(", ") + ". It stops at the first call that fails, keeping the ones before it.", input_schema: { type: "object", properties: { calls: { type: "array", minItems: 1, maxItems: 40, items: { type: "object", properties: { name: { type: "string", enum: BATCHABLE }, input: { type: "object" } }, required: ["name", "input"], additionalProperties: false } } }, required: ["calls"], additionalProperties: false } },
-    { name: "remove", description: "Remove layers.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 } }, required: ["ids"], additionalProperties: false } },
-    { name: "select", description: "Select layers, so the person sees them.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" } } }, required: ["ids"], additionalProperties: false } },
-    { name: "read_skill", description: "Read a skill's files when a request fits its description: its SKILL.md, or another file by path.", input_schema: { type: "object", properties: { name: { type: "string" }, path: { type: "string" } }, required: ["name"], additionalProperties: false } }
-  ];
-  function toolsFor(opts) {
-    var look = !opts || opts.look !== false, plan = !opts || opts.plan !== false;
-    return TOOLS.filter(function(t) {
-      return (look || t.name !== "screenshot") && (plan || t.name !== "propose_plan");
-    });
-  }
-  var LABEL = { surface: "Fill", radius: "Corners", elevation: "Shadow", border: "Border", padding: "Padding", gap: "Gap", blur: "Blur", backdrop: "Behind", opacity: "Opacity", gradient: "Gradient" };
-  function familyWord(f) {
-    return LABEL[f] || f.replace(/([A-Z])/g, " $1").replace(/^./, function(c) {
-      return c.toUpperCase();
-    });
-  }
-  function describe(n) {
-    return {
-      id: n.id,
-      type: n.type,
-      name: n.name || void 0,
-      props: n.props,
-      style: n.style,
-      children: (n.children || []).map(function(c) {
-        return { id: c.id, type: c.type, name: c.name || void 0 };
-      })
-    };
-  }
-  var TEXT_KEYS4 = ["children", "title", "label", "text", "heading", "description", "alt"];
-  function short4(v, n) {
-    var t = String(v).replace(/\s+/g, " ").trim();
-    return t.length > n ? t.slice(0, n - 1) + "…" : t;
-  }
-  function line(n, depth) {
-    var bits = [n.type + (n.name && n.name !== n.type ? ' "' + short4(n.name, 40) + '"' : ""), n.id];
-    var props = n.props || {};
-    TEXT_KEYS4.forEach(function(k) {
-      if (typeof props[k] === "string" && props[k].trim()) bits.push(k === "children" ? '"' + short4(props[k], 80) + '"' : k + '="' + short4(props[k], 60) + '"');
-    });
-    Object.keys(props).sort().forEach(function(k) {
-      var v = props[k];
-      if (TEXT_KEYS4.indexOf(k) >= 0 || v == null || v === "" || typeof v === "object") return;
-      bits.push(k + "=" + short4(v, 40));
-    });
-    var st = n.style || {};
-    var toks = Object.keys(st).sort().filter(function(k) {
-      return st[k] != null && st[k] !== "" && typeof st[k] !== "object";
-    }).map(function(k) {
-      return k + ":" + st[k];
-    });
-    if (toks.length) bits.push("{" + toks.join(" ") + "}");
-    if (n.hidden) bits.push("hidden");
-    if (n.locked) bits.push("locked");
-    return new Array(depth + 1).join("  ") + "- " + bits.join(" · ");
-  }
-  var OUTLINE_MAX = 400;
-  function count2(n) {
-    return 1 + (n.children || []).reduce(function(a, c) {
-      return a + count2(c);
-    }, 0);
-  }
-  function outline(doc2, fid) {
-    var out = [], left = 0;
-    (doc2.frames || []).filter(function(f) {
-      return !fid || f.id === fid;
-    }).forEach(function(f) {
-      out.push('Frame "' + f.name + '" ' + f.id + " · " + (f.mode || "free") + " · " + f.width + (f.height ? "×" + f.height : "") + (f.id === doc2.active ? " · active" : "") + (f.dark ? " · dark" : ""));
-      (function walk2(n, depth) {
-        (n.children || []).forEach(function(c) {
-          if (out.length >= OUTLINE_MAX) {
-            left += count2(c);
-            return;
-          }
-          out.push(line(c, depth));
-          walk2(c, depth + 1);
-        });
-      })(f.root, 1);
-    });
-    if (left) out.push("… and " + left + " more layers. Read one frame at a time with frame.");
-    return out.join("\n");
-  }
-  var brief = null;
-  var SIDES = /^(padding|margin|border|radius)(Top|Right|Bottom|Left|TopLeft|TopRight|BottomLeft|BottomRight)$/;
-  function systemPrompt() {
-    if (brief) return brief;
-    var first = function(t) {
-      var m = /^.*?[.!?](?=\s|$)/.exec(String(t || ""));
-      return m ? m[0] : String(t || "");
-    };
-    var line2 = function(t) {
-      var m = META[t], g = m.guide || {};
-      var out = "- " + t + (m.container ? " (holds layers)" : "") + ": " + short4(first(g.lead || m.blurb), 120);
-      if (g.use && g.use.length) out += " Use: " + short4(g.use[0], 90);
-      if (g.avoid && g.avoid.length) out += " Not: " + short4(g.avoid[0], 90);
-      else if (g.rules && g.rules.length) out += " Rule: " + short4(g.rules[0], 90);
-      return out;
-    };
-    var comps = (DATA.groups || []).map(function(g) {
-      return "## " + g.label + "\n" + g.items.filter(function(t) {
-        return META[t];
-      }).map(line2).join("\n");
-    }).join("\n\n");
-    var fams = FAMILIES.filter(function(f) {
-      return !SIDES.test(f);
-    }).map(function(f) {
-      return "- " + f + ": " + DATA.tokens[f].options.map(function(o) {
-        return o.use ? o.value + " (" + short4(first(o.use), 48) + ")" : o.value;
-      }).join(", ");
-    }).join("\n");
-    var guides = {};
-    (DATA.guidelines || []).forEach(function(x) {
-      (guides[x.group] = guides[x.group] || []).push(x.id);
-    });
-    var sides = FAMILIES.filter(function(f) {
-      return SIDES.test(f);
-    });
-    brief = [
-      "# Working in the Dovetail Builder",
-      "You design on a canvas made only of the Dovetail design system: its components, laid out in frames, styled only with its tokens. The tools are your hands. Changes land on the canvas as you make them, and the person can undo any of them.",
-      "## How to work",
-      "- Read before you change. read_selection for the selection; read_page before anything wider, or when you need ids.",
-      "- Prefer a component that already does the job over a styled Group or Shape. Its Use and Not lines below say when; read_component for its variants, props and examples before you use one you haven't read in this conversation.",
-      "- Choose token values by what they're for (each family below says), not by how they look: raised for cards, subtle for a quiet band, brand-muted for a band with presence.",
-      "- When the brand or the context matters (a component's product or marketing variant, the voice of copy), read_theme first; read_guideline for the rules on a topic.",
-      "- A new page starts with create_frame (structured for web pages, a social preset for posts), then fills its Content group.",
-      "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
-      "- Write real, short copy in the brand's voice. Never lorem ipsum.",
-      "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish. For a page, look at 390 wide and in dark mode too (screenshot with width or dark) when the change touches layout or colour, or the checks flag them.",
-      "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
-      "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first. When it leaves a real choice of direction open (two good answers with a different tone), call ask_user with the options rather than guessing.",
-      "- When the person wants to see options, make_variants copies the frame once per option, side by side; build each in its copy and say how they differ. They keep one.",
-      "- A message may start with what the person changed on the canvas since your last reply. Keep those changes unless they ask otherwise, and build on them.",
-      "- Before a new page or frame, or a change that adds more than about 10 layers, call propose_plan and wait for the answer, unless the canvas notes say plans are off. Building without one is refused.",
-      "- Finish with a sentence or two on what you changed and anything the person should check.",
-      "## The system's rules",
-      "- Tokens only: every colour, size, space, radius and shadow is a token value from list_tokens. Never invent one.",
-      "- Dark areas: use a Section's dark tone (or a frame's dark mode) rather than dark fills on light layers, so text and controls follow.",
-      "- Every layout must work 390px wide, in dark mode, and with reduced motion.",
-      "- Accessibility: headings in order, one primary action per view, labels on every field, alt text on informative images, and text contrast of at least 4.5:1.",
-      "- Structured frames are auto layout: order matters, positions don't. Free frames place layers by x and y.",
-      "# Components",
-      comps,
-      "# Style token families",
-      "A layer's style maps a family to one value.",
-      fams,
-      sides.length ? "Per-side families take the same values as their base family: " + sides.join(", ") + "." : "",
-      "# Guidelines",
-      "Read any of these with read_guideline:",
-      Object.keys(guides).map(function(k) {
-        return "- " + k + ": " + guides[k].join(", ");
-      }).join("\n")
-    ].filter(Boolean).join("\n\n");
-    return brief;
-  }
-  var PLAN_OVER = 10;
-  function owesPlan(api, size) {
-    if (!api.needsPlan) return null;
-    var big = size === "frame" || size > PLAN_OVER;
-    if (!big || !api.needsPlan()) return null;
-    return { ok: false, result: (size === "frame" ? "A new frame" : "Adding " + size + " layers") + " is a big change. Call propose_plan first and wait for the person's answer." };
-  }
-  function added(nodes) {
-    return nodes.reduce(function(a, n) {
-      return a + count2(n);
-    }, 0);
-  }
-  function fromJsx(jsx) {
-    var els = readJsxElements(String(jsx || ""));
-    var raw = els.length ? jsxNodes(els, []) : [];
-    return raw.map(function(n) {
-      return cleanNode(n, null);
-    }).filter(Boolean).map(fresh);
-  }
-  function runTool(api, call) {
-    var input = call.input || {};
-    var fail = function(msg) {
-      return { ok: false, result: msg };
-    };
-    var doc2 = api.doc();
-    var known = function(ids4) {
-      return (ids4 || []).filter(function(id) {
-        return typeof id === "string" && locate(doc2, id);
-      });
-    };
-    var nameOf3 = function(id) {
-      var at2 = locate(doc2, id);
-      return at2 ? layerName(at2.node) : id;
-    };
-    switch (call.name) {
-      case "list_pages": {
-        var pages = api.pages ? api.pages() : [];
-        var frames = (doc2.frames || []).map(function(f2) {
-          return { id: f2.id, name: f2.name, mode: f2.mode || "free", width: f2.width, height: f2.height || void 0, layers: count2(f2.root) - 1, active: f2.id === doc2.active || void 0 };
-        });
-        return { ok: true, result: JSON.stringify({ pages, frames }), step: "Listed " + pages.length + (pages.length === 1 ? " page" : " pages") };
-      }
-      case "read_page": {
-        var pagesNow = api.pages ? api.pages() : [];
-        var here = pagesNow.filter(function(pg) {
-          return pg.current;
-        })[0];
-        var other = input.page && (!here || input.page !== here.id) ? pagesNow.filter(function(pg) {
-          return pg.id === input.page || pg.name === input.page;
-        })[0] : null;
-        if (input.page && !other && !(here && (input.page === here.id || input.page === here.name))) return fail("There's no page called " + input.page + ". Call list_pages for them.");
-        var from = function(d, label2) {
-          if (!d) return fail("That page couldn't be read.");
-          if (input.frame && !(d.frames || []).some(function(f2) {
-            return f2.id === input.frame;
-          })) return fail("There's no frame " + input.frame + " on " + label2 + ".");
-          var n = (d.frames || []).filter(function(f2) {
-            return !input.frame || f2.id === input.frame;
-          }).reduce(function(a, f2) {
-            return a + count2(f2.root) - 1;
-          }, 0);
-          return { ok: true, result: outline(d, input.frame || null), step: "Read " + label2 + " · " + n + (n === 1 ? " layer" : " layers") };
-        };
-        if (other) return Promise.resolve(api.loadPage(other.id)).then(function(d) {
-          return from(d, other.name);
-        }, function() {
-          return fail("That page couldn't be read.");
-        });
-        return from(doc2, here ? here.name : "the page");
-      }
-      case "screenshot": {
-        if (!api.screenshot) return fail("Looking at the canvas is turned off for this file.");
-        var frameOf = (doc2.frames || []).filter(function(f2) {
-          return f2.id === input.id;
-        })[0];
-        var inFrame = null, shotAt = null;
-        if (input.id && !frameOf && input.id !== "root") (doc2.frames || []).some(function(f2) {
-          var at2 = locate(doc2, input.id, f2.id);
-          if (at2) {
-            inFrame = f2;
-            shotAt = at2;
-          }
-          return !!at2;
-        });
-        if (input.id && input.id !== "root" && !shotAt && !frameOf) return fail("There's no layer or frame " + input.id + " on this page.");
-        var fr = frameOf || inFrame || (doc2.frames || []).filter(function(f2) {
-          return f2.id === doc2.active;
-        })[0] || doc2.frames[0];
-        var what2 = shotAt ? layerName(shotAt.node) : fr.name;
-        var width = typeof input.width === "number" ? Math.max(320, Math.min(2560, Math.round(input.width))) : null;
-        var dark = typeof input.dark === "boolean" ? input.dark : null;
-        var how = [width ? "at " + width + " wide" : "", dark === true ? "in dark mode" : dark === false ? "in light mode" : ""].filter(Boolean).join(" ");
-        var opts = width || dark !== null ? { width, dark } : null;
-        var note3 = width && fr.mode !== "structured" ? " A freeform frame places layers by position, so it isn't reflowed at another width." : "";
-        return Promise.resolve(api.screenshot(fr.id, shotAt ? input.id : null, opts)).then(function(pic) {
-          if (!pic || !pic.data) return fail("The picture couldn't be made.");
-          return { ok: true, result: [{ type: "image", source: { type: "base64", media_type: pic.media_type, data: pic.data } }, { type: "text", text: what2 + (how ? " " + how : "") + ", " + pic.width + "×" + pic.height + " pixels." + note3 }], step: "Looked at " + what2 + (how ? " " + how : ""), shot: pic };
-        }, function(err) {
-          return fail(err && err.message || "The picture couldn't be made.");
-        });
-      }
-      case "read_guideline": {
-        var list = DATA.guidelines || [];
-        var want = String(input.topic || "").toLowerCase().trim();
-        var g = list.filter(function(x) {
-          return x.id === want;
-        })[0] || list.filter(function(x) {
-          return x.title.toLowerCase() === want;
-        })[0] || list.filter(function(x) {
-          return want && (x.id.indexOf(want) >= 0 || x.title.toLowerCase().indexOf(want) >= 0);
-        })[0];
-        if (!g) return fail("There's no guideline " + JSON.stringify(input.topic) + ". Topics: " + list.map(function(x) {
-          return x.id;
-        }).join(", ") + ".");
-        if (!api.guideline) return fail("Guidelines can't be read here.");
-        return Promise.resolve(api.guideline(g)).then(function(text3) {
-          if (!text3) return fail("The " + g.title + " guideline couldn't be read.");
-          return { ok: true, result: "# " + g.title + (g.about ? "\n" + g.about : "") + "\n\n" + String(text3).slice(0, 12e3), step: "Read the " + g.title + " guideline" };
-        }, function() {
-          return fail("The " + g.title + " guideline couldn't be read.");
-        });
-      }
-      case "read_theme": {
-        var th = api.theme ? api.theme() : null;
-        if (!th) return fail("The theme isn't loaded yet.");
-        return { ok: true, result: JSON.stringify(th), step: "Read the theme" };
-      }
-      case "lint": {
-        var lf = input.frame ? (doc2.frames || []).filter(function(f2) {
-          return f2.id === input.frame;
-        })[0] : (doc2.frames || []).filter(function(f2) {
-          return f2.id === doc2.active;
-        })[0] || doc2.frames[0];
-        if (!lf) return fail("There's no frame " + input.frame + " on this page.");
-        if (!api.runChecks) return fail("Checks can't run here.");
-        return Promise.resolve(api.runChecks(lf.id)).then(function(got) {
-          return { ok: true, result: got.text, step: "Checked " + lf.name, checks: got.rows, frame: lf.id };
-        }, function(err) {
-          return fail(err && err.message || "The checks couldn't run.");
-        });
-      }
-      case "measure": {
-        if (!locate(doc2, input.a) || !locate(doc2, input.b)) return fail("Both layers must be in the frame you're in.");
-        if (!api.measure) return fail("Measuring can't run here.");
-        return Promise.resolve(api.measure(input.a, input.b)).then(function(m2) {
-          if (!m2) return fail("Those layers aren't drawn.");
-          return { ok: true, result: JSON.stringify(m2), step: "Measured " + nameOf3(input.a) + " to " + nameOf3(input.b) };
-        });
-      }
-      case "search_components": {
-        var q = String(input.query || "").toLowerCase().trim();
-        var words3 = q.split(/[^a-z0-9]+/).filter(Boolean);
-        var all = Object.keys(META).filter(function(t) {
-          return !META[t].builder;
-        });
-        if (!words3.length) {
-          var byGroup = (DATA.groups || []).map(function(g2) {
-            return g2.label + ": " + g2.items.filter(function(t) {
-              return META[t];
-            }).join(", ");
-          }).join("\n");
-          return { ok: true, result: byGroup, step: "Listed the components" };
-        }
-        var scored = all.map(function(t) {
-          var hay = (t + " " + (META[t].blurb || "") + " " + (META[t].group || "")).toLowerCase();
-          var sc = words3.reduce(function(a, w) {
-            return a + (t.toLowerCase() === w ? 5 : t.toLowerCase().indexOf(w) >= 0 ? 3 : hay.indexOf(w) >= 0 ? 1 : 0);
-          }, 0);
-          return { t, sc };
-        }).filter(function(x) {
-          return x.sc > 0;
-        }).sort(function(a, b) {
-          return b.sc - a.sc || (a.t < b.t ? -1 : 1);
-        }).slice(0, 12);
-        if (!scored.length) return { ok: true, result: "No component matches " + JSON.stringify(input.query) + ". Try another word, or an empty query for the full list.", step: "Searched components for “" + short4(input.query, 30) + "”" };
-        return { ok: true, result: JSON.stringify(scored.map(function(x) {
-          return { name: x.t, group: META[x.t].group, purpose: META[x.t].blurb, holdsLayers: !!META[x.t].container || void 0 };
-        })), step: "Searched components for “" + short4(input.query, 30) + "”" };
-      }
-      case "read_component": {
-        var m = META[input.name];
-        if (!m) return fail("There's no component called " + input.name + ". Call search_components to find one.");
-        var spec2 = { name: input.name, purpose: m.blurb, group: m.group, holdsLayers: !!m.container, guide: m.guide || void 0, props: (m.props || []).map(function(pp) {
-          return { name: pp.name, kind: pp.kind, options: pp.options, default: pp.default, note: pp.note };
-        }) };
-        return Promise.resolve(api.componentDoc ? api.componentDoc(input.name) : null).then(function(md2) {
-          var text3 = JSON.stringify(spec2) + (md2 ? "\n\n# Documentation\n\n" + String(md2).slice(0, 8e3) : "");
-          return { ok: true, result: text3, step: "Read " + input.name + "'s docs" };
-        }, function() {
-          return { ok: true, result: JSON.stringify(spec2), step: "Read " + input.name + "'s props" };
-        });
-      }
-      case "read_selection": {
-        var sel = known(api.selection());
-        var nodes = sel.length ? sel.map(function(id) {
-          return locate(doc2, id).node;
-        }) : [locate(doc2, "root") && locate(doc2, "root").node].filter(Boolean);
-        return { ok: true, result: JSON.stringify(nodes.map(describe)), step: sel.length ? "Read " + sel.length + (sel.length === 1 ? " selected layer" : " selected layers") : "Read the frame" };
-      }
-      case "list_tokens": {
-        var fam = DATA.tokens[input.family];
-        if (!fam) return fail("There's no style family called " + input.family + ".");
-        return { ok: true, result: JSON.stringify(fam.options.map(function(o) {
-          return { value: o.value, token: o.tokens && o.tokens[0], use: o.use || void 0 };
-        })) };
-      }
-      case "set_style": {
-        var f = DATA.tokens[input.family];
-        if (!f) return fail("There's no style family called " + input.family + ".");
-        var v = String(input.value == null ? "" : input.value);
-        if (v && !f.options.some(function(o) {
-          return o.value === v;
-        })) return fail(v + " isn't one of " + input.family + "'s tokens. Call list_tokens for the ones it has.");
-        var ids = known(input.ids);
-        if (!ids.length) return fail("None of those layers are on the canvas.");
-        if (!api.setStyle(ids, input.family, v || void 0)) return fail("Nothing changed.");
-        return { ok: true, result: "Done.", change: { ids, label: familyWord(input.family), value: v || "none", on: ids.map(nameOf3).join(", ") } };
-      }
-      case "set_prop": {
-        var pids = known(input.ids);
-        if (!pids.length) return fail("None of those layers are on the canvas.");
-        var types = pids.map(function(id) {
-          return locate(doc2, id).node.type;
-        });
-        var spec = META[types[0]] && META[types[0]].props.filter(function(p) {
-          return p.name === input.name;
-        })[0];
-        var textProp = input.name === "children" || input.name === "title" || input.name === "label";
-        if (!spec && !textProp) return fail(types[0] + " has no prop called " + input.name + ".");
-        if (types.some(function(t) {
-          return t !== types[0];
-        })) return fail("Set a prop on layers of one type at a time.");
-        if (spec && spec.kind === "enum" && spec.options.indexOf(input.value) < 0) return fail(input.value + " isn't one of " + input.name + "'s options: " + spec.options.join(", ") + ".");
-        if (!api.setProp(pids, input.name, input.value)) return fail("Nothing changed.");
-        return { ok: true, result: "Done.", change: { ids: pids, label: input.name === "children" ? "Text" : input.name.charAt(0).toUpperCase() + input.name.slice(1), value: String(input.value).slice(0, 60), on: pids.map(nameOf3).join(", ") } };
-      }
-      case "insert_jsx": {
-        var made = fromJsx(input.jsx);
-        if (!made.length) return fail("That JSX has no components the system knows.");
-        var owed = owesPlan(api, added(made));
-        if (owed) return owed;
-        var ids2 = api.insert(input.parent || null, typeof input.index === "number" ? input.index : null, made);
-        if (!ids2 || !ids2.length) return fail("Those layers can't go there.");
-        return { ok: true, result: JSON.stringify({ added: ids2 }), change: { ids: ids2, label: "Added", value: made.map(function(n) {
-          return layerName(n);
-        }).join(", "), on: "" } };
-      }
-      case "replace_jsx": {
-        var at0 = locate(doc2, input.id);
-        if (!at0 || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
-        var made2 = fromJsx(input.jsx);
-        if (!made2.length) return fail("That JSX has no components the system knows.");
-        var owed2 = owesPlan(api, added(made2));
-        if (owed2) return owed2;
-        var was = nameOf3(input.id);
-        var ids3 = api.replace(input.id, made2);
-        if (!ids3 || !ids3.length) return fail("Those layers can't go there.");
-        return { ok: true, result: JSON.stringify({ added: ids3 }), change: { ids: ids3, label: "Rebuilt", value: was + " → " + made2.map(function(n) {
-          return layerName(n);
-        }).join(", "), on: "" } };
-      }
-      case "set_text": {
-        var tat = locate(doc2, input.id);
-        if (!tat || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
-        var tn = tat.node, specs = META[tn.type] && META[tn.type].props || [];
-        var key = TEXT_PROPS.filter(function(k) {
-          return typeof tn.props[k] === "string";
-        })[0] || TEXT_PROPS.filter(function(k) {
-          return specs.some(function(sp) {
-            return sp.name === k;
-          });
-        })[0];
-        if (!key) return fail(tn.type + " has no text of its own; set the text of a layer inside it.");
-        var text2 = String(input.text == null ? "" : input.text);
-        if (!api.setProp([input.id], key, text2)) return fail("Nothing changed.");
-        return { ok: true, result: "Done.", change: { ids: [input.id], label: "Text", value: short4(text2, 60), on: nameOf3(input.id) } };
-      }
-      case "move": {
-        var mids = known(input.ids);
-        if (!mids.length) return fail("None of those layers are in this frame.");
-        if (!locate(doc2, input.parent)) return fail("There's no container " + input.parent + " in this frame.");
-        var moved = api.move(mids, input.parent, typeof input.index === "number" ? input.index : null);
-        if (!moved || !moved.length) return fail("Those layers can't go there.");
-        return { ok: true, result: JSON.stringify({ moved }), change: { ids: moved, label: "Moved", value: moved.map(nameOf3).join(", "), on: "into " + nameOf3(input.parent) } };
-      }
-      case "wrap": {
-        var wids = known(input.ids);
-        if (!wids.length) return fail("None of those layers are in this frame.");
-        var type = input.type || "Group";
-        if (wids.length > 1 && type !== "Group") return fail("Several layers go into a Group; wrap them one at a time for a " + type + ".");
-        var box = wids.length > 1 ? api.group(wids) : api.wrap(wids[0], type);
-        if (!box) return fail("Those can't be wrapped there.");
-        return { ok: true, result: JSON.stringify({ container: box }), change: { ids: [box], label: "Wrapped", value: wids.map(nameOf3).join(", "), on: "in a " + type } };
-      }
-      case "duplicate": {
-        var dids = known(input.ids);
-        if (!dids.length) return fail("None of those layers are in this frame.");
-        var copies = api.duplicate(dids);
-        if (!copies || !copies.length) return fail("Those layers can't be copied.");
-        return { ok: true, result: JSON.stringify({ copies }), change: { ids: copies, label: "Copied", value: dids.map(nameOf3).join(", "), on: "" } };
-      }
-      case "rename": {
-        if (!locate(doc2, input.id) || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
-        var nm = short4(String(input.name || ""), 60);
-        if (!nm) return fail("Give it a name.");
-        var old = nameOf3(input.id);
-        if (!api.rename(input.id, nm)) return fail("Nothing changed.");
-        return { ok: true, result: "Done.", change: { ids: [input.id], label: "Named", value: nm, on: old } };
-      }
-      case "create_frame": {
-        var preset = PRESETS.filter(function(f2) {
-          return f2.id === input.preset;
-        })[0];
-        if (!preset) return fail("There's no preset " + input.preset + ".");
-        if (input.mode !== "structured" && input.mode !== "free") return fail("A frame is structured or free.");
-        var owed3 = owesPlan(api, "frame");
-        if (owed3) return owed3;
-        var made3 = api.createFrame({ name: short4(String(input.name || "Frame"), 60), preset: preset.id, mode: input.mode });
-        if (!made3) return fail("The frame couldn't be added.");
-        return { ok: true, result: JSON.stringify(made3), change: { ids: [], label: "New frame", value: short4(String(input.name || "Frame"), 60), on: preset.label + ", " + input.mode } };
-      }
-      case "make_variants": {
-        if (!api.makeVariants) return fail("Variants can't be made here.");
-        var src = input.frame ? (doc2.frames || []).filter(function(f2) {
-          return f2.id === input.frame;
-        })[0] : (doc2.frames || []).filter(function(f2) {
-          return f2.id === doc2.active;
-        })[0] || doc2.frames[0];
-        if (!src) return fail("There's no frame " + input.frame + " on this page.");
-        var labels = (input.labels || []).map(function(l) {
-          return short4(String(l || ""), 40);
-        }).filter(Boolean).slice(0, 4);
-        if (labels.length < 2) return fail("Give at least two labels.");
-        var made4 = api.makeVariants(src.id, labels);
-        if (!made4 || !made4.length) return fail("The variants couldn't be made.");
-        return {
-          ok: true,
-          result: JSON.stringify({ variants: made4.map(function(v2, i) {
-            return { label: labels[i], frame: v2 };
-          }) }) + " Now use_frame into each and make its change.",
-          step: "Copied " + src.name + " into " + labels.length + " variants",
-          change: { ids: [], label: "Variants", value: labels.length + " copies", on: src.name },
-          variants: { source: src.id, sourceName: src.name, items: made4.map(function(v2, i) {
-            return { label: labels[i], frame: v2 };
-          }) }
-        };
-      }
-      case "use_frame": {
-        var to = (doc2.frames || []).filter(function(f2) {
-          return f2.id === input.id;
-        })[0];
-        if (!to) return fail("There's no frame " + input.id + " on this page.");
-        api.useFrame(to.id);
-        return { ok: true, result: "Now working in " + to.name + ".", step: "Moved to " + to.name };
-      }
-      case "batch": {
-        var list = Array.isArray(input.calls) ? input.calls.slice(0, 40) : [];
-        if (!list.length) return fail("Send at least one call.");
-        var bad = list.filter(function(c) {
-          return !c || BATCHABLE.indexOf(c.name) < 0;
-        })[0];
-        if (bad) return fail((bad && bad.name) + " can't run in a batch. Batch runs: " + BATCHABLE.join(", ") + ".");
-        var size = list.reduce(function(a, c) {
-          return a + (c.name === "insert_jsx" || c.name === "replace_jsx" ? added(fromJsx((c.input || {}).jsx)) : 0);
-        }, 0);
-        var owed4 = owesPlan(api, size);
-        if (owed4) return owed4;
-        var inner = Object.assign({}, api, { needsPlan: null });
-        var changes = [], outs = [], stopped = null;
-        api.batch(function() {
-          for (var i = 0; i < list.length; i++) {
-            var r = runTool(inner, { name: list[i].name, input: list[i].input || {} });
-            outs.push(r.ok ? r.result : "Failed: " + r.result);
-            if (!r.ok) {
-              stopped = { at: i, why: r.result };
-              break;
-            }
-            if (r.change) changes.push(r.change);
-          }
-        });
-        var summary = JSON.stringify(outs);
-        if (stopped) return { ok: changes.length > 0, result: "Call " + (stopped.at + 1) + " (" + list[stopped.at].name + ") failed: " + stopped.why + " The " + stopped.at + " before it stand. Results: " + summary, changes };
-        return { ok: true, result: summary, changes };
-      }
-      case "propose_plan": {
-        if (!api.proposePlan) return fail("Plans can't be shown here; go ahead.");
-        var steps = (input.steps || []).slice(0, 12).map(function(st) {
-          return { title: short4(String(st.title || ""), 60), detail: st.detail ? short4(String(st.detail), 160) : "" };
-        }).filter(function(st) {
-          return st.title;
-        });
-        if (!steps.length) return fail("A plan needs at least one step.");
-        var plan = { title: short4(String(input.title || "Plan"), 80), frame: input.frame && input.frame.name ? { name: short4(String(input.frame.name), 60), preset: input.frame.preset || "", mode: input.frame.mode || "" } : null, steps, notes: (input.notes || []).slice(0, 4).map(function(t) {
-          return short4(String(t), 200);
-        }) };
-        return Promise.resolve(api.proposePlan(plan)).then(function(answer) {
-          if (answer && answer.approved) return { ok: true, result: "Approved. Build it now, as planned.", step: "Plan approved" };
-          return { ok: true, result: "Not approved yet: the person wants to change the plan" + (answer && answer.note ? ": " + answer.note : "") + ". Stop here and wait for their message.", step: "Plan set aside to change" };
-        });
-      }
-      case "ask_user": {
-        if (!api.askUser) return fail("Questions can't be shown here; ask in your reply instead.");
-        var opts = (input.options || []).slice(0, 4).map(function(o) {
-          return { label: short4(String(o && o.label || ""), 60), detail: o && o.detail ? short4(String(o.detail), 140) : "" };
-        }).filter(function(o) {
-          return o.label;
-        });
-        if (opts.length < 2) return fail("Give at least two options.");
-        var q = { question: short4(String(input.question || "Which way?"), 140), options: opts };
-        return Promise.resolve(api.askUser(q)).then(function(answer) {
-          if (answer && typeof answer.index === "number" && opts[answer.index]) return { ok: true, result: "They chose: " + opts[answer.index].label + ".", step: "You chose " + opts[answer.index].label };
-          if (answer && answer.text) return { ok: true, result: "They answered in their own words: " + answer.text, step: "You answered" };
-          return { ok: true, result: "They didn't choose. Stop here and wait for their message.", step: "Question set aside" };
-        });
-      }
-      case "remove": {
-        var rids = known(input.ids);
-        if (!rids.length) return fail("None of those layers are on the canvas.");
-        var names = rids.map(nameOf3).join(", ");
-        if (!api.remove(rids)) return fail("Those layers can't be removed.");
-        return { ok: true, result: "Done.", change: { ids: [], label: "Removed", value: names, on: "" } };
-      }
-      case "select": {
-        api.select(known(input.ids));
-        return { ok: true, result: "Done." };
-      }
-      case "read_skill": {
-        var skill = (api.skills() || []).filter(function(s) {
-          return s.name === input.name;
-        })[0];
-        if (!skill) return fail("There's no skill called " + input.name + " here.");
-        var path = input.path || "SKILL.md";
-        var file = skill.files.filter(function(x) {
-          return x.path === path;
-        })[0];
-        if (!file) return fail(input.name + " has no file " + path + ". It has: " + skill.files.map(function(x) {
-          return x.path;
-        }).join(", ") + ".");
-        return { ok: true, result: file.body, skill: skill.name, step: "Read the " + skill.name + " skill" };
-      }
-      default:
-        return fail("There's no tool called " + call.name + ".");
-    }
-  }
-  var PRACTICE_CLOSES = {
-    "Dark band, one button": '<Section dark><Stack gap="md" align="center"><Heading>Ready when you are</Heading><Button variant="primary">Start free</Button></Stack></Section>',
-    "Soft tint, two buttons": '<Section tone="brand-muted"><Stack gap="md" align="center"><Heading>Ready when you are</Heading><Inline gap="sm"><Button variant="primary">Start free</Button><Button variant="secondary">Talk to us</Button></Inline></Stack></Section>',
-    "Quiet line and a link": `<Section><Stack gap="sm" align="center"><Text>Questions first? We're happy to help.</Text><Link href="#">Talk to us</Link></Stack></Section>`
-  };
-  function practiceAnswer(request, results) {
-    var prev = request.messages[request.messages.length - 2];
-    var names = prev && Array.isArray(prev.content) ? prev.content.filter(function(b) {
-      return b.type === "tool_use";
-    }).map(function(b) {
-      return b.name;
-    }) : [];
-    var body = function(i) {
-      var c = results[i] && results[i].content;
-      return typeof c === "string" ? c : Array.isArray(c) ? c.filter(function(b) {
-        return b.type === "text";
-      }).map(function(b) {
-        return b.text;
-      }).join(" ") : "";
-    };
-    if (results.some(function(r) {
-      return r.is_error;
-    })) return { text: "Practice mode: " + body(0), calls: [] };
-    if (names[0] === "read_page") {
-      var lines = body(0).split("\n");
-      var frames = lines.filter(function(l) {
-        return /^Frame /.test(l);
-      }).length;
-      var layers2 = lines.filter(function(l) {
-        return /^\s+- /.test(l);
-      }).length;
-      var top = lines.filter(function(l) {
-        return /^  - /.test(l);
-      }).map(function(l) {
-        var m = /^  - (\w+)(?: "([^"]+)")?/.exec(l);
-        return m ? m[2] ? m[2] + " (" + m[1] + ")" : m[1] : "";
-      }).filter(Boolean);
-      return { text: "Practice mode: this page has " + frames + (frames === 1 ? " frame" : " frames") + " and " + layers2 + (layers2 === 1 ? " layer" : " layers") + (top.length ? ". At the top level: " + top.slice(0, 8).join(", ") + (top.length > 8 ? ", and " + (top.length - 8) + " more" : "") : "") + ".", calls: [] };
-    }
-    if (names[0] === "screenshot") {
-      var seen = results.map(function(r, i) {
-        return body(i).replace(/, \d+×\d+ pixels\..*$/, "");
-      });
-      return { text: "Practice mode: I looked at " + seen.join(", then ") + ". A model would now check " + (seen.length > 1 ? "them" : "it") + " for overlaps, spacing and contrast, and fix what it finds.", calls: [] };
-    }
-    if (names[0] === "propose_plan") {
-      if (!/^Approved/.test(body(0))) return { text: "Practice mode: tell me what to change in the plan, and I'll propose it again.", calls: [] };
-      var fr = (prev.content.filter(function(b) {
-        return b.type === "tool_use";
-      })[0].input || {}).frame || {};
-      return { text: "", calls: [{ name: "create_frame", input: { name: fr.name || "Page", preset: fr.preset || "desktop", mode: fr.mode || "structured" } }] };
-    }
-    if (names[0] === "create_frame") {
-      var made = {};
-      try {
-        made = JSON.parse(body(0));
-      } catch (err) {
-        made = {};
-      }
-      var into = made.content;
-      if (!into) return null;
-      var name = (prev.content.filter(function(b) {
-        return b.type === "tool_use";
-      })[0].input || {}).name || "Page";
-      return { text: "", calls: [{ name: "batch", input: { calls: [
-        { name: "insert_jsx", input: { parent: into, jsx: '<Section tone="brand-muted"><Stack gap="md" align="flex-start"><Badge tone="brand">New</Badge><Heading size="display-md">' + name + ' that keeps up</Heading><Text>Everything you need to start, and room to grow.</Text><Button variant="primary">Get started</Button></Stack></Section>' } },
-        { name: "insert_jsx", input: { parent: into, jsx: '<Section><Grid columns={3} gap="lg"><Card title="Free" description="For trying it out." /><Card title="Pro" description="For makers who ship." /><Card title="Team" description="For studios and teams." /></Grid></Section>' } },
-        { name: "insert_jsx", input: { parent: into, jsx: '<Section dark><Stack gap="md" align="center"><Heading>Ready when you are</Heading><Button variant="brand">Start free</Button></Stack></Section>' } }
-      ] } }] };
-    }
-    if (names[0] === "lint") {
-      var rows = body(0).split("\n").filter(function(l) {
-        return /^- /.test(l);
-      });
-      var open = rows.filter(function(l) {
-        return /^- (FAIL|WARN) /.test(l);
-      }).map(function(l) {
-        return l.replace(/^- (FAIL|WARN) /, "").replace(/ \[layers:.*$/, "").replace(/\.$/, "");
-      });
-      var asked = /^fix this check/i.test(String(request.messages.filter(function(m) {
-        return m.role === "user" && typeof m.content === "string";
-      }).slice(-1).map(function(m) {
-        return m.content;
-      })[0] || ""));
-      return { text: "Practice mode: I ran the checks. " + (open.length ? open.length + (open.length === 1 ? " wants" : " want") + " attention: " + open.join("; ") + "." : "Everything passes.") + (asked && open.length ? " A model would now fix them with the edit tools and check again." : ""), calls: [] };
-    }
-    if (names[0] === "batch") return { text: "Practice mode, with the real tools: a new structured frame with a hero, three plan cards and a dark closing band, as one step you can undo at once.", calls: [] };
-    if (names[0] === "read_theme") {
-      var th = {};
-      try {
-        th = JSON.parse(body(0));
-      } catch (err) {
-        th = {};
-      }
-      return { text: "Practice mode: this file's brand is " + (th.brand || "unnamed") + ", primary " + (th.primary || "?") + ", " + (th.context ? th.context + " context" : "no context set") + ", " + (th.fonts && th.fonts.body ? th.fonts.body + " type" : "the default type") + ". A model would use that to pick variants and copy.", calls: [] };
-    }
-    if (names[0] === "ask_user") {
-      var said0 = body(0);
-      var pick = /^They chose: (.+)\.$/.exec(said0);
-      if (/own words: Try (them )?all/i.test(said0)) {
-        var asked0 = (prev.content.filter(function(b) {
-          return b.type === "tool_use";
-        })[0].input || {}).options || [];
-        return { text: "", calls: [{ name: "make_variants", input: { labels: asked0.map(function(o) {
-          return o.label;
-        }) } }] };
-      }
-      if (!pick) return { text: /own words/.test(said0) ? "Practice mode: a model would build what you described. Pick an option to see the practice version." : "Practice mode: pick an option whenever you're ready.", calls: [] };
-      var jsx = PRACTICE_CLOSES[pick[1]];
-      if (!jsx) return { text: "Practice mode: you chose " + pick[1] + ".", calls: [] };
-      return { text: "", calls: [{ name: "insert_jsx", input: { jsx } }] };
-    }
-    if (names[0] === "make_variants") {
-      var got = {};
-      try {
-        got = JSON.parse(body(0).replace(/ Now use_frame.*$/, ""));
-      } catch (err) {
-        got = {};
-      }
-      var calls = [];
-      (got.variants || []).forEach(function(v) {
-        calls.push({ name: "use_frame", input: { id: v.frame } });
-        if (PRACTICE_CLOSES[v.label]) calls.push({ name: "insert_jsx", input: { jsx: PRACTICE_CLOSES[v.label] } });
-      });
-      return { text: "", calls };
-    }
-    if (names[0] === "use_frame" && names.length > 1) return { text: "Practice mode, with the real tools: one copy for each close, side by side. Compare them on the canvas and keep one; it takes the original's place.", calls: [] };
-    if (names[0] === "insert_jsx") return { text: "Practice mode, with the real tools: the close you picked is at the foot of the frame.", calls: [] };
-    if (names[0] === "read_guideline") return { text: "Practice mode: " + body(0).split("\n")[0].replace(/^# /, "") + " read. A model would apply it to the next change.", calls: [] };
-    if (names[0] === "search_components") {
-      var found = [];
-      try {
-        found = JSON.parse(body(0)).map(function(x) {
-          return x.name;
-        });
-      } catch (err) {
-        found = [];
-      }
-      return { text: found.length ? "Practice mode: these fit: " + found.slice(0, 5).join(", ") + "." : "Practice mode: " + body(0), calls: [] };
-    }
-    return null;
-  }
-  function practiceScript(sel) {
-    return function(request) {
-      var last = request.messages[request.messages.length - 1];
-      var results = Array.isArray(last.content) ? last.content.filter(function(b) {
-        return b && b.type === "tool_result";
-      }) : [];
-      if (results.length) return practiceAnswer(request, results);
-      var blocks = typeof last.content === "string" ? [{ text: last.content }] : last.content || [];
-      var edits = blocks.filter(function(b) {
-        return /^Since your last reply, the person changed/.test(b.text || "");
-      })[0];
-      var text2 = blocks.filter(function(b) {
-        return b !== edits;
-      }).map(function(b) {
-        return b.text || "";
-      }).join(" ").toLowerCase();
-      if (/what (did|have) i changed?|my (changes|edits)/.test(text2)) {
-        if (!edits) return { text: "Practice mode: you haven't changed anything since my last reply.", calls: [] };
-        var mine = edits.text.split("\n").filter(function(l) {
-          return /^- /.test(l);
-        }).map(function(l) {
-          return l.slice(2);
-        });
-        return { text: "Practice mode: since my last reply you changed " + mine.length + (mine.length === 1 ? " thing" : " things") + ": " + mine.join("; ") + ". I'd keep those.", calls: [] };
-      }
-      var ids = sel.map(function(n) {
-        return n.id;
-      });
-      var calls = [], said2 = [];
-      var offered = (request.tools || []).map(function(t) {
-        return t.name;
-      });
-      if (/what'?s on|what is on|describe|outline|read the page|summari[sz]e/.test(text2)) return { text: "", calls: [{ name: "read_page", input: {} }] };
-      if (/\b(phone|mobile|390|narrow|small screens?|dark mode)\b/.test(text2) && /look|hold up|work|check|see/.test(text2)) {
-        if (offered.indexOf("screenshot") < 0) return { text: "Looking at the canvas is turned off for this file.", calls: [] };
-        var at0 = ids.length ? { id: ids[0] } : {};
-        return { text: "", calls: [{ name: "screenshot", input: Object.assign({ width: 390 }, at0) }, { name: "screenshot", input: Object.assign({ width: 390, dark: true }, at0) }] };
-      }
-      if (/\blook\b|screenshot|how does it look|check (it|how)/.test(text2)) {
-        if (offered.indexOf("screenshot") < 0) return { text: "Looking at the canvas is turned off for this file.", calls: [] };
-        return { text: "", calls: [{ name: "screenshot", input: ids.length ? { id: ids[0] } : {} }] };
-      }
-      if (/^fix this check|\bcheck (it|this|the page|the frame)\b|\blint\b|run the checks/.test(text2)) return { text: "", calls: [{ name: "lint", input: {} }] };
-      var page = /(?:make|build|design|create|start)\b.*\b(pricing|landing|about|home|launch)\b.*\bpage\b/.exec(text2) || /\b(pricing|landing|about|launch)\s+page\b/.exec(text2);
-      if (page && /make|build|design|create|start/.test(text2)) {
-        var title = page[1].charAt(0).toUpperCase() + page[1].slice(1);
-        var first = { name: "create_frame", input: { name: title, preset: "desktop", mode: "structured" } };
-        if (offered.indexOf("propose_plan") < 0) return { text: "", calls: [first] };
-        return { text: "Here's what I'll build. It's a new page, so I'll check with you first.", calls: [{ name: "propose_plan", input: { title: "New page · " + title, frame: { name: title, preset: "desktop", mode: "structured" }, steps: [
-          { title: "Hero", detail: 'Display heading, one line under it, a "New" badge and one primary button' },
-          { title: "Plans", detail: "Three cards: Free, Pro and Team" },
-          { title: "Close", detail: "A dark band with one button" }
-        ], notes: ["Practice mode writes stand-in copy; a model would use your context docs."] } }] };
-      }
-      if (/\btry (all |them all|a few|three|3|some)\b.*\b(closes|closings|endings|options|versions|variants|ways)\b/.test(text2) && offered.indexOf("make_variants") >= 0) return { text: "", calls: [{ name: "make_variants", input: { labels: Object.keys(PRACTICE_CLOSES) } }] };
-      if (/\b(add|give it|needs?|want) (a |an )?(close|closing|ending|final call to action)\b/.test(text2) && offered.indexOf("ask_user") >= 0) return { text: "There are a few good ways to close a page, and they set different tones. Which fits?", calls: [{ name: "ask_user", input: { question: "How should it close?", options: [
-        { label: "Dark band, one button", detail: "Section dark · Button primary · a strong end" },
-        { label: "Soft tint, two buttons", detail: "Section brand-muted · primary and secondary" },
-        { label: "Quiet line and a link", detail: "No band · Text and a Link to contact" }
-      ] } }] };
-      if (/\btheme\b|brand colou?r|which fonts?/.test(text2)) return { text: "", calls: [{ name: "read_theme", input: {} }] };
-      var topic = /\b(voice|accessibility|tokens|theming)\b/.exec(text2);
-      if (topic && /guideline|guide|rule|say|how/.test(text2)) return { text: "", calls: [{ name: "read_guideline", input: { topic: topic[1] } }] };
-      var forWhat = /component (?:for|to)\s+(.+)$/.exec(text2) || /(?:which|find a|is there a) component\s+(?:for\s+)?(.+)$/.exec(text2);
-      if (forWhat) return { text: "", calls: [{ name: "search_components", input: { query: forWhat[1].replace(/[?.!]+$/, "") } }] };
-      var surface = DATA.tokens.surface.options.map(function(o) {
-        return o.value;
-      });
-      if (!ids.length && !/add|insert|section|pricing/.test(text2)) return { text: "Practice mode: select something on the canvas and ask me to restyle it, or ask me to add a section.", calls: [] };
-      if (/premium|calm|quiet|muted|soft/.test(text2) && surface.indexOf("brand-muted") >= 0) {
-        calls.push({ name: "set_style", input: { ids, family: "surface", value: "brand-muted" } });
-        said2.push("a quieter brand fill");
-      } else if (/bold|brand|loud|vivid/.test(text2) && surface.indexOf("brand") >= 0) {
-        calls.push({ name: "set_style", input: { ids, family: "surface", value: "brand" } });
-        said2.push("the brand fill");
-      }
-      if (/round|corner|soft/.test(text2)) {
-        var r = DATA.tokens.radius.options;
-        calls.push({ name: "set_style", input: { ids, family: "radius", value: (r[Math.min(2, r.length - 1)] || r[0]).value } });
-        said2.push("rounder corners");
-      }
-      if (/shadow|lift|float|premium/.test(text2)) {
-        var el = DATA.tokens.elevation.options;
-        calls.push({ name: "set_style", input: { ids, family: "elevation", value: (el[1] || el[0]).value } });
-        said2.push("a soft shadow");
-      }
-      var headings = sel.filter(function(n) {
-        return n.type === "Heading";
-      });
-      if (/bigger|larger|premium|bold/.test(text2) && headings.length) {
-        calls.push({ name: "set_prop", input: { ids: headings.map(function(n) {
-          return n.id;
-        }), name: "size", value: "display-md" } });
-        said2.push("a display-size heading");
-      }
-      if (/add|insert/.test(text2) && /button|cta|action/.test(text2)) {
-        calls.push({ name: "insert_jsx", input: { jsx: '<Button variant="primary">Get started</Button>' } });
-        said2.push("a button");
-      }
-      if (/add|insert/.test(text2) && /section|pricing|hero/.test(text2)) {
-        calls.push({ name: "insert_jsx", input: { jsx: '<Section><Stack><Heading size="heading-lg">Plans for every team</Heading><Text>Start free, upgrade when you need to.</Text><Button>See plans</Button></Stack></Section>' } });
-        said2.push("a section");
-      }
-      if (!calls.length) return { text: "Practice mode: I can try fills (premium, bold), corners, shadows, bigger headings, or adding a button or a section. Real requests go to the model once live mode is on.", calls: [] };
-      return { text: "Practice mode, with the real tools: " + said2.join(", ") + ".", calls };
-    };
   }
 
   // assets/builder/model/lint.js
@@ -11676,14 +12210,14 @@
 
   // assets/builder/model/recent.js
   var TEXT = ["children", "title", "label", "text", "heading", "description", "eyebrow", "alt"];
-  function short5(v, n) {
+  function short6(v, n) {
     var t = String(v).replace(/\s+/g, " ").trim();
     return t.length > n ? t.slice(0, n - 1) + "…" : t;
   }
   function shown(v) {
     if (v === void 0 || v === null || v === "") return "none";
     if (typeof v === "object") return "custom";
-    return short5(v, 32);
+    return short6(v, 32);
   }
   function index(doc2) {
     var m = {};
@@ -11703,7 +12237,7 @@
     if (bare) return n.name || autoName(n) || n.type;
     if (!n.name && autoName(n)) return autoName(n);
     var p = n.props || {};
-    var said2 = typeof p.children === "string" && p.children.trim() ? " “" + short5(p.children, 24) + "”" : typeof p.title === "string" && p.title.trim() ? " “" + short5(p.title, 24) + "”" : "";
+    var said2 = typeof p.children === "string" && p.children.trim() ? " “" + short6(p.children, 24) + "”" : typeof p.title === "string" && p.title.trim() ? " “" + short6(p.title, 24) + "”" : "";
     return n.name ? n.name : n.type + said2;
   }
   function recentEdits(prev, next, max) {
@@ -11799,7 +12333,7 @@
         if (b.g === "f" && b.k === "name") said2.push("renamed from " + shown(b.old));
         else if (b.g === "f" && b.k === "hidden") said2.push(b.value ? "hidden" : "shown");
         else if (b.g === "f" && b.k === "locked") said2.push(b.value ? "locked" : "unlocked");
-        else if (b.g === "p" && TEXT.indexOf(b.k) >= 0 && typeof (b.value || b.old) === "string") said2.push((b.k === "children" ? "text" : b.k) + " “" + short5(b.old || "", 30) + "” → “" + short5(b.value || "", 30) + "”");
+        else if (b.g === "p" && TEXT.indexOf(b.k) >= 0 && typeof (b.value || b.old) === "string") said2.push((b.k === "children" ? "text" : b.k) + " “" + short6(b.old || "", 30) + "” → “" + short6(b.value || "", 30) + "”");
         else if (b.g === "f") return;
         else said2.push(b.k + " " + shown(b.old) + " → " + shown(b.value));
       });
@@ -11949,141 +12483,6 @@
     }).join(" ") : "";
     return replyEvents("Practice mode: nothing is sent to a model yet. You asked: “" + String(asked).slice(0, 200) + "”.", []);
   }
-
-  // assets/builder/cloud/config.js
-  var CLOUD = {
-    url: "",
-    anonKey: ""
-  };
-  var LIB_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/+esm";
-  function cloudConfig() {
-    var over = typeof window !== "undefined" && window.DovetailCloud;
-    var c = over && typeof over === "object" ? over : CLOUD;
-    return { url: String(c.url || "").replace(/\/+$/, ""), anonKey: String(c.anonKey || "") };
-  }
-  function cloudReady() {
-    var c = cloudConfig();
-    return /^https:\/\/[^\s/]+/.test(c.url) && c.anonKey.length > 20;
-  }
-
-  // assets/builder/cloud/client.js
-  var clientLoading = null;
-  function getClient() {
-    if (!cloudReady()) return Promise.reject(new Error("The cloud isn't connected."));
-    if (!clientLoading) {
-      var c = cloudConfig();
-      var lib = LIB_URL;
-      clientLoading = import(lib).then(function(mod) {
-        return mod.createClient(c.url, c.anonKey, {
-          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce" }
-        });
-      }, function() {
-        clientLoading = null;
-        throw new Error("Couldn't load the cloud. Check your connection and try again.");
-      });
-    }
-    return clientLoading;
-  }
-  var MESSAGES = {
-    invalid_credentials: "That email and password don't match an account.",
-    email_not_confirmed: "Confirm your email first: open the link we sent you.",
-    user_already_exists: "There's already an account with that email. Sign in instead.",
-    email_exists: "There's already an account with that email. Sign in instead.",
-    weak_password: "Choose a longer password: at least 8 characters.",
-    same_password: "That's your current password. Choose a new one.",
-    over_email_send_rate_limit: "Too many emails just now. Wait a minute and try again.",
-    over_request_rate_limit: "Too many tries just now. Wait a minute and try again.",
-    email_address_invalid: "That doesn't look like an email address.",
-    signup_disabled: "New accounts are turned off for this builder.",
-    session_not_found: "You've been signed out. Sign in again.",
-    otp_expired: "That link has expired. Ask for a new one.",
-    bad_code_verifier: "Your email is confirmed. Sign in with your password.",
-    flow_state_not_found: "Your email is confirmed. Sign in with your password.",
-    email_address_not_authorized: "This builder can't email that address yet (docs/cloud.md, step 4)."
-  };
-  function friendly(err) {
-    if (!err) return "";
-    var code = err.code || err.error_code || "";
-    if (MESSAGES[code]) return MESSAGES[code];
-    if (/fetch|network/i.test(String(err.message || err.name || ""))) return "Couldn't reach the cloud. Check your connection and try again.";
-    return String(err.message || "Something went wrong. Try again.");
-  }
-  function unwrap(res) {
-    if (res && res.error) throw new Error(friendly(res.error));
-    return res ? res.data : null;
-  }
-  function backHere() {
-    return location.origin + location.pathname;
-  }
-  function account(session) {
-    return session && session.user ? { id: session.user.id, email: session.user.email || "" } : null;
-  }
-  var auth = {
-    /* The signed-in account, or null. */
-    current: function() {
-      return getClient().then(function(sb) {
-        return sb.auth.getSession();
-      }).then(function(res) {
-        return account(unwrap(res).session);
-      });
-    },
-    /* Calls fn(event, account) on every change; returns a function to stop.
-       event is Supabase's: SIGNED_IN, SIGNED_OUT, PASSWORD_RECOVERY, ... */
-    watch: function(fn) {
-      var sub = null, stopped = false;
-      getClient().then(function(sb) {
-        if (stopped) return;
-        sub = sb.auth.onAuthStateChange(function(event, session) {
-          fn(event, account(session));
-        }).data.subscription;
-      }, function() {
-      });
-      return function() {
-        stopped = true;
-        if (sub) sub.unsubscribe();
-      };
-    },
-    /* A new account. Resolves { confirm: true } when an email must be
-       confirmed before signing in (the setting docs/cloud.md asks for). */
-    signUp: function(email, password) {
-      return getClient().then(function(sb) {
-        return sb.auth.signUp({ email, password, options: { emailRedirectTo: backHere() } });
-      }).then(function(res) {
-        var data = unwrap(res);
-        return { confirm: !data.session, account: account(data.session) };
-      });
-    },
-    signIn: function(email, password) {
-      return getClient().then(function(sb) {
-        return sb.auth.signInWithPassword({ email, password });
-      }).then(function(res) {
-        return account(unwrap(res).session);
-      });
-    },
-    signOut: function() {
-      return getClient().then(function(sb) {
-        return sb.auth.signOut();
-      }).then(unwrap);
-    },
-    /* Emails a link that brings you back here to choose a new password. */
-    resetPassword: function(email) {
-      return getClient().then(function(sb) {
-        return sb.auth.resetPasswordForEmail(email, { redirectTo: backHere() });
-      }).then(unwrap);
-    },
-    setPassword: function(password) {
-      return getClient().then(function(sb) {
-        return sb.auth.updateUser({ password });
-      }).then(unwrap);
-    },
-    /* Turns invites to this (confirmed) address into memberships; resolves
-       how many projects that joined. */
-    acceptInvites: function() {
-      return getClient().then(function(sb) {
-        return sb.rpc("accept_invites");
-      }).then(unwrap);
-    }
-  };
 
   // assets/builder/cloud/assistant.js
   var MODE_KEY = "dovetail-assistant";
@@ -12448,10 +12847,10 @@
         if (handles && at2.node.type === "Shape" && at2.node.props && at2.node.props.shape === "line") handles = ["w", "e"];
         var turnable = !!handles && isFree(at2.node.style);
         var markStyle = m.rot ? Object.assign({}, m.box, { transform: "rotate(" + m.rot + "deg)" }) : m.r;
-        var short6 = (m.box || m.r).height < 28, narrow = (m.box || m.r).width < 28;
+        var short7 = (m.box || m.r).height < 28, narrow = (m.box || m.r).width < 28;
         return e(
           "div",
-          { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== p.sel && "is-extra", at2.node.lock && "is-locked", at2.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top", p.sizing && p.sizing.id === m.id && "is-sizing", handles && short6 && "is-short", handles && narrow && "is-narrow"), style: markStyle },
+          { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== p.sel && "is-extra", at2.node.lock && "is-locked", at2.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top", p.sizing && p.sizing.id === m.id && "is-sizing", handles && short7 && "is-short", handles && narrow && "is-narrow"), style: markStyle },
           turnable ? ["nw", "ne", "se", "sw"].map(function(c) {
             return e("span", { key: "rot-" + c, className: "bd-rotate is-" + c, title: "Drag to turn; Shift snaps to 15°", onPointerDown: function(ev) {
               p.startRotate(ev, at2.node.id);
@@ -13385,6 +13784,10 @@
     var editMarksState = useState(null);
     var editMarks = editMarksState[0], setEditMarks = editMarksState[1];
     var editMarksRef = useRef(null);
+    var bridgeState = useState(null);
+    var bridge = bridgeState[0], setBridge = bridgeState[1];
+    var bridgeOptsState = useState({ canEdit: true, askFirst: false });
+    var bridgeRef = useRef(null), bridgeLive = useRef(null), bridgeWait = useRef(null), bridgeDlgRef = useRef(null), bridgeCallRef = useRef(null);
     var savedState = useState({ ok: true, at: null });
     var saved = savedState[0], setSaved = savedState[1];
     var savedRef = useRef(saved);
@@ -19496,8 +19899,8 @@
     var saveComponent = function() {
       var node = componentSource();
       if (!node || !compDraft) return;
-      var check = componentCheck(node);
-      if (check.issues.some(function(i) {
+      var check2 = componentCheck(node);
+      if (check2.issues.some(function(i) {
         return i.level === "error";
       })) return;
       var name = (compDraft.name || "").trim().slice(0, 60) || "My component";
@@ -19510,7 +19913,7 @@
       var cid = uid();
       setLibrary(function(l) {
         var n = Object.assign({}, l);
-        n.components = [{ id: cid, name, node: kept, tokens: check.tokens, rev: 1, made: Date.now() }].concat(l.components || []);
+        n.components = [{ id: cid, name, node: kept, tokens: check2.tokens, rev: 1, made: Date.now() }].concat(l.components || []);
         return n;
       });
       if (compDraft.ids.length === 1) {
@@ -19525,7 +19928,7 @@
       var dlg = compRef.current;
       if (dlg && dlg.open) dlg.close();
       setCompDraft(null);
-      announce(name + " is in My components, built on " + check.tokens.length + (check.tokens.length === 1 ? " token" : " tokens"));
+      announce(name + " is in My components, built on " + check2.tokens.length + (check2.tokens.length === 1 ? " token" : " tokens"));
     };
     var removeComponent = function(id) {
       setLibrary(function(l) {
@@ -19547,8 +19950,8 @@
           announce("Not yet: " + nameOf(at2.node) + " holds an instance of " + comp.name + ", and a component can't hold itself.");
           return;
         }
-        var check = componentCheck(at2.node);
-        var bad = check.issues.filter(function(i) {
+        var check2 = componentCheck(at2.node);
+        var bad = check2.issues.filter(function(i) {
           return i.level === "error";
         })[0];
         if (bad) {
@@ -19568,7 +19971,7 @@
         setLibrary(function(l) {
           var n = Object.assign({}, l);
           n.components = (l.components || []).map(function(c) {
-            return c.id === comp.id ? Object.assign({}, c, { node: master, prev: was, rev, tokens: check.tokens }) : c;
+            return c.id === comp.id ? Object.assign({}, c, { node: master, prev: was, rev, tokens: check2.tokens }) : c;
           });
           return n;
         });
@@ -19779,6 +20182,206 @@
       setEditMarks(marks);
       setTimeout(remeasure, 60);
     };
+    var patchBridge = function(fn) {
+      setBridge(function(b) {
+        return b ? Object.assign({}, b, typeof fn === "function" ? fn(b) : fn) : b;
+      });
+    };
+    var bridgeName = function(id) {
+      var d = docRef.current, hit = null;
+      d.frames.some(function(f) {
+        if (f.id === id) {
+          hit = f.name;
+          return true;
+        }
+        var at2 = locate(d, id, f.id);
+        if (at2 && id !== "root") hit = nameOf(at2.node);
+        return !!hit;
+      });
+      return hit || id;
+    };
+    var bridgeOut = function(res) {
+      if (Array.isArray(res.result)) {
+        var img = res.result.filter(function(b) {
+          return b.type === "image";
+        })[0];
+        return { ok: !!res.ok, result: res.result.filter(function(b) {
+          return b.type === "text";
+        }).map(function(b) {
+          return b.text;
+        }).join("\n"), image: img ? "data:" + img.source.media_type + ";base64," + img.source.data : void 0 };
+      }
+      return { ok: !!res.ok, result: typeof res.result === "string" ? res.result : JSON.stringify(res.result) };
+    };
+    var bridgeEditByName = function(input) {
+      var edit2 = readEdit(input && input.edit);
+      if (!edit2) return { ok: false, result: `That isn't an edit: start with a "## Edit" heading and a list, or send JSON with changes.` };
+      var plan = planEdit(docRef.current, edit2), ops2 = opsOf(plan, {});
+      var said2 = plan.rows.map(function(r) {
+        return "- " + r.title + ": " + r.detail;
+      }).join("\n");
+      if (!ops2.length) return { ok: false, result: "Nothing changed:\n" + said2 };
+      var touched = [];
+      change(function(d) {
+        touched = applyOps(d, plan.frame.id, ops2);
+        return touched.length ? void 0 : null;
+      });
+      return { ok: true, result: "Done on " + plan.frame.name + ":\n" + said2, changes: [{ ids: touched }] };
+    };
+    var bridgeCall = function(call) {
+      var live = bridgeLive.current;
+      if (!live) return { ok: false, result: "This session has ended." };
+      var tools2 = bridgeTools(toolsFor({ look: true, plan: false }), live.canEdit);
+      var why = allowed(call, live, tools2);
+      if (why) return { ok: false, result: why };
+      if (live.paused) return { ok: false, result: "The person paused the session. Wait a minute and try again, or ask them to resume it." };
+      var rows = rowsOf(call, bridgeName, docRef.current);
+      var sid = uid();
+      var go = function() {
+        var before = docRef.current, edits = !isRead(call.name);
+        patchBridge(function(b) {
+          return { steps: [{ id: sid, rows, ok: true, running: edits }].concat(b.steps).slice(0, 200) };
+        });
+        var run = call.name === "describe" ? { ok: true, result: describeText(systemPrompt(), tools2, live) } : call.name === "edit_by_name" ? bridgeEditByName(call.input) : runTool(Object.assign({}, toolApi, { needsPlan: null, selection: function() {
+          return [];
+        } }), { name: call.name, input: call.input || {} });
+        return Promise.resolve(run).then(function(res) {
+          var diff2 = docRef.current !== before ? diff(before, docRef.current) : null;
+          var ids = [].concat(res.change ? [res.change] : [], res.changes || []).reduce(function(a, c) {
+            return a.concat(c.ids || []);
+          }, []);
+          patchBridge(function(b) {
+            return { steps: b.steps.map(function(s) {
+              return s.id === sid ? Object.assign({}, s, { running: false, ok: !!res.ok, why: res.ok ? "" : String(res.result).slice(0, 200), diff: diff2 && diff2.length ? diff2 : null, shot: res.shot ? res.shot.url : void 0 }) : s;
+            }) };
+          });
+          if (diff2 && ids.length) {
+            var marks = { fid: docRef.current.active, doc: docRef.current, quiet: true, items: ids.filter(function(id) {
+              return locate(docRef.current, id);
+            }).slice(0, 24).map(function(id) {
+              return { id, icon: rows[0].icon, label: "Claude · " + String(rows[0].detail || "changed").charAt(0).toLowerCase() + String(rows[0].detail || "changed").slice(1) };
+            }) };
+            editMarksRef.current = marks;
+            setEditMarks(marks);
+            setTimeout(remeasure, 60);
+          }
+          return bridgeOut(res);
+        }, function(err) {
+          patchBridge(function(b) {
+            return { steps: b.steps.map(function(s) {
+              return s.id === sid ? Object.assign({}, s, { running: false, ok: false, why: String(err && err.message || err) }) : s;
+            }) };
+          });
+          return { ok: false, result: String(err && err.message || err) };
+        });
+      };
+      if (!isRead(call.name) && live.askFirst) {
+        return new Promise(function(resolve2) {
+          bridgeWait.current = resolve2;
+          patchBridge({ pending: { rows }, open: true });
+        }).then(function(ans) {
+          if (ans && ans.apply) return go();
+          return { ok: false, result: ans && ans.note ? "The person didn't apply that, and said: " + ans.note : "The person didn't apply that change. Ask them what they'd like instead." };
+        });
+      }
+      return go();
+    };
+    bridgeCallRef.current = bridgeCall;
+    var answerBridge = function(apply2, note3) {
+      var r = bridgeWait.current;
+      bridgeWait.current = null;
+      patchBridge({ pending: null });
+      if (r) r({ apply: apply2, note: note3 || "" });
+    };
+    var openBridge = function() {
+      if (bridge && bridge.status === "live") {
+        patchBridge({ open: true });
+        return;
+      }
+      var dlg = bridgeDlgRef.current;
+      if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+    };
+    var startSession = function() {
+      var o = bridgeOptsState[0];
+      bridgeLive.current = { canEdit: o.canEdit, askFirst: o.canEdit && o.askFirst, paused: false, label: projectRef.current.name };
+      setBridge({ status: "starting", steps: [], open: true, canEdit: o.canEdit, askFirst: bridgeLive.current.askFirst, paused: false });
+      startBridge({ canEdit: o.canEdit, askFirst: bridgeLive.current.askFirst, label: projectRef.current.name, onCall: function(c) {
+        return bridgeCallRef.current(c);
+      }, onStatus: announce }).then(function(h) {
+        bridgeRef.current = h;
+        patchBridge({ status: "live", link: h.link });
+        announce("The session has started. Copy the link and give it to Claude.");
+      }, function(err) {
+        bridgeLive.current = null;
+        setBridge({ status: "error", error: String(err && err.message || err), steps: [] });
+      });
+    };
+    var endSession = function() {
+      var h = bridgeRef.current;
+      bridgeRef.current = null;
+      bridgeLive.current = null;
+      if (bridgeWait.current) answerBridge(false, "");
+      if (h) h.end().catch(function() {
+      });
+      setBridge(null);
+      var dlg = bridgeDlgRef.current;
+      if (dlg && dlg.open) dlg.close();
+      announce("The session has ended. Claude can't make more changes.");
+    };
+    var pauseSession = function() {
+      var live = bridgeLive.current, h = bridgeRef.current;
+      if (!live || !h) return;
+      live.paused = !live.paused;
+      patchBridge({ paused: live.paused });
+      h.update({ paused: live.paused }).catch(function() {
+      });
+      announce(live.paused ? "Paused: Claude's steps wait until you resume." : "Resumed.");
+    };
+    var undoBridgeStep = function(id) {
+      var s = (bridge ? bridge.steps : []).filter(function(x) {
+        return x.id === id;
+      })[0];
+      if (!s || !s.diff || s.undone) return;
+      commit(apply(docRef.current, invert(s.diff)), void 0, "Undid Claude's step: " + s.rows[0].title);
+      patchBridge(function(b) {
+        return { steps: b.steps.map(function(x) {
+          return x.id === id ? Object.assign({}, x, { undone: true }) : x;
+        }) };
+      });
+    };
+    var undoBridgeAll = function() {
+      var list = (bridge ? bridge.steps : []).filter(function(x) {
+        return x.diff && !x.undone;
+      });
+      if (!list.length) return;
+      var next = list.reduce(function(d, x) {
+        return apply(d, invert(x.diff));
+      }, docRef.current);
+      commit(next, void 0, "Undid Claude's " + list.length + (list.length === 1 ? " step" : " steps"));
+      patchBridge(function(b) {
+        return { steps: b.steps.map(function(x) {
+          return x.diff ? Object.assign({}, x, { undone: true }) : x;
+        }) };
+      });
+    };
+    var copyBridgeLink = function() {
+      if (!bridge || !bridge.link) return;
+      copyText(bridge.link).then(function() {
+        announce("Link copied. Paste it into Claude.");
+      }, function() {
+        announce("This browser didn't allow copying.");
+      });
+    };
+    useEffect(function() {
+      var leave = function() {
+        if (bridgeRef.current) bridgeRef.current.end().catch(function() {
+        });
+      };
+      window.addEventListener("pagehide", leave);
+      return function() {
+        window.removeEventListener("pagehide", leave);
+      };
+    }, []);
     var copyLayout = function() {
       var out = withoutUploads(docRef.current);
       copyText(JSON.stringify(out.doc, null, 2)).then(function() {
@@ -19881,8 +20484,8 @@
         var px = pxMap[key + "|" + o.value];
         var name = o.value === "fill" && def.section === "size" ? "Fill container" : o.label || o.value;
         var group2 = order && o.family ? order.indexOf(o.family) >= 0 ? FAMILY_LABEL[o.family] : more : void 0;
-        var short6 = opts.pxOnly && px != null ? String(Math.round(px)) : opts.short ? opts.short(o, px) : px != null ? Math.round(px) + " " + name : void 0;
-        return { value: o.value, label: name, px: px != null ? Math.round(px) : null, group: group2, short: short6, hint: o.tokens.join(" · ") || (o.value === "hug" ? "As big as what's in it" : o.value === "fill" ? "As big as its parent allows" : "CSS keyword"), tokens: o.tokens };
+        var short7 = opts.pxOnly && px != null ? String(Math.round(px)) : opts.short ? opts.short(o, px) : px != null ? Math.round(px) + " " + name : void 0;
+        return { value: o.value, label: name, px: px != null ? Math.round(px) : null, group: group2, short: short7, hint: o.tokens.join(" · ") || (o.value === "hug" ? "As big as what's in it" : o.value === "fill" ? "As big as its parent allows" : "CSS keyword"), tokens: o.tokens };
       }));
       if (opts.fixed) {
         var lastFit = -1;
@@ -20373,7 +20976,7 @@
         return e("div", { key }, tokenDropdown(key, nodes, null, { prefix, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: key === "w" || key === "height" }));
       };
       var dim = function(wide2) {
-        var short6 = wide2 ? "W" : "H", label2 = wide2 ? "Width" : "Height";
+        var short7 = wide2 ? "W" : "H", label2 = wide2 ? "Width" : "Height";
         var fkey = wide2 ? "fw" : "fh", tkey = wide2 ? "w" : "height", rkey = wide2 ? "rw" : "rh";
         var units = nodes.map(function(n) {
           var r = relSize(n.style[rkey]);
@@ -20432,7 +21035,7 @@
             return relSize(n.style[rkey]).n;
           });
           body = e(NumberField, {
-            short: short6,
+            short: short7,
             label: label2 + ", in " + (unit === "%" ? "percent of its parent" : unit === "vw" ? "percent of the screen's width" : "percent of the screen's height"),
             value: same4(ns) ? ns[0] : null,
             placeholder: "Mixed",
@@ -20462,7 +21065,7 @@
             }, label2 + " " + steps * 4 + "px", first === false);
           };
           body = e(NumberField, {
-            short: short6,
+            short: short7,
             label: label2 + ", in pixels, a multiple of 4",
             value: same4(vs) ? vs[0] : null,
             placeholder: "Mixed",
@@ -20478,7 +21081,7 @@
             }
           });
         } else {
-          body = tokenDropdown(tkey, nodes, null, { prefix: short6, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: true });
+          body = tokenDropdown(tkey, nodes, null, { prefix: short7, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: true });
         }
         return e("div", { key: fkey, className: "bd-size-unit" }, body, picker);
       };
@@ -20831,7 +21434,7 @@
           });
         }
       } else if (p.kind === "boolean") {
-        return e(Field, { key: p.name, id, label: label2, note: p.note, inline: true }, e(Switch, { labelledBy: id, value: !!current2, mixed, onChange: set2 }));
+        return e(Field, { key: p.name, id, label: label2, note: p.note, inline: true }, e(Switch2, { labelledBy: id, value: !!current2, mixed, onChange: set2 }));
       } else if (p.kind === "number" && first.type === "Grid" && p.name === "columns") {
         control = e(Dropdown, { labelledBy: id, value: current2, mixed, onChange: set2, options: [1, 2, 3, 4, 5, 6].map(function(n) {
           return { value: n, label: n + (n === 1 ? " column" : " columns") };
@@ -21282,7 +21885,7 @@
           picturesOnly ? e(
             Field,
             { key: "invert", id: lid + "-inv", label: "Invert colours", inline: true, note: "Flips the picture to its negative" },
-            e(Switch, { labelledBy: lid + "-inv", value: !!invValues[0], mixed: !same4(invValues), onChange: function(v) {
+            e(Switch2, { labelledBy: lid + "-inv", value: !!invValues[0], mixed: !same4(invValues), onChange: function(v) {
               setStyle(ids, "invert", v ? "on" : void 0);
             } })
           ) : null,
@@ -21645,7 +22248,7 @@
         e(
           Field,
           { key: "clip", id: "bd-fr-clip", label: "Clip content", hint: frame2.hug ? "It hugs its content, so nothing spills. Fix its height to clip." : frame2.clip ? "Whatever spills past the frame's edges is hidden." : "What spills past the frame's edges still shows." },
-          e(Switch, { value: !!frame2.clip, labelledBy: "bd-fr-clip", onChange: function(v) {
+          e(Switch2, { value: !!frame2.clip, labelledBy: "bd-fr-clip", onChange: function(v) {
             setFrame("clip", v ? true : void 0, v ? frame2.name + " clips its content" : frame2.name + " lets its content spill");
           } })
         ),
@@ -22299,6 +22902,7 @@
             { value: "picture", label: "Use this frame as the picture", icon: "image" }
           ].concat(project.thumbSet ? [{ value: "auto-picture", label: "Picture follows the canvas", icon: "rotate" }] : []).concat([
             { value: "import", label: "Paste a layout…", icon: "upload" },
+            { value: "bridge", label: bridge && bridge.status === "live" ? "Claude's session" : "Let Claude edit…", icon: "wand" },
             { value: "blank", label: "Start over with a blank frame", icon: "trash", danger: true }
           ]),
           onChange: function(v) {
@@ -22311,6 +22915,7 @@
             else if (v === "keys") openKeys();
             else if (v === "duplicate") duplicateProject(project.id);
             else if (v === "export") exportProject(project.id);
+            else if (v === "bridge") openBridge();
             else if (v === "import" || v === "blank") startFrom(v);
           }
         })
@@ -22318,6 +22923,7 @@
       e(
         "span",
         { className: "bd-tb-side bd-tb-right" },
+        e(BridgePill, { bridge, frameName: frame2.name, onPause: pauseSession, onEnd: endSession, onOpen: openBridge }),
         /* What the canvas shows and snaps to: its own button, beside zoom. */
         e(Dropdown, {
           menu: true,
@@ -23192,6 +23798,10 @@
     var onGetDoc = useEvent(function() {
       return docRef.current;
     }), onEditPreview = useEvent(editPreview), onApplyEdit = useEvent(applyEdit);
+    var onStartSession = useEvent(startSession), onEndSession = useEvent(endSession), onPauseSession = useEvent(pauseSession), onOpenBridge = useEvent(openBridge), onCopyBridge = useEvent(copyBridgeLink);
+    var onUndoBridge = useEvent(undoBridgeStep), onUndoBridgeAll = useEvent(undoBridgeAll), onAnswerBridge = useEvent(answerBridge), onCloseBridge = useEvent(function() {
+      patchBridge({ open: false });
+    });
     var onCopyCode = useEvent(function() {
       copyText(code).then(function() {
         announce("Code copied");
@@ -23588,7 +24198,9 @@
         onDownloadProject
       }),
       e(ImportDialog, { dialogRef: importRef, text: importText, setText: setImportText, onImport: onImportLayout, getDoc: onGetDoc, preview: onEditPreview, onApplyEdit }),
-      editMarks ? e(
+      e(BridgeDialog, { dialogRef: bridgeDlgRef, account: account2, bridge, options: bridgeOptsState[0], setOptions: bridgeOptsState[1], onStart: onStartSession, onEnd: onEndSession, onCopy: onCopyBridge, onSignIn: openAccount }),
+      e(SessionPanel, { bridge, onUndo: onUndoBridge, onUndoAll: onUndoBridgeAll, onAnswer: onAnswerBridge, onClose: onCloseBridge }),
+      editMarks && !editMarks.quiet ? e(
         "div",
         { className: "bd-toast", role: "status" },
         e(Icon, { name: "check" }),
