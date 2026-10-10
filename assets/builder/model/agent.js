@@ -15,10 +15,16 @@ import { cleanNode, fresh, locate } from "./tree.js";
 import { layerName } from "./names.js";
 import { KINDS, findLayouts, layoutById, layoutLine } from "./layouts.js";
 import { compareText } from "./compare.js";
+import { STARTERS } from "./starters.js";
+import { instancesOf } from "./instances.js";
 
 var FAMILIES = Object.keys(DATA.tokens);
 /* The edits batch may run: everything that changes layers in this frame. */
-var BATCHABLE = ["set_style", "set_prop", "set_text", "insert_jsx", "replace_jsx", "insert_layout", "move", "wrap", "duplicate", "rename", "remove"];
+var BATCHABLE = ["set_style", "set_prop", "set_text", "insert_jsx", "replace_jsx", "insert_layout", "insert_instance", "move", "wrap", "duplicate", "rename", "remove"];
+
+/* The templates the assistant can start from: every starter but the blank
+   frame, with the sections each one is made of. */
+var TEMPLATES = STARTERS.filter(function (st) { return st[0] !== "blank"; });
 
 var TOOLS = [
   { name: "list_pages", description: "The file's pages (the current one marked), and the frames on the current page with their ids, sizes and layer counts.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
@@ -39,6 +45,10 @@ var TOOLS = [
   { name: "find_images", description: "Find pictures for the page: first in this file's Content uploads (images and illustrations), by words in their names, each as content:<id>; when none fits and stock photos are set up, it searches stock photos for the query instead, each as stock:<id> with what it shows and who took it. Use the id wherever a picture goes: an Image's or Cover's src, a layout's image field, or a prop set with set_prop. Prefer the person's own uploads; describe a stock search in a few plain words (\"stoneware mug on a table\").", input_schema: { type: "object", properties: { query: { type: "string" }, orientation: { type: "string", enum: ["landscape", "portrait", "squarish"] } }, additionalProperties: false } },
   { name: "search_layouts", description: "Find tested section layouts to build with: heroes, features, stories, proof, showcases, steps, questions and closes, each with its mood, when it fits and the content fields it takes. Filter by kind (" + KINDS.join(", ") + ") or words such as bold, calm, editorial, moving. Nothing given lists them all.", input_schema: { type: "object", properties: { query: { type: "string" }, kind: { type: "string", enum: KINDS } }, additionalProperties: false } },
   { name: "insert_layout", description: "Add a section from search_layouts, filled with your content: into a container at an index, after the selection when parent is omitted, or in place of a layer with replace. content takes the layout's fields (eyebrow, title, lead, action, secondary, image, items, stats, quotes, points, faqs, steps, slides); anything left out gets sample copy, so give real copy for every field the layout lists.", input_schema: { type: "object", properties: { id: { type: "string" }, content: { type: "object" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 }, replace: { type: "string" } }, required: ["id"], additionalProperties: false } },
+  { name: "insert_template", description: "Start from one of the builder's templates, the same ones the person adds from Assets: " + TEMPLATES.map(function (st) { return st[0] + " (" + st[1].toLowerCase() + ")"; }).join(", ") + ". Its sections go at the end of the frame you're in, or into parent at index; new_frame puts it in a frame of its own beside yours instead and makes that the one you're in. Its copy is sample copy: set the person's own words after, with set_text or set_prop.", input_schema: { type: "object", properties: { id: { type: "string", enum: TEMPLATES.map(function (st) { return st[0]; }) }, new_frame: { type: "boolean" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["id"], additionalProperties: false } },
+  { name: "list_components", description: "The file's own components, from My components: each one's id, name, what it's made of, how many layers, the tokens it's built on and how many instances this page has. Reuse them before building the same thing again.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+  { name: "insert_instance", description: "Put down one of the file's own components (an id from list_components) as a linked instance: when the component is updated, the instance follows. Into a container at an index, after the selection when parent is omitted, or in place of a layer with replace. Change its text with set_text like any layer.", input_schema: { type: "object", properties: { id: { type: "string" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 }, replace: { type: "string" } }, required: ["id"], additionalProperties: false } },
+  { name: "make_component", description: "Turn a layer into one of the file's own components, named, so it can be reused with insert_instance. The layer becomes its first instance. It must be built on the system's tokens, with no custom colours and nothing placed by position inside it. Do it when the person asks, or when a part repeats on the page and they agree.", input_schema: { type: "object", properties: { id: { type: "string" }, name: { type: "string" } }, required: ["id", "name"], additionalProperties: false } },
   { name: "set_text", description: "Set a layer's text: a heading's or a paragraph's words, a button's label, a card's title.", input_schema: { type: "object", properties: { id: { type: "string" }, text: { type: "string" } }, required: ["id", "text"], additionalProperties: false } },
   { name: "move", description: "Move layers into a container, at an index (the end when omitted), in the order given.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["ids", "parent"], additionalProperties: false } },
   { name: "wrap", description: "Put a layer inside a new container of the given type, or several sibling layers inside one Group.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, type: { type: "string", enum: WRAPS } }, required: ["ids"], additionalProperties: false } },
@@ -151,6 +161,7 @@ function systemPrompt() {
     "- When the brand or the context matters (a component's product or marketing variant, the voice of copy), read_theme first; read_guideline for the rules on a topic.",
     "- A new page starts with create_frame (structured for web pages, a social preset for posts), then fills its Content group.",
     "- Build sections from the layouts library: search_layouts for the kind of section and the mood asked for, then insert_layout with real copy for its fields (replace to swap one in for an existing section). Write JSX only for what no layout covers. A page reads best when its sections vary: alternate light and dark or brand bands, and don't repeat a layout.",
+    "- Reuse what the file already has. list_components shows its own components (My components); put one down with insert_instance rather than building it again, and when a part you built repeats, offer make_component. When the ask matches a template (a landing page, a store page, a settings form, a support chat), insert_template gives you its sections to start from; then set the person's copy in place of the sample copy.",
     "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
     "- Write real, short copy in the brand's voice. Never lorem ipsum.",
     "- Use the person's pictures: find_images lists their Content uploads; put one in with its content:<id> wherever a picture goes (a layout's image field, an Image or Cover src). Leave a placeholder only when nothing fits.",
@@ -189,6 +200,21 @@ function owesPlan(api, size) {
   var big = size === "frame" || size > PLAN_OVER;
   if (!big || !api.needsPlan()) return null;
   return { ok: false, result: (size === "frame" ? "A new frame" : "Adding " + size + " layers") + " is a big change. Call propose_plan first and wait for the person's answer." };
+}
+/* The file's own components (My components), and one put down as a linked
+   instance: a fresh copy with new ids and no position of its own. */
+function ownComponents(api) {
+  var lib = api.library ? api.library() || {} : {};
+  return (lib.components || []).filter(function (c) { return c && c.id && c.node; });
+}
+function instanceNode(comp) {
+  var n = cleanNode(JSON.parse(JSON.stringify(comp.node)), null);
+  if (!n) return null;
+  n = fresh(n);
+  delete n.style.x; delete n.style.y; delete n.style.ch; delete n.style.cv;
+  n.name = comp.name;
+  n.inst = { of: comp.id, rev: comp.rev || 1 };
+  return n;
 }
 function added(nodes) { return nodes.reduce(function (a, n) { return a + count(n); }, 0); }
 
@@ -460,6 +486,69 @@ function runTool(api, call) {
       if (r0.ok && r0.change) r0.change = Object.assign({}, r0.change, { label: input.replace ? "Rebuilt" : "Added", value: lay.name + (input.replace ? " in place of " + r0.change.value.split(" → ")[0] : "") });
       return r0;
     }
+    case "insert_template": {
+      var tpl = TEMPLATES.filter(function (st) { return st[0] === input.id; })[0];
+      if (!tpl) return fail("There's no template " + input.id + ". The templates are " + TEMPLATES.map(function (st) { return st[0]; }).join(", ") + ".");
+      if (input.new_frame) {
+        if (!api.addTemplate) return fail("Templates can't be added as a frame here; put it in the frame you're in.");
+        var owed5 = owesPlan(api, "frame");
+        if (owed5) return owed5;
+        var tf = api.addTemplate(tpl[0]);
+        if (!tf) return fail("The template couldn't be added.");
+        return { ok: true, result: JSON.stringify({ frame: tf }) + " You're working in it now. read_page shows its layers; set the person's copy in place of the sample copy.", change: { ids: [], label: "Template", value: tpl[1], on: "as a new frame" } };
+      }
+      var secs = [];
+      tpl[2]().frames.forEach(function (fr) { (fr.root.children || []).forEach(function (c) { var n = fresh(c); delete n.style.x; delete n.style.y; delete n.style.ch; delete n.style.cv; secs.push(n); }); });
+      if (!secs.length) return fail("That template is empty.");
+      var owed6 = owesPlan(api, added(secs));
+      if (owed6) return owed6;
+      var into = input.parent || "root";
+      if (!locate(doc, into)) return fail("There's no container " + input.parent + " in this frame.");
+      var ids6 = api.insert(into, typeof input.index === "number" ? input.index : null, secs);
+      if (!ids6 || !ids6.length) return fail("The template's sections can't go there.");
+      return { ok: true, result: JSON.stringify({ added: ids6 }) + " These hold sample copy: read_page and set the person's own.", change: { ids: ids6, label: "Template", value: tpl[1], on: "into " + (into === "root" ? "the frame" : nameOf(into)) } };
+    }
+    case "list_components": {
+      var comps = ownComponents(api);
+      if (!comps.length) return { ok: true, result: "This file has no components of its own yet. make_component turns a layer into one.", step: "Looked through My components" };
+      return { ok: true, result: comps.map(function (c) {
+        var here = instancesOf(doc, c.id).length;
+        var toks = c.tokens || [];
+        return c.id + " · " + c.name + " · a " + c.node.type + (c.node.children && c.node.children.length ? " holding " + c.node.children.map(function (k) { return k.type; }).slice(0, 6).join(", ") : "") + " · " + count(c.node) + (count(c.node) === 1 ? " layer" : " layers") +
+          " · built on " + (toks.length ? toks.slice(0, 6).join(", ") + (toks.length > 6 ? "…" : "") : "no tokens") + " · " + (here ? here + (here === 1 ? " instance" : " instances") + " on this page" : "not on this page");
+      }).join("\n"), step: "Looked through " + comps.length + (comps.length === 1 ? " component" : " components") };
+    }
+    case "insert_instance": {
+      var comp = ownComponents(api).filter(function (c) { return c.id === input.id; })[0];
+      if (!comp) return fail("There's no component " + input.id + " in this file. list_components lists them.");
+      var inst = instanceNode(comp);
+      if (!inst) return fail(comp.name + " couldn't be read back.");
+      /* A component can't hold itself. */
+      var spot = input.replace ? (locate(doc, input.replace) || {}).path : input.parent ? (locate(doc, input.parent) || {}).path : (function () { var s0 = (api.selection ? api.selection() : [])[0]; var a0 = s0 && locate(doc, s0); return a0 ? a0.path.slice(0, -1) : null; })();
+      if ((spot || []).some(function (a) { return a.inst && a.inst.of === comp.id && a.id !== input.replace; })) return fail(comp.name + " can't go inside one of its own instances. Put it beside that instance instead.");
+      if (input.replace) {
+        if (!locate(doc, input.replace) || input.replace === "root") return fail("There's no layer " + input.replace + " in this frame.");
+        var was7 = nameOf(input.replace);
+        var ids7 = api.replace(input.replace, [inst]);
+        if (!ids7 || !ids7.length) return fail(comp.name + " can't go there.");
+        return { ok: true, result: JSON.stringify({ added: ids7 }), change: { ids: ids7, label: "Rebuilt", value: comp.name + " in place of " + was7, on: "" } };
+      }
+      if (input.parent && !locate(doc, input.parent)) return fail("There's no container " + input.parent + " in this frame.");
+      var ids8 = api.insert(input.parent || null, typeof input.index === "number" ? input.index : null, [inst]);
+      if (!ids8 || !ids8.length) return fail(comp.name + " can't go there.");
+      return { ok: true, result: JSON.stringify({ added: ids8 }), change: { ids: ids8, label: "Instance", value: comp.name, on: input.parent ? "in " + nameOf(input.parent) : "" } };
+    }
+    case "make_component": {
+      if (!api.makeComponent) return fail("Components can't be made here.");
+      var mat = locate(doc, input.id);
+      if (!mat || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
+      if (mat.node.inst) return fail(nameOf(input.id) + " is already an instance of a component.");
+      var cname = short(String(input.name || "").trim(), 60);
+      if (!cname) return fail("Give it a name.");
+      var madeC = api.makeComponent(input.id, cname);
+      if (!madeC || madeC.error) return fail((madeC && madeC.error) || "It couldn't be made a component.");
+      return { ok: true, result: JSON.stringify({ component: madeC.id, name: madeC.name, tokens: madeC.tokens }) + " It's in My components, and " + nameOf(input.id) + " is its first instance.", change: { ids: [input.id], label: "Component", value: madeC.name, on: "from " + nameOf(input.id) } };
+    }
     case "set_text": {
       var tat = locate(doc, input.id);
       if (!tat || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
@@ -571,7 +660,8 @@ function runTool(api, call) {
       if (bad) return fail((bad && bad.name) + " can't run in a batch. Batch runs: " + BATCHABLE.join(", ") + ".");
       var size = list.reduce(function (a, c) {
         var inp = c.input || {}, lay2 = c.name === "insert_layout" && layoutById(inp.id);
-        return a + (c.name === "insert_jsx" || c.name === "replace_jsx" ? added(fromJsx(inp.jsx)) : lay2 ? added(fromJsx(lay2.jsx(inp.content || {}))) : 0);
+        var own = c.name === "insert_instance" && ownComponents(api).filter(function (k) { return k.id === inp.id; })[0];
+        return a + (c.name === "insert_jsx" || c.name === "replace_jsx" ? added(fromJsx(inp.jsx)) : lay2 ? added(fromJsx(lay2.jsx(inp.content || {}))) : own ? count(own.node) : 0);
       }, 0);
       var owed4 = owesPlan(api, size);
       if (owed4) return owed4;

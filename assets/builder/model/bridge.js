@@ -11,7 +11,7 @@ import { familyWord } from "./agent.js";
 import { planEdit, readEdit } from "./nameedit.js";
 
 /* Tools that only look. */
-var READS = { list_pages: 1, read_page: 1, read_selection: 1, screenshot: 1, read_guideline: 1, read_theme: 1, lint: 1, measure: 1, search_components: 1, read_component: 1, list_tokens: 1, read_skill: 1 };
+var READS = { list_pages: 1, read_page: 1, read_selection: 1, screenshot: 1, read_guideline: 1, read_theme: 1, lint: 1, measure: 1, search_components: 1, read_component: 1, list_tokens: 1, read_skill: 1, list_components: 1 };
 /* Tools that need the person to answer in the assistant panel, which a
    session doesn't use: Claude asks in its own conversation instead. */
 var LEFT_OUT = { propose_plan: 1, ask_user: 1, select: 1 };
@@ -82,7 +82,9 @@ function targetsOf(call, doc) {
     }
     case "set_style": case "set_prop": case "remove": case "duplicate": case "move": case "wrap": add(input.ids); add(input.parent); break;
     case "set_text": case "replace_jsx": case "rename": add(input.id); break;
-    case "insert_jsx": add(input.parent); break;
+    case "insert_jsx": case "insert_template": add(input.parent); break;
+    case "insert_instance": add(input.parent); add(input.replace); break;
+    case "make_component": add(input.id); break;
     case "place_image": add(input.id); add(input.parent); break;
     case "working_on": add(input.id); break;
     default: break;
@@ -147,6 +149,10 @@ function rowsOf(call, name, doc) {
     case "remove": return [{ icon: "trash", title: who(input.ids), detail: "Removed" }];
     case "insert_jsx": return [{ icon: "plus", title: "New layers", detail: "Added " + (input.parent ? "in " + who([input.parent]) : "to the page") }];
     case "replace_jsx": return [{ icon: "plus", title: who([input.id]), detail: "Rebuilt from new layers" }];
+    case "insert_template": return [{ icon: "file", title: "The " + String(input.id || "") + " template", detail: input.new_frame ? "As a new frame" : "Added " + (input.parent && input.parent !== "root" ? "in " + who([input.parent]) : "to the page") }];
+    case "insert_instance": return [{ icon: "component", title: input.replace ? who([input.replace]) : "A component", detail: input.replace ? "Swapped for an instance" : "Instance added " + (input.parent && input.parent !== "root" ? "in " + who([input.parent]) : "to the page") }];
+    case "make_component": return [{ icon: "component", title: who([input.id]), detail: "Made a component: " + short(input.name, 40) }];
+    case "list_components": return [{ icon: "component", title: "Listed the file's components", detail: "" }];
     case "move": return [{ icon: "layers2", title: who(input.ids), detail: "Moved into " + who([input.parent]) }];
     case "wrap": return [{ icon: "group", title: who(input.ids), detail: "Wrapped in a " + (input.type || "Group") }];
     case "duplicate": return [{ icon: "copy", title: who(input.ids), detail: "Copied" }];

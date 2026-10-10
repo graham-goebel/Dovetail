@@ -1808,6 +1808,37 @@ try {
     await pg.page.close();
   });
 
+  await step("The assistant reuses what the file has: a template into the frame or as its own, and the file's own components as linked instances", async () => {
+    const pg = await open({ width: 1440, height: 900 }, { hash: "#jsx=" + Buffer.from('<Section><Stack gap="md"><Heading>Kiln tour</Heading><Text>Saturdays at ten.</Text></Stack></Section>').toString("base64url") });
+    await pg.page.waitForFunction(() => window.__builder.doc().frames.some((f) => JSON.stringify(f.root).includes("Kiln tour")));
+    const run = (call) => pg.page.evaluate((c) => window.__builder.tool(c), call);
+    const cardId = await pg.page.evaluate(() => { let id = null; const walk = (n) => { if ((n.children || []).some((k) => k.type === "Heading")) id = n.id; (n.children || []).forEach(walk); }; window.__builder.doc().frames.forEach((f) => walk(f.root)); return id; });
+    expect(cardId, "the pasted stack is on the canvas");
+    await run({ name: "set_style", input: { ids: [cardId], family: "padding", value: "md" } });
+    const made = await run({ name: "make_component", input: { id: cardId, name: "Tour card" } });
+    expect(made.ok, `make_component makes the card a component, got ${JSON.stringify(made)}`);
+    const lib = await pg.page.evaluate(() => window.__builder.library().components.map((c) => c.name));
+    expect(lib.includes("Tour card"), `it's in My components, got ${lib}`);
+    const listed = await run({ name: "list_components", input: {} });
+    expect(/Tour card · a \w+ holding Heading, Text/.test(listed.result) && /1 instance on this page/.test(listed.result), `list_components names it and counts the card it was made from, got ${listed.result}`);
+    const compId = listed.result.split(" · ")[0];
+    const placed = await run({ name: "insert_instance", input: { id: compId, parent: "root" } });
+    expect(placed.ok, `insert_instance puts one down, got ${JSON.stringify(placed)}`);
+    const insts = await pg.page.evaluate((cid) => { const out = []; const walk = (n) => { if (n.inst && n.inst.of === cid) out.push(n.children[0].props.children); (n.children || []).forEach(walk); }; walk(window.__builder.doc().frames.find((f) => f.id === window.__builder.doc().active).root); return out; }, compId);
+    expect(insts.length === 2 && insts.every((t) => t === "Kiln tour"), `two linked instances with the component's copy, got ${JSON.stringify(insts)}`);
+    await pg.page.waitForFunction(() => { const f = document.querySelector("iframe.bd-frame.is-active"); return f && [...f.contentDocument.querySelectorAll('[data-bf-type="Heading"]')].filter((h) => /Kiln tour/.test(h.textContent)).length === 2; });
+    ok("make_component keeps a layer in My components, list_components finds it, and insert_instance puts down a linked instance that draws");
+    const into = await run({ name: "insert_template", input: { id: "store" } });
+    const kinds = await pg.page.evaluate(() => window.__builder.doc().frames.find((f) => f.id === window.__builder.doc().active).root.children.map((n) => n.type));
+    expect(into.ok && kinds.slice(-5).join() === "Navbar,ProductGridBlock,SplitBlock,FaqBlock,CtaBlock", `the store template's sections land at the end of the frame, got ${JSON.stringify(into)} ${kinds}`);
+    const before = await pg.page.evaluate(() => window.__builder.doc().frames.length);
+    const own = await run({ name: "insert_template", input: { id: "landing", new_frame: true } });
+    const after = await pg.page.evaluate(() => { const d = window.__builder.doc(); return { n: d.frames.length, active: d.active, kids: d.frames.find((f) => f.id === d.active).root.children.map((k) => k.type) }; });
+    expect(own.ok && after.n === before + 1 && JSON.parse(own.result.split(" ")[0]).frame === after.active && after.kids[0] === "HeroBlock", `new_frame adds the landing page as its own frame and works in it, got ${JSON.stringify(own)} ${JSON.stringify(after)}`);
+    ok("insert_template adds a template's sections to the frame, or the whole template as a frame of its own");
+    await pg.page.close();
+  });
+
   await step("Layer order: behind its siblings stays above the parent's fill, front sits over a raised shape, and both export", async () => {
     const pg = await open({ width: 1440, height: 900 });
     await startFrom(pg.page, "Paste a layout");
