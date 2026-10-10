@@ -5621,6 +5621,7 @@
     { name: "set_prop", description: "Set one of a component's own props on layers of that type: its text, or one of the values its enum allows.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 }, name: { type: "string" }, value: { type: ["string", "number", "boolean"] } }, required: ["ids", "name", "value"], additionalProperties: false } },
     { name: "insert_jsx", description: "Add new layers written as JSX with the design system's components (for example <Section><Heading>…</Heading></Section>) into a container, at an index, or after the selection when parent is omitted.", input_schema: { type: "object", properties: { jsx: { type: "string" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 } }, required: ["jsx"], additionalProperties: false } },
     { name: "replace_jsx", description: "Replace one layer with new layers written as JSX, in its place: the way to rebuild a section or a card in one step.", input_schema: { type: "object", properties: { id: { type: "string" }, jsx: { type: "string" } }, required: ["id", "jsx"], additionalProperties: false } },
+    { name: "find_images", description: "Find pictures for the page in this file's Content uploads (images and illustrations), by words in their names; with no match, or no query, it lists them all. Each comes back as content:<id>: use that wherever a picture goes, as an Image's or Cover's src, a layout's image field, or a prop set with set_prop. Prefer the person's own uploads to placeholders.", input_schema: { type: "object", properties: { query: { type: "string" } }, additionalProperties: false } },
     { name: "search_layouts", description: "Find tested section layouts to build with: heroes, features, stories, proof, showcases, steps, questions and closes, each with its mood, when it fits and the content fields it takes. Filter by kind (" + KINDS.join(", ") + ") or words such as bold, calm, editorial, moving. Nothing given lists them all.", input_schema: { type: "object", properties: { query: { type: "string" }, kind: { type: "string", enum: KINDS } }, additionalProperties: false } },
     { name: "insert_layout", description: "Add a section from search_layouts, filled with your content: into a container at an index, after the selection when parent is omitted, or in place of a layer with replace. content takes the layout's fields (eyebrow, title, lead, action, secondary, image, items, stats, quotes, points, faqs, steps, slides); anything left out gets sample copy, so give real copy for every field the layout lists.", input_schema: { type: "object", properties: { id: { type: "string" }, content: { type: "object" }, parent: { type: "string" }, index: { type: "integer", minimum: 0 }, replace: { type: "string" } }, required: ["id"], additionalProperties: false } },
     { name: "set_text", description: "Set a layer's text: a heading's or a paragraph's words, a button's label, a card's title.", input_schema: { type: "object", properties: { id: { type: "string" }, text: { type: "string" } }, required: ["id", "text"], additionalProperties: false } },
@@ -5767,6 +5768,7 @@
       "- Build sections from the layouts library: search_layouts for the kind of section and the mood asked for, then insert_layout with real copy for its fields (replace to swap one in for an existing section). Write JSX only for what no layout covers. A page reads best when its sections vary: alternate light and dark or brand bands, and don't repeat a layout.",
       "- Rebuild a section with replace_jsx rather than many small edits, and put a set of related edits in one batch, so the person can undo them at once.",
       "- Write real, short copy in the brand's voice. Never lorem ipsum.",
+      "- Use the person's pictures: find_images lists their Content uploads; put one in with its content:<id> wherever a picture goes (a layout's image field, an Image or Cover src). Leave a placeholder only when nothing fits.",
       "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish. For a page, look at 390 wide and in dark mode too (screenshot with width or dark) when the change touches layout or colour, or the checks flag them.",
       "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
       "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first. When it leaves a real choice of direction open (two good answers with a different tone), call ask_user with the options rather than guessing.",
@@ -5806,12 +5808,51 @@
       return a + count2(n);
     }, 0);
   }
-  function fromJsx(jsx) {
+  function fromJsx(jsx, api) {
     var els = readJsxElements(String(jsx || ""));
     var raw = els.length ? jsxNodes(els, []) : [];
-    return raw.map(function(n) {
+    var missing = api ? withContent(api, raw) : [];
+    var out = raw.map(function(n) {
       return cleanNode(n, null);
     }).filter(Boolean).map(fresh);
+    out.missing = missing;
+    return out;
+  }
+  var CONTENT_REF = /^content:([\w-]+)$/;
+  var PICTURE_KINDS = ["images", "illustrations"];
+  function uploads(api) {
+    var lib = api.library ? api.library() || {} : {};
+    var out = [];
+    PICTURE_KINDS.forEach(function(k) {
+      (lib[k] || []).forEach(function(it) {
+        if (it && it.src && !it.removed) out.push({ id: it.id, kind: k, name: it.name || "", src: it.src });
+      });
+    });
+    return out;
+  }
+  function fromContent(api, v) {
+    var m = typeof v === "string" && CONTENT_REF.exec(v);
+    if (!m) return v;
+    var hit = uploads(api).filter(function(u) {
+      return u.id === m[1];
+    })[0];
+    return hit ? hit.src : v;
+  }
+  function withContent(api, nodes) {
+    var missing = [];
+    (function walk2(list2) {
+      list2.forEach(function(n) {
+        Object.keys(n.props || {}).forEach(function(k) {
+          var v = n.props[k];
+          if (typeof v !== "string" || !CONTENT_REF.test(v)) return;
+          var got = fromContent(api, v);
+          if (got === v) missing.push(v);
+          else n.props[k] = got;
+        });
+        walk2(n.children || []);
+      });
+    })(nodes);
+    return missing;
   }
   function runTool(api, call) {
     var input = call.input || {};
@@ -6027,11 +6068,14 @@
           return t !== types[0];
         })) return fail("Set a prop on layers of one type at a time.");
         if (spec && spec.kind === "enum" && spec.options.indexOf(input.value) < 0) return fail(input.value + " isn't one of " + input.name + "'s options: " + spec.options.join(", ") + ".");
-        if (!api.setProp(pids, input.name, input.value)) return fail("Nothing changed.");
-        return { ok: true, result: "Done.", change: { ids: pids, label: input.name === "children" ? "Text" : input.name.charAt(0).toUpperCase() + input.name.slice(1), value: String(input.value).slice(0, 60), on: pids.map(nameOf3).join(", ") } };
+        var val = fromContent(api, input.value);
+        if (typeof input.value === "string" && CONTENT_REF.test(input.value) && val === input.value) return fail("There's no upload " + input.value + ". find_images lists them.");
+        if (!api.setProp(pids, input.name, val)) return fail("Nothing changed.");
+        return { ok: true, result: "Done.", change: { ids: pids, label: input.name === "children" ? "Text" : input.name.charAt(0).toUpperCase() + input.name.slice(1), value: val !== input.value ? "a Content upload" : String(input.value).slice(0, 60), on: pids.map(nameOf3).join(", ") } };
       }
       case "insert_jsx": {
-        var made = fromJsx(input.jsx);
+        var made = fromJsx(input.jsx, api);
+        if (made.missing.length) return fail("There's no upload " + made.missing[0] + ". find_images lists them.");
         if (!made.length) return fail("That JSX has no components the system knows.");
         var owed = owesPlan(api, added(made));
         if (owed) return owed;
@@ -6044,7 +6088,8 @@
       case "replace_jsx": {
         var at0 = locate(doc2, input.id);
         if (!at0 || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
-        var made2 = fromJsx(input.jsx);
+        var made2 = fromJsx(input.jsx, api);
+        if (made2.missing.length) return fail("There's no upload " + made2.missing[0] + ". find_images lists them.");
         if (!made2.length) return fail("That JSX has no components the system knows.");
         var owed2 = owesPlan(api, added(made2));
         if (owed2) return owed2;
@@ -6054,6 +6099,23 @@
         return { ok: true, result: JSON.stringify({ added: ids3 }), change: { ids: ids3, label: "Rebuilt", value: was + " → " + made2.map(function(n) {
           return layerName(n);
         }).join(", "), on: "" } };
+      }
+      case "find_images": {
+        var ups = uploads(api);
+        if (!ups.length) return { ok: true, result: "This file has no images or illustrations in Content yet. Use a layout's placeholder, or ask the person to upload some.", step: "Looked for pictures in Content" };
+        var qw = String(input.query || "").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+        var hits = qw.length ? ups.filter(function(u) {
+          var hay = (u.name + " " + u.kind).toLowerCase();
+          return qw.some(function(w) {
+            return hay.indexOf(w) >= 0;
+          });
+        }) : ups;
+        var shown2 = (hits.length ? hits : ups).slice(0, 40);
+        var lines = shown2.map(function(u) {
+          return "- content:" + u.id + " · " + u.kind + ' · "' + short3(u.name || "untitled", 60) + '"';
+        });
+        var head3 = hits.length || !qw.length ? "" : 'Nothing in Content is named for "' + input.query + '"; these are all of them:\n';
+        return { ok: true, result: head3 + lines.join("\n") + (ups.length > shown2.length ? "\n… and " + (ups.length - shown2.length) + " more." : ""), step: "Found " + shown2.length + " picture" + (shown2.length === 1 ? "" : "s") + " in Content" };
       }
       case "search_layouts": {
         var found = findLayouts(input.query, input.kind);
@@ -15985,6 +16047,10 @@
       theme: function() {
         return themeSummary();
       },
+      /* The Content uploads, for find_images and the content: pictures it names. */
+      library: function() {
+        return libRef.current;
+      },
       runChecks: function(fid) {
         return runChecks(fid);
       },
@@ -21834,6 +21900,11 @@
       }
       var type = pic.image.slice(5, pic.image.indexOf(";"));
       return readForLibrary(new File([bytes], "picture", { type }), "images").then(function(src) {
+        setLibrary(function(l) {
+          var n = Object.assign({}, l);
+          n.images = [{ id: uid(), name: pic.alt ? pic.alt.slice(0, 80) : "Picture from an agent", src }].concat(l.images || []);
+          return n;
+        });
         if (input.id) {
           var hasAlt = (META[at2.node.type].props || []).some(function(p) {
             return p.name === "alt";

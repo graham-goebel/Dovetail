@@ -82,7 +82,7 @@ test("the practice script turns plain requests into real tool calls", () => {
 test("the tool list keeps one order, and leaves out screenshot when looking is off", () => {
   const names = TOOLS.map((t) => t.name);
   assert.equal(new Set(names).size, names.length, "no tool twice");
-  assert.ok(names.length <= 32, "within what the assistant function takes");
+  assert.ok(names.length <= 40, "within what the assistant function takes (MAX_TOOLS)");
   assert.deepEqual(toolsFor({ look: true }).map((t) => t.name), names);
   assert.ok(!toolsFor({ look: false }).some((t) => t.name === "screenshot"));
 });

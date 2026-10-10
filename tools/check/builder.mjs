@@ -2037,6 +2037,8 @@ try {
     const placed = await push({ name: "place_image", input: { id: imgId, image: red, alt: "A red kite" } }, 1);
     const img = () => page.evaluate((id) => window.__builder.doc().frames.find((f) => f.name === "Ledger").root.children[0].children.find((c) => c.id === id), imgId);
     expect(placed.ok && /^data:image\/png;base64,/.test((await img()).props.src) && (await img()).props.alt === "A red kite", `place_image puts the picture and its alt in the Image, through the table when Realtime carries no call, got ${JSON.stringify(placed)}`);
+    const kept = await page.evaluate(() => (window.__builder.library().images || []).map((it) => it.name));
+    expect(kept.includes("A red kite"), `the picture is kept in Content too, named for what it shows, got ${JSON.stringify(kept)}`);
     const added = await push({ name: "place_image", input: { parent: heroId, image: red } }, 1);
     const kids = (await hero()).children;
     expect(added.ok && kids.length === 3 && kids[2].type === "Image" && /^data:image\/png/.test(kids[2].props.src), `place_image with parent adds a new Image, got ${JSON.stringify(added)}`);

@@ -921,6 +921,8 @@ function App(props) {
     /* Edits made inside fn become one history step. */
     guideline: function (g) { return guidelineText(g); },
     theme: function () { return themeSummary(); },
+    /* The Content uploads, for find_images and the content: pictures it names. */
+    library: function () { return libRef.current; },
     runChecks: function (fid) { return runChecks(fid); },
     measure: function (a, b) { return measureLayers(a, b); },
     batch: function (fn) {
@@ -5226,6 +5228,8 @@ function App(props) {
     try { bytes = Uint8Array.from(atob(pic.image.slice(pic.image.indexOf(",") + 1)), function (c) { return c.charCodeAt(0); }); } catch (err) { return { ok: false, result: "That picture's base64 couldn't be read." }; }
     var type = pic.image.slice(5, pic.image.indexOf(";"));
     return readForLibrary(new File([bytes], "picture", { type: type }), "images").then(function (src) {
+      /* Kept in Content too, named for what it shows, so it can be used again. */
+      setLibrary(function (l) { var n = Object.assign({}, l); n.images = [{ id: uid(), name: pic.alt ? pic.alt.slice(0, 80) : "Picture from an agent", src: src }].concat(l.images || []); return n; });
       if (input.id) {
         var hasAlt = (META[at.node.type].props || []).some(function (p) { return p.name === "alt"; }) && prop !== "poster";
         var ok = change(function (d2) { var a = locate(d2, input.id, fid); if (!a) return null; a.node.props[prop] = src; if (hasAlt && pic.alt) a.node.props.alt = pic.alt; return undefined; });
