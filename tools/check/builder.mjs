@@ -5786,6 +5786,20 @@ try {
 
   await step("Panels: each resizes by its inner edge in steps of 4, folds away past its minimum, opens back to its width, by keyboard too, kept per browser", async () => {
     const { page } = await open({ width: 1440, height: 900 });
+    /* The builder's height comes down the tree as flex: the shell reaches
+       the foot of the viewport and the panels float inside it, under the
+       header, with room beneath them, as much at a tablet with touch. */
+    const places = () => page.evaluate(() => { const r = (s) => { const b = document.querySelector(s).getBoundingClientRect(); return { top: Math.round(b.top), bottom: Math.round(b.bottom) }; }; return { ih: innerHeight, header: r(".site-header"), shell: r(".bd-shell"), left: r(".bd-shell > .bd-left"), right: r(".bd-shell > .bd-right"), scroll: document.scrollingElement.scrollHeight - innerHeight }; });
+    const fit = (p) => p.shell.bottom === p.ih && p.left.top >= p.header.bottom && p.right.top >= p.header.bottom && p.left.bottom <= p.ih - 12 && p.right.bottom <= p.ih - 12 && p.scroll <= 0;
+    const laptop = await places();
+    expect(fit(laptop), `the shell fills to the foot and the panels float inside it under the header with a clear foot, got ${JSON.stringify(laptop)}`);
+    /* A tablet in landscape: the same page at its width, with a touch screen
+       and no hover, which is what the rules for coarse pointers look at. */
+    const tablet = await page.evaluate(() => null).then(async () => { await page.setViewportSize({ width: 1180, height: 820 }); await page.waitForFunction(() => innerWidth === 1180); return places(); });
+    expect(fit(tablet), `at a tablet with touch the same holds, got ${JSON.stringify(tablet)}`);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.waitForFunction(() => innerWidth === 1440);
+    ok("the panels float inside the shell, under the header and above its foot, at a laptop and a tablet");
     const width = (side) => page.evaluate((s) => { const el = document.querySelector(".bd-shell > .bd-" + s); return el && el.offsetParent ? Math.round(el.getBoundingClientRect().width) : 0; }, side);
     const value = (side) => page.locator(".bd-panel-edge.is-" + side).getAttribute("aria-valuenow");
     /* The panel's width follows the handle's value on the next layout; wait
