@@ -8,6 +8,7 @@ import { applyOps, opsOf, planEdit, readEdit } from "../model/nameedit.js";
 import { agentFrom, pictureFrom as agentPicture, allowed as bridgeAllowed, bridgeTools, describeText, isRead as bridgeRead, rowsOf as bridgeRows, targetsOf as bridgeTargets } from "../model/bridge.js";
 import { startBridge } from "../cloud/bridge.js";
 import { BridgeDialog, BridgePill, SessionPanel } from "./Bridge.js";
+import { People } from "./People.js";
 import { mergeUsage, usageOf, usesToken } from "../model/usage.js";
 import { absorbComponents, componentsFor, copyText, encode, loadLibrary, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
 import { foldersOf, itemsOf, libScopeOf, pageOf, pagesOf } from "../model/store.js";
@@ -6551,9 +6552,11 @@ function App(props) {
         } }),
       /* Saving is quiet; the bar speaks up only when this browser can't keep the work. */
       saved.ok ? null : e("span", { className: "bd-saved is-error", title: savedTitle, role: "status" }, e(Icon, { name: "alert" }), e("span", { className: "bd-saved-text" }, "Not saved")),
+      /* Who's on the file: you, and others once live editing brings them. */
+      e(People, { account: account, others: [], onOpen: openAccount }),
       e("button", { type: "button", className: "bd-act", title: "Play: see " + frame.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame.id], onClick: function () { openPlay(); } }, e(Icon, { name: "play" })),
       e("button", { type: "button", className: "bd-act", "aria-pressed": String(preview), title: "Preview: use the components (Esc to stop)", "aria-label": "Preview", onClick: actions.preview }, e(Icon, { name: "eye" })),
-      e("button", { type: "button", className: "bd-btn bd-btn-primary bd-export", onClick: openCode, disabled: !ready[frame.id], "aria-label": "Export", title: "Export: code, a picture, the layout or a link" }, e(Icon, { name: "exportOut" }), e("span", { className: "bd-export-text" }, "Export"))));
+      e("button", { type: "button", className: "bd-btn bd-btn-primary bd-export", onClick: openCode, disabled: !ready[frame.id], "aria-label": "Export", title: "Export: code, a picture, the layout or a link" }, e(Icon, { name: "exportOut" }))));
   var toolbar = home ? homeBar : workBar;
 
   /* ------------------------------------------------- drawing */
