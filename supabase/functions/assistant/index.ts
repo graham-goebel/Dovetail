@@ -9,7 +9,9 @@
 // browser, on the canvas: this function only relays.
 //
 // Deploy: supabase functions deploy assistant
-// Secrets: ANTHROPIC_API_KEY (required); ASSISTANT_HOURLY_LIMIT (default 60);
+// Secrets: ANTHROPIC_API_KEY (required); ASSISTANT_HOURLY_LIMIT, messages a
+// person may send an hour (default 60); ASSISTANT_HOURLY_ROUNDS, requests of
+// any kind an hour, tool rounds included (default 600);
 // ASSISTANT_ORIGINS, a comma-separated list of the sites allowed to call it.
 // SUPABASE_URL, SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY are given to
 // every function by Supabase. See docs/cloud.md.
@@ -20,6 +22,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const MODEL = "claude-opus-5-5";
 const MAX_TOKENS = 16000;
 const HOURLY = Number(Deno.env.get("ASSISTANT_HOURLY_LIMIT") ?? "60");
+const HOURLY_ROUNDS = Number(Deno.env.get("ASSISTANT_HOURLY_ROUNDS") ?? "600");
 const ORIGINS = (Deno.env.get("ASSISTANT_ORIGINS") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 // Room for the pictures the assistant takes of the canvas (each at most
 // 1280×2000, as a JPEG) as the conversation goes on.
@@ -77,6 +80,14 @@ function readRequest(raw: unknown): { stable: string; system: string; messages: 
   return { stable, system, messages, tools: tools as Tool[], fileId, effort };
 }
 
+// A request that carries the results of the model's own tool calls is the
+// same reply going on, not a new message from the person.
+function isRound(messages: unknown[]): boolean {
+  const last = messages[messages.length - 1] as { role?: string; content?: unknown } | undefined;
+  return !!last && last.role === "user" && Array.isArray(last.content) &&
+    last.content.some((b) => !!b && typeof b === "object" && (b as { type?: string }).type === "tool_result");
+}
+
 Deno.serve(async (req) => {
   const headers = cors(req.headers.get("Origin"));
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers });
@@ -93,16 +104,22 @@ Deno.serve(async (req) => {
   if (!who?.user) return json(401, { error: "Sign in to use the assistant." }, headers);
   const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-  // How many requests they've made in the last hour.
-  const since = new Date(Date.now() - 3600_000).toISOString();
-  const { count } = await admin.from("assistant_runs").select("id", { count: "exact", head: true }).eq("user_id", who.user.id).gte("created_at", since);
-  if ((count ?? 0) >= HOURLY) return json(429, { error: `That's ${HOURLY} requests this hour. Try again later.` }, headers);
-
   const text = await req.text();
   if (text.length > MAX_BODY) return json(413, { error: "The request is too large." }, headers);
   let parsed: ReturnType<typeof readRequest>;
   try { parsed = readRequest(JSON.parse(text)); } catch { parsed = "The request isn't JSON."; }
   if (typeof parsed === "string") return json(400, { error: parsed }, headers);
+
+  // How much they've asked in the last hour. One message can take several
+  // requests (the model calls tools, the Builder runs them and sends the
+  // results back), so the limit counts messages, and a reply carrying on
+  // after its tools never stops for it; a higher cap counts every request.
+  const kind = isRound(parsed.messages) ? "round" : "turn";
+  const since = new Date(Date.now() - 3600_000).toISOString();
+  const runs = () => admin.from("assistant_runs").select("id", { count: "exact", head: true }).eq("user_id", who.user.id).gte("created_at", since);
+  const [turns, all] = await Promise.all([runs().eq("kind", "turn"), runs()]);
+  if (kind === "turn" && (turns.count ?? 0) >= HOURLY) return json(429, { error: `That's ${HOURLY} messages to the assistant this hour. Try again later.` }, headers);
+  if ((all.count ?? 0) >= HOURLY_ROUNDS) return json(429, { error: `The assistant has made ${HOURLY_ROUNDS} requests for you this hour. Try again later.` }, headers);
 
   // A file named must be one they're on.
   if (parsed.fileId) {
@@ -110,7 +127,7 @@ Deno.serve(async (req) => {
     if (!member) return json(403, { error: "That file isn't shared with you." }, headers);
   }
 
-  const { data: run } = await admin.from("assistant_runs").insert({ user_id: who.user.id, file_id: parsed.fileId, model: MODEL }).select("id").single();
+  const { data: run } = await admin.from("assistant_runs").insert({ user_id: who.user.id, file_id: parsed.fileId, model: MODEL, kind }).select("id").single();
   const client = new Anthropic({ apiKey: key });
   const enc = new TextEncoder();
 

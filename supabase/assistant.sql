@@ -89,7 +89,9 @@ create table if not exists public.skill_files (
 
 -- One line per assistant request: written by the assistant function (with
 -- the service key, server side), read by the person who made it. It counts
--- requests for the hourly limit and records tokens used.
+-- requests for the hourly limits and records tokens used. kind tells a new
+-- message from the person (turn) from the model carrying on after its tools
+-- ran (round): the hourly limit counts turns, and a higher cap counts both.
 create table if not exists public.assistant_runs (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete cascade,
@@ -100,6 +102,7 @@ create table if not exists public.assistant_runs (
   output_tokens integer not null default 0,
   created_at timestamptz not null default now()
 );
+alter table public.assistant_runs add column if not exists kind text not null default 'turn' check (kind in ('turn', 'round'));
 
 -- A conversation with the assistant about one file. The person who starts
 -- it sees it; once they share it, everyone on the file sees its history and
