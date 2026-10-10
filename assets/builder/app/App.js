@@ -38,6 +38,7 @@ import { ShareDialog } from "./Share.js";
 import { createSync, topicFor } from "../cloud/sync.js";
 import { supabaseTransport } from "../cloud/client.js";
 import { TAB, othersFrom } from "../cloud/live.js";
+import { openShared, pullShared, pushSave, shareOff, shareOn } from "../cloud/convos.js";
 import { colorFor } from "./People.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid, constrain, H_PINS, V_PINS, GUIDES_MAX, COLUMNS_MAX, columnsOf } from "../model/tree.js";
 import { detachAll, holdsInstanceOf, masterOf, rebase, updateInstances } from "../model/instances.js";
@@ -576,10 +577,74 @@ function App(props) {
     var id = asIdRef.current;
     if (!id) { id = "t" + uid(); asIdRef.current = id; asIdState[1](id); }
     var was = asList.filter(function (x) { return x.id === id; })[0];
-    var line = metaOf(plan, { named: asNamed.current, by: was ? was.by : (account ? { id: account.id, name: account.email } : undefined) });
+    var line = metaOf(plan, { named: asNamed.current, by: was ? was.by : (account.account ? { id: account.account.id, name: account.account.email } : undefined), shared: was ? was.shared : false, cloud: was ? was.cloud : undefined });
+    if (was && was.rev != null) line.rev = was.rev;
     asListState[1](function (l) { return [Object.assign({ id: id }, line)].concat(l.filter(function (x) { return x.id !== id; })); });
-    store.saveThread(meta.id, id, { thread: plan, msgs: asMsgs.current }, line).catch(function () { /* the panel still has it */ });
+    var value = { thread: plan, msgs: asMsgs.current };
+    store.saveThread(meta.id, id, value, line).catch(function () { /* the panel still has it */ });
+    /* Shared: the cloud's copy follows, from the save it was made from. */
+    if (line.shared && line.cloud && account.status === "in") {
+      getClient().then(function (sb) { return pushSave(sb, line, line.title, value); }).then(function (r) {
+        patchLine(id, { rev: r.rev });
+      }, function (err) {
+        if (err && err.stale) takeShared(id, line.cloud, "Someone carried this conversation on meanwhile; here's where it is now.");
+      });
+    }
   }, [asThread, asBusy]);
+  /* A line in the list, changed, in the panel and in the store. */
+  var patchLine = function (id, patch) {
+    var meta = projectRef.current;
+    asListState[1](function (l) { return l.map(function (x) { return x.id === id ? Object.assign({}, x, patch) : x; }); });
+    if (!meta) return;
+    store.listThreads(meta.id).then(function (idx) {
+      var was = idx.list.filter(function (x) { return x.id === id; })[0];
+      if (!was) return null;
+      return store.loadThread(meta.id, id).then(function (v) { return v ? store.saveThread(meta.id, id, v, Object.assign({}, was, patch)) : null; });
+    }).catch(function () {});
+  };
+  /* The cloud's copy of a shared conversation replaces the one open. */
+  var takeShared = function (id, cloudId, message) {
+    var meta = projectRef.current;
+    return getClient().then(function (sb) { return openShared(sb, cloudId, asNames.current); }).then(function (got) {
+      if (!got || !meta || projectRef.current !== meta) return;
+      if (asIdRef.current === id) {
+        var back = revive(got);
+        asLoaded.current = back;
+        setAsThread(back);
+        asMsgs.current = got.msgs;
+      }
+      patchLine(id, { rev: got.rev, shared: got.shared, title: got.title });
+      store.saveThread(meta.id, id, { thread: got.thread, msgs: got.msgs }, Object.assign({}, asList.filter(function (x) { return x.id === id; })[0] || { id: id, by: got.by }, { rev: got.rev, shared: got.shared, cloud: cloudId, title: got.title, updated: Date.now() })).catch(function () {});
+      if (message) announce(message);
+    }, function () {});
+  };
+  /* The names of the people on the file, for who started what. */
+  var asNames = useRef({});
+  /* The shared conversations others started on this file, listed with
+     yours: looked up when the file opens in the cloud and when the list is
+     shown. */
+  var pullOthers = function () {
+    var meta = projectRef.current;
+    if (!meta || !meta.cloud || account.status !== "in" || !account.account) return Promise.resolve();
+    var cloudId = meta.cloud, myId = account.account.id;
+    return getClient().then(function (sb) {
+      return listPeople(sb, cloudId).then(function (got) {
+        var names = {};
+        got.members.forEach(function (m) { names[m.user_id] = m.email; });
+        asNames.current = names;
+        return pullShared(sb, cloudId, got.members, myId);
+      });
+    }).then(function (lines) {
+      if (projectRef.current !== meta) return;
+      asListState[1](function (l) {
+        var known = {};
+        l.forEach(function (x) { if (x.cloud) known[x.cloud] = true; });
+        var fresh = lines.filter(function (x) { return !known[x.cloud]; });
+        return l.filter(function (x) { return !x.remote || lines.some(function (y) { return y.cloud === x.cloud; }); }).concat(fresh);
+      });
+    }, function () {});
+  };
+  useEffect(function () { pullOthers(); }, [project ? project.cloud : null, account.status]);
   var asAbort = useRef(null);
   var patchTurn = function (id, patch) {
     setAsThread(function (t) { return t.map(function (x) { return x.id === id ? Object.assign({}, x, typeof patch === "function" ? patch(x) : patch) : x; }); });
@@ -873,7 +938,7 @@ function App(props) {
     var system = [contextText(ctx), canvas].filter(Boolean).join("\n\n");
     var tools = toolsFor({ look: canLook(), plan: planOn });
     var planned = false;
-    var me = { id: uid(), role: "user", text: text, by: account ? { id: account.id, name: account.email } : undefined };
+    var me = { id: uid(), role: "user", text: text, by: account.account ? { id: account.account.id, name: account.account.email } : undefined };
     var base = asBase.current;
     var mine = base && base.page === pageRef.current ? recentEdits(base.doc, docRef.current) : null;
     var told = mine && mine.count ? { id: uid(), role: "edits", count: mine.count, lines: mine.lines } : null;
@@ -1011,11 +1076,46 @@ function App(props) {
       asApi.fresh();
     },
     /* The list of conversations, or the open one. */
-    showList: function (on) { asViewState[1](on ? "list" : "chat"); },
+    showList: function (on) { asViewState[1](on ? "list" : "chat"); if (on) pullOthers(); },
+    /* The open conversation, shared with everyone on the file or back to
+       its starter alone. */
+    setShared: function (on) {
+      var meta = projectRef.current, id = asIdRef.current;
+      var line = asList.filter(function (x) { return x.id === id; })[0];
+      if (!meta || !meta.cloud || !id || !line || account.status !== "in") return;
+      var cloudId = meta.cloud;
+      store.loadThread(meta.id, id).then(function (v) {
+        return getClient().then(function (sb) { return on ? shareOn(sb, cloudId, line, line.title, v || { thread: asThread, msgs: asMsgs.current }) : shareOff(sb, line); });
+      }).then(function (got) {
+        if (projectRef.current !== meta) return;
+        patchLine(id, got);
+        announce(on ? "Shared with everyone on this file" : "Back to just you");
+      }, function (err) { announce(err && err.message ? err.message : "That didn't go through."); });
+    },
     openThread: function (id) {
       var meta = projectRef.current;
       if (!meta || asBusy) return;
       if (id === asIdRef.current) { asViewState[1]("chat"); return; }
+      var line = asList.filter(function (x) { return x.id === id; })[0];
+      if (line && line.remote) {
+        getClient().then(function (sb) { return openShared(sb, line.cloud, asNames.current); }).then(function (got) {
+          if (!got || projectRef.current !== meta) { announce("That conversation couldn't be opened."); return; }
+          asBase.current = null;
+          asIdRef.current = id; asIdState[1](id);
+          asNamed.current = "";
+          var back = revive(got);
+          asLoaded.current = back;
+          setAsThread(back);
+          asMsgs.current = got.msgs;
+          asViewState[1]("chat");
+          asBaseTick[1](function (n) { return n + 1; });
+          /* Kept here too, so it reopens with the file and its saves push. */
+          var kept = Object.assign({}, line, { remote: undefined, rev: got.rev, title: got.title, updated: Date.now() });
+          asListState[1](function (l) { return l.map(function (x) { return x.id === id ? kept : x; }); });
+          store.saveThread(meta.id, id, { thread: got.thread, msgs: got.msgs }, kept).catch(function () {});
+        }, function () { announce("That conversation couldn't be opened."); });
+        return;
+      }
       store.loadThread(meta.id, id).then(function (v) {
         if (!v) { announce("That conversation couldn't be opened."); return; }
         asBase.current = null;
@@ -7370,7 +7470,7 @@ function App(props) {
                   includeSel: asSelState[0], toggleSel: function () { asSelState[1](!asSelState[0]); }, reach: asReachState[0], setReach: asReachState[1],
                   docs: asContext().docs, skills: asContext().skills, dropDoc: function (id) { asDropState[1](asDropState[0].concat([id])); },
                   suggestions: selectedNodes.length ? ["Make it feel more premium", "Round the corners", "Add a button"] : ["Add a pricing section"],
-                  send: asApi.send, stop: asApi.stop, clear: asApi.clear, fresh: asApi.fresh, view: asViewState[0], showList: asApi.showList, list: asList, currentId: asId, openThread: asApi.openThread, removeThread: asApi.removeThread, me: account, cloudFile: false, keep: asApi.keep, undoTurn: asApi.undoTurn, retry: asApi.retry, fix: asApi.fix, show: asApi.show,
+                  send: asApi.send, stop: asApi.stop, clear: asApi.clear, fresh: asApi.fresh, view: asViewState[0], showList: asApi.showList, list: asList, currentId: asId, openThread: asApi.openThread, removeThread: asApi.removeThread, me: account.account, cloudFile: !!(project && project.cloud && account.status === "in"), shareLine: asList.filter(function (x) { return x.id === asId; })[0] || null, setShared: asApi.setShared, keep: asApi.keep, undoTurn: asApi.undoTurn, retry: asApi.retry, fix: asApi.fix, show: asApi.show,
                   note: asApi.note, waiting: asBusy && asThread.some(function (t) { return t.ask && t.ask.status === "pending"; }), answerAsk: asApi.answerAsk, answerAskAll: asApi.answerAskAll, showVariant: asApi.showVariant, keepVariant: asApi.keepVariant, otherAsk: asApi.otherAsk, edits: asEditsNow, dropEdits: asApi.dropEdits, approvePlan: asApi.approvePlan, changePlan: asApi.changePlan, undoFrom: asApi.undoFrom, exportThread: asApi.exportThread,
                   plans: asPlanState[0], setPlans: asApi.setPlans, effort: asEffortState[0], setEffort: asApi.setEffort, look: canLook(), setLook: asApi.setLook })
               : left === "context" ? e(ContextPanel, { items: ctxItems, query: contextQuery, hasProject: !!(project && project.group), projectName: groupName, fileName: project ? project.name : "",

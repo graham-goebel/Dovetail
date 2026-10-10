@@ -9159,11 +9159,11 @@
     return { issues, tokens: list, count: count3 };
   }
   var ComponentDialog = memo2(function ComponentDialog2(p) {
-    var check4 = p.node ? componentCheck(p.node) : null;
-    var errors2 = check4 ? check4.issues.filter(function(i) {
+    var check5 = p.node ? componentCheck(p.node) : null;
+    var errors2 = check5 ? check5.issues.filter(function(i) {
       return i.level === "error";
     }) : [];
-    var warns = check4 ? check4.issues.filter(function(i) {
+    var warns = check5 ? check5.issues.filter(function(i) {
       return i.level === "warn";
     }) : [];
     var fixable = errors2.some(function(i) {
@@ -9178,7 +9178,7 @@
         "It goes in Assets, under Components › My components, to use again in any frame. A component is built from the system's tokens, so it follows the theme wherever it goes.",
         [closeButton(p.dialogRef)]
       ),
-      check4 ? e(
+      check5 ? e(
         "div",
         { className: "bd-comp-body" },
         e(
@@ -9196,16 +9196,16 @@
           "div",
           { className: cx("bd-comp-status", errors2.length ? "is-blocked" : "is-ready"), role: "status" },
           e(Icon, { name: errors2.length ? "alert" : "check" }),
-          errors2.length ? errors2.length + (errors2.length === 1 ? " thing stops" : " things stop") + " it becoming a component" : "Ready: " + check4.count + (check4.count === 1 ? " layer" : " layers") + " on " + check4.tokens.length + (check4.tokens.length === 1 ? " token" : " tokens")
+          errors2.length ? errors2.length + (errors2.length === 1 ? " thing stops" : " things stop") + " it becoming a component" : "Ready: " + check5.count + (check5.count === 1 ? " layer" : " layers") + " on " + check5.tokens.length + (check5.tokens.length === 1 ? " token" : " tokens")
         ),
         errors2.length || warns.length ? e("ul", { className: "bd-comp-issues" }, errors2.concat(warns).map(function(i, k) {
           return e("li", { key: k, className: "is-" + i.level }, e(Icon, { name: i.level === "error" ? "alert" : "bell" }), e("span", null, i.text));
         })) : null,
-        check4.tokens.length ? e(
+        check5.tokens.length ? e(
           "details",
           { className: "bd-comp-tokens" },
-          e("summary", null, "The tokens it's built on (" + check4.tokens.length + ")"),
-          e("ul", null, check4.tokens.map(function(t) {
+          e("summary", null, "The tokens it's built on (" + check5.tokens.length + ")"),
+          e("ul", null, check5.tokens.map(function(t) {
             return e("li", { key: t }, e("code", null, t));
           }))
         ) : null,
@@ -11833,6 +11833,29 @@
       cloud: opts.cloud || void 0
     };
   }
+  var GONE = "(A picture of the canvas was here. Take another if you need it.)";
+  function forCloud(value2) {
+    if (!value2) return value2;
+    var thread = (value2.thread || []).map(function(t) {
+      if (!t.steps || !t.steps.some(function(s) {
+        return s.shot;
+      })) return t;
+      return Object.assign({}, t, { steps: t.steps.map(function(s) {
+        return s.shot ? Object.assign({}, s, { shot: void 0 }) : s;
+      }) });
+    });
+    var msgs = (value2.msgs || []).map(function(m) {
+      if (!Array.isArray(m.content)) return m;
+      return Object.assign({}, m, { content: m.content.map(function(b) {
+        if (b && b.type === "image") return { type: "text", text: GONE };
+        if (b && b.type === "tool_result" && Array.isArray(b.content)) return Object.assign({}, b, { content: b.content.map(function(c) {
+          return c && c.type === "image" ? { type: "text", text: GONE } : c;
+        }) });
+        return b;
+      }) });
+    });
+    return { thread: JSON.parse(JSON.stringify(thread)), msgs };
+  }
   function senderOf(item, me) {
     if (!item || !item.by || !item.by.id) return "";
     if (me && item.by.id === me.id) return "";
@@ -12054,6 +12077,9 @@
         document.removeEventListener("keydown", key);
       };
     }, [open]);
+    var line2 = p.shareLine, byOther = line2 && line2.by && p.me && line2.by.id !== p.me.id;
+    var canShare = !!(p.cloudFile && line2 && !byOther && !p.busy);
+    var shareHelp = !p.cloudFile ? p.cloudOn ? "Sign in, and this file goes to the cloud; then a conversation can be shared with everyone on it." : "Sharing needs the cloud connected. Conversations stay in this browser." : !line2 ? "Say something first; then it can be shared with everyone on this file." : byOther ? "Shared by " + (line2.by.name || "someone else") + "; only they can change that." : line2.shared ? "Everyone on this file can read it and carry it on." : "Off, it's yours alone. On, everyone on this file can read it and carry it on.";
     var row = function(id, title, help, value2, onChange) {
       return e(
         "div",
@@ -12094,12 +12120,14 @@
         row("bd-as-m-look", "Look at the canvas", "Sends a picture of what it built so it can check and fix it. Off keeps this file's canvas private.", p.look, p.setLook),
         e("p", { className: "bd-as-mnote" }, "Checks run after every change."),
         e("hr"),
+        /* Sharing: the starter of a saved conversation on a cloud file. */
         e(
           "div",
-          { className: "bd-as-mrow is-off" },
-          e("span", { className: "bd-as-mrow-t" }, e("b", { id: "bd-as-m-share" }, "Share in this file"), e("span", null, p.cloudFile ? "Everyone on this file can read it and carry it on." : "Sharing needs this file in the cloud, which isn't built yet. Conversations stay in this browser for now.")),
-          e(Switch2, { value: false, onChange: function() {
-          }, labelledBy: "bd-as-m-share", disabled: !p.cloudFile })
+          { className: cx("bd-as-mrow", !canShare && "is-off") },
+          e("span", { className: "bd-as-mrow-t" }, e("b", { id: "bd-as-m-share" }, "Share in this file"), e("span", null, shareHelp)),
+          e(Switch2, { value: !!(line2 && line2.shared), onChange: function(v) {
+            p.setShared(v);
+          }, labelledBy: "bd-as-m-share", disabled: !canShare })
         ),
         e("hr"),
         e("button", { type: "button", className: "bd-as-mbtn", disabled: !p.thread.length, onClick: function() {
@@ -12147,7 +12175,7 @@
             x.by && p.me && x.by.id !== p.me.id ? e("span", null, x.by.name) : null
           )
         ),
-        e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-tr-del", "aria-label": "Delete " + x.title, title: "Delete", onClick: function() {
+        x.by && p.me && x.by.id !== p.me.id ? null : e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-tr-del", "aria-label": "Delete " + x.title, title: "Delete", onClick: function() {
           p.removeThread(x.id);
         }, disabled: p.busy }, e(Icon, { name: "trash" }))
       );
@@ -13840,6 +13868,95 @@
     return "project:" + projectId + ":" + pageId;
   }
 
+  // assets/builder/cloud/threads.js
+  var COLUMNS = "id, file_id, created_by, title, shared, rev, updated_by, created_at, updated_at";
+  function check3(res) {
+    if (res && res.error) throw new Error(res.error.message || "The cloud refused that.");
+    return res ? res.data : null;
+  }
+  function listThreads(sb, fileId) {
+    return sb.from("assistant_threads").select(COLUMNS).eq("file_id", fileId).order("updated_at", { ascending: false }).then(check3);
+  }
+  function loadThread(sb, id) {
+    return sb.from("assistant_threads").select(COLUMNS + ", body").eq("id", id).maybeSingle().then(check3);
+  }
+  function startThread(sb, fileId, title, value2) {
+    return sb.from("assistant_threads").insert({ file_id: fileId, title, body: forCloud(value2) }).select(COLUMNS).single().then(check3);
+  }
+  function saveThread(sb, id, rev, title, value2) {
+    return sb.from("assistant_threads").update({ title, body: forCloud(value2) }).eq("id", id).eq("rev", rev).select(COLUMNS).then(check3).then(function(rows) {
+      if (rows && rows.length) return rows[0];
+      var err = new Error("Someone carried this conversation on meanwhile. Open it again to see what they added.");
+      err.stale = true;
+      throw err;
+    });
+  }
+  function shareThread(sb, id, on) {
+    return sb.from("assistant_threads").update({ shared: !!on }).eq("id", id).select(COLUMNS).single().then(check3);
+  }
+
+  // assets/builder/cloud/convos.js
+  function pullShared(sb, fileCloudId, members, myId) {
+    var names = {};
+    (members || []).forEach(function(m) {
+      if (m && m.user_id) names[m.user_id] = m.email;
+    });
+    return listThreads(sb, fileCloudId).then(function(rows) {
+      return (rows || []).filter(function(r) {
+        return r.shared && r.created_by !== myId;
+      }).map(function(r) {
+        return lineOf(r, names);
+      });
+    });
+  }
+  function lineOf(r, names) {
+    return {
+      id: "c:" + r.id,
+      cloud: r.id,
+      rev: r.rev,
+      title: r.title || "Conversation",
+      updated: Date.parse(r.updated_at) || Date.now(),
+      by: { id: r.created_by, name: (names || {})[r.created_by] || "Someone on this file" },
+      shared: true,
+      remote: true,
+      said: "",
+      changes: 0
+    };
+  }
+  function shareOn(sb, fileCloudId, line2, title, value2) {
+    var made = line2.cloud ? Promise.resolve({ id: line2.cloud, rev: line2.rev }) : startThread(sb, fileCloudId, title, value2);
+    return made.then(function(row) {
+      return shareThread(sb, row.id, true).then(function(r) {
+        return { cloud: r.id, rev: r.rev, shared: true };
+      });
+    });
+  }
+  function shareOff(sb, line2) {
+    if (!line2.cloud) return Promise.resolve({ shared: false });
+    return shareThread(sb, line2.cloud, false).then(function(r) {
+      return { cloud: r.id, rev: r.rev, shared: false };
+    });
+  }
+  function pushSave(sb, line2, title, value2) {
+    return saveThread(sb, line2.cloud, line2.rev, title, value2).then(function(r) {
+      return { rev: r.rev };
+    });
+  }
+  function openShared(sb, cloudId, names) {
+    return loadThread(sb, cloudId).then(function(r) {
+      if (!r) return null;
+      var body = r.body || {};
+      return {
+        thread: Array.isArray(body.thread) ? body.thread : [],
+        msgs: Array.isArray(body.msgs) ? body.msgs : [],
+        rev: r.rev,
+        title: r.title,
+        shared: !!r.shared,
+        by: { id: r.created_by, name: (names || {})[r.created_by] || "Someone on this file" }
+      };
+    });
+  }
+
   // assets/builder/model/instances.js
   var FLAGS = ["name", "hide", "lock"];
   function same3(a, b) {
@@ -14857,15 +14974,102 @@
       var was = asList.filter(function(x) {
         return x.id === id;
       })[0];
-      var line2 = metaOf(plan, { named: asNamed.current, by: was ? was.by : account2 ? { id: account2.id, name: account2.email } : void 0 });
+      var line2 = metaOf(plan, { named: asNamed.current, by: was ? was.by : account2.account ? { id: account2.account.id, name: account2.account.email } : void 0, shared: was ? was.shared : false, cloud: was ? was.cloud : void 0 });
+      if (was && was.rev != null) line2.rev = was.rev;
       asListState[1](function(l) {
         return [Object.assign({ id }, line2)].concat(l.filter(function(x) {
           return x.id !== id;
         }));
       });
-      store.saveThread(meta.id, id, { thread: plan, msgs: asMsgs.current }, line2).catch(function() {
+      var value2 = { thread: plan, msgs: asMsgs.current };
+      store.saveThread(meta.id, id, value2, line2).catch(function() {
       });
+      if (line2.shared && line2.cloud && account2.status === "in") {
+        getClient().then(function(sb) {
+          return pushSave(sb, line2, line2.title, value2);
+        }).then(function(r) {
+          patchLine(id, { rev: r.rev });
+        }, function(err) {
+          if (err && err.stale) takeShared(id, line2.cloud, "Someone carried this conversation on meanwhile; here's where it is now.");
+        });
+      }
     }, [asThread, asBusy]);
+    var patchLine = function(id, patch) {
+      var meta = projectRef.current;
+      asListState[1](function(l) {
+        return l.map(function(x) {
+          return x.id === id ? Object.assign({}, x, patch) : x;
+        });
+      });
+      if (!meta) return;
+      store.listThreads(meta.id).then(function(idx) {
+        var was = idx.list.filter(function(x) {
+          return x.id === id;
+        })[0];
+        if (!was) return null;
+        return store.loadThread(meta.id, id).then(function(v) {
+          return v ? store.saveThread(meta.id, id, v, Object.assign({}, was, patch)) : null;
+        });
+      }).catch(function() {
+      });
+    };
+    var takeShared = function(id, cloudId, message) {
+      var meta = projectRef.current;
+      return getClient().then(function(sb) {
+        return openShared(sb, cloudId, asNames.current);
+      }).then(function(got) {
+        if (!got || !meta || projectRef.current !== meta) return;
+        if (asIdRef.current === id) {
+          var back = revive(got);
+          asLoaded.current = back;
+          setAsThread(back);
+          asMsgs.current = got.msgs;
+        }
+        patchLine(id, { rev: got.rev, shared: got.shared, title: got.title });
+        store.saveThread(meta.id, id, { thread: got.thread, msgs: got.msgs }, Object.assign({}, asList.filter(function(x) {
+          return x.id === id;
+        })[0] || { id, by: got.by }, { rev: got.rev, shared: got.shared, cloud: cloudId, title: got.title, updated: Date.now() })).catch(function() {
+        });
+        if (message) announce(message);
+      }, function() {
+      });
+    };
+    var asNames = useRef({});
+    var pullOthers = function() {
+      var meta = projectRef.current;
+      if (!meta || !meta.cloud || account2.status !== "in" || !account2.account) return Promise.resolve();
+      var cloudId = meta.cloud, myId = account2.account.id;
+      return getClient().then(function(sb) {
+        return listPeople(sb, cloudId).then(function(got) {
+          var names = {};
+          got.members.forEach(function(m) {
+            names[m.user_id] = m.email;
+          });
+          asNames.current = names;
+          return pullShared(sb, cloudId, got.members, myId);
+        });
+      }).then(function(lines) {
+        if (projectRef.current !== meta) return;
+        asListState[1](function(l) {
+          var known = {};
+          l.forEach(function(x) {
+            if (x.cloud) known[x.cloud] = true;
+          });
+          var fresh2 = lines.filter(function(x) {
+            return !known[x.cloud];
+          });
+          return l.filter(function(x) {
+            return !x.remote || lines.some(function(y) {
+              return y.cloud === x.cloud;
+            });
+          }).concat(fresh2);
+        });
+      }, function() {
+      });
+    };
+    useEffect(function() {
+      pullOthers();
+    }, [project ? project.cloud : null, account2.status]);
     var asAbort = useRef(null);
     var patchTurn = function(id, patch) {
       setAsThread(function(t) {
@@ -15347,7 +15551,7 @@
       var system = [contextText(ctx), canvas].filter(Boolean).join("\n\n");
       var tools2 = toolsFor({ look: canLook(), plan: planOn });
       var planned = false;
-      var me = { id: uid(), role: "user", text: text2, by: account2 ? { id: account2.id, name: account2.email } : void 0 };
+      var me = { id: uid(), role: "user", text: text2, by: account2.account ? { id: account2.account.id, name: account2.account.email } : void 0 };
       var base = asBase.current;
       var mine = base && base.page === pageRef.current ? recentEdits(base.doc, docRef.current) : null;
       var told = mine && mine.count ? { id: uid(), role: "edits", count: mine.count, lines: mine.lines } : null;
@@ -15553,12 +15757,70 @@
       /* The list of conversations, or the open one. */
       showList: function(on) {
         asViewState[1](on ? "list" : "chat");
+        if (on) pullOthers();
+      },
+      /* The open conversation, shared with everyone on the file or back to
+         its starter alone. */
+      setShared: function(on) {
+        var meta = projectRef.current, id = asIdRef.current;
+        var line2 = asList.filter(function(x) {
+          return x.id === id;
+        })[0];
+        if (!meta || !meta.cloud || !id || !line2 || account2.status !== "in") return;
+        var cloudId = meta.cloud;
+        store.loadThread(meta.id, id).then(function(v) {
+          return getClient().then(function(sb) {
+            return on ? shareOn(sb, cloudId, line2, line2.title, v || { thread: asThread, msgs: asMsgs.current }) : shareOff(sb, line2);
+          });
+        }).then(function(got) {
+          if (projectRef.current !== meta) return;
+          patchLine(id, got);
+          announce(on ? "Shared with everyone on this file" : "Back to just you");
+        }, function(err) {
+          announce(err && err.message ? err.message : "That didn't go through.");
+        });
       },
       openThread: function(id) {
         var meta = projectRef.current;
         if (!meta || asBusy) return;
         if (id === asIdRef.current) {
           asViewState[1]("chat");
+          return;
+        }
+        var line2 = asList.filter(function(x) {
+          return x.id === id;
+        })[0];
+        if (line2 && line2.remote) {
+          getClient().then(function(sb) {
+            return openShared(sb, line2.cloud, asNames.current);
+          }).then(function(got) {
+            if (!got || projectRef.current !== meta) {
+              announce("That conversation couldn't be opened.");
+              return;
+            }
+            asBase.current = null;
+            asIdRef.current = id;
+            asIdState[1](id);
+            asNamed.current = "";
+            var back = revive(got);
+            asLoaded.current = back;
+            setAsThread(back);
+            asMsgs.current = got.msgs;
+            asViewState[1]("chat");
+            asBaseTick[1](function(n) {
+              return n + 1;
+            });
+            var kept = Object.assign({}, line2, { remote: void 0, rev: got.rev, title: got.title, updated: Date.now() });
+            asListState[1](function(l) {
+              return l.map(function(x) {
+                return x.id === id ? kept : x;
+              });
+            });
+            store.saveThread(meta.id, id, { thread: got.thread, msgs: got.msgs }, kept).catch(function() {
+            });
+          }, function() {
+            announce("That conversation couldn't be opened.");
+          });
           return;
         }
         store.loadThread(meta.id, id).then(function(v) {
@@ -20730,8 +20992,8 @@
     var saveComponent = function() {
       var node = componentSource();
       if (!node || !compDraft) return;
-      var check4 = componentCheck(node);
-      if (check4.issues.some(function(i) {
+      var check5 = componentCheck(node);
+      if (check5.issues.some(function(i) {
         return i.level === "error";
       })) return;
       var name = (compDraft.name || "").trim().slice(0, 60) || "My component";
@@ -20744,7 +21006,7 @@
       var cid = uid();
       setLibrary(function(l) {
         var n = Object.assign({}, l);
-        n.components = [{ id: cid, name, node: kept, tokens: check4.tokens, rev: 1, made: Date.now() }].concat(l.components || []);
+        n.components = [{ id: cid, name, node: kept, tokens: check5.tokens, rev: 1, made: Date.now() }].concat(l.components || []);
         return n;
       });
       if (compDraft.ids.length === 1) {
@@ -20759,7 +21021,7 @@
       var dlg = compRef.current;
       if (dlg && dlg.open) dlg.close();
       setCompDraft(null);
-      announce(name + " is in My components, built on " + check4.tokens.length + (check4.tokens.length === 1 ? " token" : " tokens"));
+      announce(name + " is in My components, built on " + check5.tokens.length + (check5.tokens.length === 1 ? " token" : " tokens"));
     };
     var removeComponent = function(id) {
       setLibrary(function(l) {
@@ -20781,8 +21043,8 @@
           announce("Not yet: " + nameOf(at2.node) + " holds an instance of " + comp.name + ", and a component can't hold itself.");
           return;
         }
-        var check4 = componentCheck(at2.node);
-        var bad = check4.issues.filter(function(i) {
+        var check5 = componentCheck(at2.node);
+        var bad = check5.issues.filter(function(i) {
           return i.level === "error";
         })[0];
         if (bad) {
@@ -20802,7 +21064,7 @@
         setLibrary(function(l) {
           var n = Object.assign({}, l);
           n.components = (l.components || []).map(function(c) {
-            return c.id === comp.id ? Object.assign({}, c, { node: master, prev: was, rev, tokens: check4.tokens }) : c;
+            return c.id === comp.id ? Object.assign({}, c, { node: master, prev: was, rev, tokens: check5.tokens }) : c;
           });
           return n;
         });
@@ -25111,8 +25373,12 @@
                 currentId: asId,
                 openThread: asApi.openThread,
                 removeThread: asApi.removeThread,
-                me: account2,
-                cloudFile: false,
+                me: account2.account,
+                cloudFile: !!(project && project.cloud && account2.status === "in"),
+                shareLine: asList.filter(function(x) {
+                  return x.id === asId;
+                })[0] || null,
+                setShared: asApi.setShared,
                 keep: asApi.keep,
                 undoTurn: asApi.undoTurn,
                 retry: asApi.retry,
@@ -25347,7 +25613,7 @@
   var SETTINGS_MAX = 9e5;
   var DOC_MAX = 49e5;
   var PROJECT_COLUMNS = "id, name, settings, group_id, owner, updated_at";
-  function check3(res) {
+  function check4(res) {
     if (res && res.error) throw new Error(res.error.message || "The cloud refused that.");
     return res ? res.data : null;
   }
@@ -25388,9 +25654,9 @@
   }
   function listCloud(sb) {
     return Promise.all([
-      sb.from("projects").select(PROJECT_COLUMNS).order("updated_at", { ascending: false }).then(check3),
-      sb.from("pages").select("project_id, page_id, version, updated_at").then(check3),
-      sb.from("file_groups").select("id, name, owner, updated_at").then(check3)
+      sb.from("projects").select(PROJECT_COLUMNS).order("updated_at", { ascending: false }).then(check4),
+      sb.from("pages").select("project_id, page_id, version, updated_at").then(check4),
+      sb.from("file_groups").select("id, name, owner, updated_at").then(check4)
     ]).then(function(got) {
       return { projects: got[0] || [], pages: got[1] || [], groups: got[2] || [] };
     });
@@ -25400,11 +25666,11 @@
       return tooBig(docs[p]);
     });
     if (big.length) return Promise.reject(new Error(meta.name + " has a page too large for the cloud; it stays in this browser."));
-    return sb.from("projects").insert({ name: meta.name, settings: settingsFor(meta), group_id: groupCloud || null }).select("id").single().then(check3).then(function(row) {
+    return sb.from("projects").insert({ name: meta.name, settings: settingsFor(meta), group_id: groupCloud || null }).select("id").single().then(check4).then(function(row) {
       var rows = Object.keys(docs).map(function(p) {
         return { project_id: row.id, page_id: p, doc: docs[p] };
       });
-      return sb.from("pages").insert(rows).select("page_id, version").then(check3).then(function(made) {
+      return sb.from("pages").insert(rows).select("page_id, version").then(check4).then(function(made) {
         var versions = {};
         (made || []).forEach(function(r) {
           versions[r.page_id] = r.version;
@@ -25428,38 +25694,38 @@
         return { version: rows && rows[0] ? rows[0].version : 1 };
       });
     }
-    return sb.from("pages").update({ doc: doc2 }).eq("project_id", cloudId).eq("page_id", pageId).eq("version", known).select("version").then(check3).then(function(rows) {
+    return sb.from("pages").update({ doc: doc2 }).eq("project_id", cloudId).eq("page_id", pageId).eq("version", known).select("version").then(check4).then(function(rows) {
       if (rows && rows.length) return { version: rows[0].version };
       return current2();
     });
   }
   function fetchPage(sb, cloudId, pageId) {
-    return sb.from("pages").select("doc, version, updated_at").eq("project_id", cloudId).eq("page_id", pageId).maybeSingle().then(check3);
+    return sb.from("pages").select("doc, version, updated_at").eq("project_id", cloudId).eq("page_id", pageId).maybeSingle().then(check4);
   }
   function fetchPages(sb, cloudId) {
-    return sb.from("pages").select("page_id, doc, version").eq("project_id", cloudId).then(check3).then(function(rows) {
+    return sb.from("pages").select("page_id, doc, version").eq("project_id", cloudId).then(check4).then(function(rows) {
       return rows || [];
     });
   }
   function pushMeta(sb, meta, groupCloud) {
-    return sb.from("projects").update({ name: meta.name, settings: settingsFor(meta), group_id: groupCloud || null }).eq("id", meta.cloud).then(check3);
+    return sb.from("projects").update({ name: meta.name, settings: settingsFor(meta), group_id: groupCloud || null }).eq("id", meta.cloud).then(check4);
   }
   function deletePage(sb, cloudId, pageId) {
-    return sb.from("pages").delete().eq("project_id", cloudId).eq("page_id", pageId).then(check3);
+    return sb.from("pages").delete().eq("project_id", cloudId).eq("page_id", pageId).then(check4);
   }
   function deleteCloudFile(sb, cloudId) {
-    return sb.from("projects").delete().eq("id", cloudId).then(check3);
+    return sb.from("projects").delete().eq("id", cloudId).then(check4);
   }
   function createCloudGroup(sb, name) {
-    return sb.from("file_groups").insert({ name }).select("id").single().then(check3).then(function(row) {
+    return sb.from("file_groups").insert({ name }).select("id").single().then(check4).then(function(row) {
       return row.id;
     });
   }
   function renameCloudGroup(sb, cloudId, name) {
-    return sb.from("file_groups").update({ name }).eq("id", cloudId).then(check3);
+    return sb.from("file_groups").update({ name }).eq("id", cloudId).then(check4);
   }
   function deleteCloudGroup(sb, cloudId) {
-    return sb.from("file_groups").delete().eq("id", cloudId).then(check3);
+    return sb.from("file_groups").delete().eq("id", cloudId).then(check4);
   }
 
   // assets/builder/cloud/mirror.js
