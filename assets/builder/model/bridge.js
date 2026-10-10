@@ -28,7 +28,35 @@ var HELLO = {
   input_schema: { type: "object", properties: { name: { type: "string" }, mark: { type: "string" } }, required: ["name"], additionalProperties: false },
 };
 
+var PLACE_IMAGE = {
+  name: "place_image",
+  description: "Put a picture you made on the canvas, kept with the file like an upload (scaled to fit 1600px). image: a data:image/png, jpeg or webp address, up to 5 MB. Send id for a layer that shows pictures (an Image, a Cover, or a Video's poster), or parent (and at, an index) to add a new Image there. alt: what the picture shows, for people who can't see it. To show the person where a picture is coming while you make it, add an <Image> with insert_jsx, call working_on with its id, then place_image into it.",
+  input_schema: { type: "object", properties: { image: { type: "string" }, id: { type: "string" }, parent: { type: "string" }, at: { type: "integer", minimum: 0 }, alt: { type: "string" } }, required: ["image"], additionalProperties: false },
+};
+
+var WORKING_ON = {
+  name: "working_on",
+  description: "Show the person what you're making before it lands: a few words (like \"Making a picture\") on your cursor at a layer, by id. The layer is held for you until your next step on it, or a minute; other agents wait for it.",
+  input_schema: { type: "object", properties: { id: { type: "string" }, text: { type: "string" } }, required: ["id", "text"], additionalProperties: false },
+};
+
+/* A picture as an agent sends it: 5 MB of PNG, JPEG or WebP, base64 in a
+   data address, is about 7 million characters. */
+var PICTURE_MAX = 7000000;
+
 function isRead(name) { return !!READS[name] || name === "describe" || name === "hello"; }
+
+/* A picture an agent sent, checked before it's opened: { image, alt } or
+   { why } in words the agent can act on. */
+function pictureFrom(input) {
+  var image = String((input && input.image) || "");
+  var alt = String((input && input.alt) || "").replace(/[\u0000-\u001f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
+  if (!image) return { why: "Send image: a data:image/png, jpeg or webp address." };
+  if (image.length > PICTURE_MAX) return { why: "That picture is over 5 MB. Send it smaller: about 1600px across is plenty." };
+  if (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(image)) return { why: "image takes a data:image/png, jpeg or webp address with base64 data. Links to pictures elsewhere aren't fetched." };
+  if (!(input.id || input.parent) || (input.id && input.parent)) return { why: "Send id (a layer that shows pictures) or parent (to add a new Image), one of them." };
+  return { image: image, alt: alt };
+}
 
 /* An agent's own name and mark, as it sent them, kept only if safe to show:
    a short plain name, and a small raster picture as a data address. */
@@ -55,6 +83,8 @@ function targetsOf(call, doc) {
     case "set_style": case "set_prop": case "remove": case "duplicate": case "move": case "wrap": add(input.ids); add(input.parent); break;
     case "set_text": case "replace_jsx": case "rename": add(input.id); break;
     case "insert_jsx": add(input.parent); break;
+    case "place_image": add(input.id); add(input.parent); break;
+    case "working_on": add(input.id); break;
     default: break;
   }
   return out;
@@ -64,7 +94,7 @@ function targetsOf(call, doc) {
    in its panel, and only the reading ones when it may not change things. */
 function bridgeTools(tools, canEdit) {
   var list = tools.filter(function (t) { return !LEFT_OUT[t.name] && (canEdit || READS[t.name]); });
-  if (canEdit) list = list.concat([EDIT_BY_NAME]);
+  if (canEdit) list = list.concat([EDIT_BY_NAME, PLACE_IMAGE, WORKING_ON]);
   return [HELLO].concat(list);
 }
 
@@ -130,10 +160,12 @@ function rowsOf(call, name, doc) {
     case "screenshot": return [{ icon: input.width ? "phone" : "image", title: "Looked at " + (input.id ? who([input.id]) : "the frame"), detail: [input.width ? "at " + input.width + "px" : "", input.dark ? "in dark mode" : ""].filter(Boolean).join(", ") }];
     case "lint": return [{ icon: "check", title: "Ran the checks", detail: "" }];
     case "measure": return [{ icon: "fit", title: "Measured", detail: who([input.a, input.b]) }];
+    case "place_image": return [{ icon: "image", title: input.id ? who([input.id]) : "A new picture", detail: input.id ? "Picture placed" + (input.alt ? ": " + short(input.alt, 40) : "") : "Added " + (input.parent && input.parent !== "root" ? "in " + who([input.parent]) : "to the page") }];
+    case "working_on": return [{ icon: "wand", title: who([input.id]), detail: short(input.text, 60) || "Working on it" }];
     case "describe": return [{ icon: "book", title: "Read the brief", detail: "The system's rules and the tools" }];
     case "hello": return [{ icon: "user", title: "Said hello", detail: "As " + (agentFrom(input).name || "an agent") }];
     default: return [{ icon: "book", title: String((call && call.name) || "A step").replace(/_/g, " ").replace(/^./, function (c) { return c.toUpperCase(); }), detail: "" }];
   }
 }
 
-export { EDIT_BY_NAME, HELLO, agentFrom, allowed, bridgeTools, describeText, isRead, rowsOf, targetsOf };
+export { EDIT_BY_NAME, HELLO, PICTURE_MAX, PLACE_IMAGE, WORKING_ON, agentFrom, allowed, bridgeTools, describeText, isRead, pictureFrom, rowsOf, targetsOf };

@@ -1831,6 +1831,8 @@ try {
     expect(by("Bar").children[2].style.radius === "pill" && !by("Hero").children[2].style.radius, "only the Chip picked is changed");
     expect((await pg.page.evaluate(() => window.__builder.history().past)) === steps + 1, "the edit is one step");
     ok("applied, the edit makes every change it listed and only on the layer picked");
+    /* The labels are drawn just after the change, once the frame is measured. */
+    await pg.page.waitForFunction(() => [...document.querySelectorAll(".bd-edit-on-tag")].some((t) => /added/.test(t.textContent)), null, { timeout: 5000 }).catch(() => {});
     const tags = await pg.page.locator(".bd-edit-on-tag").allTextContents();
     expect(tags.some((t) => /padding xl/.test(t)) && tags.some((t) => /added/.test(t)), `the canvas labels what changed, got ${tags.join(" | ")}`);
     expect(/Applied 6 changes from the edit, 1 removed/.test(await pg.page.locator(".bd-toast").textContent()), "the toast says what was applied");
@@ -1842,7 +1844,7 @@ try {
     await pg.page.close();
   });
 
-  await step("Agents on the canvas: a session from the File menu, steps run on the canvas, listed with undo, paused, asked first, two agents with their own marks and holds, ended", async () => {
+  await step("Agents on the canvas: a session from the File menu, steps run on the canvas, listed with undo, paused, asked first, two agents with their own marks and holds, pictures, ended", async () => {
     /* A stand-in for supabase-js with just what a session uses: a signed-in
        account, the two bridge tables, and a channel that hears new steps.
        push(call) adds a waiting step, as the function would, and resolves
@@ -1860,7 +1862,8 @@ try {
             db.bridge_calls = db.bridge_calls || [];
             db.bridge_calls.push(row);
             const done = new Promise((res) => { row.resolve = res; });
-            setTimeout(() => listeners.forEach((f) => f({ new: row })), 0);
+            /* A step too big for a Realtime message comes without its call. */
+            setTimeout(() => listeners.forEach((f) => f({ new: call.name === "place_image" ? Object.assign({}, row, { call: null }) : row })), 0);
             return done;
           } };
         const from = (table) => {
@@ -1986,6 +1989,29 @@ try {
     expect(mine.every((t) => !/Padding → md/.test(t)) && mine.some((t) => /Padding → xl/.test(t)), `the panel filters to one agent's steps, got ${mine.join(" | ")}`);
     await page.locator(".bd-br-filter button", { hasText: "All" }).click();
     ok("a second agent gets its own link, sends its name and mark, waits for a held layer, and the panel filters by agent");
+
+    /* Pictures: the agent marks where one is coming, then sends it. */
+    const red = await page.evaluate(() => { const c = document.createElement("canvas"); c.width = 40; c.height = 20; const g = c.getContext("2d"); g.fillStyle = "#c33"; g.fillRect(0, 0, 40, 20); return c.toDataURL("image/png"); });
+    const spot = await push({ name: "insert_jsx", input: { parent: heroId, jsx: "<Image />" } }, 1);
+    const imgId = JSON.parse(spot.result).added[0];
+    const working = await push({ name: "working_on", input: { id: imgId, text: "Making a picture" } }, 1);
+    expect(working.ok, `working_on answers, got ${JSON.stringify(working)}`);
+    await page.waitForFunction(() => [...document.querySelectorAll(".bd-agent-tag")].some((t) => /Image agent\s*Making a picture/.test(t.textContent)));
+    const taken = await push({ name: "working_on", input: { id: imgId, text: "Mine" } }, 0);
+    expect(!taken.ok && /Image agent is working on/.test(taken.result), `another agent is told the layer is taken, got ${JSON.stringify(taken)}`);
+    const placed = await push({ name: "place_image", input: { id: imgId, image: red, alt: "A red kite" } }, 1);
+    const img = () => page.evaluate((id) => window.__builder.doc().frames.find((f) => f.name === "Ledger").root.children[0].children.find((c) => c.id === id), imgId);
+    expect(placed.ok && /^data:image\/png;base64,/.test((await img()).props.src) && (await img()).props.alt === "A red kite", `place_image puts the picture and its alt in the Image, through the table when Realtime carries no call, got ${JSON.stringify(placed)}`);
+    const added = await push({ name: "place_image", input: { parent: heroId, image: red } }, 1);
+    const kids = (await hero()).children;
+    expect(added.ok && kids.length === 3 && kids[2].type === "Image" && /^data:image\/png/.test(kids[2].props.src), `place_image with parent adds a new Image, got ${JSON.stringify(added)}`);
+    const wrong = await push({ name: "place_image", input: { id: kids[0].id, image: red } }, 1);
+    expect(!wrong.ok && /doesn't show pictures/.test(wrong.result), `a layer that doesn't show pictures says so, got ${JSON.stringify(wrong)}`);
+    const far = await push({ name: "place_image", input: { id: imgId, image: "https://example.com/kite.png" } }, 1);
+    expect(!far.ok && /aren't fetched/.test(far.result), "a picture elsewhere isn't fetched");
+    const prows = await page.locator(".bd-br-panel .bd-br-a").allTextContents();
+    expect(prows.some((t) => /Picture placed: A red kite/.test(t)) && prows.some((t) => /Making a picture/.test(t)), `the Session panel lists the picture steps, got ${prows.join(" | ")}`);
+    ok("an agent marks where a picture is coming, other agents wait for it, and place_image fills an Image or adds a new one");
     await fileMenu("Agents on this file…");
     await page.locator(".bd-br-agent", { hasText: "Image agent" }).locator(".bd-btn", { hasText: "End" }).click();
     await page.locator(".bd-bridge-dlg .bd-br-foot .bd-btn", { hasText: "Done" }).click();
