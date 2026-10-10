@@ -7794,6 +7794,11 @@ input.bd-folder-name {
   font-size: var(--dt-font-size-sm);
   font-weight: var(--dt-font-weight-semibold, 600);
 }
+/* Live: requests leave the browser and cost, so the badge says so in colour. */
+.bd-as-badge.is-live {
+  color: var(--dt-color-green-500);
+  background: color-mix(in srgb, var(--dt-color-green-500) 16%, transparent);
+}
 .bd-as-badge {
   flex: none;
   padding: 2px var(--dt-space-inset-xs);

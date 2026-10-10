@@ -132,6 +132,14 @@ function AsMenu(p) {
   return e("div", { className: "bd-as-menu", ref: ref },
     e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-menu-btn", "aria-label": "Assistant settings", "aria-expanded": open, "aria-haspopup": "true", onClick: function () { setOpen(!open); } }, e(Icon, { name: "more" })),
     open ? e("div", { className: "bd-as-pop", role: "group", "aria-label": "Assistant settings" },
+      /* Live or practice: live sends requests to the model through the cloud
+         and needs a signed-in person; practice answers from a script here. */
+      e("div", { className: cx("bd-as-mrow", !p.canLive && "is-off") },
+        e("span", { className: "bd-as-mrow-t" }, e("b", { id: "bd-as-m-live" }, "Live assistant"),
+          e("span", null, p.canLive ? "Each request goes to the model through the cloud, on the account's usage. Off, a script in this browser answers, free." : p.cloudOn ? "Sign in to send requests to the model. Until then a script in this browser answers." : "Needs the cloud connected. A script in this browser answers.")),
+        p.cloudOn && !p.canLive ? e("button", { type: "button", className: "bd-as-mbtn bd-as-msign", onClick: function () { setOpen(false); p.signIn(); } }, e(Icon, { name: "user" }), "Sign in")
+          : e(Switch, { value: p.mode === "live", onChange: function (v) { p.setMode(v ? "live" : "practice"); }, labelledBy: "bd-as-m-live", disabled: !p.canLive })),
+      e("hr"),
       row("bd-as-m-plan", "Plan before big changes", "New pages, or more than about 10 layers. Small edits just happen.", p.plans, p.setPlans),
       row("bd-as-m-look", "Look at the canvas", "Sends a picture of what it built so it can check and fix it. Off keeps this file's canvas private.", p.look, p.setLook),
       e("p", { className: "bd-as-mnote" }, "Checks run after every change."),
@@ -189,7 +197,8 @@ function AssistantPanel(p) {
   return e("div", { className: "bd-as" },
     e("div", { className: "bd-as-head" },
       e("span", { className: "bd-as-title" }, "Assistant"),
-      p.mode === "practice" ? e("span", { className: "bd-as-badge", title: "Answers come from a script in this browser; nothing is sent or charged" }, "Practice") : null,
+      p.mode === "practice" ? e("span", { className: "bd-as-badge", title: "Answers come from a script in this browser; nothing is sent or charged" }, "Practice")
+        : e("span", { className: "bd-as-badge is-live", title: "Requests go to the model through the cloud, on the account's usage" }, "Live"),
       e("button", { type: "button", className: cx("bd-act bd-act-ghost", p.view === "list" && "is-on"), title: p.view === "list" ? "Back to the conversation" : "Conversations", "aria-label": "Conversations", "aria-pressed": p.view === "list", onClick: function () { p.showList(p.view !== "list"); } }, e(Icon, { name: "list" })),
       e("button", { type: "button", className: "bd-act bd-act-ghost", title: "New conversation", "aria-label": "New conversation", onClick: p.fresh, disabled: (!p.thread.length && p.view !== "list") || p.busy }, e(Icon, { name: "plus" })),
       e(AsMenu, p)),
