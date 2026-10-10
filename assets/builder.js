@@ -12829,6 +12829,102 @@
     );
   }
 
+  // assets/builder/model/tokens.js
+  function textTokens(s) {
+    return Math.ceil(String(s == null ? "" : s).length / 4);
+  }
+  function pictureTokens(b) {
+    var w = b && (b.width || b.source && b.source.width), h = b && (b.height || b.source && b.source.height);
+    return w && h ? Math.ceil(w * h / 750) : 1600;
+  }
+  function blockTokens(b) {
+    if (!b) return 0;
+    if (typeof b === "string") return textTokens(b);
+    if (b.type === "image") return pictureTokens(b);
+    if (b.type === "text") return textTokens(b.text);
+    if (b.type === "thinking") return textTokens(b.thinking);
+    if (b.type === "tool_use") return textTokens(b.name) + textTokens(JSON.stringify(b.input || {}));
+    if (b.type === "tool_result") return Array.isArray(b.content) ? b.content.reduce(function(n, c) {
+      return n + blockTokens(c);
+    }, 0) : textTokens(b.content);
+    return textTokens(JSON.stringify(b));
+  }
+  function estimateRequest(req) {
+    var n = textTokens(req && req.stable) + textTokens(req && req.system) + textTokens(JSON.stringify(req && req.tools || []));
+    (req && req.messages || []).forEach(function(m) {
+      n += typeof m.content === "string" ? textTokens(m.content) : (m.content || []).reduce(function(a, b) {
+        return a + blockTokens(b);
+      }, 0);
+    });
+    return n;
+  }
+  function estimateReply(content) {
+    return (content || []).reduce(function(n, b) {
+      return n + blockTokens(b);
+    }, 0);
+  }
+  var ZERO = { input: 0, cacheRead: 0, cacheWrite: 0, output: 0, requests: 0, estimated: false };
+  function requestUsage(reported, req, content) {
+    if (reported && (reported.input_tokens != null || reported.output_tokens)) {
+      return {
+        input: reported.input_tokens || 0,
+        cacheRead: reported.cache_read_input_tokens || 0,
+        cacheWrite: reported.cache_creation_input_tokens || 0,
+        output: reported.output_tokens || 0,
+        requests: 1,
+        estimated: false
+      };
+    }
+    return { input: estimateRequest(req), cacheRead: 0, cacheWrite: 0, output: estimateReply(content), requests: 1, estimated: true };
+  }
+  function addUsage(a, b) {
+    a = a || ZERO;
+    b = b || ZERO;
+    return {
+      input: a.input + b.input,
+      cacheRead: a.cacheRead + b.cacheRead,
+      cacheWrite: a.cacheWrite + b.cacheWrite,
+      output: a.output + b.output,
+      requests: a.requests + b.requests,
+      estimated: !!(a.estimated || b.estimated)
+    };
+  }
+  function totalOf(u) {
+    return u ? u.input + u.cacheRead + u.cacheWrite + u.output : 0;
+  }
+  function threadUsage(thread) {
+    var sum2 = null, replies = 0;
+    (thread || []).forEach(function(t) {
+      if (t && t.role === "assistant" && t.usage) {
+        sum2 = addUsage(sum2, t.usage);
+        replies++;
+      }
+    });
+    return sum2 ? Object.assign(sum2, { replies }) : null;
+  }
+  function shortCount(n) {
+    n = Math.max(0, Math.round(n || 0));
+    if (n < 1e3) return String(n);
+    if (n < 1e5) return (Math.round(n / 100) / 10).toFixed(1).replace(/\.0$/, "") + "k";
+    if (n < 1e6) return Math.round(n / 1e3) + "k";
+    return (Math.round(n / 1e5) / 10).toFixed(1).replace(/\.0$/, "") + "M";
+  }
+  function fullCount(n) {
+    return String(Math.max(0, Math.round(n || 0))).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+  function usageLabel(u, live) {
+    var n = totalOf(u) + (live || 0);
+    return (u && u.estimated || live ? "≈ " : "") + shortCount(n) + " tokens";
+  }
+  function usageDetail(u) {
+    if (!u) return "";
+    var parts = ["Sent " + fullCount(u.input + u.cacheRead + u.cacheWrite)];
+    if (u.cacheRead) parts.push(fullCount(u.cacheRead) + " of them from the cache");
+    if (u.cacheWrite) parts.push(fullCount(u.cacheWrite) + " written to the cache");
+    parts.push("wrote back " + fullCount(u.output));
+    return parts.join(", ") + " in " + u.requests + (u.requests === 1 ? " request" : " requests") + (u.estimated ? ". Estimated: about four characters a token." : ".");
+  }
+
   // assets/builder/model/threads.js
   function short5(t, n) {
     var s = String(t || "").replace(/\s+/g, " ").trim();
@@ -12995,6 +13091,25 @@
   }
 
   // assets/builder/app/AssistantPanel.js
+  function turnTokens(t) {
+    if (!t.usage && !t.live) return null;
+    var working = t.status === "working";
+    return e(
+      "p",
+      { className: "bd-as-tok", title: usageDetail(t.usage) || "An estimate of what's being sent" },
+      e(Icon, { name: "bolt" }),
+      usageLabel(t.usage, working ? t.live : 0) + (working ? " so far" : "")
+    );
+  }
+  function threadTokens(thread) {
+    var u = threadUsage(thread);
+    if (!u) return null;
+    return e(
+      "p",
+      { className: "bd-as-total", title: usageDetail(u) },
+      "This conversation: " + (u.estimated ? "≈ " : "") + shortCount(totalOf(u)) + " tokens over " + u.replies + (u.replies === 1 ? " reply" : " replies") + (u.cacheRead ? ", " + Math.round(u.cacheRead / Math.max(1, totalOf(u)) * 100) + "% from the cache" : "")
+    );
+  }
   function inline(text2) {
     return mdInline(text2).map(function(r, i) {
       if (r.t === "b") return e("strong", { key: i }, r.text);
@@ -13500,9 +13615,11 @@
             askCard(p, t),
             variantsCard(p, t),
             t.error ? e("p", { className: "bd-as-text bd-as-err" }, t.error) : null,
-            changeCard(cp, t)
+            changeCard(cp, t),
+            turnTokens(t)
           );
-        })
+        }),
+        threadTokens(p.thread)
       ),
       p.edits && p.view !== "list" ? e(
         "div",
@@ -14028,6 +14145,7 @@
     return {
       add: function(ev) {
         if (!ev || typeof ev.type !== "string") return;
+        if (ev.type === "message_start" && ev.message && ev.message.usage) usage = Object.assign({}, usage || {}, ev.message.usage);
         if (ev.type === "content_block_start") {
           var b = JSON.parse(JSON.stringify(ev.content_block || {}));
           if (b.type === "tool_use") {
@@ -14059,7 +14177,7 @@
           }
         } else if (ev.type === "message_delta") {
           if (ev.delta && ev.delta.stop_reason) stop = ev.delta.stop_reason;
-          if (ev.usage) usage = ev.usage;
+          if (ev.usage) usage = Object.assign({}, usage || {}, ev.usage);
         } else if (ev.type === "error") {
           error = ev.error && ev.error.message || "The assistant stopped.";
         }
@@ -16927,7 +17045,9 @@
       var round = function(n) {
         var c = collector();
         var shown3 = "";
-        return sendAssistant({ stable: systemPrompt(), messages: asMsgs.current, tools: tools2, effort: asEffortState[0] }, function(ev) {
+        var reqNow = { stable: systemPrompt(), messages: asMsgs.current, tools: tools2, effort: asEffortState[0] };
+        patchTurn(turn.id, { live: estimateRequest(reqNow) });
+        return sendAssistant(reqNow, function(ev) {
           c.add(ev);
           if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") {
             shown3 += ev.delta.text;
@@ -16938,6 +17058,10 @@
           }
         }, { script, signal: abort && abort.signal, mode: asModeState[0] }).then(function() {
           var r = c.result();
+          var used2 = requestUsage(r.usage && (r.usage.input_tokens != null || r.usage.output_tokens) ? r.usage : null, reqNow, r.content);
+          patchTurn(turn.id, function(x) {
+            return { usage: addUsage(x.usage, used2), live: 0 };
+          });
           asMsgs.current = asMsgs.current.concat([{ role: "assistant", content: r.content.length ? r.content : [{ type: "text", text: r.text || "…" }] }]);
           if (r.error) throw new Error(r.error);
           if (r.stop === "refusal") throw new Error("The model declined that request.");
@@ -17007,6 +17131,7 @@
         });
       };
       var finish = function() {
+        patchTurn(turn.id, { live: 0 });
         patchTurn(turn.id, function(x) {
           return x.steps.some(function(s) {
             return s.running;

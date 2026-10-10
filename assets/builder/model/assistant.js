@@ -34,6 +34,9 @@ function collector() {
   return {
     add: function (ev) {
       if (!ev || typeof ev.type !== "string") return;
+      /* What the request used: what was sent comes first, what it wrote
+         back with the end; message_delta's counts are the final ones. */
+      if (ev.type === "message_start" && ev.message && ev.message.usage) usage = Object.assign({}, usage || {}, ev.message.usage);
       if (ev.type === "content_block_start") {
         var b = JSON.parse(JSON.stringify(ev.content_block || {}));
         if (b.type === "tool_use") { b.json = ""; b.input = null; }
@@ -55,7 +58,7 @@ function collector() {
         }
       } else if (ev.type === "message_delta") {
         if (ev.delta && ev.delta.stop_reason) stop = ev.delta.stop_reason;
-        if (ev.usage) usage = ev.usage;
+        if (ev.usage) usage = Object.assign({}, usage || {}, ev.usage);
       } else if (ev.type === "error") {
         error = (ev.error && ev.error.message) || "The assistant stopped.";
       }
