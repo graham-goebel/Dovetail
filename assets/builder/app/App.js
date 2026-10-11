@@ -2613,6 +2613,14 @@ function App(props) {
     }
     if (dr.payload.kind === "new") { add(dr.payload.type, { parent: hit.parent, index: hit.index, frame: fid, free: hit.free }, dr.payload.props, dr.payload.extra); return; }
     if (dr.payload.kind === "local") { addLocal(dr.payload.comp, { parent: hit.parent, index: hit.index, frame: fid, free: hit.free }); return; }
+    /* Dragged in Layers with others selected: they all go, in layer order. */
+    if (hit.where === "list" && fid === docRef.current.active && selRef.current.length > 1 && selRef.current.indexOf(dr.payload.id) >= 0) {
+      var many = selRef.current.slice();
+      if (change(function (d) { return ops.moveMany(d, many, hit.parent, hit.index); }, "Moved " + many.length + " layers")) {
+        if (hit.parent !== "root") setCollapsed(function (c) { var n = Object.assign({}, c); delete n[hit.parent]; return n; });
+      }
+      return;
+    }
     /* Moved on its frame's canvas: it keeps its place in the list and takes
        the new position; from inside a stack, it comes out onto the canvas. */
     if (hit.free) {
@@ -2957,7 +2965,7 @@ function App(props) {
           }),
           dragMove: on(function (fid, x, y, shift) { if (!dragRef.current) return; var p = toPage(fid, x, y); dragMoveRef.current(p.x, p.y, shift); }),
           dragEnd: function (commitIt) { dragEndRef.current(commitIt); },
-          paste: function (cd) { return takePasteRef.current(cd); },
+          paste: function (cd) { return pasteEvent(cd); },
           frameDrag: on(function (fid, phase, x, y, dup) { var p = toPage(fid, x, y); return frameDragRef.current(fid, phase, p.x, p.y, dup); }),
           gesture: on(function (fid, phase, id, x, y, kind) { var p = toPage(fid, x, y); return gestureRef.current(phase, id, p.x, p.y, kind, fid); }),
           wheel: on(function (fid, x, y, dx, dy, zoom, mode) { var p = toPage(fid, x, y); wheelRef.current(p.x, p.y, dx, dy, zoom, mode); }),
@@ -3741,7 +3749,14 @@ function App(props) {
     group: function () {
       var ids = selRef.current.slice();
       if (!ids.length) return;
-      if (!change(function (d) { return ops.group(d, ids); }, "Grouped " + ids.length + (ids.length === 1 ? " item" : " items"))) announce("Only items side by side in the same parent can be grouped");
+      /* Free layers keep where they stand: the Group is sized to their
+         drawn boxes, in free steps. */
+      var a = api(), unit = pxMap["padding|2xs"] || 4, d0 = docRef.current, boxes = {};
+      if (a && a.rect) ids.forEach(function (id) {
+        var at = locate(d0, id), r = at && isFree(at.node.style) ? a.rect(id) : null;
+        if (r) boxes[id] = { x: at.node.style.x, y: at.node.style.y, w: Math.max(1, Math.round(r.width / unit)), h: Math.max(1, Math.round(r.height / unit)) };
+      });
+      if (!change(function (d) { return ops.group(d, ids, boxes); }, "Grouped " + ids.length + (ids.length === 1 ? " layer" : " layers"))) announce("Those can't be grouped here: a frame's fixed parts stay where they are");
     },
     /* Auto layout on: what a Group holds, or what's on a freeform frame's
        page, laid out in a row or a column in the order it stands. The
@@ -3814,8 +3829,9 @@ function App(props) {
     freeLayout: function (id) {
       var d = docRef.current, fr = active(d);
       if (id === undefined) id = selRef.current.length === 1 ? selRef.current[0] : selRef.current.length ? null : fr.id;
-      if (!id || fr.mode === "structured" || fr.bare) return false;
+      if (!id || fr.bare) return false;
       var onFrame = id === fr.id;
+      if (!onFrame && fr.mode === "structured") return false;
       var at = onFrame ? null : locate(d, id);
       if (!onFrame && (!at || at.node.type !== "Group" || at.node.style.bool)) return false;
       if (!(onFrame ? frameFlows(fr) : groupFlows(at.node))) return false;
@@ -3831,7 +3847,7 @@ function App(props) {
         var f = active(dd);
         var holder = onFrame ? f.root : (locate(dd, id) || {}).node;
         if (!holder) return null;
-        if (onFrame) delete f.flow;
+        if (onFrame) { delete f.flow; delete f.gap; f.mode = "free"; }
         else if (holder.children.length) { holder.style.fw = Math.max(1, st(gr.width)); holder.style.fh = Math.max(1, st(gr.height)); }
         holder.children.forEach(function (c) {
           /* A band (a Section, a header) stays in the page's flow. */
@@ -3956,7 +3972,7 @@ function App(props) {
     /* Copy and paste style come before the plain copy and paste. */
     if (mod && ev.altKey && ev.code === "KeyC") { copyStyle(); return true; }
     if (mod && ev.altKey && ev.code === "KeyV") { pasteStyle(); return true; }
-    if (mod && key === "v" && !ev.shiftKey && !ev.altKey) return false;
+    if (mod && key === "v" && !ev.shiftKey && !ev.altKey) { pasteSoon(); return false; }
     if (ev.key === "F2") { actions.rename(); return true; }
     if (!selRef.current.length) return false;
     if (mod && key === "g") { (ev.shiftKey ? actions.ungroup : actions.group)(); return true; }
@@ -4130,34 +4146,6 @@ function App(props) {
       [].concat(ids).forEach(function (id) { var at = locate(d, id); if (!at) return; any = true; if (value === undefined || value === "") delete at.node.style[key]; else at.node.style[key] = value; });
       return any ? undefined : null;
     });
-  };
-  /* Freeform to structured: what sat loose on the page goes into a Group,
-     top to bottom, and keeps the system's colours only. */
-  var setMode = function (mode) {
-    change(function (d) {
-      var f = active(d);
-      if ((f.mode || "free") === mode) return null;
-      f.mode = mode;
-      if (mode !== "structured") return undefined;
-      delete f.canvas;
-      var loose = [];
-      var kept = [];
-      f.root.children.forEach(function (c) { if (joinsFlow(c.type) || isContainer(c.type)) kept.push(c); else loose.push(c); });
-      loose.sort(function (a, b) { return ((a.style.y || 0) - (b.style.y || 0)) || ((a.style.x || 0) - (b.style.x || 0)); });
-      (function unfree(n) { if (n.style) { delete n.style.x; delete n.style.y; delete n.style.ch; delete n.style.cv; delete n.style.fill; delete n.style.color; delete n.style.alpha; delete n.style.fw; delete n.style.fh; delete n.style.rot; delete n.style.flipH; delete n.style.flipV; } (n.children || []).forEach(unfree); })(f.root);
-      if (loose.length) { var g = make("Group", { direction: "column", gap: "md" }, loose, { padding: "lg" }); kept.push(g); }
-      f.root.children = kept;
-      if (!f.gap) f.gap = "block";
-      autoLayout(f.root);
-      return [];
-    }, mode === "structured" ? "Structured: everything is in Groups now" : "Freeform: place things anywhere");
-    if (mode !== "structured") return;
-    /* The auto layout is the point of it: it comes into view, on the one
-       Group everything went into when there is one. */
-    var f = active(docRef.current);
-    var g = f.root.children.length === 1 && f.root.children[0].type === "Group" ? f.root.children[0] : null;
-    if (g) { select([g.id]); setFocusSec("flex"); }
-    else setFocusSec("frame-auto");
   };
   var setName = function (id, name) { change(function (d) { var at = locate(d, id); if (!at) return null; if (name) at.node.name = name; else delete at.node.name; return undefined; }); };
 
@@ -4454,12 +4442,38 @@ function App(props) {
     return false;
   };
   var takePasteRef = useRef(takePaste); takePasteRef.current = takePaste;
+  /* Ctrl+V lets the browser send its paste event, which brings what the
+     system clipboard holds. Some browsers send none when nothing editable
+     has focus (a layer row, the canvas, Safari), so if none comes, the
+     builder pastes its own clipboard, or reads the system one where it may. */
+  var pasteWait = useRef({ timer: 0, done: 0 });
+  var pasteSoon = function () {
+    clearTimeout(pasteWait.current.timer);
+    pasteWait.current.timer = setTimeout(function () {
+      pasteWait.current.timer = 0;
+      pasteWait.current.done = Date.now();
+      if (clip.current) { pasteNodes(clip.current.nodes); return; }
+      if (navigator.clipboard && navigator.clipboard.readText) navigator.clipboard.readText().then(function (text) {
+        var data = null;
+        try { data = JSON.parse(text); } catch (err) { data = null; }
+        if (data && data.kind === CLIP_MARK && Array.isArray(data.nodes)) pasteNodes(data.nodes);
+      }, function () { /* not allowed here: nothing to paste */ });
+    }, 120);
+  };
+  /* A paste event, here or from a frame: the fallback stands down, or, if
+     it already ran, this one does. True when it's handled. */
+  var pasteEvent = function (cd) {
+    var w = pasteWait.current;
+    if (w.timer) { clearTimeout(w.timer); w.timer = 0; }
+    else if (Date.now() - w.done < 1000) return true;
+    return takePasteRef.current(cd);
+  };
   useEffect(function () {
     var onPaste = function (ev) {
       var t = ev.target;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
       if (!(mountEl.contains(t) || t === document.body)) return;
-      if (takePasteRef.current(ev.clipboardData)) ev.preventDefault();
+      if (pasteEvent(ev.clipboardData)) ev.preventDefault();
     };
     document.addEventListener("paste", onPaste);
     return function () { document.removeEventListener("paste", onPaste); };
@@ -6082,6 +6096,21 @@ function App(props) {
 
   /* Direction, wrap, a 3 × 3 alignment pad and the gap, for anything that
      lays its children out with flex. */
+  /* Auto layout's controls, one way for a frame and a container: the
+     alignment grid beside the direction and wrap, then the spacing fields
+     in pairs, then the two spreads side by side. */
+  var flexRows = function (matrix, head, fields, toggles) {
+    return [
+      head.length || matrix ? e("div", { key: "top", className: matrix ? "bd-flex-top" : "bd-flex-head" },
+        matrix, matrix ? e("div", { className: "bd-flex-top-side" }, head) : head) : null,
+      fields.length ? e("div", { key: "fields", className: "bd-flex-pair" }, fields) : null,
+      toggles.length ? e("div", { key: "toggles", className: "bd-flex-pair" }, toggles) : null,
+    ];
+  };
+  var wrapButton = function (on, onClick) {
+    return e("button", { key: "wrap", type: "button", className: "bd-btn bd-btn-sm bd-flex-wrap", "aria-pressed": String(!!on), title: on ? "Wraps onto new lines" : "Stays on one line", "aria-label": "Wrap onto new lines", onClick: onClick },
+      e(Icon, { name: "wrapLines" }), "Wrap");
+  };
   var flexSection = function (nodes, meta) {
     var first = nodes[0];
     var ids = nodes.map(function (n) { return n.id; });
@@ -6100,8 +6129,7 @@ function App(props) {
     var head = [];
     if (spec("direction")) head.push(e(Segmented, { key: "dir", label: "Direction", value: val("direction"), onChange: function (v) { setProp(ids, "direction", v); },
       options: [{ value: "row", label: "Row", icon: "row" }, { value: "column", label: "Column", icon: "column" }] }));
-    if (spec("wrap")) head.push(e("button", { key: "wrap", type: "button", className: "bd-act", "aria-pressed": String(!!val("wrap")), title: val("wrap") ? "Wraps onto new lines" : "Stays on one line", "aria-label": "Wrap onto new lines",
-      onClick: function () { setProp(ids, "wrap", !val("wrap")); } }, e(Icon, { name: "wrapLines" })));
+    if (spec("wrap")) head.push(wrapButton(val("wrap"), function () { setProp(ids, "wrap", !val("wrap")); }));
     var side = [];
     if (gap) side.push(e(Dropdown, { key: "gap", label: "Gap", prefix: "Gap", value: val("gap"), className: "bd-dd-field", narrow: true,
       options: gap.options.map(function (o) { return { value: o, label: o === "none" ? "None" : o, hint: first.type === "Group" && o !== "none" ? (dir === "row" ? "--dt-space-inline-" : "--dt-space-stack-") + o : undefined }; }),
@@ -6113,12 +6141,8 @@ function App(props) {
     var rest = meta.props.filter(function (p) { return (p.tab || "content") === "layout" && ["direction", "wrap", "gap"].indexOf(p.name) < 0 && !(pad && (p.name === "align" || p.name === "justify")); })
       .map(function (p) { return propControl(p, nodes); }).filter(Boolean);
     if (!head.length && !pad && !side.length && !rest.length) return null;
-    return [
-      head.length ? e("div", { key: "head", className: "bd-flex-head" }, head) : null,
-      pad || side.length ? e("div", { key: "pad", className: "bd-flex-grid" },
-        pad ? e(AlignMatrix, { dir: dir, align: a, justify: j, onChange: function (na, nj) { setProps(ids, { align: na, justify: nj }); } }) : null,
-        side.length ? e("div", { className: "bd-flex-side" }, side) : null) : null,
-    ].concat(rest);
+    var matrix = pad ? e(AlignMatrix, { key: "mx", dir: dir, align: a, justify: j, onChange: function (na, nj) { setProps(ids, { align: na, justify: nj }); } }) : null;
+    return flexRows(matrix, head, side.filter(function (x) { return x.key === "gap"; }), side.filter(function (x) { return x.key !== "gap"; })).concat(rest);
   };
 
   var libPicks = library.images.map(function (it) { return Object.assign({ kind: "Image" }, it); })
@@ -6619,30 +6643,29 @@ function App(props) {
     var a = fl.align || "stretch", j = fl.justify || "flex-start";
     /* A structured frame always lays out its page; a freeform one does
        when it's turned on. */
-    var free = frame.mode !== "structured" && !frame.bare;
+    /* Every frame turns its auto layout on and off with the one button; a
+       frame made with it on (once called structured) turns it off too, and
+       is then free to place things anywhere. */
+    var free = !frame.bare;
     var on = frameFlows(frame);
     var toggle = free ? autoButton(on, function () { if (on) actions.freeLayout(frame.id); else actions.autoLayout(frame.id); }, frame.name) : null;
     if (free && !on) return sec("frame-auto", "Auto layout", null, toggle);
-    return sec("frame-auto", "Auto layout", [
-      e("div", { key: "head", className: "bd-flex-head" },
-        e(Segmented, { label: "Direction", value: fdir, onChange: function (v) { if (v) setFlow({ direction: v }, frame.name + " runs in a " + v); },
+    return sec("frame-auto", "Auto layout", flexRows(
+      e(AlignMatrix, { key: "mx", dir: fdir, align: a, justify: j, onChange: function (na, nj) { setFlow({ align: na, justify: nj }); } }),
+      [e(Segmented, { key: "dir", label: "Direction", value: fdir, onChange: function (v) { if (v) setFlow({ direction: v }, frame.name + " runs in a " + v); },
           options: [{ value: "row", label: "Row", icon: "row" }, { value: "column", label: "Column", icon: "column" }] }),
-        e("button", { type: "button", className: "bd-act", "aria-pressed": String(!!fl.wrap), title: fl.wrap ? "Wraps onto new lines" : "Stays on one line", "aria-label": "Wrap onto new lines",
-          onClick: function () { setFlow({ wrap: fl.wrap ? undefined : true }); } }, e(Icon, { name: "wrapLines" }))),
-      e("div", { key: "pad", className: "bd-flex-grid" },
-        e(AlignMatrix, { dir: fdir, align: a, justify: j, onChange: function (na, nj) { setFlow({ align: na, justify: nj }); } }),
-        e("div", { className: "bd-flex-side" },
-          e(Dropdown, { label: "Gap", prefix: "Gap", value: gapNow, className: "bd-dd-field", narrow: true,
-            options: gapSpec.options.map(function (o) { return { value: o, label: o === "none" ? "None" : o, hint: o === "none" ? undefined : DATA.rootGaps.indexOf(o) >= 0 ? "--dt-layout-" + (fdir === "row" ? "inline" : "stack") + "-" + o : (fdir === "row" ? "--dt-space-inline-" : "--dt-space-stack-") + o }; }),
-            onChange: function (v) { setFlow({ gap: v === "none" ? undefined : v }); } }),
-          e(Dropdown, { label: "Padding", prefix: "Padding", value: fl.padding || "", className: "bd-dd-field", narrow: true,
-            options: [{ value: "", label: "None" }].concat(DATA.tokens.padding.options.map(function (o) { return { value: o.value, label: o.value, hint: o.tokens[0] }; })),
-            onChange: function (v) { setFlow({ padding: v || undefined }); } }),
-          e("button", { type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(a === "stretch"), title: "Children fill the cross axis",
-            onClick: function () { setFlow({ align: a === "stretch" ? "flex-start" : "stretch" }); } }, e(Icon, { name: "alignStretch" }), "Stretch"),
-          e("button", { type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(j === "space-between"), title: "Spread children along the main axis",
-            onClick: function () { setFlow({ justify: j === "space-between" ? "flex-start" : "space-between" }); } }, e(Icon, { name: "justifyBetween" }), "Space between"))),
-    ], toggle);
+        wrapButton(fl.wrap, function () { setFlow({ wrap: fl.wrap ? undefined : true }); })],
+      [e(Dropdown, { key: "gap", label: "Gap", prefix: "Gap", value: gapNow, className: "bd-dd-field", narrow: true,
+          options: gapSpec.options.map(function (o) { return { value: o, label: o === "none" ? "None" : o, hint: o === "none" ? undefined : DATA.rootGaps.indexOf(o) >= 0 ? "--dt-layout-" + (fdir === "row" ? "inline" : "stack") + "-" + o : (fdir === "row" ? "--dt-space-inline-" : "--dt-space-stack-") + o }; }),
+          onChange: function (v) { setFlow({ gap: v === "none" ? undefined : v }); } }),
+        e(Dropdown, { key: "padding", label: "Padding", prefix: "Padding", value: fl.padding || "", className: "bd-dd-field", narrow: true,
+          options: [{ value: "", label: "None" }].concat(DATA.tokens.padding.options.map(function (o) { return { value: o.value, label: o.value, hint: o.tokens[0] }; })),
+          onChange: function (v) { setFlow({ padding: v || undefined }); } })],
+      [e("button", { key: "stretch", type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(a === "stretch"), title: "Children fill the cross axis",
+          onClick: function () { setFlow({ align: a === "stretch" ? "flex-start" : "stretch" }); } }, e(Icon, { name: "alignStretch" }), "Stretch"),
+        e("button", { key: "between", type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(j === "space-between"), title: "Spread children along the main axis",
+          onClick: function () { setFlow({ justify: j === "space-between" ? "flex-start" : "space-between" }); } }, e(Icon, { name: "justifyBetween" }), "Space between")]
+    ), toggle);
   };
   /* What spills past the frame's edges: clipped, or scrolled one way. A
      frame that hugs its content grows to fit, so neither applies. */
@@ -6701,9 +6724,7 @@ function App(props) {
         e(Dropdown, { key: "resize", label: "Resizing", prefix: "Resizing", value: frame.hug ? "hug" : "fixed", className: "bd-dd-field",
           onChange: function (v) { change(function (d) { var f = active(d); f.hug = v === "hug"; if (!f.hug) f.height = side(Math.round(b.h), MAX_HEIGHT, f.height); return undefined; }, v === "hug" ? frame.name + " hugs its contents" : frame.name + " has a fixed height"); },
           options: [{ value: "fixed", label: "Fixed width and height", short: "Fixed", hint: "Stays the size you set, like a device screen", icon: "fit" }, { value: "hug", label: "Hug contents", short: "Hug contents", hint: "Fixed width; the height grows with what's in it", icon: "column" }] })])];
-    var body = place.concat([sec("frame-mode", "Kind", e(Field, { key: "mode", id: "bd-fr-kind", label: "Frame kind", hint: frame.mode === "structured" ? "Everything sits in auto-layout Groups, in the flow, with tokens only." : "Place things anywhere, in any colour." },
-          e(Segmented, { labelledBy: "bd-fr-kind", wide: true, value: frame.mode === "structured" ? "structured" : "free", onChange: function (v) { if (v) setMode(v); },
-            options: [{ value: "free", label: "Freeform" }, { value: "structured", label: "Structured" }] }))),
+    var body = place.concat([
         frame.typeScale === "social" ? frameRatio() : null,
         /* How the frame lays out what's in it comes before how it looks. */
         frameAuto()].concat(look, [

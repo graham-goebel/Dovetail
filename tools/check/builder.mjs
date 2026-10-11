@@ -326,7 +326,7 @@ async function assetKind(page, kind) {
 /* A container card, pressed: a new frame beside the others. */
 async function addContainer(page, name) {
   await assetKind(page, "containers");
-  await page.locator(".bd-container-card", { hasText: name }).click();
+  await page.locator(".bd-container-card").filter({ has: page.locator(".bd-kind-name", { hasText: new RegExp("^" + name + "$") }) }).click();
 }
 /* Undo and redo are keys now, not buttons; the builder says how many steps wait. */
 const steps = (page) => page.evaluate(() => window.__builder.history());
@@ -1226,8 +1226,8 @@ try {
 
     await assetKind(page, "containers");
     const cards = await page.locator(".bd-container-card .bd-kind-name").allTextContents();
-    expect(cards.slice(0, 3).join(",") === "Freeform frame,Structured frame,Tall frame" && cards.length >= 3 + 6 && await page.locator("dialog[open]").count() === 0, `Containers in Assets offers a freeform, a structured and a tall frame, then the screen sizes, got ${cards}`);
-    await page.locator(".bd-container-card", { hasText: "Structured frame" }).click();
+    expect(cards.slice(0, 3).join(",") === "Frame,Auto layout frame,Tall frame" && cards.length >= 3 + 6 && await page.locator("dialog[open]").count() === 0, `Containers in Assets offers a frame, an auto layout frame and a tall frame, then the screen sizes, got ${cards}`);
+    await page.locator(".bd-container-card", { hasText: "Auto layout frame" }).click();
     let f = await lastFrame();
     expect(f.mode === "structured" && f.root.children[0].type === "Group", `a structured page starts with a Group, got ${JSON.stringify(f.root.children.map((c) => c.type))}`);
     await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
@@ -1614,14 +1614,14 @@ try {
     expect(!(await poll(async () => (await saved()).frames[0].typeScale, (v) => !v)), "Type scale back to Page takes the social sizes off");
     ok(`a frame lists no components; Social post is 1080 × 1350 with data-type-scale="social", its headline ${before}px to ${after}px, and Type scale sets it back`);
 
-    await addContainer(page, "Freeform frame");
+    await addContainer(page, "Frame");
     await poll(async () => (await saved()).frames.length, (n) => n === 2);
     const w = page.locator("input[aria-label='Frame width']");
     await w.fill("40");
     await w.press("Enter");
     const tiny = await poll(async () => (await saved()).frames[1].width, (v) => v === 40);
     expect(tiny === 40, `a freeform frame takes any width, got ${tiny}`);
-    await page.locator(".bd-container-card", { hasText: "Structured frame" }).click();
+    await page.locator(".bd-container-card", { hasText: "Auto layout frame" }).click();
     const page3 = await poll(async () => (await saved()).frames[2], Boolean);
     const g = page3.root.children[0];
     expect(page3.gap && g.type === "Group" && g.props.direction === "column" && g.props.gap && g.style.w === "default" && g.style.paddingLeft === "gutter" && g.style.paddingRight === "gutter", `a structured page and its Group get auto layout in the page column, got gap ${page3.gap}, ${JSON.stringify(g.props)} ${JSON.stringify(g.style)}`);
@@ -2784,7 +2784,7 @@ try {
     await page.close();
   });
 
-  await step("Inspector head: one menu beside the name, a head that stays put, and Structured opening its layout", async () => {
+  await step("Inspector head: one menu beside the name, a head that stays put, and no frame kind: the Auto layout button instead", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
@@ -2792,11 +2792,18 @@ try {
     await page.locator('.bd-tile[data-type="Heading"]').click();
     await frame().waitForSelector('[data-bf-type="Heading"]');
     await page.locator(".bd-flabel-btn").first().click();
-    await page.waitForFunction(() => document.querySelector('.bd-right [aria-labelledby="bd-fr-kind"]'));
-    await page.locator('.bd-right [aria-labelledby="bd-fr-kind"] .bd-seg-btn', { hasText: "Structured" }).click();
-    await page.waitForFunction(() => /Group/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect(await page.locator(".bd-right .bd-sec-h", { hasText: /Auto layout|Arrangement/ }).count() === 1, "Structured selects the Group everything went into, with its auto layout");
-    ok("switching the frame to Structured selects the Group its Heading went into, auto layout in view");
+    await page.waitForSelector('.bd-right .bd-sec[data-sec="frame-auto"]');
+    expect(await page.locator('.bd-right [aria-labelledby="bd-fr-kind"]').count() === 0 && await page.locator('.bd-right .bd-sec[data-sec="frame-mode"]').count() === 0, "there's no Freeform or Structured choice");
+    const autoBtn = page.locator('.bd-right .bd-sec[data-sec="frame-auto"]').locator(".bd-auto-on, .bd-auto-off");
+    const wasOn = await page.locator('.bd-right .bd-sec[data-sec="frame-auto"] .bd-auto-off').count() === 1;
+    await autoBtn.click();
+    await page.waitForFunction((was) => { const f = window.__builder.doc().frames[0]; const flows = f.mode === "structured" || (!!f.flow && !f.root.children.some((c) => typeof (c.style || {}).x === "number")); return flows !== was; }, wasOn);
+    await autoBtn.click();
+    await page.waitForFunction((was) => { const f = window.__builder.doc().frames[0]; const flows = f.mode === "structured" || (!!f.flow && !f.root.children.some((c) => typeof (c.style || {}).x === "number")); return flows === was; }, wasOn);
+    ok("no frame kind to choose: the frame's Auto layout button turns its layout off and on");
+    const headingId = await page.evaluate(() => { let hit = null; (function w(n) { (n.children || []).forEach((c) => { if (!hit && c.type === "Heading") hit = c.id; w(c); }); })(window.__builder.doc().frames[0].root); return hit; });
+    await page.evaluate((id) => window.__builder.select([id]), headingId);
+    await page.waitForFunction(() => /Heading/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     expect(await page.locator(".bd-inspect-head .bd-layer-menu").count() === 1 && await page.locator(".bd-inspect-head .bd-head-actions > :not(.bd-about)").count() === 1, "the head has one menu beside the name");
     const stuck = await page.evaluate(() => { const r = document.querySelector(".bd-right"), h = document.querySelector(".bd-inspect-head"); r.scrollTop = 400; return { position: getComputedStyle(h).position, scrolled: r.scrollTop, top: Math.round(h.getBoundingClientRect().top - r.getBoundingClientRect().top) }; });
     expect(stuck.position === "sticky" && (stuck.scrolled === 0 || Math.abs(stuck.top) <= 2), `the head stays at the top of the panel while it scrolls, got ${JSON.stringify(stuck)}`);
@@ -2820,13 +2827,15 @@ try {
     }, { row, on });
     let at;
     const box = async (sel) => { const b = await page.locator(sel).boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; };
-    /* A segmented row: the frame's kind. */
+    /* A segmented row: the frame's scroll. */
     await page.locator(".bd-flabel-btn").first().click();
-    const kind = '.bd-right [aria-labelledby="bd-fr-kind"]';
+    const kind = '.bd-right [aria-labelledby="bd-fr-scroll"]';
     await page.waitForSelector(kind);
+    await page.locator(kind).scrollIntoViewIfNeeded();
+    await page.waitForTimeout(200);
     at = await under(kind, ".bd-seg-btn[aria-pressed=true]");
     expect(at && at.dx <= 1 && at.dw <= 1 && at.sliding, `the segmented thumb covers the pressed choice, got ${JSON.stringify(at)}`);
-    const before = await page.evaluate(() => window.__builder.doc().frames[0].mode || "free");
+    const before = await page.evaluate(() => window.__builder.doc().frames[0].scroll || "none");
     const pressed = await page.locator(kind + " .bd-seg-btn[aria-pressed=true]").textContent();
     const other = await page.locator(kind + " .bd-seg-btn[aria-pressed=false]").first();
     const a = await box(kind + " .bd-seg-btn[aria-pressed=true]"), bb = await other.boundingBox();
@@ -2835,8 +2844,8 @@ try {
     await page.mouse.move(bb.x + bb.width / 2, a.y, { steps: 8 });
     await page.mouse.up();
     await page.waitForFunction(({ kind, pressed }) => document.querySelector(kind + " .bd-seg-btn[aria-pressed=true]")?.textContent !== pressed, { kind, pressed });
-    const after = await page.evaluate(() => window.__builder.doc().frames[0].mode || "free");
-    expect(after !== before, `dragging along the row changes the frame's kind, ${before} → ${after}`);
+    const after = await page.evaluate(() => window.__builder.doc().frames[0].scroll || "none");
+    expect(after !== before, `dragging along the row changes the frame's scroll, ${before} → ${after}`);
     ok(`the segmented thumb sits on ${pressed}, and a drag along the row picks the other choice (${before} → ${after})`);
     await page.close();
   });
@@ -5428,6 +5437,25 @@ try {
     const offFrame = await poll(frameNow, (f) => !f.flow && typeof f.root.children[0].style.x === "number");
     expect(!offFrame.flow && typeof offFrame.root.children[0].style.x === "number", `off, the group is pinned where it was, got ${JSON.stringify({ flow: offFrame.flow, style: offFrame.root.children[0].style })}`);
     ok("a freeform frame's Auto layout button puts its page in a flow, and takes it out again with each thing pinned where it was");
+
+    /* Ctrl+G groups two free layers where they stand; Ctrl+V pastes even
+       when the browser sends no paste event (focus on a row, or Safari). */
+    const inAg = async () => (await group()).children;
+    await page.evaluate(() => window.__builder.select(["a1", "a3"]));
+    await release(page);
+    await page.keyboard.press("Control+g");
+    const grouped = await poll(inAg, (k) => k.some((c) => c.type === "Group"));
+    const g = grouped.find((c) => c.type === "Group");
+    expect(g && g.children.map((c) => c.id).join() === "a1,a3" && typeof g.style.x === "number" && g.style.fw > 0 && g.children[0].style.x === 0, `Ctrl+G groups the two, placed and sized over them, got ${JSON.stringify(g && { kids: g.children.map((c) => [c.id, c.style.x]), style: g.style })}`);
+    ok("Ctrl+G groups two free layers, the Group placed and sized over them, each where it stood");
+    await page.evaluate(() => window.__builder.select(["a2"]));
+    await release(page);
+    await page.keyboard.press("Control+c");
+    const before = (await inAg()).length;
+    await page.evaluate(() => document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "v", code: "KeyV", ctrlKey: true, bubbles: true })));
+    const pasted = await poll(inAg, (k) => k.length === before + 1, 2000);
+    expect(pasted.length === before + 1, `Ctrl+V with no paste event still pastes the copied layer, got ${pasted.length} from ${before}`);
+    ok("Ctrl+V pastes the copied layer even when no paste event comes");
     await page.close();
   });
 

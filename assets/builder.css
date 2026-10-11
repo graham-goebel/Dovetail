@@ -107,11 +107,14 @@ body.page-app {
   /* Guides dragged from the rulers, as design tools draw them. */
   --bd-guide: var(--dt-color-red-500);
   --bd-select-ink: var(--dt-color-white);
+  /* Components, in Layers and on the canvas. */
+  --bd-component: var(--dt-color-violet-600);
   --bd-field: var(--dt-surface-sunken);
   --bd-field-on: var(--dt-surface-raised);
 }
 
 :root.dark .page-app {
+  --bd-component: var(--dt-color-violet-300);
   --bd-field: var(--dt-surface-overlay);
   --bd-field-on: color-mix(in oklab, var(--dt-surface-overlay) 80%, var(--dt-text-primary));
   --dt-input-bg: var(--bd-field);
@@ -700,7 +703,7 @@ html.bd-configure-docked .configure-open-btn {
 /* The measured size, first: what it is, then what it's called. */
 .bd-dd-px {
   flex: none;
-  min-width: 3ch;
+  min-width: 4ch;
   color: var(--dt-text-secondary);
   font-variant-numeric: tabular-nums;
   text-align: right;
@@ -1222,6 +1225,69 @@ html.bd-configure-docked .configure-open-btn {
   min-width: 0;
 }
 
+/* The alignment grid, with the direction and wrap beside it. */
+.bd-flex-top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--dt-space-inline-xs);
+  align-items: start;
+  margin-top: var(--dt-space-stack-xs);
+}
+
+.bd-flex-top-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+  min-width: 0;
+}
+
+.bd-flex-top-side .bd-seg .bd-seg-btn {
+  flex: 1;
+}
+
+/* Two fields or two buttons sharing a row. */
+.bd-flex-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--dt-space-inline-2xs);
+  margin-top: var(--dt-space-stack-2xs);
+}
+
+.bd-flex-pair > :only-child {
+  grid-column: 1 / -1;
+}
+
+.bd-flex-pair > *,
+.bd-flex-top-side > * {
+  min-width: 0;
+}
+
+.bd-flex-pair .bd-btn,
+.bd-flex-top-side .bd-btn {
+  justify-content: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Secondary buttons in the inspector are outlined, not filled; pressed,
+   they take the selection's colour as their outline and text. */
+.bd-right .bd-btn:not(.bd-btn-primary) {
+  border-color: var(--dt-border-default);
+  background: transparent;
+}
+
+.bd-right .bd-btn:not(.bd-btn-primary):hover {
+  border-color: var(--dt-border-strong);
+  background: transparent;
+}
+
+.bd-right .bd-btn:not(.bd-btn-primary)[aria-pressed="true"] {
+  border-color: var(--bd-select);
+  background: transparent;
+  color: var(--dt-text-primary);
+  box-shadow: inset 0 0 0 var(--dt-border-width-default) var(--bd-select);
+}
+
 .bd-mx {
   display: grid;
   grid-template-columns: repeat(3, 26px);
@@ -1661,13 +1727,16 @@ button.bd-layer-twisty:focus-visible {
   outline-style: dashed;
 }
 
-/* A linked instance of one of My components. */
-.bd-mark-sel.is-instance {
-  outline-color: var(--dt-border-brand);
+/* A component, the system's or one of the file's own: its own colour in
+   Layers and on the canvas, outline, handles and tag, so it reads apart
+   from groups, text and shapes. */
+.bd-mark-sel.is-component {
+  --bd-select: var(--bd-component);
 }
 
-.bd-layer.is-instance .bd-layer-main > .bd-ic:first-child {
-  color: var(--dt-text-brand);
+.bd-layer.is-component .bd-layer-main > .bd-ic:first-child,
+.bd-layer.is-component .bd-layer-name {
+  color: var(--bd-component);
 }
 
 .bd-inst {
@@ -2847,6 +2916,42 @@ span.bd-layer-twisty.is-open .bd-ic {
 
 .bd-dd-unit .bd-dd-chev {
   display: none;
+}
+
+/* In the inspector, W or H and its unit read as one field: the unit sits
+   inside, at its end. */
+.bd-right .bd-size-unit {
+  gap: 0;
+  border: var(--dt-border-width-default) solid transparent;
+  border-radius: var(--dt-radius-control);
+  background: var(--bd-field);
+}
+
+.bd-right .bd-size-unit:hover {
+  border-color: var(--dt-border-default);
+}
+
+.bd-right .bd-size-unit:focus-within {
+  border-color: var(--dt-border-strong);
+}
+
+.bd-right .bd-size-unit .bd-dd:not(.bd-dd-unit),
+.bd-right .bd-size-unit .bd-num {
+  border-color: transparent;
+  background: transparent;
+}
+
+.bd-right .bd-size-unit .bd-dd.bd-dd-unit:hover,
+.bd-right .bd-size-unit .bd-dd.bd-dd-unit[aria-expanded="true"] {
+  background: transparent;
+}
+
+/* A section of stacked fields keeps a small gap between them. */
+.bd-right .bd-sec[data-sec="frame-size"] .bd-sec-body,
+.bd-right .bd-sec[data-sec="frame-position"] .bd-sec-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-xs);
 }
 
 .bd-num {

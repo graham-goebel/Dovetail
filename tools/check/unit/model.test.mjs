@@ -357,3 +357,41 @@ test("auto layout is on for a Group with nothing placed freely, and for a frame 
   assert.deepEqual(unfreeze(JSON.parse(JSON.stringify(free))).style, { fw: 4, fh: 4 }, "a shape keeps its size, nothing else");
   assert.deepEqual(unfreeze(JSON.parse(JSON.stringify(text))).style, {}, "text sizes itself in a flow");
 });
+
+test("group takes any selection: from different parents, nested picks with their parent, and free layers stay where they stand", async () => {
+  const doc = { frames: [makeFrame("F", "desktop")], active: null };
+  doc.active = doc.frames[0].id;
+  const f = doc.frames[0];
+  const a = make("Text", { children: "a" }), b = make("Text", { children: "b" }), c = make("Text", { children: "c" });
+  const box = make("Group", { direction: "column" }, [b]);
+  f.root.children = [a, box, c];
+  const id = produce(doc, (d) => { ops.group(d, [c.id, b.id]); });
+  const holder = id.frames[0].root.children.find((n) => n.id === box.id);
+  const g = holder.children[0];
+  assert.ok(g && g.type === "Group" && g.children.map((k) => k.id).join() === [b.id, c.id].join(), "b (inside a Group) and c (on the page) are grouped, in layer order, where b was");
+  assert.ok(!id.frames[0].root.children.some((n) => n.id === c.id), "c left the page");
+  const nested = produce(doc, (d) => { ops.group(d, [box.id, b.id]); });
+  const g2 = nested.frames[0].root.children[1];
+  assert.equal(g2.children[0].id, box.id, "a layer picked with its parent goes with it");
+  const s1 = make("Shape", { shape: "rectangle" }, null, { x: 10, y: 20, fw: 5, fh: 5 }), s2 = make("Shape", { shape: "rectangle" }, null, { x: 30, y: 25, fw: 10, fh: 10 });
+  f.root.children = [s1, s2];
+  const free = produce(doc, (d) => { ops.group(d, [s1.id, s2.id]); });
+  const fg = free.frames[0].root.children[0];
+  assert.deepEqual([fg.style.x, fg.style.y, fg.style.fw, fg.style.fh], [10, 20, 30, 15], "the Group sits over them, sized to hold them");
+  assert.deepEqual(fg.children.map((k) => [k.style.x, k.style.y]), [[0, 0], [20, 5]], "each keeps its spot inside it");
+});
+
+test("moveMany moves several layers to one place in layer order", () => {
+  const doc = { frames: [makeFrame("F", "desktop")], active: null };
+  doc.active = doc.frames[0].id;
+  const f = doc.frames[0];
+  const [a, b, c, d0] = ["a", "b", "c", "d"].map((t) => make("Text", { children: t }));
+  const box = make("Group", { direction: "column" }, []);
+  f.root.children = [a, b, c, d0, box];
+  const out = produce(doc, (d) => { ops.moveMany(d, [c.id, a.id], box.id, 0); });
+  const root = out.frames[0].root;
+  assert.deepEqual(root.children.map((n) => n.id), [b.id, d0.id, box.id]);
+  assert.deepEqual(root.children[2].children.map((n) => n.id), [a.id, c.id], "both went in, a before c");
+  const within = produce(doc, (d) => { ops.moveMany(d, [a.id, b.id], "root", 4); });
+  assert.deepEqual(within.frames[0].root.children.map((n) => n.id), [c.id, d0.id, a.id, b.id, box.id], "reordered within their parent, after d");
+});

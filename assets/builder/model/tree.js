@@ -113,6 +113,32 @@ var ops = {
     to.node.children.splice(Math.max(0, Math.min(index, to.node.children.length)), 0, settle(active(doc), parentId, from.node));
     return id;
   },
+  /* Several layers to one place, in layer order: the ones inside another
+     moving layer go with it. A layer that leaves its parent leaves its
+     free spot too and joins the flow where it lands. */
+  moveMany: function (doc, ids, parentId, index) {
+    var to = locate(doc, parentId);
+    if (!to) return null;
+    var spots = ids.map(function (id) { return locate(doc, id); }).filter(Boolean);
+    spots = spots.filter(function (s) { return !s.path.slice(0, -1).some(function (n) { return ids.indexOf(n.id) >= 0; }); });
+    if (!spots.length || spots.some(fixed)) return null;
+    if (spots.some(function (s) { return s.node.id === parentId || to.path.some(function (x) { return x.id === s.node.id; }) || !canHold(to, s.node); })) return null;
+    var order = [];
+    (function walk(n) { (n.children || []).forEach(function (c) { order.push(c.id); walk(c); }); })(active(doc).root);
+    spots.sort(function (a, b) { return order.indexOf(a.node.id) - order.indexOf(b.node.id); });
+    /* Where they go, counted after they've left. */
+    var before = spots.filter(function (s) { return s.parent === to.node && s.index < index; }).length;
+    var nodes = spots.map(function (s) {
+      var n = s.node;
+      if (s.parent !== to.node && isFree(n.style)) { delete n.style.x; delete n.style.y; delete n.style.ch; delete n.style.cv; }
+      return n;
+    });
+    var gone = nodes.map(function (n) { return n.id; });
+    spots.forEach(function (s) { s.parent.children = s.parent.children.filter(function (c) { return gone.indexOf(c.id) < 0; }); });
+    var at = Math.max(0, Math.min(index - before, to.node.children.length));
+    to.node.children.splice.apply(to.node.children, [at, 0].concat(nodes.map(function (n) { return settle(active(doc), parentId, n); })));
+    return gone;
+  },
   /* "root" means nothing left to select; null means nothing happened. */
   remove: function (doc, ids) {
     var next = null, any = false;
@@ -149,19 +175,44 @@ var ops = {
     return box.id;
   },
   /* Siblings into one Group, in their order, where the first one was. */
-  group: function (doc, ids) {
-    var spots = ids.map(function (id) { return locate(doc, id); }).filter(Boolean);
+  /* Any selection into one Group: layers inside another selected layer go
+     with it; ones from elsewhere join the first one's parent; the Group
+     takes the first one's place. Free layers in one parent keep where they
+     stand: the Group is placed over them and sized to hold them, from
+     boxes ({ id: { x, y, w, h } } in free steps, as measured), and each
+     keeps its spot inside it. */
+  group: function (doc, ids, boxes) {
+    var all = ids.map(function (id) { return locate(doc, id); }).filter(Boolean);
+    var inside = function (s) { return s.path.slice(0, -1).some(function (n) { return ids.indexOf(n.id) >= 0; }); };
+    var spots = all.filter(function (s) { return !inside(s); });
     if (!spots.length || spots.some(fixed)) return null;
-    if (!canHold(parentSpot(spots[0]), { type: "Group" })) return null;
-    var parent = spots[0].parent;
-    if (!parent || spots.some(function (s) { return s.parent !== parent; })) return null;
-    spots.sort(function (a, b) { return a.index - b.index; });
-    var box = make("Group", {}, spots.map(function (s) { return s.node; }));
+    /* In layer order, top of the tree first. */
+    var order = [];
+    (function walk(n) { (n.children || []).forEach(function (c) { order.push(c.id); walk(c); }); })(active(doc).root);
+    spots.sort(function (a, b) { return order.indexOf(a.node.id) - order.indexOf(b.node.id); });
+    var first = spots[0], parent = first.parent;
+    if (!parent || !canHold(parentSpot(first), { type: "Group" })) return null;
+    var oneParent = spots.every(function (s) { return s.parent === parent; });
+    var nodes = spots.map(function (s) { return s.node; });
+    var keep = nodes.map(function (n) { return n.id; });
+    var at = first.index;
+    spots.forEach(function (s) { s.parent.children = s.parent.children.filter(function (c) { return keep.indexOf(c.id) < 0; }); });
+    var look = {};
+    var free = oneParent && nodes.every(function (n) { return isFree(n.style); });
+    if (free) {
+      var b = function (n) { var m = boxes && boxes[n.id]; return m || { x: n.style.x, y: n.style.y, w: n.style.fw || 1, h: n.style.fh || 1 }; };
+      var x0 = Math.min.apply(null, nodes.map(function (n) { return b(n).x; })), y0 = Math.min.apply(null, nodes.map(function (n) { return b(n).y; }));
+      var x1 = Math.max.apply(null, nodes.map(function (n) { return b(n).x + b(n).w; })), y1 = Math.max.apply(null, nodes.map(function (n) { return b(n).y + b(n).h; }));
+      look = { x: x0, y: y0, fw: Math.max(1, Math.min(FREE_MAX, x1 - x0)), fh: Math.max(1, Math.min(FREE_MAX, y1 - y0)) };
+      nodes.forEach(function (n) { n.style.x -= x0; n.style.y -= y0; });
+    } else {
+      /* Into the flow of the Group: what was placed freely leaves its spot. */
+      nodes.forEach(function (n) { if (isFree(n.style)) { delete n.style.x; delete n.style.y; delete n.style.ch; delete n.style.cv; } });
+    }
+    var box = make("Group", {}, nodes, look);
     /* In a structured frame a Group always lays out what it holds. */
     if (active(doc).mode === "structured") autoLayout(box);
-    var at = spots[0].index;
-    parent.children = parent.children.filter(function (c) { return ids.indexOf(c.id) < 0; });
-    parent.children.splice(at, 0, box);
+    parent.children.splice(Math.min(at, parent.children.length), 0, box);
     return box.id;
   },
   /* A shape made the mask of the layers over it: a Group in the shape's

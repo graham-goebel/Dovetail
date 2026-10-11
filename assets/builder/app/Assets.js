@@ -115,12 +115,12 @@ function kindPic(icon) {
 /* Each template by its first block, so they look like what they are. */
 var TEMPLATE_PIC = { landing: ["HeroBlock", true], store: ["ProductGridBlock", true], settings: ["Field", false], chat: ["ChatBlock", false] };
 
-/* Containers: an empty frame to build in. Freeform, structured or tall, or
+/* Containers: an empty frame to build in. Free, with auto layout, or tall, or
    one of the screen sizes. Press one to add it beside your frames; drag it
    onto the canvas to put it where you drop it. */
 var CONTAINER_KINDS = [
-  ["free", "Freeform frame", "frame", "Place anything anywhere, in any colour"],
-  ["structured", "Structured frame", "layout", "Auto-layout Groups with tokens, ready for code"],
+  ["free", "Frame", "frame", "Place anything anywhere, in any colour"],
+  ["structured", "Auto layout frame", "layout", "Lays out what's in it in Groups, with tokens, ready for code"],
   ["page", "Tall frame", "file", "Grows as tall as what's on it"],
 ];
 function containerCard(p, key, name, pic, note, payload, onAdd) {
