@@ -3468,7 +3468,7 @@ span.bd-layer-twisty.is-open .bd-ic {
     border-radius: var(--dt-radius-container) var(--dt-radius-container) 0 0;
     background: var(--dt-surface-subtle);
     box-shadow: var(--dt-shadow-md);
-    overflow: hidden;
+    overflow: visible;
   }
 
   .bd-shell.is-agent-sheet > .bd-left > .bd-left-tabs {
@@ -3499,15 +3499,16 @@ span.bd-layer-twisty.is-open .bd-ic {
     display: none;
   }
 
-  .bd-shell.is-agent-sheet .bd-tools {
-    position: fixed;
-    bottom: calc(55dvh + var(--dt-space-inset-xs));
-  }
-
+  /* The sheet's top bar: its grip, and the tool bar sitting on its edge. */
   .bd-sheet-bar {
+    position: relative;
     display: flex;
     justify-content: center;
     flex: none;
+  }
+
+  .bd-sheet-bar .bd-tools {
+    bottom: calc(100% + var(--dt-space-inset-xs));
   }
 
   .bd-sheet-close {

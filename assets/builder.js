@@ -27566,7 +27566,7 @@
       !preview && tool === "hand" ? e("div", Object.assign({ className: "bd-draw is-hand" }, handHandlers)) : null,
       !preview ? e(Resizers, resizersProps) : null,
       e(Rulers, rulersProps),
-      !preview ? tools : null,
+      !preview && !(agentSheet && left === "assistant") ? tools : null,
       e(EditorAt, editorProps),
       preview ? e("button", { type: "button", className: "bd-float bd-float-center", onClick: actions2.preview, title: "Back to editing (Esc)" }, e(Icon, { name: "eye" }), "Previewing", e("span", { className: "bd-float-sep", "aria-hidden": true }), "Edit") : null,
       anyReady ? null : e("p", { className: "bd-stage-loading" }, "Loading the canvas…")
@@ -27975,7 +27975,9 @@
             { className: "bd-sheet-bar" },
             e("button", { type: "button", className: "bd-sheet-close", "aria-label": "Close the Agent", title: "Back to the canvas", onClick: function() {
               toggleAgentSheet(false);
-            } }, e("span", { className: "bd-sheet-grip", "aria-hidden": true }))
+            } }, e("span", { className: "bd-sheet-grip", "aria-hidden": true })),
+            /* The tool bar rides on the sheet's top edge while it's up. */
+            !preview ? tools : null
           ) : null,
           e(
             "div",
