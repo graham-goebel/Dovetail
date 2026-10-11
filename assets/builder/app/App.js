@@ -43,7 +43,7 @@ import { supabaseTransport } from "../cloud/client.js";
 import { TAB, othersFrom } from "../cloud/live.js";
 import { openShared, pullShared, pushSave, shareOff, shareOn } from "../cloud/convos.js";
 import { colorFor } from "./People.js";
-import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid, constrain, H_PINS, V_PINS, GUIDES_MAX, COLUMNS_MAX, columnsOf } from "../model/tree.js";
+import { CONVERTS, FREE_MAX, active, autoLayout, frameFlows, groupFlows, unfreeze, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid, constrain, H_PINS, V_PINS, GUIDES_MAX, COLUMNS_MAX, columnsOf } from "../model/tree.js";
 import { detachAll, holdsInstanceOf, masterOf, rebase, updateInstances } from "../model/instances.js";
 import { codeWithComponents } from "../model/codegen.js";
 import { projectFiles } from "../model/projectcode.js";
@@ -2414,7 +2414,7 @@ function App(props) {
     var moving = payload.kind === "move" && payload.id ? locate(docRef.current, payload.id) : null;
     var type = moving ? moving.node.type : payload.kind === "new" || payload.kind === "local" ? payload.type : payload.kind === "asset" ? "Image" : payload.kind === "tool" ? (/^comp:(\w+)$/.exec(payload.tool) || [0, payload.tool === "box" ? "Group" : null])[1] : null;
     var hostFrame = frameById(docRef.current, at.fid);
-    if (hit.parent === "root" && type && !joinsFlow(type) && hostFrame && hostFrame.mode !== "structured" && !hostFrame.bare) {
+    if (hit.parent === "root" && type && !joinsFlow(type) && hostFrame && !frameFlows(hostFrame) && !hostFrame.bare) {
       var unit = (f.measure && f.measure(["var(--dt-space-inset-2xs)"])[0]) || 4;
       var fx = (x - at.r.left) / z, fy = (y - at.r.top) / z;
       var w = 120, h = 40;
@@ -3613,9 +3613,9 @@ function App(props) {
       { value: "hide", label: allHidden ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: allHidden ? "eye" : "eyeOff", group: "Layer" },
       { value: "lock", label: allLocked ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: allLocked ? "lockOpen" : "lock", group: "Layer" },
     ])
-    .concat(free && one && one.type === "Group" && !one.style.bool && (one.children || []).length ? [(one.children || []).every(function (c) { return isFree(c.style); })
-      ? { value: "autolayout", label: "Use auto layout", hint: "Shift+A", icon: "row", group: "Layer" }
-      : { value: "freelayout", label: "Free positions", hint: "Shift+A", icon: "frame", group: "Layer" }] : [])
+    .concat(frame.mode !== "structured" && one && one.type === "Group" && !one.style.bool ? [groupFlows(one)
+      ? { value: "freelayout", label: "Remove auto layout", hint: "Shift+A", icon: "frame", group: "Layer" }
+      : { value: "autolayout", label: "Add auto layout", hint: "Shift+A", icon: "row", group: "Layer" }] : [])
     .concat(free && nodes.length > 1 && nodes.some(function (n) { return n.type === "Shape" && n.props.shape !== "line"; }) ? [{ value: "mask", label: "Use the shape as a mask", icon: "shapeEllipse", group: "Layer" }] : [])
     .concat(one && one.type !== "Slot" ? [{ value: "rename", label: "Rename", hint: "F2", icon: "pencil", group: "Layer" }] : [])
     .concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component", group: "Layer" }])
@@ -3743,76 +3743,107 @@ function App(props) {
       if (!ids.length) return;
       if (!change(function (d) { return ops.group(d, ids); }, "Grouped " + ids.length + (ids.length === 1 ? " item" : " items"))) announce("Only items side by side in the same parent can be grouped");
     },
-    /* A free group's free children laid out in a row or a column, in the
-     order they stand: the direction from how they spread, the gap and the
-     padding the nearest tokens to what they had. The group keeps its own
-     place and hugs what it holds. */
-    autoLayout: function () {
-      var id = selRef.current[0], d = docRef.current, at = selRef.current.length === 1 ? locate(d, id) : null, a = api();
-      if (!at || at.node.type !== "Group" || at.node.style.bool || !isFree(at.node.style) || !a || !a.rect || !a.measure) return false;
-      var kids = at.node.children || [];
-      if (!kids.length || !kids.every(function (c) { return isFree(c.style); })) return false;
-      var gr = a.rect(id);
+    /* Auto layout on: what a Group holds, or what's on a freeform frame's
+       page, laid out in a row or a column in the order it stands. The
+       direction comes from how it spreads, the gap and padding from the
+       nearest tokens to what it had. A Group keeps its own place and hugs
+       what it holds. id is a Group's, or the frame's id for its page; left
+       out, the one selected Group, or the frame when nothing is. */
+    autoLayout: function (id) {
+      var d = docRef.current, fr = active(d);
+      if (id === undefined) id = selRef.current.length === 1 ? selRef.current[0] : selRef.current.length ? null : fr.id;
+      if (!id) return false;
+      var onFrame = id === fr.id;
+      if (onFrame && (fr.mode === "structured" || fr.bare)) return false;
+      var at = onFrame ? null : locate(d, id);
+      if (!onFrame && (!at || at.node.type !== "Group" || at.node.style.bool)) return false;
+      var kids = onFrame ? fr.root.children : at.node.children || [];
+      if (onFrame ? frameFlows(fr) : groupFlows(at.node)) return false;
+      var a = api();
+      if (!a || !a.rect || !a.measure) return false;
+      var gr = onFrame ? { left: 0, top: 0 } : a.rect(id);
       var items = kids.map(function (c) { return { id: c.id, r: a.rect(c.id) }; }).filter(function (i) { return i.r; });
       if (!gr || items.length !== kids.length) return false;
-      var spanX = Math.max.apply(null, items.map(function (i) { return i.r.right; })) - Math.min.apply(null, items.map(function (i) { return i.r.left; }));
-      var spanY = Math.max.apply(null, items.map(function (i) { return i.r.bottom; })) - Math.min.apply(null, items.map(function (i) { return i.r.top; }));
-      var row = spanX >= spanY;
-      items.sort(function (p, q) { return row ? p.r.left - q.r.left : p.r.top - q.r.top; });
-      var gaps = [];
-      for (var i = 1; i < items.length; i++) gaps.push(row ? items[i].r.left - items[i - 1].r.right : items[i].r.top - items[i - 1].r.bottom);
-      var want = gaps.length ? Math.max(0, gaps.reduce(function (n, g) { return n + g; }, 0) / gaps.length) : 0;
-      var steps = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"];
-      var got = a.measure(steps.map(function (s2) { return "var(--dt-space-" + (row ? "inline" : "stack") + "-" + s2 + ")"; }));
-      var gap = "none", best = want;
-      steps.forEach(function (s2, j) { if (got[j] != null && Math.abs(got[j] - want) < best) { best = Math.abs(got[j] - want); gap = s2; } });
-      var inset = Math.max(0, Math.min(Math.min.apply(null, items.map(function (it) { return it.r.left - gr.left; })), Math.min.apply(null, items.map(function (it) { return it.r.top - gr.top; }))));
-      var pad = null, pbest = inset;
-      steps.forEach(function (s2) { var px = pxMap["padding|" + s2]; if (px != null && Math.abs(px - inset) < pbest) { pbest = Math.abs(px - inset); pad = s2; } });
+      var row = false, gap = onFrame ? "md" : "sm", pad = null;
+      if (items.length) {
+        var spanX = Math.max.apply(null, items.map(function (i) { return i.r.right; })) - Math.min.apply(null, items.map(function (i) { return i.r.left; }));
+        var spanY = Math.max.apply(null, items.map(function (i) { return i.r.bottom; })) - Math.min.apply(null, items.map(function (i) { return i.r.top; }));
+        row = items.length > 1 && spanX >= spanY;
+        items.sort(function (p, q) { return row ? p.r.left - q.r.left : p.r.top - q.r.top; });
+        var gaps = [];
+        for (var i = 1; i < items.length; i++) gaps.push(row ? items[i].r.left - items[i - 1].r.right : items[i].r.top - items[i - 1].r.bottom);
+        var steps = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"];
+        if (gaps.length) {
+          var want = Math.max(0, gaps.reduce(function (n, g) { return n + g; }, 0) / gaps.length);
+          var got = a.measure(steps.map(function (s2) { return "var(--dt-space-" + (row ? "inline" : "stack") + "-" + s2 + ")"; }));
+          var best = want;
+          gap = "none";
+          steps.forEach(function (s2, j) { if (got[j] != null && Math.abs(got[j] - want) < best) { best = Math.abs(got[j] - want); gap = s2; } });
+        }
+        var inset = Math.max(0, Math.min(Math.min.apply(null, items.map(function (it) { return it.r.left - gr.left; })), Math.min.apply(null, items.map(function (it) { return it.r.top - gr.top; }))));
+        var pbest = inset;
+        steps.forEach(function (s2) { var px = pxMap["padding|" + s2]; if (px != null && Math.abs(px - inset) < pbest) { pbest = Math.abs(px - inset); pad = s2; } });
+      }
       var order = items.map(function (it) { return it.id; });
       change(function (dd) {
-        var g = locate(dd, id);
-        if (!g) return null;
+        var f = active(dd);
+        var holder = onFrame ? f.root : (locate(dd, id) || {}).node;
+        if (!holder) return null;
         var byId = {};
-        g.node.children.forEach(function (c) { byId[c.id] = c; });
-        g.node.children = order.map(function (k) { return byId[k]; });
-        g.node.children.forEach(function (c) {
-          ["x", "y", "ch", "cv", "rot", "flipH", "flipV"].concat(c.type === "Shape" || c.type === "Image" ? [] : ["fw", "fh"]).forEach(function (k) { delete c.style[k]; });
-        });
-        g.node.props.direction = row ? "row" : "column";
-        g.node.props.gap = gap;
-        g.node.props.align = "flex-start";
-        delete g.node.style.fw; delete g.node.style.fh;
-        if (pad) g.node.style.padding = pad; else delete g.node.style.padding;
+        holder.children.forEach(function (c) { byId[c.id] = c; });
+        holder.children = order.map(function (k) { return byId[k]; });
+        holder.children.forEach(unfreeze);
+        if (onFrame) {
+          f.flow = Object.assign({}, f.flow, { direction: row ? "row" : "column", align: "flex-start" });
+          if (gap !== "none") f.flow.gap = gap; else delete f.flow.gap;
+          delete f.gap;
+          if (pad) f.flow.padding = pad; else delete f.flow.padding;
+          return [];
+        }
+        holder.props.direction = row ? "row" : "column";
+        holder.props.gap = gap;
+        holder.props.align = "flex-start";
+        delete holder.style.fw; delete holder.style.fh;
+        if (pad) holder.style.padding = pad; else delete holder.style.padding;
         return [id];
-      }, "Auto layout: a " + (row ? "row" : "column") + ", gap " + gap);
+      }, "Auto layout on " + (onFrame ? fr.name : "the group") + ": a " + (row ? "row" : "column") + ", gap " + gap);
       return true;
     },
-    /* Back to free: each child pinned where the layout put it, and the
-       group the size it was drawn at. */
-    freeLayout: function () {
-      var id = selRef.current[0], d = docRef.current, at = selRef.current.length === 1 ? locate(d, id) : null, a = api();
-      if (!at || at.node.type !== "Group" || at.node.style.bool || !isFree(at.node.style) || !a || !a.rect) return false;
-      var kids = at.node.children || [];
-      if (!kids.length || kids.some(function (c) { return isFree(c.style); })) return false;
-      var unit = pxMap["padding|2xs"] || 4, gr = a.rect(id);
+    /* Auto layout off: each child pinned where the layout put it, and a
+       Group the size it was laid out at. Only in a freeform frame. */
+    freeLayout: function (id) {
+      var d = docRef.current, fr = active(d);
+      if (id === undefined) id = selRef.current.length === 1 ? selRef.current[0] : selRef.current.length ? null : fr.id;
+      if (!id || fr.mode === "structured" || fr.bare) return false;
+      var onFrame = id === fr.id;
+      var at = onFrame ? null : locate(d, id);
+      if (!onFrame && (!at || at.node.type !== "Group" || at.node.style.bool)) return false;
+      if (!(onFrame ? frameFlows(fr) : groupFlows(at.node))) return false;
+      var kids = onFrame ? fr.root.children : at.node.children || [];
+      var a = api();
+      if (!a || !a.rect) return false;
+      var unit = pxMap["padding|2xs"] || 4, gr = onFrame ? { left: 0, top: 0 } : a.rect(id);
       var boxes = {};
       kids.forEach(function (c) { boxes[c.id] = a.rect(c.id); });
       if (!gr || kids.some(function (c) { return !boxes[c.id]; })) return false;
       var st = function (px) { return Math.max(0, Math.min(FREE_MAX, Math.round(px / unit))); };
       change(function (dd) {
-        var g = locate(dd, id);
-        if (!g) return null;
-        g.node.style.fw = Math.max(1, st(gr.width)); g.node.style.fh = Math.max(1, st(gr.height));
-        g.node.children.forEach(function (c) {
+        var f = active(dd);
+        var holder = onFrame ? f.root : (locate(dd, id) || {}).node;
+        if (!holder) return null;
+        if (onFrame) delete f.flow;
+        else if (holder.children.length) { holder.style.fw = Math.max(1, st(gr.width)); holder.style.fh = Math.max(1, st(gr.height)); }
+        holder.children.forEach(function (c) {
+          /* A band (a Section, a header) stays in the page's flow. */
+          if (onFrame && joinsFlow(c.type)) return;
           var r = boxes[c.id];
           c.style.x = st(r.left - gr.left); c.style.y = st(r.top - gr.top);
           /* Shapes and pictures keep their size; text and components size
              themselves as before. */
           if (c.type === "Shape" || c.type === "Image") { c.style.fw = Math.max(1, st(r.width)); c.style.fh = Math.max(1, st(r.height)); }
         });
-        return [id];
-      }, "Free positions");
+        return onFrame ? [] : [id];
+      }, "Auto layout off" + (onFrame ? " on " + fr.name : "") + ": free positions");
       return true;
     },
     mask: function () {
@@ -6390,6 +6421,13 @@ function App(props) {
     });
     return groups.filter(function (g) { return g.options.length; });
   };
+  /* The one button that turns auto layout on or off, in its section's
+     head: Add when it's off, and the section opens; a minus when it's on. */
+  var autoButton = function (on, onClick, what) {
+    return on
+      ? e("button", { type: "button", className: "bd-act bd-act-ghost bd-auto-off", title: "Remove auto layout from " + what + ": free positions (Shift+A)", "aria-label": "Remove auto layout from " + what, onClick: onClick }, e(Icon, { name: "minus" }))
+      : e("button", { type: "button", className: "bd-btn bd-btn-sm bd-auto-on", title: "Lay out " + what + " in a row or a column (Shift+A)", "aria-label": "Add auto layout to " + what, onClick: onClick }, e(Icon, { name: "plus" }), "Add");
+  };
   var headAction = function (icon, label, onClick, pressed) {
     return e("button", { type: "button", className: "bd-act bd-act-ghost", title: label, "aria-label": label, "aria-pressed": pressed === undefined ? undefined : String(pressed), onClick: onClick }, e(Icon, { name: icon }));
   };
@@ -6565,6 +6603,12 @@ function App(props) {
     var gapSpec = META.Group.props.filter(function (p) { return p.name === "gap"; })[0];
     var gapNow = fl.gap || frame.gap || "none";
     var a = fl.align || "stretch", j = fl.justify || "flex-start";
+    /* A structured frame always lays out its page; a freeform one does
+       when it's turned on. */
+    var free = frame.mode !== "structured" && !frame.bare;
+    var on = frameFlows(frame);
+    var toggle = free ? autoButton(on, function () { if (on) actions.freeLayout(frame.id); else actions.autoLayout(frame.id); }, frame.name) : null;
+    if (free && !on) return sec("frame-auto", "Auto layout", null, toggle);
     return sec("frame-auto", "Auto layout", [
       e("div", { key: "head", className: "bd-flex-head" },
         e(Segmented, { label: "Direction", value: fdir, onChange: function (v) { if (v) setFlow({ direction: v }, frame.name + " runs in a " + v); },
@@ -6584,7 +6628,7 @@ function App(props) {
             onClick: function () { setFlow({ align: a === "stretch" ? "flex-start" : "stretch" }); } }, e(Icon, { name: "alignStretch" }), "Stretch"),
           e("button", { type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(j === "space-between"), title: "Spread children along the main axis",
             onClick: function () { setFlow({ justify: j === "space-between" ? "flex-start" : "space-between" }); } }, e(Icon, { name: "justifyBetween" }), "Space between"))),
-    ]);
+    ], toggle);
   };
   /* What spills past the frame's edges: clipped, or scrolled one way. A
      frame that hugs its content grows to fit, so neither applies. */
@@ -6771,10 +6815,14 @@ function App(props) {
        looks. The layout group leads so it's always to hand. A free layer's
        W and H sit with its X and Y. */
     var placedFree = frame.mode !== "structured" && nodes.every(function (n) { return isFree(n.style); });
+    /* One Group in a freeform frame turns its auto layout on and off. */
+    var autoGroup = !many && first.type === "Group" && !first.style.bool && frame.mode !== "structured" && !frame.bare;
+    var groupOn = autoGroup && groupFlows(first);
     var body = [
       sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "z", "x", "y"].concat(placedFree ? ["fw", "fh", "rw", "rh", "rot"] : []))),
       sec("size", "Size", placedFree ? [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes, "mins")] : [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, placedFree ? ["minW", "h", "textWrap"] : ["w", "minW", "height", "h", "self", "textWrap", "fw", "fh", "rw", "rh"])),
-      meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
+      autoGroup ? sec("flex", "Auto layout", groupOn ? flex : null, autoButton(groupOn, function () { if (groupOn) actions.freeLayout(first.id); else actions.autoLayout(first.id); }, first.name || "the group"), groupOn && propsSet(nodes, propNames("layout")))
+        : meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
       arrange ? sec("props-arrange", "Arrangement", arrange, null, propsSet(nodes, propNames("layout"))) : null,
       sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
       contentRows.length ? sec("content", "Content", contentRows, null, propsSet(nodes, propNames("content"))) : null,

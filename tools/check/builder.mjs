@@ -5357,7 +5357,7 @@ try {
     await page.close();
   });
 
-  await step("Auto layout and back: Shift+A lays a free group's free children out in a row in the order they stand, with token gap and padding, and again pins them where the layout put them", async () => {
+  await step("Auto layout and back: Shift+A or the section's button lays a group's or a freeform frame's free children out in the order they stand, with token gap and padding, and again pins them where the layout put them", async () => {
     const { page } = await open({ width: 1440, height: 900 });
     const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     const group = async () => (await saved()).frames.find((f) => f.id === "af").root.children[0];
@@ -5401,6 +5401,37 @@ try {
     const xs = freed.children.map((c) => c.style.x);
     expect(xs[0] < xs[1] && xs[1] < xs[2] && freed.style.fw > 0 && freed.children.every((c) => c.style.fw === 10), `back to free, each child pinned where the row put it, in order, at its size, got x ${xs}, fw ${freed.children.map((c) => c.style.fw)}`);
     ok(`Shift+A: three boxes become a row (gap ${flowed.props.gap}, padding ${flowed.style.padding}) in the order they stood; again, they're free at x ${xs.join(", ")}`);
+
+    /* The same from the button in the Auto layout section's head: Add when
+       it's off, which opens the section; a minus to take it off. */
+    const groupSec = page.locator('.bd-inspect .bd-sec[data-sec="flex"]');
+    await groupSec.locator(".bd-auto-on").waitFor();
+    expect(!(await groupSec.locator(".bd-sec-body").count()), "with auto layout off, the section is only its head and the Add button");
+    await groupSec.locator(".bd-auto-on").click();
+    await poll(group, (g) => g.children.every((c) => c.style.x === undefined));
+    await groupSec.locator(".bd-sec-body").waitFor();
+    await release(page);
+    await groupSec.locator(".bd-auto-off").click();
+    const again = await poll(group, (g) => g.children.every((c) => typeof c.style.x === "number"));
+    expect(again.children.every((c) => typeof c.style.x === "number"), "the minus takes it off again");
+    ok("the Auto layout section's Add button turns it on and opens the section; its minus turns it off");
+
+    /* A freeform frame: with nothing selected, its own Auto layout section
+       has the button; on, what's on the page goes into its flow, and a drop
+       lands in it; off, each is pinned where it was. */
+    const frameNow = async () => (await saved()).frames.find((f) => f.id === "af");
+    await page.evaluate(() => window.__builder.select([]));
+    const frameSec = page.locator('.bd-inspect .bd-sec[data-sec="frame-auto"]');
+    await frameSec.locator(".bd-auto-on").waitFor();
+    await frameSec.locator(".bd-auto-on").click();
+    const onFrame = await poll(frameNow, (f) => f.flow && f.root.children.every((c) => c.style.x === undefined));
+    expect(onFrame.flow && onFrame.flow.direction && onFrame.root.children[0].style.x === undefined, `the frame lays out its page, got ${JSON.stringify({ flow: onFrame.flow, style: onFrame.root.children[0].style })}`);
+    await frameSec.locator(".bd-sec-body").waitFor();
+    await release(page);
+    await frameSec.locator(".bd-auto-off").click();
+    const offFrame = await poll(frameNow, (f) => !f.flow && typeof f.root.children[0].style.x === "number");
+    expect(!offFrame.flow && typeof offFrame.root.children[0].style.x === "number", `off, the group is pinned where it was, got ${JSON.stringify({ flow: offFrame.flow, style: offFrame.root.children[0].style })}`);
+    ok("a freeform frame's Auto layout button puts its page in a flow, and takes it out again with each thing pinned where it was");
     await page.close();
   });
 
@@ -5501,6 +5532,9 @@ try {
     ok(`a picked frame shows its four corner dots, and its left edge takes it from ${before.frames[0].width} to ${after.width} wide`);
 
     await tab(page, "Layout");
+    /* A freeform frame's auto layout is off until its Add button. */
+    const addAuto = sec("frame-auto").locator(".bd-auto-on");
+    if (await addAuto.count()) await addAuto.click();
     await sec("frame-auto").locator('[aria-label="Row"]').click();
     await pick(page, "Gap", "md");
     await pick(page, "Padding", "lg");
