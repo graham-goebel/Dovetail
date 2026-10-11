@@ -187,9 +187,23 @@ function createMirrorHub() {
       return store.setCloud(pid, { cloudDirty: d });
     });
   };
-  var schedule = function (key, fn) {
+  /* Sends waiting or under way, by key, so the Builder can say there are
+     changes still to go up. A send that fails marks what it carried, so the
+     next sync (back online, the tab waking) sends it again. */
+  var waiting = {};
+  var count = function () { say({ pending: Object.keys(waiting).length }); };
+  var schedule = function (key, fn, dirty) {
     clearTimeout(timers[key]);
-    timers[key] = setTimeout(function () { delete timers[key]; later(function () { return fn().catch(fail); }); }, PUSH_DELAY);
+    if (!waiting[key]) { waiting[key] = true; count(); }
+    timers[key] = setTimeout(function () {
+      delete timers[key];
+      later(function () {
+        return fn().catch(function (err) {
+          fail(err);
+          return dirty ? dirty().catch(function () {}) : null;
+        }).then(function () { if (!timers[key]) { delete waiting[key]; count(); } });
+      });
+    }, PUSH_DELAY);
   };
 
   var hub = {
@@ -203,9 +217,14 @@ function createMirrorHub() {
     },
     stop: function () {
       stopped = true; sb = null; hooks = {};
-      Object.keys(timers).forEach(function (k) { clearTimeout(timers[k]); });
-      timers = {};
-      say({ status: "off", error: "" });
+      /* What was still to go is marked, to go on the next start. */
+      Object.keys(timers).forEach(function (k) {
+        clearTimeout(timers[k]);
+        var m = /^(doc|meta):([^:]+)(?::(.+))?$/.exec(k);
+        if (m && store) markDirty(m[2], m[1] === "doc" ? m[3] : "meta").catch(function () {});
+      });
+      timers = {}; waiting = {};
+      say({ status: "off", error: "", pending: 0 });
     },
     sync: sync,
     state: function () { return Object.assign({}, state); },
@@ -213,7 +232,8 @@ function createMirrorHub() {
        resolves once that's written; started, each schedules the send. */
     saved: function (pid, pageId) {
       if (stopped) return markDirty(pid, pageId).catch(function () {});
-      schedule("doc:" + pid + ":" + pageId, function () { return push(pid, pageId).then(function () { say({ status: "synced", at: Date.now(), error: "" }); }); });
+      schedule("doc:" + pid + ":" + pageId, function () { return push(pid, pageId).then(function () { say({ status: "synced", at: Date.now(), error: "" }); }); },
+        function () { return markDirty(pid, pageId); });
       return undefined;
     },
     metaChanged: function (pid) {
@@ -223,7 +243,7 @@ function createMirrorHub() {
           if (!meta || !meta.cloud) return null;
           return cloudGroupFor(meta).then(function (g) { return pushMeta(sb, meta, g); });
         });
-      });
+      }, function () { return markDirty(pid, "meta"); });
       return undefined;
     },
     fileMade: function (pid) {
@@ -289,7 +309,8 @@ function watchStore(store, hub) {
   w.deletePage = function (id, pageId) { return store.deletePage(id, pageId).then(function (out) { return told(hub.pageRemoved(id, pageId), out); }); };
   w.createProject = function () { var a = arguments; return store.createProject.apply(store, a).then(function (meta) { hub.fileMade(meta.id); return meta; }); };
   w.duplicateProject = function () { var a = arguments; return store.duplicateProject.apply(store, a).then(function (meta) { if (meta) hub.fileMade(meta.id); return meta; }); };
-  w.moveFile = function (id, group) { return store.moveFile(id, group).then(function (meta) { return told(hub.metaChanged(id), meta); }); };
+  /* Moved out of the Playground, a file goes up like a new one. */
+  w.moveFile = function (id, group) { return store.moveFile(id, group).then(function (meta) { if (meta && !meta.cloud) hub.fileMade(id); return told(hub.metaChanged(id), meta); }); };
   w.deleteProject = function (id) { return store.getProject(id).then(function (meta) { return store.deleteProject(id).then(function (out) { hub.fileDeleted(meta); return out; }); }); };
   w.createGroup = function () { var a = arguments; return store.createGroup.apply(store, a).then(function (g) { if (!(g && g.kind)) hub.groupChanged(g.id); return g; }); };
   w.renameGroup = function (id) { var a = arguments; return store.renameGroup.apply(store, a).then(function (g) { hub.groupChanged(id); return g; }); };

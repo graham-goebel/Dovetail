@@ -3611,6 +3611,9 @@ try {
     await page.waitForFunction(() => window.__fakeSb.db.pages[0].version === 2, null, { timeout: 8000 });
     expect(/Synced|Syncing/.test(await page.locator(".bd-acct-cloud").textContent()), "the Account dialog says how the sync went");
     ok("signed in, the file here is in the cloud, a save follows it up, and the dialog says so");
+    await page.waitForSelector(".bd-tb-right .bd-cloud-st.is-synced", { timeout: 8000 });
+    expect(/^In the cloud\. Saved to the cloud/.test(await page.locator(".bd-tb-right .bd-cloud-st").getAttribute("title")), "the top bar's cloud mark says the file is in the cloud");
+    ok("the top bar's cloud mark says where the file is kept");
     expect(await page.evaluate(() => window.__fakeSb.calls.some((c) => c[0] === "rpc" && c[1] === "accept_invites")), "signing in accepts waiting invites");
     ok("on: the PKCE client, a friendly error, then signed in with invites accepted");
 
@@ -3621,6 +3624,7 @@ try {
     await page.waitForSelector(".bd-share-dlg[open] .bd-br-agent");
     const owner = await page.locator(".bd-share-dlg .bd-br-agent").first().textContent();
     expect(/ann@example\.com \(you\)/.test(owner) && /Owner/.test(owner), `Share lists you as the owner, got "${owner}"`);
+    expect(/In the cloud/.test(await page.locator(".bd-share-dlg .bd-sh-status").textContent()), "Share says the file is in the cloud");
     await page.fill(".bd-sh-form input[type=email]", "Ben@Example.com");
     await page.locator(".bd-sh-form button[type=submit]").click();
     await page.waitForSelector(".bd-share-dlg .bd-br-agent.is-invited");

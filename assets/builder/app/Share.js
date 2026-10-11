@@ -9,7 +9,8 @@ import { Avatar } from "./Bridge.js";
 import { colorFor } from "./People.js";
 
 /* { dialogRef, account, file, people: { members, invites, loading, error, busy },
-     onInvite(email), onWithdraw(email), onRemove(userId), onLeave, onSignIn, onAccount } */
+     cloud (cloud/status.js's fileCloud), onInvite(email), onWithdraw(email),
+     onRemove(userId), onLeave, onMoveOut, onSignIn, onAccount } */
 function ShareDialog(p) {
   var emailSt = useState(""), email = emailSt[0], setEmail = emailSt[1];
   var me = p.account && p.account.status === "in" ? p.account.account : null;
@@ -28,7 +29,11 @@ function ShareDialog(p) {
   if (!me) {
     body = e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: sharing is tied to your account. ", e("button", { type: "button", className: "bd-link", onClick: p.onSignIn }, "Sign in"));
   } else if (!file.cloud) {
-    body = e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "This file is on its way to the cloud. Once it's there, you can share it.");
+    /* Not up yet: why, and for the Playground, the way out. */
+    var c = p.cloud || { detail: "This file is on its way to the cloud. Once it's there, you can share it." };
+    body = e("div", { className: "bd-sh-local" },
+      e("p", { className: "bd-br-note" }, e(Icon, { name: c.kind === "local" ? "info" : c.icon || "info" }), c.detail),
+      c.kind === "local" ? e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: p.onMoveOut }, e(Icon, { name: "cloud" }), "Move out of the Playground") : null);
   } else {
     body = e(React.Fragment, null,
       e("ul", { className: "bd-br-agents", role: "list", "aria-label": "People on this file" },
@@ -59,7 +64,9 @@ function ShareDialog(p) {
       e("div", { className: "bd-code-intro" }, e("h2", { id: "bd-sh-title" }, "Share " + (file.name || "this file")),
         e("p", { className: "bd-inspect-sub" }, "Who can open and edit this file. Your own account is under ", e("button", { type: "button", className: "bd-link", onClick: p.onAccount }, "Account"), ".")),
       e("div", { className: "bd-code-actions" }, e("button", { type: "button", className: "bd-act", "aria-label": "Close", onClick: close }, e(Icon, { name: "close" })))),
-    e("div", { className: "bd-br-body" }, body,
+    e("div", { className: "bd-br-body" },
+      me && file.cloud && p.cloud ? e("p", { className: cx("bd-sh-status", "is-" + p.cloud.kind), role: "status" }, e(Icon, { name: p.cloud.icon }), e("span", null, e("b", null, p.cloud.label), " " + p.cloud.detail)) : null,
+      body,
       people.error ? e("p", { className: cx("bd-acct-msg", "is-error"), role: "status" }, e(Icon, { name: "alert" }), e("span", null, people.error)) : null),
     e("div", { className: "bd-br-foot" },
       e("span", { className: "bd-edit-undo" }, e(Icon, { name: "lock" }), "Only people on the file can open it."),

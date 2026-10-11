@@ -811,7 +811,7 @@ html.bd-configure-docked .configure-open-btn {
   box-shadow: inset 0 0 0 var(--dt-border-width-default) color-mix(in oklab, currentColor 18%, transparent);
   font: inherit;
   font-size: 11px;
-  font-weight: var(--dt-font-weight-semibold, 600);
+  font-weight: var(--dt-font-weight-semibold);
   cursor: pointer;
 }
 
@@ -1352,7 +1352,7 @@ html.bd-configure-docked .configure-open-btn {
   gap: var(--dt-space-inline-xs);
   margin: 0;
   font-size: var(--dt-font-size-sm);
-  font-weight: var(--dt-font-weight-semibold, 600);
+  font-weight: var(--dt-font-weight-semibold);
 }
 
 .bd-count {
@@ -1720,7 +1720,7 @@ button.bd-layer-twisty:focus-visible {
 }
 
 .bd-layer-frame .bd-layer-name {
-  font-weight: var(--dt-font-weight-semibold, 600);
+  font-weight: var(--dt-font-weight-semibold);
 }
 
 .bd-layer-frame:not(.is-active-frame) {
@@ -2930,7 +2930,7 @@ span.bd-layer-twisty.is-open .bd-ic {
   color: var(--dt-text-primary);
   font: inherit;
   font-size: var(--dt-font-size-sm);
-  font-weight: var(--dt-font-weight-semibold, 600);
+  font-weight: var(--dt-font-weight-semibold);
   text-align: left;
   cursor: pointer;
 }
@@ -4183,6 +4183,67 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-people-in:focus-visible {
   outline: 2px solid var(--bd-select);
   outline-offset: 1px;
+}
+
+/* Where the open file is kept, in the top bar: a cloud when it's up, a
+   struck-through one when it stays in this browser, and a slow pulse while
+   changes are going up. On a phone it shows only when something needs
+   attention. */
+.bd-cloud-st.is-local,
+.bd-cloud-st.is-offline {
+  color: var(--dt-text-secondary);
+}
+
+.bd-cloud-st.is-error {
+  color: var(--dt-text-danger);
+}
+
+.bd-cloud-st.is-busy svg {
+  animation: bd-cloud-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes bd-cloud-pulse {
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-cloud-st.is-busy svg {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+@media (max-width: 600px) {
+  .bd-cloud-st.is-synced,
+  .bd-cloud-st.is-pending,
+  .bd-cloud-st.is-uploading {
+    display: none;
+  }
+}
+
+.bd-sh-status {
+  display: flex;
+  gap: var(--dt-space-inline-xs);
+  align-items: flex-start;
+  margin: 0 0 var(--dt-space-stack-sm);
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-sm);
+}
+
+.bd-sh-status b {
+  color: var(--dt-text-primary);
+  font-weight: var(--dt-font-weight-semibold);
+}
+
+.bd-sh-status.is-error svg {
+  color: var(--dt-text-danger);
+}
+
+.bd-sh-local {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-sm);
+  align-items: flex-start;
 }
 
 /* Share: the people on the file, as the agents list, and an invite form. */
@@ -6621,7 +6682,7 @@ input.bd-folder-name {
 
 .bd-brand-err {
   margin: 0 var(--dt-space-inset-md);
-  color: var(--dt-text-danger, var(--dt-text-primary));
+  color: var(--dt-text-danger);
   font-size: var(--dt-font-size-xs);
 }
 
@@ -7585,7 +7646,7 @@ input.bd-folder-name {
 }
 .bd-right .bd-inspect-title {
   font-size: var(--dt-font-size-sm);
-  font-weight: var(--dt-font-weight-semibold, 600);
+  font-weight: var(--dt-font-weight-semibold);
 }
 .bd-right .bd-arrange .bd-act,
 .bd-right .bd-arrange .bd-dd-icon.bd-dd {
@@ -7630,7 +7691,7 @@ input.bd-folder-name {
   padding: var(--dt-space-inset-2xs, 4px) var(--dt-space-inset-sm);
   color: var(--dt-text-secondary);
   font-size: var(--dt-font-size-xs);
-  font-weight: var(--dt-font-weight-semibold, 600);
+  font-weight: var(--dt-font-weight-semibold);
 }
 .bd-cx-sub {
   color: var(--dt-text-tertiary);
@@ -7787,7 +7848,7 @@ input.bd-folder-name {
 .bd-cx-name {
   flex: 1;
   min-width: 0;
-  font-weight: var(--dt-font-weight-semibold, 600);
+  font-weight: var(--dt-font-weight-semibold);
 }
 .bd-cx-field {
   display: flex;
@@ -7882,7 +7943,7 @@ input.bd-folder-name {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: var(--dt-font-size-sm);
-  font-weight: var(--dt-font-weight-semibold, 600);
+  font-weight: var(--dt-font-weight-semibold);
 }
 /* Live: requests leave the browser and cost, so the badge says so in colour. */
 .bd-as-badge.is-live {
@@ -8184,12 +8245,12 @@ input.bd-folder-name {
 }
 .bd-md strong {
   color: var(--dt-text-primary);
-  font-weight: var(--dt-font-weight-semibold, 600);
+  font-weight: var(--dt-font-weight-semibold);
 }
 .bd-md .bd-md-h {
   margin-top: var(--dt-space-stack-2xs, 6px);
   color: var(--dt-text-primary);
-  font-weight: var(--dt-font-weight-semibold, 600);
+  font-weight: var(--dt-font-weight-semibold);
 }
 .bd-md .bd-md-h:first-child {
   margin-top: 0;
@@ -8406,7 +8467,7 @@ input.bd-folder-name {
   align-items: center;
   padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
   color: var(--dt-text-primary);
-  font-weight: var(--dt-font-weight-semibold, 600);
+  font-weight: var(--dt-font-weight-semibold);
 }
 .bd-as-plan .bd-as-fold > span:first-child {
   display: inline-flex;
@@ -8420,7 +8481,7 @@ input.bd-folder-name {
   padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
   color: var(--dt-text-primary);
   font-size: inherit;
-  font-weight: var(--dt-font-weight-semibold, 600);
+  font-weight: var(--dt-font-weight-semibold);
 }
 .bd-as-fold-r {
   display: inline-flex;
@@ -8440,7 +8501,7 @@ input.bd-folder-name {
   display: flex;
   justify-content: space-between;
   padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
-  font-weight: var(--dt-font-weight-semibold, 600);
+  font-weight: var(--dt-font-weight-semibold);
 }
 .bd-as-note {
   color: var(--dt-text-tertiary);
@@ -8940,7 +9001,7 @@ input.bd-folder-name {
   justify-content: space-between;
   padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm) var(--dt-space-inset-2xs);
   color: var(--dt-text-secondary);
-  font-weight: var(--dt-font-weight-semibold, 600);
+  font-weight: var(--dt-font-weight-semibold);
 }
 .bd-as-tr {
   display: flex;

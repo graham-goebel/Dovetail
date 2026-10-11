@@ -7627,6 +7627,8 @@
     close: ["M6 6l12 12", "M18 6 6 18"],
     search: ["M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z", "m20 20-3.5-3.5"],
     check: ["m5 12 5 5 9-10"],
+    cloud: ["M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z"],
+    cloudOff: ["M7 18a4 4 0 0 1-.6-7.96 6 6 0 0 1 1.9-3.3", "M11 4.1A6 6 0 0 1 18 9a4.5 4.5 0 0 1 2.2 8.1", "M17 18H7", "M3 3l18 18"],
     alert: ["M12 8v5", "M12 16h.01", "M10.3 3.9 2.5 17.5A2 2 0 0 0 4.2 20.5h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"],
     phone: ["M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z", "M11 18h2"],
     tablet: ["M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z", "M11 18h2"],
@@ -14884,8 +14886,8 @@
     if (c.status === "syncing") return base + "Syncing…";
     if (c.status === "offline") return base + "You're offline: changes are saved here and go up when you're back.";
     if (c.status === "error") return base + "The last sync didn't finish" + (c.error ? ": " + c.error : ".") + " It tries again on the next change.";
-    var ago3 = c.at ? Math.round((Date.now() - c.at) / 1e3) : null;
-    return base + (ago3 == null ? "" : ago3 < 45 ? "Synced just now." : ago3 < 3600 ? "Synced " + Math.round(ago3 / 60) + " min ago." : "Synced " + Math.round(ago3 / 3600) + " h ago.");
+    var ago4 = c.at ? Math.round((Date.now() - c.at) / 1e3) : null;
+    return base + (ago4 == null ? "" : ago4 < 45 ? "Synced just now." : ago4 < 3600 ? "Synced " + Math.round(ago4 / 60) + " min ago." : "Synced " + Math.round(ago4 / 3600) + " h ago.");
   }
   function AccountDialog(props) {
     var s = props.state, setState = props.setState, ref = props.dialogRef;
@@ -15112,7 +15114,13 @@
     if (!me) {
       body = e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: sharing is tied to your account. ", e("button", { type: "button", className: "bd-link", onClick: p.onSignIn }, "Sign in"));
     } else if (!file.cloud) {
-      body = e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "This file is on its way to the cloud. Once it's there, you can share it.");
+      var c = p.cloud || { detail: "This file is on its way to the cloud. Once it's there, you can share it." };
+      body = e(
+        "div",
+        { className: "bd-sh-local" },
+        e("p", { className: "bd-br-note" }, e(Icon, { name: c.kind === "local" ? "info" : c.icon || "info" }), c.detail),
+        c.kind === "local" ? e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: p.onMoveOut }, e(Icon, { name: "cloud" }), "Move out of the Playground") : null
+      );
     } else {
       body = e(
         React.Fragment,
@@ -15183,6 +15191,7 @@
       e(
         "div",
         { className: "bd-br-body" },
+        me && file.cloud && p.cloud ? e("p", { className: cx("bd-sh-status", "is-" + p.cloud.kind), role: "status" }, e(Icon, { name: p.cloud.icon }), e("span", null, e("b", null, p.cloud.label), " " + p.cloud.detail)) : null,
         body,
         people.error ? e("p", { className: cx("bd-acct-msg", "is-error"), role: "status" }, e(Icon, { name: "alert" }), e("span", null, people.error)) : null
       ),
@@ -15194,6 +15203,45 @@
         e("button", { type: "button", className: "bd-btn", onClick: close }, "Done")
       )
     );
+  }
+
+  // assets/builder/cloud/status.js
+  function ago3(at2, now) {
+    if (!at2) return "";
+    var s = Math.max(0, Math.round((now - at2) / 1e3));
+    if (s < 45) return "just now";
+    if (s < 3600) return Math.round(s / 60) + " min ago";
+    if (s < 86400) return Math.round(s / 3600) + " h ago";
+    return Math.round(s / 86400) + (Math.round(s / 86400) === 1 ? " day ago" : " days ago");
+  }
+  function waitingIn(meta) {
+    return Object.keys(meta && meta.cloudDirty || {}).length;
+  }
+  function fileCloud(input) {
+    var account2 = input && input.account || {};
+    var meta = input && input.meta || {};
+    var group2 = input && input.group;
+    var mirror = input && input.mirror || { status: "off" };
+    var now = input && input.now || Date.now();
+    if (!account2.status || account2.status === "off") return null;
+    if (account2.status !== "in") {
+      return { kind: "out", icon: "cloudOff", label: "Only in this browser", detail: "Sign in to keep your files in the cloud, open them anywhere and share them." };
+    }
+    if (group2 && group2.kind) {
+      return { kind: "local", icon: "cloudOff", label: "Only in this browser", detail: "Files in the Playground stay in this browser. Move this one out of the Playground to keep it in the cloud and share it." };
+    }
+    var error = mirror.error ? ": " + mirror.error : ".";
+    if (!meta.cloud) {
+      if (mirror.status === "offline") return { kind: "offline", icon: "cloudOff", label: "Not in the cloud yet", detail: "You're offline. It goes up when you're back." };
+      if (mirror.status === "error") return { kind: "error", icon: "alert", label: "Not in the cloud yet", detail: "The upload didn't finish" + error + " It tries again when the tab wakes or you're back online." };
+      return { kind: "uploading", icon: "cloud", busy: true, label: "Going up to the cloud", detail: "This file is on its way to the cloud. Once it's there, you can share it." };
+    }
+    var waiting = waitingIn(meta) + (mirror.pending || 0);
+    if (mirror.status === "offline") return { kind: "offline", icon: "cloudOff", label: "Offline", detail: "Changes are saved in this browser and go up when you're back online." };
+    if (mirror.status === "error") return { kind: "error", icon: "alert", label: "Not synced", detail: "The last sync didn't finish" + error + " It tries again on the next change." };
+    if (mirror.status === "syncing" || waiting) return { kind: "pending", icon: "cloud", busy: true, label: "Syncing", detail: "Changes are going up to the cloud." };
+    var when = ago3(mirror.at, now);
+    return { kind: "synced", icon: "cloud", label: "In the cloud", detail: "Saved to the cloud" + (when ? " " + when : "") + ". It opens wherever you sign in." };
   }
 
   // assets/builder/cloud/sync.js
@@ -25647,6 +25695,7 @@
         e("button", { type: "button", className: "bd-btn bd-home-back", onClick: closeProjects, title: "Back to the canvas (Esc)" }, e(Icon, { name: "left" }), e("span", { className: "bd-home-back-text" }, "Back to " + project.name))
       )
     );
+    var cloudSt = fileCloud({ account: account2, meta: project, group: project.group ? groupById(project.group) : null, mirror: mirrorState });
     var workBar = e(
       "div",
       { className: "bd-toolbar", role: "toolbar", "aria-label": "Builder" },
@@ -25752,6 +25801,15 @@
         }),
         /* Saving is quiet; the bar speaks up only when this browser can't keep the work. */
         saved.ok ? null : e("span", { className: "bd-saved is-error", title: savedTitle, role: "status" }, e(Icon, { name: "alert" }), e("span", { className: "bd-saved-text" }, "Not saved")),
+        /* Where the file is kept: in the cloud and up to date, still going
+           up, or only in this browser (the Playground). */
+        cloudSt && cloudSt.kind !== "out" ? e("button", {
+          type: "button",
+          className: cx("bd-act", "bd-cloud-st", "is-" + cloudSt.kind, cloudSt.busy && "is-busy"),
+          "aria-label": cloudSt.label + ". " + cloudSt.detail,
+          title: cloudSt.label + ". " + cloudSt.detail,
+          onClick: openShare
+        }, e(Icon, { name: cloudSt.icon })) : null,
         /* Who's on the file: you, and others once live editing brings them. */
         e(People, { account: account2, others, onOpen: account2.status === "in" ? openShare : openAccount }),
         e("button", { type: "button", className: "bd-act", title: "Play: see " + frame2.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame2.id], onClick: function() {
@@ -27034,7 +27092,9 @@
         onLoad: onRenderPlay
       }),
       e(AccountDialog, { dialogRef: accountRef, state: account2, setState: accountState[1], cloud: mirrorState }),
-      e(ShareDialog, { dialogRef: shareRef, account: account2, file: project, people, onInvite, onWithdraw, onRemove, onLeave, onSignIn: openAccount, onAccount: openAccount }),
+      e(ShareDialog, { dialogRef: shareRef, account: account2, file: project, people, cloud: cloudSt, onMoveOut: function() {
+        moveFile(project.id, null);
+      }, onInvite, onWithdraw, onRemove, onLeave, onSignIn: openAccount, onAccount: openAccount }),
       menu ? e(ContextMenu, { x: menu.x, y: menu.y, label: "Actions", options: menuOptions(menu.ids), onClose: function() {
         setMenu(null);
       }, onChoose: onMenu }) : null,
@@ -27450,12 +27510,29 @@
         return store.setCloud(pid, { cloudDirty: d });
       });
     };
-    var schedule = function(key, fn) {
+    var waiting = {};
+    var count3 = function() {
+      say({ pending: Object.keys(waiting).length });
+    };
+    var schedule = function(key, fn, dirty) {
       clearTimeout(timers[key]);
+      if (!waiting[key]) {
+        waiting[key] = true;
+        count3();
+      }
       timers[key] = setTimeout(function() {
         delete timers[key];
         later(function() {
-          return fn().catch(fail);
+          return fn().catch(function(err) {
+            fail(err);
+            return dirty ? dirty().catch(function() {
+            }) : null;
+          }).then(function() {
+            if (!timers[key]) {
+              delete waiting[key];
+              count3();
+            }
+          });
         });
       }, PUSH_DELAY);
     };
@@ -27478,9 +27555,13 @@
         hooks = {};
         Object.keys(timers).forEach(function(k) {
           clearTimeout(timers[k]);
+          var m = /^(doc|meta):([^:]+)(?::(.+))?$/.exec(k);
+          if (m && store) markDirty(m[2], m[1] === "doc" ? m[3] : "meta").catch(function() {
+          });
         });
         timers = {};
-        say({ status: "off", error: "" });
+        waiting = {};
+        say({ status: "off", error: "", pending: 0 });
       },
       sync,
       state: function() {
@@ -27491,11 +27572,17 @@
       saved: function(pid, pageId) {
         if (stopped) return markDirty(pid, pageId).catch(function() {
         });
-        schedule("doc:" + pid + ":" + pageId, function() {
-          return push(pid, pageId).then(function() {
-            say({ status: "synced", at: Date.now(), error: "" });
-          });
-        });
+        schedule(
+          "doc:" + pid + ":" + pageId,
+          function() {
+            return push(pid, pageId).then(function() {
+              say({ status: "synced", at: Date.now(), error: "" });
+            });
+          },
+          function() {
+            return markDirty(pid, pageId);
+          }
+        );
         return void 0;
       },
       metaChanged: function(pid) {
@@ -27508,6 +27595,8 @@
               return pushMeta(sb, meta, g);
             });
           });
+        }, function() {
+          return markDirty(pid, "meta");
         });
         return void 0;
       },
@@ -27622,6 +27711,7 @@
     };
     w.moveFile = function(id, group2) {
       return store.moveFile(id, group2).then(function(meta) {
+        if (meta && !meta.cloud) hub.fileMade(id);
         return told(hub.metaChanged(id), meta);
       });
     };

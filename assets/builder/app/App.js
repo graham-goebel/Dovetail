@@ -37,6 +37,7 @@ import { addPlayground } from "../model/playground.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { invite as inviteToFile, listPeople, removeMember, withdraw as withdrawInvite } from "../cloud/sharing.js";
 import { ShareDialog } from "./Share.js";
+import { fileCloud } from "../cloud/status.js";
 import { createSync, topicFor } from "../cloud/sync.js";
 import { supabaseTransport } from "../cloud/client.js";
 import { TAB, othersFrom } from "../cloud/live.js";
@@ -6885,6 +6886,7 @@ function App(props) {
     e("div", { className: "bd-tb-title" }, e("span", { className: "bd-tb-home" }, homeView && groupById(homeView) ? groupById(homeView).name : "Home")),
     e("span", { className: "bd-tb-side bd-tb-right" },
       e("button", { type: "button", className: "bd-btn bd-home-back", onClick: closeProjects, title: "Back to the canvas (Esc)" }, e(Icon, { name: "left" }), e("span", { className: "bd-home-back-text" }, "Back to " + project.name))));
+  var cloudSt = fileCloud({ account: account, meta: project, group: project.group ? groupById(project.group) : null, mirror: mirrorState });
   var workBar = e("div", { className: "bd-toolbar", role: "toolbar", "aria-label": "Builder" },
     e("span", { className: "bd-tb-side bd-tb-left" },
       e(BridgePill, { bridge: bridge, frameName: frame.name, onPause: pauseAgents, onEnd: endAllAgents, onOpen: function () { patchBridge({ open: true }); }, onManage: openBridge })),
@@ -6941,6 +6943,10 @@ function App(props) {
         } }),
       /* Saving is quiet; the bar speaks up only when this browser can't keep the work. */
       saved.ok ? null : e("span", { className: "bd-saved is-error", title: savedTitle, role: "status" }, e(Icon, { name: "alert" }), e("span", { className: "bd-saved-text" }, "Not saved")),
+      /* Where the file is kept: in the cloud and up to date, still going
+         up, or only in this browser (the Playground). */
+      cloudSt && cloudSt.kind !== "out" ? e("button", { type: "button", className: cx("bd-act", "bd-cloud-st", "is-" + cloudSt.kind, cloudSt.busy && "is-busy"),
+        "aria-label": cloudSt.label + ". " + cloudSt.detail, title: cloudSt.label + ". " + cloudSt.detail, onClick: openShare }, e(Icon, { name: cloudSt.icon })) : null,
       /* Who's on the file: you, and others once live editing brings them. */
       e(People, { account: account, others: others, onOpen: account.status === "in" ? openShare : openAccount }),
       e("button", { type: "button", className: "bd-act", title: "Play: see " + frame.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame.id], onClick: function () { openPlay(); } }, e(Icon, { name: "play" })),
@@ -7658,7 +7664,7 @@ function App(props) {
     e(PlayDialog, { dialogRef: playRef, frameRef: playFrameRef, stageRef: playStageRef, play: play, setPlay: setPlay, box: playBox, frame: play ? frameById(doc, play.fid) : null,
       pageName: playPageName, frameSrc: frameSrc, onClose: onPlayClosed, onBack: onPlayBack, onLoad: onRenderPlay }),
     e(AccountDialog, { dialogRef: accountRef, state: account, setState: accountState[1], cloud: mirrorState }),
-    e(ShareDialog, { dialogRef: shareRef, account: account, file: project, people: people, onInvite: onInvite, onWithdraw: onWithdraw, onRemove: onRemove, onLeave: onLeave, onSignIn: openAccount, onAccount: openAccount }),
+    e(ShareDialog, { dialogRef: shareRef, account: account, file: project, people: people, cloud: cloudSt, onMoveOut: function () { moveFile(project.id, null); }, onInvite: onInvite, onWithdraw: onWithdraw, onRemove: onRemove, onLeave: onLeave, onSignIn: openAccount, onAccount: openAccount }),
     menu ? e(ContextMenu, { x: menu.x, y: menu.y, label: "Actions", options: menuOptions(menu.ids), onClose: function () { setMenu(null); }, onChoose: onMenu }) : null,
     e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));
 }
