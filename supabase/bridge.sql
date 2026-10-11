@@ -41,6 +41,19 @@ create table if not exists public.bridge_calls (
 create index if not exists bridge_calls_waiting on public.bridge_calls (session_id) where status = 'waiting';
 create index if not exists bridge_sessions_owner on public.bridge_sessions (owner);
 
+-- A connector: a session that lasts until its owner revokes it, so Claude
+-- can keep one address (added once as a connector in Claude) and reach
+-- whichever Builder tab its owner has open. The tab that opened most
+-- recently claims it (tab, a random id per tab) and says it's still there
+-- now and then (tab_seen); it also leaves the tools it offers (tools), so
+-- the function can list them while no step is running. One live connector
+-- per person.
+alter table public.bridge_sessions add column if not exists connector boolean not null default false;
+alter table public.bridge_sessions add column if not exists tab text not null default '' check (char_length(tab) <= 64);
+alter table public.bridge_sessions add column if not exists tab_seen timestamptz;
+alter table public.bridge_sessions add column if not exists tools jsonb;
+create unique index if not exists bridge_sessions_one_connector on public.bridge_sessions (owner) where connector and ended_at is null;
+
 -- ---------------------------------------------------------------- policies
 
 alter table public.bridge_sessions enable row level security;
@@ -80,6 +93,7 @@ begin
   new.owner := old.owner;
   new.key_hash := old.key_hash;
   new.created_at := old.created_at;
+  new.connector := old.connector;
   return new;
 end;
 $$;
@@ -109,7 +123,9 @@ create trigger bridge_calls_answered before update on public.bridge_calls
   for each row execute function public.bridge_call_answered();
 
 -- Ended sessions' steps go: nothing a session carried outlives it by more
--- than a day. The function calls this now and then; so can a schedule.
+-- than a day. A live connector stays however long it's quiet, but its
+-- answered steps go after a day. The function calls this now and then; so
+-- can a schedule.
 create or replace function public.bridge_tidy() returns integer
 language plpgsql security definer set search_path = public as $$
 declare
@@ -117,8 +133,11 @@ declare
 begin
   delete from public.bridge_sessions
   where ended_at < now() - interval '1 day'
-     or last_call < now() - interval '1 day';
+     or (not connector and last_call < now() - interval '1 day');
   get diagnostics gone = row_count;
+  delete from public.bridge_calls c
+  using public.bridge_sessions s
+  where s.id = c.session_id and s.connector and c.status = 'done' and c.done_at < now() - interval '1 day';
   return gone;
 end;
 $$;

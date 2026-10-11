@@ -1,5 +1,7 @@
 # The Dovetail MCP server
 
+This page is about the local server for coding agents. To let Claude edit an open Builder canvas, use **Connect Claude** in the Builder instead: it gives Claude a remote MCP address (see docs/cloud.md, Connect Claude).
+
 `tools/mcp/server.mjs` lets a coding agent build with Dovetail from outside the Builder. It speaks the Model Context Protocol over stdio, one JSON-RPC message per line, and has no dependencies beyond Node.
 
 The answers come from the code the Builder's own assistant uses (`assets/builder/model/agent.js`), reading the system from this checkout. An agent working in another repository gets the same rules, component docs and token values as the assistant on the canvas.

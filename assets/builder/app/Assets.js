@@ -5,6 +5,7 @@
 
 import { DATA, GROUP_ICON, META, PRESETS, TYPE_ICON, allSame, cx, e, kbd, nameOf, optionAllowed, useState } from "../config.js";
 import { STARTERS } from "../model/starters.js";
+import { GALLERY } from "../model/gallery.js";
 import { usesToken } from "../model/usage.js";
 import { Icon } from "../ui/icons.js";
 import { BUILDER_ICON, Dropdown, Segmented, Thumb } from "../ui/parts.js";
@@ -34,19 +35,20 @@ var PLAIN = {};
 groupsOf("primitives").forEach(function (g) { g.items.forEach(function (n) { PLAIN[n] = true; }); });
 /* A press opens the component's page (a preview and its properties, to set
    before it's placed); a builder primitive with no preview is added at once,
-   and Cmd or Ctrl swaps the selection for it. */
+   unless examples are written for it (Card), and Cmd or Ctrl swaps the
+   selection for it. */
 function tileList(p, items, open) {
   return e("ul", { className: cx("bd-tiles", p.view === "list" ? "is-list" : "is-grid") }, items.map(function (n) {
     var meta = META[n];
-    var plain = PLAIN[n];
+    var plain = PLAIN[n], adds = plain && !GALLERY[n];
     return e("li", { key: n },
       e("button", {
-        type: "button", className: cx("bd-tile", plain && "is-icon"), "data-type": n, "aria-label": plain ? "Add " + n : n,
-        title: (meta.blurb ? n + ": " + meta.blurb : n) + (plain ? ". Press to add, or drag onto a frame." : ". Press to see it and set it up before adding; drag onto a frame to add it now. Cmd-drag onto a component to swap it."),
+        type: "button", className: cx("bd-tile", adds && "is-icon"), "data-type": n, "aria-label": adds ? "Add " + n : n,
+        title: (meta.blurb ? n + ": " + meta.blurb : n) + (adds ? ". Press to add, or drag onto a frame." : ". Press to see it and set it up before adding; drag onto a frame to add it now. Cmd-drag onto a component to swap it."),
         onPointerDown: function (ev) { p.startDrag(ev, { kind: "new", type: n, label: n, thumb: ev.currentTarget.querySelector(".bd-thumb") }); },
         onClick: function (ev) {
           if (p.justDragged.current) return;
-          if (plain || ev.metaKey || ev.ctrlKey || !open) p.addOrSwap(n, ev.metaKey || ev.ctrlKey);
+          if (adds || ev.metaKey || ev.ctrlKey || !open) p.addOrSwap(n, ev.metaKey || ev.ctrlKey);
           else open(n);
         },
       },
@@ -194,7 +196,7 @@ var Assets = React.memo(function Assets(p) {
   var detailState = useState(null), detail = detailState[0], openDetail = detailState[1];
   if (detail && META[detail]) {
     return e("div", { className: "bd-assets" }, e(ComponentDetail, { key: detail, type: detail, frameName: p.frameName, justDragged: p.justDragged, startDrag: p.startDrag,
-      back: function () { openDetail(null); }, insert: function (type, props) { p.insertWith(type, props); } }));
+      back: function () { openDetail(null); }, insert: function (type, props, extra) { p.insertWith(type, props, extra); } }));
   }
   if (q) {
     var found = [];

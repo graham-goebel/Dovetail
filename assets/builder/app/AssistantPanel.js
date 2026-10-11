@@ -230,6 +230,7 @@ function AsMenu(p) {
           e("span", null, p.canLive ? "On once you're signed in: each request goes to the model through the cloud, on the account's usage. Off, a script in this browser answers, free." : p.cloudOn ? "Sign in to send requests to the model. Until then a script in this browser answers." : "Needs the cloud connected. A script in this browser answers.")),
         p.cloudOn && !p.canLive ? e("button", { type: "button", className: "bd-as-mbtn bd-as-msign", onClick: function () { setOpen(false); p.signIn(); } }, e(Icon, { name: "user" }), "Sign in")
           : e(Switch, { value: p.mode === "live", onChange: function (v) { p.setMode(v ? "live" : "practice"); }, labelledBy: "bd-as-m-live", disabled: !p.canLive })),
+      p.connectClaude ? e("button", { type: "button", className: "bd-as-mbtn", onClick: function () { setOpen(false); p.connectClaude(); } }, e(Icon, { name: "link" }), "Use your own Claude…") : null,
       e("hr"),
       row("bd-as-m-plan", "Plan before big changes", "New pages, or more than about 10 layers. Small edits just happen.", p.plans, p.setPlans),
       row("bd-as-m-look", "Look at the canvas", "Sends a picture of what it built so it can check and fix it. Off keeps this file's canvas private.", p.look, p.setLook),

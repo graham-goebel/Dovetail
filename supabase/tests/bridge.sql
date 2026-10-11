@@ -22,7 +22,7 @@ create function pg_temp.refused(stmt text, what text) returns void language plpg
 begin
   begin
     execute stmt;
-  exception when insufficient_privilege or check_violation then return;
+  exception when insufficient_privilege or check_violation or unique_violation then return;
   end;
   raise exception 'bridge check failed: %', what;
 end $$;
@@ -60,5 +60,30 @@ select pg_temp.refused($$select public.bridge_tidy()$$, 'only the function tidie
 reset role;
 select pg_temp.expect(public.bridge_tidy() = 1, 'an ended session goes after a day');
 select pg_temp.expect((select count(*) from public.bridge_calls) = 0, 'and its steps with it');
+
+-- Amy makes a connector: one live at a time, kept however quiet it is.
+select pg_temp.as_user('a0000000-0000-0000-0000-00000000000a');
+insert into public.bridge_sessions (id, key_hash, connector, label) values ('c1000000-0000-0000-0000-000000000001', repeat('12', 32), true, 'Claude (connector)');
+select pg_temp.refused($$insert into public.bridge_sessions (key_hash, connector) values (repeat('34', 32), true)$$, 'one live connector per person');
+insert into public.bridge_sessions (id, key_hash, label) values ('b1000000-0000-0000-0000-000000000002', repeat('56', 32), 'Plain');
+update public.bridge_sessions set connector = true where id = 'b1000000-0000-0000-0000-000000000002';
+select pg_temp.expect(not (select connector from public.bridge_sessions where id = 'b1000000-0000-0000-0000-000000000002'), 'a plain session can''t be made a connector');
+update public.bridge_sessions set tab = 'tab-one', tab_seen = now(), tools = '[{"name":"read_page"}]' where id = 'c1000000-0000-0000-0000-000000000001';
+select pg_temp.expect((select tab from public.bridge_sessions where id = 'c1000000-0000-0000-0000-000000000001') = 'tab-one', 'a tab claims its owner''s connector and leaves its tools');
+reset role;
+insert into public.bridge_calls (id, session_id, call, result, status, done_at) overriding system value values (2, 'c1000000-0000-0000-0000-000000000001', '{"name":"read_page"}', '{"ok":true}', 'done', now() - interval '2 days');
+insert into public.bridge_calls (id, session_id, call) overriding system value values (3, 'c1000000-0000-0000-0000-000000000001', '{"name":"read_page"}');
+update public.bridge_sessions set last_call = now() - interval '3 days';
+select pg_temp.expect(public.bridge_tidy() = 1, 'tidying takes the quiet plain session only');
+select pg_temp.expect(exists (select 1 from public.bridge_sessions where id = 'c1000000-0000-0000-0000-000000000001'), 'a quiet connector stays');
+select pg_temp.expect(not exists (select 1 from public.bridge_sessions where id = 'b1000000-0000-0000-0000-000000000002'), 'a quiet plain session goes');
+select pg_temp.expect((select array_agg(id order by id) from public.bridge_calls) = array[3::bigint], 'a connector''s answered steps go after a day; a waiting one stays');
+select pg_temp.as_user('a0000000-0000-0000-0000-00000000000a');
+update public.bridge_sessions set ended_at = now() - interval '2 days' where id = 'c1000000-0000-0000-0000-000000000001';
+insert into public.bridge_sessions (key_hash, connector) values (repeat('78', 32), true);
+select pg_temp.expect((select count(*) from public.bridge_sessions where connector and ended_at is null) = 1, 'once revoked, a new connector can be made');
+reset role;
+select pg_temp.expect(public.bridge_tidy() = 1, 'tidying takes the revoked connector');
+select pg_temp.expect(not exists (select 1 from public.bridge_sessions where id = 'c1000000-0000-0000-0000-000000000001'), 'a revoked connector goes after a day');
 
 select 'bridge: all checks passed' as result;
