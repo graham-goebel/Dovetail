@@ -26,6 +26,13 @@ function typeIcon(type) {
 /* A component with parts of its own, shown in Layers: not a container and
    not one of the builder's primitives. */
 function isOwner(n) { var m = META[n.type]; return !!m && !m.builder && !isContainer(n.type); }
+/* A component, as a layer: one of the file's own (an instance) or one of
+   the system's, as against the primitives (the layout and type pieces,
+   shapes and pictures). Layers and the canvas give components their own
+   colour. */
+var PRIMITIVE_TYPES = { Root: 1, Slot: 1, Image: 1, Video: 1 };
+(DATA.groups || []).forEach(function (g) { if (g.id === "layout" || g.id === "typography") g.items.forEach(function (t) { PRIMITIVE_TYPES[t] = 1; }); });
+function isComponentLayer(n) { var m = n && META[n.type]; return !!n && (!!n.inst || (!!m && !m.builder && !PRIMITIVE_TYPES[n.type])); }
 /* Whether a type has a title part (its titleSize prop) to pick in Layers. */
 function hasTitlePart(type) { var m = META[type]; return !!m && m.props.some(function (p) { return p.name === "titleSize"; }); }
 /* Whether a layer's children show in Layers: containers open unless folded,
@@ -379,4 +386,4 @@ function isContainer(type) { return type === "Root" || !!(META[type] && META[typ
 function mql(q) { return !!(window.matchMedia && window.matchMedia(q).matches); }
 function cx() { return Array.prototype.filter.call(arguments, Boolean).join(" "); }
 
-export { autoName, IS_MAC, PANELS, SHORTCUTS, VIRTUAL_AFTER, LIVE_MAX, useEvent, allSame, nodeLabel, typeIcon, isOwner, hasTitlePart, nodeIsOpen, frameSize, kbd, HEIGHT_KEYS, ROLE_FAMILIES, SIDE_KEYS, optionAllowed, roleOf, scopeOf, BACKUP_KEY, BAND_ROOT, BAND_TYPES, BUILDER_SRC, CAROUSEL_ITEMS, CAROUSEL_STEPS, CONTROL_TYPES, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KEY, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MAX_ZOOM, MEDIA_LIMIT, MEDIA_TYPES, MEDIA_URL, META, MIN_FREE, MIN_SIDE, MIN_ZOOM, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SLOT_ACCEPTS, SPACINGS, STAGE_PAD, STORE_KEY, STYLE_KEYS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, removerLoading, slotAccepts, slotSpec, slotTakes, storage, useCallback, useEffect, useMemo, useRef, useState, words };
+export { autoName, isComponentLayer, IS_MAC, PANELS, SHORTCUTS, VIRTUAL_AFTER, LIVE_MAX, useEvent, allSame, nodeLabel, typeIcon, isOwner, hasTitlePart, nodeIsOpen, frameSize, kbd, HEIGHT_KEYS, ROLE_FAMILIES, SIDE_KEYS, optionAllowed, roleOf, scopeOf, BACKUP_KEY, BAND_ROOT, BAND_TYPES, BUILDER_SRC, CAROUSEL_ITEMS, CAROUSEL_STEPS, CONTROL_TYPES, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KEY, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MAX_ZOOM, MEDIA_LIMIT, MEDIA_TYPES, MEDIA_URL, META, MIN_FREE, MIN_SIDE, MIN_ZOOM, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SLOT_ACCEPTS, SPACINGS, STAGE_PAD, STORE_KEY, STYLE_KEYS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, removerLoading, slotAccepts, slotSpec, slotTakes, storage, useCallback, useEffect, useMemo, useRef, useState, words };

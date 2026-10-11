@@ -166,6 +166,16 @@
     var m = META[n.type];
     return !!m && !m.builder && !isContainer(n.type);
   }
+  var PRIMITIVE_TYPES = { Root: 1, Slot: 1, Image: 1, Video: 1 };
+  (DATA.groups || []).forEach(function(g) {
+    if (g.id === "layout" || g.id === "typography") g.items.forEach(function(t) {
+      PRIMITIVE_TYPES[t] = 1;
+    });
+  });
+  function isComponentLayer(n) {
+    var m = n && META[n.type];
+    return !!n && (!!n.inst || !!m && !m.builder && !PRIMITIVE_TYPES[n.type]);
+  }
   function hasTitlePart(type) {
     var m = META[type];
     return !!m && m.props.some(function(p) {
@@ -1897,6 +1907,63 @@
       to.node.children.splice(Math.max(0, Math.min(index2, to.node.children.length)), 0, settle(active(doc2), parentId, from.node));
       return id;
     },
+    /* Several layers to one place, in layer order: the ones inside another
+       moving layer go with it. A layer that leaves its parent leaves its
+       free spot too and joins the flow where it lands. */
+    moveMany: function(doc2, ids, parentId, index2) {
+      var to = locate(doc2, parentId);
+      if (!to) return null;
+      var spots = ids.map(function(id) {
+        return locate(doc2, id);
+      }).filter(Boolean);
+      spots = spots.filter(function(s) {
+        return !s.path.slice(0, -1).some(function(n) {
+          return ids.indexOf(n.id) >= 0;
+        });
+      });
+      if (!spots.length || spots.some(fixed)) return null;
+      if (spots.some(function(s) {
+        return s.node.id === parentId || to.path.some(function(x) {
+          return x.id === s.node.id;
+        }) || !canHold(to, s.node);
+      })) return null;
+      var order = [];
+      (function walk2(n) {
+        (n.children || []).forEach(function(c) {
+          order.push(c.id);
+          walk2(c);
+        });
+      })(active(doc2).root);
+      spots.sort(function(a, b) {
+        return order.indexOf(a.node.id) - order.indexOf(b.node.id);
+      });
+      var before = spots.filter(function(s) {
+        return s.parent === to.node && s.index < index2;
+      }).length;
+      var nodes = spots.map(function(s) {
+        var n = s.node;
+        if (s.parent !== to.node && isFree(n.style)) {
+          delete n.style.x;
+          delete n.style.y;
+          delete n.style.ch;
+          delete n.style.cv;
+        }
+        return n;
+      });
+      var gone = nodes.map(function(n) {
+        return n.id;
+      });
+      spots.forEach(function(s) {
+        s.parent.children = s.parent.children.filter(function(c) {
+          return gone.indexOf(c.id) < 0;
+        });
+      });
+      var at2 = Math.max(0, Math.min(index2 - before, to.node.children.length));
+      to.node.children.splice.apply(to.node.children, [at2, 0].concat(nodes.map(function(n) {
+        return settle(active(doc2), parentId, n);
+      })));
+      return gone;
+    },
     /* "root" means nothing left to select; null means nothing happened. */
     remove: function(doc2, ids) {
       var next = null, any = false;
@@ -1933,28 +2000,89 @@
       return box.id;
     },
     /* Siblings into one Group, in their order, where the first one was. */
-    group: function(doc2, ids) {
-      var spots = ids.map(function(id) {
+    /* Any selection into one Group: layers inside another selected layer go
+       with it; ones from elsewhere join the first one's parent; the Group
+       takes the first one's place. Free layers in one parent keep where they
+       stand: the Group is placed over them and sized to hold them, from
+       boxes ({ id: { x, y, w, h } } in free steps, as measured), and each
+       keeps its spot inside it. */
+    group: function(doc2, ids, boxes) {
+      var all = ids.map(function(id) {
         return locate(doc2, id);
       }).filter(Boolean);
+      var inside = function(s) {
+        return s.path.slice(0, -1).some(function(n) {
+          return ids.indexOf(n.id) >= 0;
+        });
+      };
+      var spots = all.filter(function(s) {
+        return !inside(s);
+      });
       if (!spots.length || spots.some(fixed)) return null;
-      if (!canHold(parentSpot(spots[0]), { type: "Group" })) return null;
-      var parent = spots[0].parent;
-      if (!parent || spots.some(function(s) {
-        return s.parent !== parent;
-      })) return null;
-      spots.sort(function(a, b) {
-        return a.index - b.index;
+      var order = [];
+      (function walk2(n) {
+        (n.children || []).forEach(function(c) {
+          order.push(c.id);
+          walk2(c);
+        });
+      })(active(doc2).root);
+      spots.sort(function(a, b2) {
+        return order.indexOf(a.node.id) - order.indexOf(b2.node.id);
       });
-      var box = make("Group", {}, spots.map(function(s) {
+      var first = spots[0], parent = first.parent;
+      if (!parent || !canHold(parentSpot(first), { type: "Group" })) return null;
+      var oneParent = spots.every(function(s) {
+        return s.parent === parent;
+      });
+      var nodes = spots.map(function(s) {
         return s.node;
-      }));
-      if (active(doc2).mode === "structured") autoLayout(box);
-      var at2 = spots[0].index;
-      parent.children = parent.children.filter(function(c) {
-        return ids.indexOf(c.id) < 0;
       });
-      parent.children.splice(at2, 0, box);
+      var keep = nodes.map(function(n) {
+        return n.id;
+      });
+      var at2 = first.index;
+      spots.forEach(function(s) {
+        s.parent.children = s.parent.children.filter(function(c) {
+          return keep.indexOf(c.id) < 0;
+        });
+      });
+      var look = {};
+      var free = oneParent && nodes.every(function(n) {
+        return isFree(n.style);
+      });
+      if (free) {
+        var b = function(n) {
+          var m = boxes && boxes[n.id];
+          return m || { x: n.style.x, y: n.style.y, w: n.style.fw || 1, h: n.style.fh || 1 };
+        };
+        var x0 = Math.min.apply(null, nodes.map(function(n) {
+          return b(n).x;
+        })), y0 = Math.min.apply(null, nodes.map(function(n) {
+          return b(n).y;
+        }));
+        var x1 = Math.max.apply(null, nodes.map(function(n) {
+          return b(n).x + b(n).w;
+        })), y1 = Math.max.apply(null, nodes.map(function(n) {
+          return b(n).y + b(n).h;
+        }));
+        look = { x: x0, y: y0, fw: Math.max(1, Math.min(FREE_MAX, x1 - x0)), fh: Math.max(1, Math.min(FREE_MAX, y1 - y0)) };
+        nodes.forEach(function(n) {
+          n.style.x -= x0;
+          n.style.y -= y0;
+        });
+      } else {
+        nodes.forEach(function(n) {
+          if (isFree(n.style)) {
+            delete n.style.x;
+            delete n.style.y;
+            delete n.style.ch;
+            delete n.style.cv;
+          }
+        });
+      }
+      var box = make("Group", {}, nodes, look);
+      if (active(doc2).mode === "structured") autoLayout(box);
+      parent.children.splice(Math.min(at2, parent.children.length), 0, box);
       return box.id;
     },
     /* A shape made the mask of the layers over it: a Group in the shape's
@@ -9005,6 +9133,9 @@
             "aria-checked": props.menu && o.checked !== void 0 ? String(!!o.checked) : void 0,
             "aria-disabled": o.disabled ? "true" : void 0,
             className: cx("bd-dd-opt", i === activeI && "is-active", isSel && "is-selected", o.disabled && "is-disabled", o.danger && "is-danger"),
+            /* A field's options are their names alone; what each one is, or
+               the token behind it, is a tooltip. A menu keeps its shortcuts. */
+            title: !props.menu && o.hint ? String(o.hint) : void 0,
             onPointerMove: function() {
               if (activeI !== i) setActive(i);
             },
@@ -9018,7 +9149,7 @@
             "span",
             { className: "bd-dd-opt-text" },
             e("span", { className: "bd-dd-opt-label" }, o.label || String(o.value)),
-            o.hint ? e("span", { className: "bd-dd-opt-hint" }, kbd(o.hint)) : null
+            o.hint && props.menu ? e("span", { className: "bd-dd-opt-hint" }, kbd(o.hint)) : null
           ),
           isSel || o.checked ? e(Icon, { name: "check", className: "bd-dd-tick" }) : null
         )];
@@ -10853,7 +10984,7 @@
         "div",
         {
           key: n.id,
-          className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", n.inst && "is-instance", listDrop2 && listDrop2.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
+          className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", n.inst && "is-instance", isComponentLayer(n) && "is-component", listDrop2 && listDrop2.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
           "data-layer": mine ? n.id : void 0,
           "data-frame-row": mine ? void 0 : f.id,
           "data-depth": r.depth,
@@ -11508,8 +11639,8 @@
   }
   var TEMPLATE_PIC = { landing: ["HeroBlock", true], store: ["ProductGridBlock", true], settings: ["Field", false], chat: ["ChatBlock", false] };
   var CONTAINER_KINDS = [
-    ["free", "Freeform frame", "frame", "Place anything anywhere, in any colour"],
-    ["structured", "Structured frame", "layout", "Auto-layout Groups with tokens, ready for code"],
+    ["free", "Frame", "frame", "Place anything anywhere, in any colour"],
+    ["structured", "Auto layout frame", "layout", "Lays out what's in it in Groups, with tokens, ready for code"],
     ["page", "Tall frame", "file", "Grows as tall as what's on it"]
   ];
   function containerCard(p, key, name, pic, note3, payload, onAdd) {
@@ -14702,7 +14833,7 @@
         var short7 = (m.box || m.r).height < 28, narrow = (m.box || m.r).width < 28;
         return e(
           "div",
-          { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== p.sel && "is-extra", at2.node.lock && "is-locked", at2.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top", p.sizing && p.sizing.id === m.id && "is-sizing", handles && short7 && "is-short", handles && narrow && "is-narrow"), style: markStyle },
+          { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== p.sel && "is-extra", at2.node.lock && "is-locked", at2.node.inst && "is-instance", isComponentLayer(at2.node) && "is-component", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top", p.sizing && p.sizing.id === m.id && "is-sizing", handles && short7 && "is-short", handles && narrow && "is-narrow"), style: markStyle },
           turnable ? ["nw", "ne", "se", "sw"].map(function(c) {
             return e("span", { key: "rot-" + c, className: "bd-rotate is-" + c, title: "Drag to turn; Shift snaps to 15°", onPointerDown: function(ev) {
               p.startRotate(ev, at2.node.id);
@@ -19052,6 +19183,19 @@
         addLocal(dr.payload.comp, { parent: hit.parent, index: hit.index, frame: fid, free: hit.free });
         return;
       }
+      if (hit.where === "list" && fid === docRef.current.active && selRef.current.length > 1 && selRef.current.indexOf(dr.payload.id) >= 0) {
+        var many = selRef.current.slice();
+        if (change(function(d) {
+          return ops.moveMany(d, many, hit.parent, hit.index);
+        }, "Moved " + many.length + " layers")) {
+          if (hit.parent !== "root") setCollapsed(function(c) {
+            var n = Object.assign({}, c);
+            delete n[hit.parent];
+            return n;
+          });
+        }
+        return;
+      }
       if (hit.free) {
         var mid = dr.payload.id, pos = hit.free;
         change(function(d) {
@@ -19473,7 +19617,7 @@
               dragEndRef.current(commitIt);
             },
             paste: function(cd) {
-              return takePasteRef.current(cd);
+              return pasteEvent(cd);
             },
             frameDrag: on(function(fid, phase, x, y, dup) {
               var p = toPage(fid, x, y);
@@ -20545,9 +20689,14 @@
       group: function() {
         var ids = selRef.current.slice();
         if (!ids.length) return;
+        var a = api(), unit = pxMap["padding|2xs"] || 4, d0 = docRef.current, boxes2 = {};
+        if (a && a.rect) ids.forEach(function(id) {
+          var at2 = locate(d0, id), r = at2 && isFree(at2.node.style) ? a.rect(id) : null;
+          if (r) boxes2[id] = { x: at2.node.style.x, y: at2.node.style.y, w: Math.max(1, Math.round(r.width / unit)), h: Math.max(1, Math.round(r.height / unit)) };
+        });
         if (!change(function(d) {
-          return ops.group(d, ids);
-        }, "Grouped " + ids.length + (ids.length === 1 ? " item" : " items"))) announce("Only items side by side in the same parent can be grouped");
+          return ops.group(d, ids, boxes2);
+        }, "Grouped " + ids.length + (ids.length === 1 ? " layer" : " layers"))) announce("Those can't be grouped here: a frame's fixed parts stay where they are");
       },
       /* Auto layout on: what a Group holds, or what's on a freeform frame's
          page, laid out in a row or a column in the order it stands. The
@@ -20663,8 +20812,9 @@
       freeLayout: function(id) {
         var d = docRef.current, fr = active(d);
         if (id === void 0) id = selRef.current.length === 1 ? selRef.current[0] : selRef.current.length ? null : fr.id;
-        if (!id || fr.mode === "structured" || fr.bare) return false;
+        if (!id || fr.bare) return false;
         var onFrame = id === fr.id;
+        if (!onFrame && fr.mode === "structured") return false;
         var at2 = onFrame ? null : locate(d, id);
         if (!onFrame && (!at2 || at2.node.type !== "Group" || at2.node.style.bool)) return false;
         if (!(onFrame ? frameFlows(fr) : groupFlows(at2.node))) return false;
@@ -20686,8 +20836,11 @@
           var f = active(dd);
           var holder = onFrame ? f.root : (locate(dd, id) || {}).node;
           if (!holder) return null;
-          if (onFrame) delete f.flow;
-          else if (holder.children.length) {
+          if (onFrame) {
+            delete f.flow;
+            delete f.gap;
+            f.mode = "free";
+          } else if (holder.children.length) {
             holder.style.fw = Math.max(1, st(gr.width));
             holder.style.fh = Math.max(1, st(gr.height));
           }
@@ -20914,7 +21067,10 @@
         pasteStyle();
         return true;
       }
-      if (mod && key === "v" && !ev.shiftKey && !ev.altKey) return false;
+      if (mod && key === "v" && !ev.shiftKey && !ev.altKey) {
+        pasteSoon();
+        return false;
+      }
       if (ev.key === "F2") {
         actions2.rename();
         return true;
@@ -21197,56 +21353,6 @@
         });
         return any ? void 0 : null;
       });
-    };
-    var setMode = function(mode) {
-      change(function(d) {
-        var f2 = active(d);
-        if ((f2.mode || "free") === mode) return null;
-        f2.mode = mode;
-        if (mode !== "structured") return void 0;
-        delete f2.canvas;
-        var loose = [];
-        var kept = [];
-        f2.root.children.forEach(function(c) {
-          if (joinsFlow(c.type) || isContainer(c.type)) kept.push(c);
-          else loose.push(c);
-        });
-        loose.sort(function(a, b) {
-          return (a.style.y || 0) - (b.style.y || 0) || (a.style.x || 0) - (b.style.x || 0);
-        });
-        (function unfree(n) {
-          if (n.style) {
-            delete n.style.x;
-            delete n.style.y;
-            delete n.style.ch;
-            delete n.style.cv;
-            delete n.style.fill;
-            delete n.style.color;
-            delete n.style.alpha;
-            delete n.style.fw;
-            delete n.style.fh;
-            delete n.style.rot;
-            delete n.style.flipH;
-            delete n.style.flipV;
-          }
-          (n.children || []).forEach(unfree);
-        })(f2.root);
-        if (loose.length) {
-          var g2 = make("Group", { direction: "column", gap: "md" }, loose, { padding: "lg" });
-          kept.push(g2);
-        }
-        f2.root.children = kept;
-        if (!f2.gap) f2.gap = "block";
-        autoLayout(f2.root);
-        return [];
-      }, mode === "structured" ? "Structured: everything is in Groups now" : "Freeform: place things anywhere");
-      if (mode !== "structured") return;
-      var f = active(docRef.current);
-      var g = f.root.children.length === 1 && f.root.children[0].type === "Group" ? f.root.children[0] : null;
-      if (g) {
-        select([g.id]);
-        setFocusSec("flex");
-      } else setFocusSec("frame-auto");
     };
     var setName = function(id, name) {
       change(function(d) {
@@ -21651,12 +21757,42 @@
     };
     var takePasteRef = useRef(takePaste);
     takePasteRef.current = takePaste;
+    var pasteWait = useRef({ timer: 0, done: 0 });
+    var pasteSoon = function() {
+      clearTimeout(pasteWait.current.timer);
+      pasteWait.current.timer = setTimeout(function() {
+        pasteWait.current.timer = 0;
+        pasteWait.current.done = Date.now();
+        if (clip.current) {
+          pasteNodes(clip.current.nodes);
+          return;
+        }
+        if (navigator.clipboard && navigator.clipboard.readText) navigator.clipboard.readText().then(function(text2) {
+          var data = null;
+          try {
+            data = JSON.parse(text2);
+          } catch (err) {
+            data = null;
+          }
+          if (data && data.kind === CLIP_MARK && Array.isArray(data.nodes)) pasteNodes(data.nodes);
+        }, function() {
+        });
+      }, 120);
+    };
+    var pasteEvent = function(cd) {
+      var w = pasteWait.current;
+      if (w.timer) {
+        clearTimeout(w.timer);
+        w.timer = 0;
+      } else if (Date.now() - w.done < 1e3) return true;
+      return takePasteRef.current(cd);
+    };
     useEffect(function() {
       var onPaste = function(ev) {
         var t = ev.target;
         if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
         if (!(mountEl.contains(t) || t === document.body)) return;
-        if (takePasteRef.current(ev.clipboardData)) ev.preventDefault();
+        if (pasteEvent(ev.clipboardData)) ev.preventDefault();
       };
       document.addEventListener("paste", onPaste);
       return function() {
@@ -23987,6 +24123,26 @@
         })
       );
     };
+    var flexRows = function(matrix, head3, fields, toggles) {
+      return [
+        head3.length || matrix ? e(
+          "div",
+          { key: "top", className: matrix ? "bd-flex-top" : "bd-flex-head" },
+          matrix,
+          matrix ? e("div", { className: "bd-flex-top-side" }, head3) : head3
+        ) : null,
+        fields.length ? e("div", { key: "fields", className: "bd-flex-pair" }, fields) : null,
+        toggles.length ? e("div", { key: "toggles", className: "bd-flex-pair" }, toggles) : null
+      ];
+    };
+    var wrapButton = function(on, onClick) {
+      return e(
+        "button",
+        { key: "wrap", type: "button", className: "bd-btn bd-btn-sm bd-flex-wrap", "aria-pressed": String(!!on), title: on ? "Wraps onto new lines" : "Stays on one line", "aria-label": "Wrap onto new lines", onClick },
+        e(Icon, { name: "wrapLines" }),
+        "Wrap"
+      );
+    };
     var flexSection = function(nodes, meta) {
       var first = nodes[0];
       var ids = nodes.map(function(n) {
@@ -24024,17 +24180,9 @@
         },
         options: [{ value: "row", label: "Row", icon: "row" }, { value: "column", label: "Column", icon: "column" }]
       }));
-      if (spec("wrap")) head3.push(e("button", {
-        key: "wrap",
-        type: "button",
-        className: "bd-act",
-        "aria-pressed": String(!!val("wrap")),
-        title: val("wrap") ? "Wraps onto new lines" : "Stays on one line",
-        "aria-label": "Wrap onto new lines",
-        onClick: function() {
-          setProp(ids, "wrap", !val("wrap"));
-        }
-      }, e(Icon, { name: "wrapLines" })));
+      if (spec("wrap")) head3.push(wrapButton(val("wrap"), function() {
+        setProp(ids, "wrap", !val("wrap"));
+      }));
       var side2 = [];
       if (gap) side2.push(e(Dropdown, {
         key: "gap",
@@ -24076,17 +24224,14 @@
         return propControl(p, nodes);
       }).filter(Boolean);
       if (!head3.length && !pad && !side2.length && !rest.length) return null;
-      return [
-        head3.length ? e("div", { key: "head", className: "bd-flex-head" }, head3) : null,
-        pad || side2.length ? e(
-          "div",
-          { key: "pad", className: "bd-flex-grid" },
-          pad ? e(AlignMatrix, { dir, align: a, justify: j, onChange: function(na, nj) {
-            setProps(ids, { align: na, justify: nj });
-          } }) : null,
-          side2.length ? e("div", { className: "bd-flex-side" }, side2) : null
-        ) : null
-      ].concat(rest);
+      var matrix = pad ? e(AlignMatrix, { key: "mx", dir, align: a, justify: j, onChange: function(na, nj) {
+        setProps(ids, { align: na, justify: nj });
+      } }) : null;
+      return flexRows(matrix, head3, side2.filter(function(x) {
+        return x.key === "gap";
+      }), side2.filter(function(x) {
+        return x.key !== "gap";
+      })).concat(rest);
     };
     var libPicks = library.images.map(function(it) {
       return Object.assign({ kind: "Image" }, it);
@@ -25039,18 +25184,20 @@
       })[0];
       var gapNow = fl.gap || frame2.gap || "none";
       var a = fl.align || "stretch", j = fl.justify || "flex-start";
-      var free = frame2.mode !== "structured" && !frame2.bare;
+      var free = !frame2.bare;
       var on = frameFlows(frame2);
       var toggle = free ? autoButton(on, function() {
         if (on) actions2.freeLayout(frame2.id);
         else actions2.autoLayout(frame2.id);
       }, frame2.name) : null;
       if (free && !on) return sec("frame-auto", "Auto layout", null, toggle);
-      return sec("frame-auto", "Auto layout", [
-        e(
-          "div",
-          { key: "head", className: "bd-flex-head" },
+      return sec("frame-auto", "Auto layout", flexRows(
+        e(AlignMatrix, { key: "mx", dir: fdir, align: a, justify: j, onChange: function(na, nj) {
+          setFlow({ align: na, justify: nj });
+        } }),
+        [
           e(Segmented, {
+            key: "dir",
             label: "Direction",
             value: fdir,
             onChange: function(v) {
@@ -25058,73 +25205,63 @@
             },
             options: [{ value: "row", label: "Row", icon: "row" }, { value: "column", label: "Column", icon: "column" }]
           }),
-          e("button", {
-            type: "button",
-            className: "bd-act",
-            "aria-pressed": String(!!fl.wrap),
-            title: fl.wrap ? "Wraps onto new lines" : "Stays on one line",
-            "aria-label": "Wrap onto new lines",
-            onClick: function() {
-              setFlow({ wrap: fl.wrap ? void 0 : true });
+          wrapButton(fl.wrap, function() {
+            setFlow({ wrap: fl.wrap ? void 0 : true });
+          })
+        ],
+        [
+          e(Dropdown, {
+            key: "gap",
+            label: "Gap",
+            prefix: "Gap",
+            value: gapNow,
+            className: "bd-dd-field",
+            narrow: true,
+            options: gapSpec.options.map(function(o) {
+              return { value: o, label: o === "none" ? "None" : o, hint: o === "none" ? void 0 : DATA.rootGaps.indexOf(o) >= 0 ? "--dt-layout-" + (fdir === "row" ? "inline" : "stack") + "-" + o : (fdir === "row" ? "--dt-space-inline-" : "--dt-space-stack-") + o };
+            }),
+            onChange: function(v) {
+              setFlow({ gap: v === "none" ? void 0 : v });
             }
-          }, e(Icon, { name: "wrapLines" }))
-        ),
-        e(
-          "div",
-          { key: "pad", className: "bd-flex-grid" },
-          e(AlignMatrix, { dir: fdir, align: a, justify: j, onChange: function(na, nj) {
-            setFlow({ align: na, justify: nj });
-          } }),
-          e(
-            "div",
-            { className: "bd-flex-side" },
-            e(Dropdown, {
-              label: "Gap",
-              prefix: "Gap",
-              value: gapNow,
-              className: "bd-dd-field",
-              narrow: true,
-              options: gapSpec.options.map(function(o) {
-                return { value: o, label: o === "none" ? "None" : o, hint: o === "none" ? void 0 : DATA.rootGaps.indexOf(o) >= 0 ? "--dt-layout-" + (fdir === "row" ? "inline" : "stack") + "-" + o : (fdir === "row" ? "--dt-space-inline-" : "--dt-space-stack-") + o };
-              }),
-              onChange: function(v) {
-                setFlow({ gap: v === "none" ? void 0 : v });
-              }
-            }),
-            e(Dropdown, {
-              label: "Padding",
-              prefix: "Padding",
-              value: fl.padding || "",
-              className: "bd-dd-field",
-              narrow: true,
-              options: [{ value: "", label: "None" }].concat(DATA.tokens.padding.options.map(function(o) {
-                return { value: o.value, label: o.value, hint: o.tokens[0] };
-              })),
-              onChange: function(v) {
-                setFlow({ padding: v || void 0 });
-              }
-            }),
-            e("button", {
-              type: "button",
-              className: "bd-btn bd-btn-sm",
-              "aria-pressed": String(a === "stretch"),
-              title: "Children fill the cross axis",
-              onClick: function() {
-                setFlow({ align: a === "stretch" ? "flex-start" : "stretch" });
-              }
-            }, e(Icon, { name: "alignStretch" }), "Stretch"),
-            e("button", {
-              type: "button",
-              className: "bd-btn bd-btn-sm",
-              "aria-pressed": String(j === "space-between"),
-              title: "Spread children along the main axis",
-              onClick: function() {
-                setFlow({ justify: j === "space-between" ? "flex-start" : "space-between" });
-              }
-            }, e(Icon, { name: "justifyBetween" }), "Space between")
-          )
-        )
-      ], toggle);
+          }),
+          e(Dropdown, {
+            key: "padding",
+            label: "Padding",
+            prefix: "Padding",
+            value: fl.padding || "",
+            className: "bd-dd-field",
+            narrow: true,
+            options: [{ value: "", label: "None" }].concat(DATA.tokens.padding.options.map(function(o) {
+              return { value: o.value, label: o.value, hint: o.tokens[0] };
+            })),
+            onChange: function(v) {
+              setFlow({ padding: v || void 0 });
+            }
+          })
+        ],
+        [
+          e("button", {
+            key: "stretch",
+            type: "button",
+            className: "bd-btn bd-btn-sm",
+            "aria-pressed": String(a === "stretch"),
+            title: "Children fill the cross axis",
+            onClick: function() {
+              setFlow({ align: a === "stretch" ? "flex-start" : "stretch" });
+            }
+          }, e(Icon, { name: "alignStretch" }), "Stretch"),
+          e("button", {
+            key: "between",
+            type: "button",
+            className: "bd-btn bd-btn-sm",
+            "aria-pressed": String(j === "space-between"),
+            title: "Spread children along the main axis",
+            onClick: function() {
+              setFlow({ justify: j === "space-between" ? "flex-start" : "space-between" });
+            }
+          }, e(Icon, { name: "justifyBetween" }), "Space between")
+        ]
+      ), toggle);
     };
     var frameOverflow = function() {
       var scroll = frame2.scroll || "none";
@@ -25303,19 +25440,6 @@
         ])
       ];
       var body = place2.concat([
-        sec("frame-mode", "Kind", e(
-          Field,
-          { key: "mode", id: "bd-fr-kind", label: "Frame kind", hint: frame2.mode === "structured" ? "Everything sits in auto-layout Groups, in the flow, with tokens only." : "Place things anywhere, in any colour." },
-          e(Segmented, {
-            labelledBy: "bd-fr-kind",
-            wide: true,
-            value: frame2.mode === "structured" ? "structured" : "free",
-            onChange: function(v) {
-              if (v) setMode(v);
-            },
-            options: [{ value: "free", label: "Freeform" }, { value: "structured", label: "Structured" }]
-          })
-        )),
         frame2.typeScale === "social" ? frameRatio() : null,
         /* How the frame lays out what's in it comes before how it looks. */
         frameAuto()

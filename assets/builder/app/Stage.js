@@ -3,7 +3,7 @@
    pieces here that read it through useCam, not the whole builder. Each
    piece draws from props the App hands it each render. */
 
-import { LABEL_ROOM, LIVE_MAX, STAGE_PAD, VIRTUAL_AFTER, cx, e, nameOf } from "../config.js";
+import { LABEL_ROOM, LIVE_MAX, STAGE_PAD, VIRTUAL_AFTER, cx, e, isComponentLayer, nameOf } from "../config.js";
 import { columnsOf, fixedSpot, frameById, isFree, locate } from "../model/tree.js";
 import { Icon } from "../ui/icons.js";
 import { InlineEditor, Renamable } from "../ui/parts.js";
@@ -245,7 +245,7 @@ function Marks(p) {
       /* Short or narrow on screen: the handles step outward (in CSS), so
          the body still takes a press to move it. */
       var short = (m.box || m.r).height < 28, narrow = (m.box || m.r).width < 28;
-      return e("div", { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== p.sel && "is-extra", at.node.lock && "is-locked", at.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top", p.sizing && p.sizing.id === m.id && "is-sizing", handles && short && "is-short", handles && narrow && "is-narrow"), style: markStyle },
+      return e("div", { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== p.sel && "is-extra", at.node.lock && "is-locked", at.node.inst && "is-instance", isComponentLayer(at.node) && "is-component", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top", p.sizing && p.sizing.id === m.id && "is-sizing", handles && short && "is-short", handles && narrow && "is-narrow"), style: markStyle },
         turnable ? ["nw", "ne", "se", "sw"].map(function (c) {
           return e("span", { key: "rot-" + c, className: "bd-rotate is-" + c, title: "Drag to turn; Shift snaps to 15°", onPointerDown: function (ev) { p.startRotate(ev, at.node.id); } });
         }) : null,

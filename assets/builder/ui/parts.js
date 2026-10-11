@@ -514,6 +514,9 @@ function Dropdown(props) {
         key: String(o.value), id: ids.list + "-" + i, "data-i": i, role: props.menu ? (o.checked !== undefined ? "menuitemcheckbox" : "menuitem") : "option",
         "aria-selected": props.menu ? undefined : String(isSel), "aria-checked": props.menu && o.checked !== undefined ? String(!!o.checked) : undefined, "aria-disabled": o.disabled ? "true" : undefined,
         className: cx("bd-dd-opt", i === activeI && "is-active", isSel && "is-selected", o.disabled && "is-disabled", o.danger && "is-danger"),
+        /* A field's options are their names alone; what each one is, or
+           the token behind it, is a tooltip. A menu keeps its shortcuts. */
+        title: !props.menu && o.hint ? String(o.hint) : undefined,
         onPointerMove: function () { if (activeI !== i) setActive(i); },
         onClick: function () { choose(o); },
       },
@@ -521,7 +524,7 @@ function Dropdown(props) {
         o.px != null ? e("span", { className: "bd-dd-px" }, o.px) : null,
         e("span", { className: "bd-dd-opt-text" },
           e("span", { className: "bd-dd-opt-label" }, o.label || String(o.value)),
-          o.hint ? e("span", { className: "bd-dd-opt-hint" }, kbd(o.hint)) : null),
+          o.hint && props.menu ? e("span", { className: "bd-dd-opt-hint" }, kbd(o.hint)) : null),
         isSel || o.checked ? e(Icon, { name: "check", className: "bd-dd-tick" }) : null)];
     })), document.body) : null);
 }

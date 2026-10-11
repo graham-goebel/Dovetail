@@ -3,7 +3,7 @@
    reorder and a filter. Memoized: it redraws when the document, selection or
    its own state change, not when the canvas pans or the inspector edits. */
 
-import { autoName, cx, e, frameSize, hasTitlePart, isContainer, isOwner, nameOf, nodeIsOpen, nodeLabel, typeIcon } from "../config.js";
+import { autoName, cx, e, frameSize, hasTitlePart, isComponentLayer, isContainer, isOwner, nameOf, nodeIsOpen, nodeLabel, typeIcon } from "../config.js";
 import { locate } from "../model/tree.js";
 import { Icon } from "../ui/icons.js";
 import { Renamable } from "../ui/parts.js";
@@ -106,7 +106,7 @@ var Layers = React.memo(function Layers(p) {
     var renameable = n.type !== "Slot";
     var listDrop = p.listDrop, hover = p.hover;
     return e("div", {
-      key: n.id, className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", n.inst && "is-instance", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
+      key: n.id, className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", n.inst && "is-instance", isComponentLayer(n) && "is-component", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
       "data-layer": mine ? n.id : undefined, "data-frame-row": mine ? undefined : f.id, "data-depth": r.depth, role: "treeitem", "aria-selected": String(on), "aria-level": r.depth + 1,
       "aria-expanded": folds ? String(open) : undefined,
       style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
