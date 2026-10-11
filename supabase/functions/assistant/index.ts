@@ -19,7 +19,14 @@
 import Anthropic from "npm:@anthropic-ai/sdk";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const MODEL = "claude-opus-5-5";
+// The models the Builder may ask for, by the key it sends. Opus is the
+// default and keeps the server-side fallback and progress updates; the
+// others run with summarized thinking and no fallback list.
+const MODELS: Record<string, { id: string; full: boolean }> = {
+  opus: { id: "claude-opus-5-5", full: true },
+  sonnet: { id: "claude-sonnet-5-5", full: false },
+  haiku: { id: "claude-haiku-5-5", full: false },
+};
 const MAX_TOKENS = 16000;
 const HOURLY = Number(Deno.env.get("ASSISTANT_HOURLY_LIMIT") ?? "60");
 const HOURLY_ROUNDS = Number(Deno.env.get("ASSISTANT_HOURLY_ROUNDS") ?? "600");
@@ -61,7 +68,7 @@ type Tool = { name: string; description?: string; input_schema: Record<string, u
 // also sends system text for the request; it's still taken.
 const EFFORTS = ["low", "medium", "high"];
 
-function readRequest(raw: unknown): { stable: string; system: string; messages: unknown[]; tools: Tool[]; fileId: string | null; effort: string } | string {
+function readRequest(raw: unknown): { stable: string; system: string; messages: unknown[]; tools: Tool[]; fileId: string | null; effort: string; model: string } | string {
   if (!raw || typeof raw !== "object") return "The request isn't JSON.";
   const r = raw as Record<string, unknown>;
   const stable = typeof r.stable === "string" ? r.stable : "";
@@ -77,7 +84,9 @@ function readRequest(raw: unknown): { stable: string; system: string; messages: 
   const fileId = typeof r.file_id === "string" && /^[0-9a-f-]{36}$/.test(r.file_id) ? r.file_id : null;
   // Quick or Careful in the panel: how hard the model thinks.
   const effort = typeof r.effort === "string" && EFFORTS.includes(r.effort) ? r.effort : "medium";
-  return { stable, system, messages, tools: tools as Tool[], fileId, effort };
+  // Which model, from the panel; an unknown or missing key is Opus.
+  const model = typeof r.model === "string" && Object.hasOwn(MODELS, r.model) ? r.model : "opus";
+  return { stable, system, messages, tools: tools as Tool[], fileId, effort, model };
 }
 
 // A request that carries the results of the model's own tool calls is the
@@ -127,7 +136,8 @@ Deno.serve(async (req) => {
     if (!member) return json(403, { error: "That file isn't shared with you." }, headers);
   }
 
-  const { data: run } = await admin.from("assistant_runs").insert({ user_id: who.user.id, file_id: parsed.fileId, model: MODEL, kind }).select("id").single();
+  const chosen = MODELS[parsed.model];
+  const { data: run } = await admin.from("assistant_runs").insert({ user_id: who.user.id, file_id: parsed.fileId, model: chosen.id, kind }).select("id").single();
   const client = new Anthropic({ apiKey: key });
   const enc = new TextEncoder();
 
@@ -151,11 +161,11 @@ Deno.serve(async (req) => {
         const system = [{ type: "text", text: PREAMBLE + (parsed.stable ? "\n\n" + parsed.stable : ""), cache_control: { type: "ephemeral", ttl: "1h" } }];
         if (parsed.system) system.push({ type: "text", text: parsed.system } as typeof system[number]);
         const params = {
-          model: MODEL,
+          model: chosen.id,
           max_tokens: MAX_TOKENS,
-          betas: ["server-side-fallback-2026-07-01", "thinking-display-updates-2026-08-18", "thinking-binding-controls-2026-08-01"],
-          fallbacks: "default",
-          thinking: { type: "adaptive", display: "updates", block_binding: { prefix_mismatch_behavior: "drop_block" } },
+          betas: chosen.full ? ["server-side-fallback-2026-07-01", "thinking-display-updates-2026-08-18", "thinking-binding-controls-2026-08-01"] : ["thinking-binding-controls-2026-08-01"],
+          ...(chosen.full ? { fallbacks: "default" } : {}),
+          thinking: { type: "adaptive", display: chosen.full ? "updates" : "summarized", block_binding: { prefix_mismatch_behavior: "drop_block" } },
           output_config: { effort: parsed.effort },
           cache_control: { type: "ephemeral" },
           system,

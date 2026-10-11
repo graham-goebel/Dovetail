@@ -1,6 +1,6 @@
 /* The builder itself: the canvas, the panels, the inspector, history and every action. */
 
-import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, isComponentLayer, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, useEvent, allSame, VIRTUAL_AFTER, LIVE_MAX, nodeLabel, typeIcon, hasTitlePart, nodeIsOpen, frameSize, IS_MAC, PANELS, SHORTCUTS } from "../config.js";
+import { AGENT_MODELS, CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, isComponentLayer, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, useEvent, allSame, VIRTUAL_AFTER, LIVE_MAX, nodeLabel, typeIcon, hasTitlePart, nodeIsOpen, frameSize, IS_MAC, PANELS, SHORTCUTS } from "../config.js";
 import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
@@ -44,7 +44,7 @@ import { supabaseTransport } from "../cloud/client.js";
 import { TAB, othersFrom } from "../cloud/live.js";
 import { openShared, pullShared, pushSave, shareOff, shareOn } from "../cloud/convos.js";
 import { colorFor } from "./People.js";
-import { CONVERTS, FREE_MAX, active, autoLayout, frameFlows, groupFlows, unfreeze, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid, constrain, H_PINS, V_PINS, GUIDES_MAX, COLUMNS_MAX, columnsOf } from "../model/tree.js";
+import { FREE_MAX, active, autoLayout, frameFlows, groupFlows, unfreeze, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid, constrain, H_PINS, V_PINS, GUIDES_MAX, COLUMNS_MAX, columnsOf } from "../model/tree.js";
 import { detachAll, holdsInstanceOf, masterOf, rebase, updateInstances } from "../model/instances.js";
 import { codeWithComponents } from "../model/codegen.js";
 import { projectFiles } from "../model/projectcode.js";
@@ -526,11 +526,13 @@ function App(props) {
   /* The assistant's settings: plans before big changes (on unless turned
      off, for this browser) and how hard it thinks (Careful unless Quick is
      picked). Looking at the canvas is per file (canLook). */
-  var AS_PLAN_KEY = "dovetail-assistant-plan", AS_EFFORT_KEY = "dovetail-assistant-effort";
+  var AS_PLAN_KEY = "dovetail-assistant-plan", AS_EFFORT_KEY = "dovetail-assistant-effort", AS_MODEL_KEY = "dovetail-assistant-model";
   var readPref = function (k, dflt) { try { return window.localStorage.getItem(k) || dflt; } catch (err) { return dflt; } };
   var writePref = function (k, v) { try { window.localStorage.setItem(k, v); } catch (err) { /* kept for this visit only */ } };
   var asPlanState = useState(readPref(AS_PLAN_KEY, "on") !== "off");
   var asEffortState = useState(readPref(AS_EFFORT_KEY, "high") === "low" ? "low" : "high");
+  /* Which model the live agent runs on, remembered per browser. */
+  var asModelState = useState(function () { var m = readPref(AS_MODEL_KEY, "opus"); return AGENT_MODELS.some(function (x) { return x[0] === m; }) ? m : "opus"; });
   var asLookTick = useState(0);
   /* Notes typed while a reply runs, handed over at its next step; a plan
      waiting on its answer. */
@@ -1098,7 +1100,7 @@ function App(props) {
     var round = function (n) {
       var c = collector();
       var shown = "";
-      var reqNow = { stable: systemPrompt(), messages: asMsgs.current, tools: tools, effort: asEffortState[0] };
+      var reqNow = { stable: systemPrompt(), messages: asMsgs.current, tools: tools, effort: asEffortState[0], model: asModelState[0] };
       /* Until it answers, the reply shows an estimate of what's being sent. */
       patchTurn(turn.id, { live: estimateRequest(reqNow) });
       return sendAssistant(reqNow, function (ev) {
@@ -1346,6 +1348,7 @@ function App(props) {
     },
     setPlans: function (on) { asPlanState[1](on); writePref(AS_PLAN_KEY, on ? "on" : "off"); announce(on ? "The agent shows a plan before big changes" : "The agent builds without asking first"); },
     setEffort: function (v) { asEffortState[1](v); writePref(AS_EFFORT_KEY, v); },
+    setModel: function (v) { asModelState[1](v); writePref(AS_MODEL_KEY, v); },
     setLook: function (on) {
       try { if (on) window.localStorage.removeItem(LOOK_KEY + projectRef.current.id); else window.localStorage.setItem(LOOK_KEY + projectRef.current.id, "off"); } catch (err) { /* this visit only */ }
       asLookTick[1](function (n) { return n + 1; });
@@ -2564,9 +2567,11 @@ function App(props) {
           if (hit && hit.free && hit.box && dr.r0) { dx = hit.box.left - dr.r0.left; dy = hit.box.top - dr.r0.top; }
           la.lift(dr.payload.id, Math.round(dx), Math.round(dy));
           la.hide(dr.payload.id, false);
+          (dr.payload.others || []).forEach(function (o) { la.lift(o, Math.round(dx), Math.round(dy)); la.hide(o, false); });
         } else {
           la.lift(dr.payload.id, null);
           la.hide(dr.payload.id, !overList);
+          (dr.payload.others || []).forEach(function (o) { la.lift(o, null); la.hide(o, !overList); });
         }
         remeasure();
       }
@@ -2582,7 +2587,7 @@ function App(props) {
     dragRef.current = null;
     setDrag(null);
     show(null);
-    if (dr && dr.ghost && dr.ghost.live) { var ga = api(dr.ghost.fid); if (ga && ga.lift) { ga.lift(dr.payload.id, null); ga.hide(dr.payload.id, false); } }
+    if (dr && dr.ghost && dr.ghost.live) { var ga = api(dr.ghost.fid); if (ga && ga.lift) { [dr.payload.id].concat(dr.payload.others || []).forEach(function (o) { ga.lift(o, null); ga.hide(o, false); }); } }
     if (!dr || !dr.active) return;
     justDragged.current = true;
     setTimeout(function () { justDragged.current = false; }, 60);
@@ -2635,13 +2640,24 @@ function App(props) {
           from.parent.children.splice(from.index, 1);
           dest.root.children.push(from.node);
         }
+        var wasFree = isFree(from.node.style), ox = from.node.style.x, oy = from.node.style.y;
         from.node.style.x = pos.x;
         from.node.style.y = pos.y;
         delete from.node.style.position;
         delete from.node.style.anchor;
         delete from.node.style.offset;
+        /* The others selected with it, where they're free on the same
+           canvas, move by as much. */
+        var moved = [mid];
+        if (stays && wasFree) (dr.payload.others || []).forEach(function (o) {
+          var oa = locate(d, o);
+          if (!oa || fixedSpot(oa) || !isFree(oa.node.style)) return;
+          oa.node.style.x = (oa.node.style.x || 0) + (pos.x - ox);
+          oa.node.style.y = (oa.node.style.y || 0) + (pos.y - oy);
+          moved.push(o);
+        });
         d.active = fid;
-        return mid;
+        return moved;
       }, "Placed " + dr.payload.label + " on the canvas");
       return;
     }
@@ -2678,6 +2694,13 @@ function App(props) {
         d.active = fid;
         return moving;
       }, "Moved " + dr.payload.label + " to " + (dest ? dest.name : "another frame"));
+      return;
+    }
+    if ((dr.payload.others || []).length && fid === docRef.current.active) {
+      var group = selRef.current.filter(function (o) { return o === dr.payload.id || dr.payload.others.indexOf(o) >= 0; });
+      if (change(function (d) { return ops.moveMany(d, group, hit.parent, hit.index); }, "Moved " + group.length + " layers")) {
+        if (hit.parent !== "root") setCollapsed(function (c) { var n = Object.assign({}, c); delete n[hit.parent]; return n; });
+      }
       return;
     }
     if (change(function (d) { return ops.move(d, dr.payload.id, hit.parent, hit.index); }, "Moved " + dr.payload.label)) {
@@ -2869,8 +2892,17 @@ function App(props) {
     return made;
   };
 
+  /* A layer pressed while it's one of several selected on the canvas: the
+     others go with it (payload.others), all in the active frame. */
+  var withOthers = function (pl) {
+    var sel0 = selRef.current, fid = docRef.current.active;
+    if (pl.kind !== "move" || !pl.id || sel0.length < 2 || sel0.indexOf(pl.id) < 0) return pl;
+    var others = sel0.filter(function (o) { var oa = o !== pl.id && locate(docRef.current, o, fid); return oa && !oa.node.lock && oa.node.type !== "Slot"; });
+    return others.length ? Object.assign({}, pl, { others: others, label: others.length + 1 + " layers" }) : pl;
+  };
   var startDrag = function (ev, payload) {
     if (ev.button !== undefined && ev.button !== 0) return;
+    if (payload.kind === "move") payload = withOthers(payload);
     var swaps = payload.kind === "new";
     if (ev.shiftKey || ((ev.metaKey || ev.ctrlKey) && !swaps)) return;
     var target = ev.currentTarget;
@@ -2959,7 +2991,7 @@ function App(props) {
               at = locate(docRef.current, id);
               if (!at) return;
             }
-            var pl = { kind: "move", id: id, label: nameOf(at.node) };
+            var pl = alt ? { kind: "move", id: id, label: nameOf(at.node) } : withOthers({ kind: "move", id: id, label: nameOf(at.node) });
             dragRef.current = { payload: pl, active: true, ghost: null };
             dragRef.current.ghost = ghostFor(pl);
             if (selRef.current.indexOf(id) < 0) select([id]);
@@ -3739,14 +3771,6 @@ function App(props) {
       select(parents);
     },
     wrap: function (type) { var id = selRef.current[selRef.current.length - 1]; if (id && type) change(function (d) { return ops.wrap(d, id, type); }, "Wrapped in " + type); },
-    /* One container into another (a Section into a Group, say), or onto
-       the canvas as a frame of its own. */
-    convert: function (type) {
-      var id = selRef.current[selRef.current.length - 1];
-      if (!id || !type) return;
-      if (type === "frame") { layerToFrame(id); return; }
-      if (!change(function (d) { return ops.convert(d, id, type); }, "Now a " + type)) announce("That can't be a " + type + " where it is");
-    },
     group: function () {
       var ids = selRef.current.slice();
       if (!ids.length) return;
@@ -3758,6 +3782,25 @@ function App(props) {
         if (r) boxes[id] = { x: at.node.style.x, y: at.node.style.y, w: Math.max(1, Math.round(r.width / unit)), h: Math.max(1, Math.round(r.height / unit)) };
       });
       if (!change(function (d) { return ops.group(d, ids, boxes); }, "Grouped " + ids.length + (ids.length === 1 ? " layer" : " layers"))) announce("Those can't be grouped here: a frame's fixed parts stay where they are");
+    },
+    /* Shift+A on anything but a lone Group: the selection goes into a new
+       Group, and that Group lays out what it holds in a row or a column. A
+       Group made in a flow lays out already; one made on a freeform canvas
+       is laid out once the canvas has drawn it, from where its layers sit. */
+    wrapAuto: function () {
+      var ids = selRef.current.slice();
+      if (!ids.length) return;
+      actions.group();
+      var gid = selRef.current.length === 1 ? selRef.current[0] : null;
+      if (!gid || ids.indexOf(gid) >= 0) return;
+      var tries = 0;
+      (function lay() {
+        var at = locate(docRef.current, gid);
+        if (!at || at.node.type !== "Group" || groupFlows(at.node)) { if (at) announce("Wrapped in an auto layout Group"); return; }
+        var a = api();
+        if (a && a.rect && a.rect(gid) && actions.autoLayout(gid)) { announce("Wrapped in an auto layout Group"); return; }
+        if (++tries < 20) window.setTimeout(lay, 30);
+      })();
     },
     /* Auto layout on: what a Group holds, or what's on a freeform frame's
        page, laid out in a row or a column in the order it stands. The
@@ -3959,7 +4002,10 @@ function App(props) {
     if (mod && ev.key === "-") { zoomStep(-1); return true; }
     if (mod && ev.key === "0") { fitAll(); return true; }
     if (ev.shiftKey && !mod && !ev.altKey && (ev.code === "KeyH" || ev.code === "KeyV") && flip(ev.code === "KeyH" ? "flipH" : "flipV")) return true;
-    if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyA" && (actions.autoLayout() || actions.freeLayout())) return true;
+    if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyA") {
+      if (actions.autoLayout() || actions.freeLayout()) return true;
+      if (selRef.current.length) { actions.wrapAuto(); return true; }
+    }
     if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyR") { toggleView("rulers"); return true; }
     if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyG") { toggleView("columns"); return true; }
     if (ev.shiftKey && !mod && ev.code === "Digit0") { zoomTo(1); return true; }
@@ -4150,73 +4196,11 @@ function App(props) {
   };
   var setName = function (id, name) { change(function (d) { var at = locate(d, id); if (!at) return null; if (name) at.node.name = name; else delete at.node.name; return undefined; }); };
 
-  /* Between frames and what's in them. A layer can become a frame of its
-     own, beside the one it was in; a frame can become a Group, loose on the
-     canvas where the frame was, to be dropped into another; and a loose
-     object can become a frame. */
+  /* Frames placed by the layout get their spot written down before a change
+     moves them, so nothing jumps. */
   var pinFrames = function (d) {
     var boxesNow = layoutRef.current.boxes;
     d.frames.forEach(function (fr) { if (typeof fr.x !== "number" && boxesNow[fr.id]) { fr.x = Math.round(boxesNow[fr.id].x); fr.y = Math.round(boxesNow[fr.id].y); } });
-  };
-  var layerToFrame = function (id) {
-    var fid = docRef.current.active;
-    var src = frameById(docRef.current, fid);
-    var at0 = locate(docRef.current, id, fid);
-    if (!src || fixedSpot(at0)) return;
-    var a = api(fid), r = a && a.rect ? a.rect(id) : null;
-    var b = layoutRef.current.boxes[fid];
-    var label = nameOf(at0.node);
-    change(function (d) {
-      var at = locate(d, id, fid);
-      if (fixedSpot(at)) return null;
-      pinFrames(d);
-      at.parent.children.splice(at.index, 1);
-      var n = at.node;
-      ["x", "y", "position", "anchor", "offset"].forEach(function (k) { delete n.style[k]; });
-      var f = makeFrame(label, "desktop", true);
-      f.width = Math.max(minSide(src), Math.min(MAX_WIDTH, Math.round(r && r.width ? r.width : src.width)));
-      f.mode = src.mode;
-      if (b) { f.x = Math.round(b.x + b.w + FRAME_GAP); f.y = Math.round(b.y); }
-      f.root.children = [n];
-      d.frames.push(f);
-      d.active = f.id;
-      return n.id;
-    }, label + " is a frame of its own now");
-  };
-  var frameToGroup = function (fid) {
-    var b = layoutRef.current.boxes[fid];
-    change(function (d) {
-      var f = frameById(d, fid);
-      if (!f || f.bare) return null;
-      pinFrames(d);
-      /* What was placed freely goes into the Group's flow, top to bottom. */
-      var kids = f.root.children.slice().sort(function (p, q) { return ((p.style.y || 0) - (q.style.y || 0)) || ((p.style.x || 0) - (q.style.x || 0)); });
-      kids.forEach(function (k) { delete k.style.x; delete k.style.y; delete k.style.ch; delete k.style.cv; });
-      var g = make("Group", { direction: "column", gap: "md" }, kids, { padding: "lg" });
-      g.name = f.name;
-      f.root.children = [g];
-      f.bare = true;
-      f.hug = true;
-      f.sized = true;
-      f.width = Math.round(b ? b.w : f.width);
-      f.mode = "free";
-      d.active = f.id;
-      return g.id;
-    }, "Now a Group, loose on the canvas: drag it into a frame");
-  };
-  var looseToFrame = function (fid) {
-    var b = layoutRef.current.boxes[fid];
-    change(function (d) {
-      var f = frameById(d, fid);
-      if (!f || !f.bare) return null;
-      pinFrames(d);
-      f.bare = false;
-      delete f.sized;
-      f.hug = true;
-      f.width = Math.max(MIN_SIDE, Math.min(MAX_WIDTH, Math.round(b ? b.w : f.width)));
-      d.active = f.id;
-      return [];
-    }, "Now a frame");
   };
 
   var frameOps = {
@@ -4914,6 +4898,7 @@ function App(props) {
       announce("Added " + name + ". Drag pages into it, or use a page's menu.");
     });
   };
+  var setItemIcon = function (kind, itemId, icon) { store.setIcon(projectRef.current.id, kind, itemId, icon).then(function (m) { takeMeta(m); announce(icon ? "Icon changed" : "Icon reset"); }); };
   var renameFolder = function (fid, name) { setRenamingFolder(null); if (!name) return; store.renameFolder(projectRef.current.id, fid, name).then(takeMeta); };
   var foldFolder = function (fid, open) { store.foldFolder(projectRef.current.id, fid, open).then(takeMeta); };
   var moveFolder = function (fid, by) { store.moveFolder(projectRef.current.id, fid, by).then(takeMeta); };
@@ -5641,7 +5626,6 @@ function App(props) {
       options: [
         { value: "duplicate", label: f.bare ? "Duplicate" : "Duplicate frame", icon: "copy" },
         { value: "rename", label: "Rename", icon: "pencil" },
-        f.bare ? { value: "to-frame", label: "Turn into a frame", icon: "frame" } : { value: "to-group", label: "Turn into a group", icon: "group" },
         { value: "fit", label: "Zoom to frame", icon: "fit" },
         { value: "link", label: "Copy link to frame", icon: "link" },
         { value: "png", label: "Export as PNG", icon: "image" },
@@ -5650,8 +5634,6 @@ function App(props) {
       ],
       onChange: function (v) {
         if (v === "duplicate") frameOps.duplicate(f.id);
-        if (v === "to-group") frameToGroup(f.id);
-        if (v === "to-frame") looseToFrame(f.id);
         if (v === "rename") setRenaming({ id: "frame:" + f.id, where: where });
         if (v === "fit") { activate(f.id); showFrame(f.id); }
         if (v === "link") share(null, f.id);
@@ -6137,10 +6119,10 @@ function App(props) {
     if (gap) side.push(e(Dropdown, { key: "gap", label: "Gap", prefix: "Gap", value: val("gap"), className: "bd-dd-field", narrow: true,
       options: gap.options.map(function (o) { return { value: o, label: o === "none" ? "None" : o, hint: first.type === "Group" && o !== "none" ? (dir === "row" ? "--dt-space-inline-" : "--dt-space-stack-") + o : undefined }; }),
       onChange: function (v) { setProp(ids, "gap", v); } }));
-    if (pad && align.options.indexOf("stretch") >= 0) side.push(e("button", { key: "stretch", type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(a === "stretch"), title: "Children fill the cross axis",
-      onClick: function () { setProp(ids, "align", a === "stretch" ? "flex-start" : "stretch"); } }, e(Icon, { name: "alignStretch" }), "Stretch"));
-    if (pad && justify.options.indexOf("space-between") >= 0) side.push(e("button", { key: "between", type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(j === "space-between"), title: "Spread children along the main axis",
-      onClick: function () { setProp(ids, "justify", j === "space-between" ? "flex-start" : "space-between"); } }, e(Icon, { name: "justifyBetween" }), "Between"));
+    if (pad && align.options.indexOf("stretch") >= 0) side.push(e("button", { key: "stretch", type: "button", className: "bd-act bd-flex-tog", "aria-pressed": String(a === "stretch"), "aria-label": "Stretch", title: "Stretch: children fill the cross axis",
+      onClick: function () { setProp(ids, "align", a === "stretch" ? "flex-start" : "stretch"); } }, e(Icon, { name: "alignStretch" })));
+    if (pad && justify.options.indexOf("space-between") >= 0) side.push(e("button", { key: "between", type: "button", className: "bd-act bd-flex-tog", "aria-pressed": String(j === "space-between"), "aria-label": "Space between", title: "Space between: spread children along the main axis",
+      onClick: function () { setProp(ids, "justify", j === "space-between" ? "flex-start" : "space-between"); } }, e(Icon, { name: "justifyBetween" })));
     var rest = meta.props.filter(function (p) { return (p.tab || "content") === "layout" && ["direction", "wrap", "gap"].indexOf(p.name) < 0 && !(pad && (p.name === "align" || p.name === "justify")); })
       .map(function (p) { return propControl(p, nodes); }).filter(Boolean);
     if (!head.length && !pad && !side.length && !rest.length) return null;
@@ -6180,7 +6162,7 @@ function App(props) {
     var current = mixed ? undefined : values[0];
     var ids = nodes.map(function (n) { return n.id; });
     var set = function (v) { setProp(ids, p.name, v); };
-    var label = PROP_LABEL[p.name] || words(p.name);
+    var label = p.label || PROP_LABEL[p.name] || words(p.name);
     var control;
     if (p.kind === "list") {
       var fa = api(docRef.current.active);
@@ -6225,7 +6207,7 @@ function App(props) {
       return e(Field, { key: p.name, id: id, label: label, note: p.note, hint: /^data:/.test(src) ? "Uploaded file" : null }, control);
     }
     if (p.kind === "enum" && p.name === "tone") {
-      var toneMap = TEXT_TYPES[first.type] ? TONE_TEXT : TONE_FILL;
+      var toneMap = TEXT_TYPES[first.type] || first.type === "Icon" ? TONE_TEXT : TONE_FILL;
       control = e(Dropdown, { labelledBy: id, value: current, mixed: mixed, onChange: set, placeholder: "Default", preview: "color", className: "bd-dd-field bd-dd-swatch",
         options: p.options.map(function (o) { var t = toneMap[o]; return { value: o, label: ENUM_LABEL[o] || String(o), hint: t || "Takes its colour from around it", tokens: t ? [t] : [] }; }) });
     } else if (p.kind === "enum" && picturable(p)) {
@@ -6686,10 +6668,10 @@ function App(props) {
         e(Dropdown, { key: "padding", label: "Padding", prefix: "Pad", value: fl.padding || "", className: "bd-dd-field", narrow: true,
           options: [{ value: "", label: "None" }].concat(DATA.tokens.padding.options.map(function (o) { return { value: o.value, label: o.value, hint: o.tokens[0] }; })),
           onChange: function (v) { setFlow({ padding: v || undefined }); } })],
-      [e("button", { key: "stretch", type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(a === "stretch"), title: "Children fill the cross axis",
-          onClick: function () { setFlow({ align: a === "stretch" ? "flex-start" : "stretch" }); } }, e(Icon, { name: "alignStretch" }), "Stretch"),
-        e("button", { key: "between", type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(j === "space-between"), title: "Spread children along the main axis",
-          onClick: function () { setFlow({ justify: j === "space-between" ? "flex-start" : "space-between" }); } }, e(Icon, { name: "justifyBetween" }), "Between")]
+      [e("button", { key: "stretch", type: "button", className: "bd-act bd-flex-tog", "aria-pressed": String(a === "stretch"), "aria-label": "Stretch", title: "Stretch: children fill the cross axis",
+          onClick: function () { setFlow({ align: a === "stretch" ? "flex-start" : "stretch" }); } }, e(Icon, { name: "alignStretch" })),
+        e("button", { key: "between", type: "button", className: "bd-act bd-flex-tog", "aria-pressed": String(j === "space-between"), "aria-label": "Space between", title: "Space between: spread children along the main axis",
+          onClick: function () { setFlow({ justify: j === "space-between" ? "flex-start" : "space-between" }); } }, e(Icon, { name: "justifyBetween" }))]
     ), toggle);
   };
   /* What spills past the frame's edges: clipped, or scrolled one way. A
@@ -6887,20 +6869,24 @@ function App(props) {
     var ids = nodes.map(function (n) { return n.id; });
     var selected = !many ? locate(doc, first.id) : null;
     var textValues = nodes.map(function (n) { return n.props.children != null ? String(n.props.children) : String(base.children || ""); });
+    /* Text and icons show their colour up top, with what they say, rather
+       than folded away under Style. */
+    var colourProp = sameType && (TEXT_TYPES[first.type] || first.type === "Icon") ? meta.props.filter(function (p) { return p.name === "tone"; })[0] : null;
     var contentRows = (hasText ? [e(Field, { key: "text", id: textId, label: "Text", hint: many ? null : "Double-click it on the canvas to type in place" },
       e("input", { className: "bd-input", type: "text", "aria-labelledby": textId, placeholder: same(textValues) ? "" : "Mixed", value: same(textValues) ? textValues[0] : "",
         onChange: function (ev) { setProp(ids, "children", ev.target.value); } }))] : [])
+      .concat(colourProp ? [propControl(Object.assign({}, colourProp, { label: "Colour" }), nodes)] : [])
       .concat(byTab("content").map(function (p) { return propControl(p, nodes); }).filter(Boolean));
     var flex = sameType ? flexSection(nodes, meta) : null;
     if (sameType && first.type === "Grid") flex = (flex || []).concat([e(Field, { key: "cols", id: columnsId, label: "Responsive columns", hint: first.props.minColumnWidth ? "Fits columns at least this wide; ignores columns." : "Off: uses columns." },
       e(Dropdown, { labelledBy: columnsId, value: first.props.minColumnWidth || "", className: "bd-dd-field", onChange: function (v) { setProp(ids, "minColumnWidth", v || undefined); },
         options: [{ value: "", label: "Off" }].concat(DATA.columnWidths.map(function (w) { return { value: w.value, label: w.label, hint: w.token }; })) }))]);
-    var styleRows = byTab("appearance").map(function (p) { return propControl(p, nodes); }).filter(Boolean);
+    var styleRows = byTab("appearance").filter(function (p) { return p !== colourProp; }).map(function (p) { return propControl(p, nodes); }).filter(Boolean);
     /* Properties holds everything the component has of its own: its
        content, its style options and its arrangement. A container's auto
        layout is the same on every container, so it stays under Layout. */
     var arrange = !meta.container && flex && flex.filter(Boolean).length ? flex : null;
-    var propNames = function (t) { return byTab(t).map(function (p) { return p.name; }).concat(t === "content" && hasText ? ["children"] : []).concat(t === "layout" && first.type === "Grid" ? ["minColumnWidth"] : []); };
+    var propNames = function (t) { return byTab(t).filter(function (p) { return p !== colourProp; }).map(function (p) { return p.name; }).concat(t === "content" && hasText ? ["children"] : []).concat(t === "content" && colourProp ? ["tone"] : []).concat(t === "layout" && first.type === "Grid" ? ["minColumnWidth"] : []); };
     /* One panel, top to bottom: where it is and how big, how it lays out
        what's in it, its spacing; then what it is and says, and how it
        looks. The layout group leads so it's always to hand. A free layer's
@@ -6927,7 +6913,10 @@ function App(props) {
       sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
     ].concat(lookSections(nodes, null));
     var folds = own.length > 0 && !placeOpen;
-    var body = own.concat(own.length ? [e("div", { key: "divider", className: "bd-insp-divider", role: "separator" })] : [],
+    /* A component's own properties sit in its colour, in a box that the
+       name above opens into, so what belongs to the component reads as one. */
+    var compSel = nodes.every(isComponentLayer) && own.length > 0;
+    var body = (compSel ? [e("div", { key: "props-box", className: "bd-props-box" }, own)] : own).concat(own.length ? [e("div", { key: "divider", className: "bd-insp-divider", role: "separator" })] : [],
       folds ? [e("button", { key: "place-sum", type: "button", className: "bd-place-sum", "aria-expanded": "false", title: "Show position, size, spacing and look", onClick: function () { setPlaceOpen(true); } },
           e(Icon, { name: "sliders" }), e("span", { className: "bd-place-sum-h" }, "Placement"),
           e("span", { className: "bd-place-sum-t" }, placeSummary(nodes, placedFree)),
@@ -6937,7 +6926,7 @@ function App(props) {
             e(Icon, { name: "sliders" }), e("span", { className: "bd-place-sum-h" }, "Placement"), e("span", { className: "bd-place-sum-t" }), e(Icon, { name: "up", className: "bd-sec-chev" }))] : []).concat(place));
     var title = many ? nodes.length + " " + (sameType ? first.type + (first.type.endsWith("s") ? "" : "s") : "items") : null;
     var arrangeTools = arrangeRow(nodes);
-    return e("div", { className: "bd-inspect" },
+    return e("div", { className: cx("bd-inspect", compSel && "is-comp") },
       e("div", { className: "bd-inspect-head" },
         e("div", { className: "bd-head-row" },
           e("h2", { className: "bd-inspect-title" }, e(Icon, { name: (!many && first.inst) || !sameType ? "component" : typeIcon(first.type) }),
@@ -6952,15 +6941,12 @@ function App(props) {
               var about = many ? (sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them.") : meta.blurb ? meta.blurb + "." : "";
               if (!about) return null;
               var href = !many && meta.href;
-              return e(href ? "a" : "span", { className: "bd-act bd-act-ghost bd-about", href: href || undefined, title: about + (href ? " Open the docs." : ""), "aria-label": href ? about + " Docs" : about, role: href ? undefined : "img" }, e(Icon, { name: "info" }));
+              return e(href ? "a" : "span", { className: "bd-act bd-act-ghost bd-about", href: href || undefined, title: about + (href ? " Open the docs." : ""), "aria-label": href ? about + " Docs" : about, role: href ? undefined : "img" }, e(Icon, { name: href ? "book" : "info" }));
             })(),
             e(Dropdown, { menu: true, label: "Actions for " + (many ? title : nameOf(first)), placeholder: "Actions", icon: "more", iconOnly: true, compact: true, narrow: true, alignEnd: true, className: "bd-dd-icon bd-layer-menu",
               options: [!many && first.type === "Group" ? { value: "ungroup", label: "Ungroup", hint: "Ctrl+Shift+G", icon: "group" } : { value: "group", label: "Group", hint: "Ctrl+G", icon: "group" }]
+                .concat([{ value: "wrapAuto", label: "Wrap in auto layout", hint: "Shift+A", icon: "row" }])
                 .concat(WRAPS.filter(function (w) { return placeable == null || placeable[w]; }).map(function (w) { return { value: "wrap:" + w, label: "Wrap in " + w, icon: typeIcon(w) }; }))
-                .concat(!many && CONVERTS.indexOf(first.type) >= 0
-                  ? CONVERTS.filter(function (t) { return t !== first.type && (placeable == null || placeable[t] || t === "Group"); }).map(function (t) { return { value: "turn:" + t, label: "Turn into " + t, icon: typeIcon(t) }; })
-                    .concat([{ value: "turn:frame", label: "Turn into a frame", icon: "frame" }])
-                  : [])
                 .concat(!many && detachable[first.type] ? [{ value: "detach", label: "Detach into primitives", icon: "detach" }] : [])
                 .concat(!many ? [{ value: "link", label: "Copy link to this layer", icon: "link" }, { value: "same", label: "Select all " + first.type + (first.type.endsWith("s") ? "" : "s"), icon: "layers2" }] : [])
                 .concat([{ value: "copyStyle", label: "Copy style", hint: "Ctrl+Alt+C", icon: "swatch" }, { value: "pasteStyle", label: "Paste style", hint: "Ctrl+Alt+V", icon: "swatch", disabled: !styleClip.current }])
@@ -6969,9 +6955,9 @@ function App(props) {
                   { value: "lock", label: nodes.every(function (n) { return n.lock; }) ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: nodes.every(function (n) { return n.lock; }) ? "lockOpen" : "lock" }]),
               onChange: function (v) {
                 if (v === "group") actions.group();
+                else if (v === "wrapAuto") actions.wrapAuto();
                 else if (v === "ungroup") actions.ungroup();
                 else if (v.indexOf("wrap:") === 0) actions.wrap(v.slice(5));
-                else if (v.indexOf("turn:") === 0) actions.convert(v.slice(5));
                 else if (v === "detach") actions.detach();
                 else if (v === "link") share(first.id);
                 else if (v === "component") openComponent();
@@ -7639,7 +7625,20 @@ function App(props) {
                 onChange: function (v) { setStageColor(v || ""); },
                 options: STAGE_SWATCHES.map(function (x) { return { value: x[0], label: x[1], picture: e("span", { className: cx("bd-stage-chip", !x[0] && "is-default"), style: x[0] ? { background: x[0] } : undefined }) }; }) }),
               e(ColorPick, { value: STAGE_SWATCHES.some(function (x) { return x[0] === stageColor; }) ? "" : stageColor, on: !!stageColor && !STAGE_SWATCHES.some(function (x) { return x[0] === stageColor; }), label: "Custom background colour", fallback: stageColor || "#e7e7ea", onChange: setStageColor }))),
-        ])));
+        ]),
+        /* What the canvas shows and snaps to, the View menu's switches, here
+           too while nothing is selected. */
+        sec("builder-show", "Show", [
+          ["rulers", "Rulers", "Shift+R", !!canvasView.rulers],
+          ["guides", "Guides", "Drag one out of a ruler", !!canvasView.guides],
+          ["columns", "Layout columns", "Shift+G", !!canvasView.columns],
+          ["snapObjects", "Snap to objects", "Hold Ctrl to skip", canvasView.snapObjects !== false],
+          ["snapGuides", "Snap to guides", null, canvasView.snapGuides !== false],
+        ].map(function (r) {
+          var vid = "bd-show-" + r[0];
+          return e(Field, { key: r[0], id: vid, label: r[1], inline: true, note: r[2] || undefined },
+            e(Switch, { labelledBy: vid, value: r[3], onChange: function () { toggleView(r[0]); } }));
+        }))));
   };
   var PADDING_KEYS = ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft"];
   var inspector = selectedNodes.length === 1 && selectedNodes[0].type === "Slot" ? slotInspector(selectedNodes[0]) || frameInspector()
@@ -7684,20 +7683,22 @@ function App(props) {
 
   /* Pages (Pages.js) is memoized too; its drag is its own. */
   var onFoldFolder = useEvent(foldFolder), onRenameFolder = useEvent(renameFolder), onMoveFolder = useEvent(moveFolder), onDeleteFolder = useEvent(deleteFolder);
+  var onSetItemIcon = useEvent(setItemIcon);
   var onRenamePage = useEvent(renamePage), onOpenPage = useEvent(openPage), onDeletePage = useEvent(deletePage), onDuplicatePage = useEvent(duplicatePage), onMovePage = useEvent(movePage), onPlacePage = useEvent(placePage);
   var onAddFolder = useEvent(addFolder), onAddPage = useEvent(addPage);
   var pagesProps = { project: project, pageId: pageId, query: pageQuery, renamingPage: renamingPage, renamingFolder: renamingFolder, confirmPage: confirmPage,
     setRenamingPage: setRenamingPage, setRenamingFolder: setRenamingFolder, setConfirmPage: setConfirmPage, foldFolder: onFoldFolder, renameFolder: onRenameFolder, moveFolder: onMoveFolder, deleteFolder: onDeleteFolder,
-    renamePage: onRenamePage, openPage: onOpenPage, deletePage: onDeletePage, duplicatePage: onDuplicatePage, movePage: onMovePage, placePage: onPlacePage, addFolder: onAddFolder, addPage: onAddPage, announce: announce };
+    renamePage: onRenamePage, openPage: onOpenPage, deletePage: onDeletePage, duplicatePage: onDuplicatePage, movePage: onMovePage, placePage: onPlacePage, addFolder: onAddFolder, addPage: onAddPage, setIcon: onSetItemIcon, announce: announce };
 
   /* Assets and Content (Assets.js, Content.js) are memoized too. */
+  var onInsertWith = useEvent(function (type, props) { add(type, null, props); });
   var onAddOrSwap = useEvent(function (type, swap) { var s0 = selRef.current; if (swap && s0.length) { swapNode(s0[s0.length - 1], type, docRef.current.active); return; } add(type); });
   var onAddLocal = useEvent(addLocal), onRenameComponent = useEvent(renameComponent), onRemoveComponent = useEvent(removeComponent), onApplyVar = useEvent(applyVar), onSetStyles = useEvent(setStyles), onAddTemplate = useEvent(addTemplate);
   var onFrameAdd = useEvent(function (size, page, at, opts) { return frameOps.add(size, page, at, opts); });
   var picked = useMemo(function () { return nodesOf(selection).filter(function (n) { return n.type !== "Slot"; }); }, [selection, doc]);
   var pickedScope = useMemo(function () { return picked.length ? scopeFor(picked) : null; }, [picked]);
   var assetsProps = { query: query, library: library, kind: assetKind, category: category, view: view, placeable: placeable, picked: picked, scope: pickedScope, pxMap: pxMap, used: used, frameName: frame.name, justDragged: justDragged,
-    setView: setView, setAssetKind: setAssetKind, setCategory: setCategory, startDrag: onStartDrag, addOrSwap: onAddOrSwap, addLocal: onAddLocal, renameComponent: onRenameComponent, removeComponent: onRemoveComponent, applyVar: onApplyVar, setStyles: onSetStyles, announce: announce, addTemplate: onAddTemplate, frameAdd: onFrameAdd };
+    setView: setView, setAssetKind: setAssetKind, setCategory: setCategory, startDrag: onStartDrag, addOrSwap: onAddOrSwap, insertWith: onInsertWith, addLocal: onAddLocal, renameComponent: onRenameComponent, removeComponent: onRemoveComponent, applyVar: onApplyVar, setStyles: onSetStyles, announce: announce, addTemplate: onAddTemplate, frameAdd: onFrameAdd };
   var onInsertAsset = useEvent(insertAsset), onAddToLibrary = useEvent(addToLibrary), onCutBackground = useEvent(cutBackground), onLibUpdate = useEvent(libUpdate), onReadBrandFile = useEvent(readBrandFile), onPlaceBrand = useEvent(placeBrand), onSetBrandPart = useEvent(setBrandPart);
   var contentProps = { query: contentQuery, tab: libTab, library: library, busy: libBusy, brandErr: brandErr, brand: brandNow(), scopeNote: contentScopeNote(), frameName: frame.name, justDragged: justDragged,
     startDrag: onStartDrag, insertAsset: onInsertAsset, addToLibrary: onAddToLibrary, cutBackground: onCutBackground, libUpdate: onLibUpdate, readBrandFile: onReadBrandFile, placeBrand: onPlaceBrand, setBrandPart: onSetBrandPart, announce: announce, setLibTab: setLibTab, setBrandErr: setBrandErr, setThemeStamp: setThemeStamp };
@@ -7735,7 +7736,7 @@ function App(props) {
                   suggestions: selectedNodes.length ? ["Make it feel more premium", "Round the corners", "Add a button"] : ["Add a pricing section"],
                   send: asApi.send, pics: asPicsState[0], addPictures: addPictures, dropPicture: function (id) { asPicsState[1](function (cur) { return cur.filter(function (pc) { return pc.id !== id; }); }); }, stop: asApi.stop, clear: asApi.clear, fresh: asApi.fresh, view: asViewState[0], showList: asApi.showList, list: asList, currentId: asId, openThread: asApi.openThread, removeThread: asApi.removeThread, me: account.account, cloudFile: !!(project && project.cloud && account.status === "in"), shareLine: asList.filter(function (x) { return x.id === asId; })[0] || null, setShared: asApi.setShared, keep: asApi.keep, undoTurn: asApi.undoTurn, retry: asApi.retry, fix: asApi.fix, show: asApi.show,
                   note: asApi.note, waiting: asBusy && asThread.some(function (t) { return t.ask && t.ask.status === "pending"; }), answerAsk: asApi.answerAsk, answerAskAll: asApi.answerAskAll, showVariant: asApi.showVariant, keepVariant: asApi.keepVariant, otherAsk: asApi.otherAsk, edits: asEditsNow, dropEdits: asApi.dropEdits, approvePlan: asApi.approvePlan, changePlan: asApi.changePlan, undoFrom: asApi.undoFrom, exportThread: asApi.exportThread,
-                  plans: asPlanState[0], setPlans: asApi.setPlans, effort: asEffortState[0], setEffort: asApi.setEffort, look: canLook(), setLook: asApi.setLook })
+                  plans: asPlanState[0], setPlans: asApi.setPlans, effort: asEffortState[0], setEffort: asApi.setEffort, model: asModelState[0], setModel: asApi.setModel, look: canLook(), setLook: asApi.setLook })
               : left === "context" ? e(ContextPanel, { items: ctxItems, query: contextQuery, hasProject: !!(project && project.group), projectName: groupName, fileName: project ? project.name : "",
                   pages: pagesOf(project), pageId: pageId, pageName: (pagesOf(project).filter(function (x) { return x.id === pageId; })[0] || {}).name, announce: announce,
                   add: ctxApi.add, update: ctxApi.update, remove: ctxApi.remove, move: ctxApi.move })

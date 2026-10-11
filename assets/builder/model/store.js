@@ -36,10 +36,22 @@ function pagesOf(meta) {
 function foldersOf(meta) {
   return meta && Array.isArray(meta.folders) ? meta.folders : [];
 }
+/* A page's or folder's own icon: "lib:" and a name from the icon library,
+   or an emoji (a few characters, no letters or digits). Anything else is
+   dropped, so it falls back to the plain page or folder icon. */
+function cleanIcon(icon) {
+  var s = typeof icon === "string" ? icon.trim() : "";
+  if (/^lib:[a-z0-9-]{1,40}$/.test(s)) return s;
+  if (s && s.length <= 16 && !/[\w<>&"'\s]/.test(s)) return s;
+  return null;
+}
 function cleanFolder(f) {
   if (!f || typeof f !== "object" || typeof f.id !== "string" || !/^[\w-]{1,40}$/.test(f.id)) return null;
   var name = String(f.name || "").trim().slice(0, 60) || "Folder";
-  return f.open === false ? { id: f.id, name: name, open: false } : { id: f.id, name: name };
+  var out = f.open === false ? { id: f.id, name: name, open: false } : { id: f.id, name: name };
+  var icon = cleanIcon(f.icon);
+  if (icon) out.icon = icon;
+  return out;
 }
 /* The list as top-level items: a loose page, or a folder's run of pages. */
 function itemsOf(pages) {
@@ -302,6 +314,16 @@ function makeStore(b) {
         folders.push(folder);
         meta.folders = folders;
         return b.put("projects", meta).then(function () { return { meta: meta, folder: folder }; });
+      });
+    },
+    /* A page's or a folder's icon; null puts the plain one back. */
+    setIcon: function (id, kind, itemId, icon) {
+      return b.get("projects", id).then(function (meta) {
+        if (!meta) return null;
+        var clean = cleanIcon(icon);
+        var set = function (x) { if (x.id !== itemId) return x; var n = Object.assign({}, x); if (clean) n.icon = clean; else delete n.icon; return n; };
+        if (kind === "folder") meta.folders = foldersOf(meta).map(set); else meta.pages = pagesOf(meta).map(set);
+        return b.put("projects", meta).then(function () { return meta; });
       });
     },
     renameFolder: function (id, folderId, name) {
@@ -726,4 +748,4 @@ function ago(t) {
   return new Date(t).toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
 }
 
-export { libScopeOf, mergeLibs, openStore, makeStore, localBackend, ago, settingsOf, pagesOf, pageOf, foldersOf, itemsOf, MAIN, VERSIONS_MAX, VERSION_EVERY };
+export { cleanIcon, libScopeOf, mergeLibs, openStore, makeStore, localBackend, ago, settingsOf, pagesOf, pageOf, foldersOf, itemsOf, MAIN, VERSIONS_MAX, VERSION_EVERY };

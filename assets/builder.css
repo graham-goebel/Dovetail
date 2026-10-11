@@ -58,6 +58,7 @@ body.page-app {
   flex-direction: column;
   width: 100%;
   height: 100dvh;
+  height: var(--bd-vh, 100dvh);
   overflow: hidden;
   padding-bottom: 0;
   overscroll-behavior: none;
@@ -7251,6 +7252,18 @@ input.bd-folder-name {
   flex-direction: inherit;
   gap: inherit;
   min-width: 0;
+  min-height: 0;
+}
+
+/* A short screen scrolls the rail's tabs, so Account at its foot stays in
+   view. Only the upright rail beside the panels; on a phone it runs across. */
+@media (min-width: 901px) {
+  .bd-left-tabs.bd-rail .bd-rail-tabs {
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .bd-left-tabs.bd-rail .bd-rail-tabs::-webkit-scrollbar { display: none; }
+  .bd-rail-account { flex: none; }
 }
 
 .bd-rail-account {
@@ -9404,3 +9417,142 @@ input.bd-folder-name {
 .bd-iconpick-glyph { display: inline-flex; color: var(--dt-text-primary); }
 .bd-iconpick-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bd-iconpick-act { color: var(--dt-text-secondary); }
+
+/* A component's own properties: its name opens like a tab into a box in
+   the component colour that holds them, so they read as the component's. */
+.bd-inspect.is-comp .bd-inspect-head {
+  padding-left: var(--dt-space-inset-sm);
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.bd-inspect.is-comp .bd-head-row .bd-inspect-title {
+  flex: 0 1 auto;
+  margin-bottom: -1px;
+  padding: var(--dt-space-inset-2xs) var(--dt-space-inset-sm);
+  border: var(--dt-border-width-default) solid color-mix(in oklch, var(--bd-component) 45%, transparent);
+  border-bottom: 0;
+  border-radius: var(--dt-radius-control) var(--dt-radius-control) 0 0;
+  background: color-mix(in oklch, var(--bd-component) 16%, var(--dt-surface-subtle));
+  color: var(--dt-text-primary);
+}
+.bd-inspect.is-comp .bd-inspect-title > .bd-ic { color: var(--bd-component); }
+.bd-props-box {
+  margin: 0 var(--dt-space-inset-sm) var(--dt-space-inset-sm);
+  border: var(--dt-border-width-default) solid color-mix(in oklch, var(--bd-component) 45%, transparent);
+  border-radius: 0 var(--dt-radius-container, var(--dt-radius-control)) var(--dt-radius-container, var(--dt-radius-control)) var(--dt-radius-container, var(--dt-radius-control));
+  background: color-mix(in oklch, var(--bd-component) 16%, var(--dt-surface-subtle));
+  overflow: hidden;
+}
+.bd-props-box > .bd-sec {
+  padding-left: var(--dt-space-inset-sm);
+  padding-right: var(--dt-space-inset-sm);
+  border-bottom-color: color-mix(in oklch, var(--bd-component) 25%, transparent);
+}
+.bd-props-box > .bd-sec:last-child { border-bottom: 0; }
+
+/* Stretch and Space between: two icon toggles, side by side, no labels. */
+.bd-flex-pair:has(> .bd-flex-tog) {
+  display: flex;
+  gap: var(--dt-space-inline-2xs);
+}
+.bd-flex-tog { flex: none; }
+
+/* A field above the size grid (Text box, Lines) keeps its distance from W and H. */
+.bd-sec .bd-field + .bd-grid2 { margin-top: var(--dt-space-stack-sm); }
+
+/* A page's or folder's icon: its own button, to pick one from the library
+   or an emoji, in a chooser that opens under the row. */
+.bd-page, .bd-folder { position: relative; }
+.bd-item-ico-wrap { display: contents; }
+.bd-item-ico {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--dt-size-control-xs);
+  height: var(--dt-size-control-xs);
+  padding: 0;
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: none;
+  color: var(--dt-text-secondary);
+  cursor: pointer;
+}
+.bd-item-ico:hover, .bd-item-ico[aria-expanded="true"] { background: var(--dt-surface-sunken); color: var(--dt-text-primary); }
+.bd-item-ico:focus-visible { outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color); outline-offset: -2px; }
+.bd-item-glyph { display: inline-flex; line-height: 1; }
+.bd-item-glyph.is-emoji { font-size: var(--dt-font-size-sm); }
+.bd-chooser {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-xs);
+  max-height: 340px;
+  margin-top: 2px;
+  padding: var(--dt-space-inset-sm);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-container, var(--dt-radius-control));
+  background: var(--dt-surface-raised);
+  box-shadow: var(--dt-shadow-lg, var(--dt-shadow-md));
+}
+.bd-chooser-head { display: flex; align-items: center; justify-content: space-between; gap: var(--dt-space-inline-xs); }
+.bd-chooser-tabs { display: flex; gap: 2px; }
+.bd-chooser-tab {
+  padding: var(--dt-space-inset-2xs) var(--dt-space-inset-xs);
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: none;
+  color: var(--dt-text-secondary);
+  font: inherit;
+  font-size: var(--dt-font-size-xs);
+  cursor: pointer;
+}
+.bd-chooser-tab[aria-selected="true"] { background: var(--dt-surface-selected); color: var(--dt-text-on-selected); }
+.bd-emoji-cells { display: grid; grid-template-columns: repeat(auto-fill, minmax(32px, 1fr)); gap: 2px; }
+.bd-emoji-cell {
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: none;
+  font-size: var(--dt-font-size-md);
+  cursor: pointer;
+}
+.bd-emoji-cell:hover, .bd-emoji-cell.is-on { background: var(--dt-surface-sunken); }
+.bd-emoji-own { display: flex; gap: var(--dt-space-inline-xs); margin-top: var(--dt-space-stack-xs); }
+.bd-emoji-own .bd-input { flex: 1; min-width: 0; }
+
+/* A component's page in Assets: a live preview, its properties, Insert. */
+.bd-cd { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.bd-cd-blurb { margin: 0; padding: 0 var(--dt-space-inset-md) var(--dt-space-inset-xs); color: var(--dt-text-secondary); font-size: var(--dt-font-size-xs); }
+.bd-cd-preview {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 160px;
+  max-height: 320px;
+  margin: 0 var(--dt-space-inset-md);
+  padding: var(--dt-space-inset-sm);
+  overflow: hidden;
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-container, var(--dt-radius-control));
+  background: var(--dt-surface-subtle);
+  cursor: grab;
+  touch-action: pan-y;
+}
+.bd-cd-stage { transform-origin: center; pointer-events: none; max-width: none; }
+.bd-cd-props { flex: 1; min-height: 0; overflow: auto; padding: 0 var(--dt-space-inset-md) var(--dt-space-inset-md); }
+.bd-cd-props .bd-field.is-inline { flex-direction: row; align-items: center; justify-content: space-between; }
+.bd-cd-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--dt-space-inline-xs);
+  padding: var(--dt-space-inset-sm) var(--dt-space-inset-md);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+.bd-cd-insert { flex: 1; justify-content: center; }

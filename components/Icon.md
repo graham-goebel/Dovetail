@@ -24,7 +24,7 @@ Use it next to text, or on its own when its meaning is clear.
 ```jsx
 <Icon name="search" />
 <Icon name="bell" size="sm" />
-<Icon name="success" label="Saved" />
+<Icon name="success" tone="success" label="Saved" />
 ```
 
 ### Sizes
@@ -49,8 +49,9 @@ Inline: it sits on the text baseline and doesn't stretch in a row. Put it inside
 Inline, list rows, Badge or Card. It takes no children.
 
 ### Tokens
-`--dt-size-icon-xs` to `--dt-size-icon-xl` for its box. Colour is `currentColor`, so it takes
-the text colour around it; set the colour on its container, never on the icon.
+`--dt-size-icon-xs` to `--dt-size-icon-xl` for its box. Colour is `currentColor` by default, so it
+takes the text colour around it. `tone` sets one of the text roles instead (`--dt-text-brand`,
+`--dt-text-success` and so on); never give an icon a raw colour.
 
 ### Accessibility
 Without `label` the icon is decorative: `aria-hidden`, and skipped by screen readers. With
@@ -71,6 +72,8 @@ export interface IconProps extends Omit<React.SVGAttributes<SVGSVGElement>, "nam
   name?: string;
   /** Size from --dt-size-icon-*: xs 12, sm 16, md 20, lg 24, xl 32. xs and sm use the drawings made for the 16px grid. @default "lg" */
   size?: "xs" | "sm" | "md" | "lg" | "xl";
+  /** Its colour, from the text roles. inherit takes the colour of the text around it. @default "inherit" */
+  tone?: "inherit" | "headline" | "primary" | "secondary" | "tertiary" | "link" | "brand" | "brand-secondary" | "success" | "warning" | "danger" | "info";
   /** Accessible name. Give one when the icon means something on its own; leave it out when text beside it says the same, and the icon is hidden from screen readers. */
   label?: string;
 }
@@ -93,6 +96,156 @@ export declare namespace Icon {
 | `--dt-size-icon-sm` | semantic | `var(--dt-dim-4)` |
 | `--dt-size-icon-xl` | semantic | `var(--dt-dim-8)` |
 | `--dt-size-icon-xs` | semantic | `var(--dt-dim-3)` |
+| `--dt-text-artboard-body-line` | semantic | `calc(var(--dt-line-height-md) * 2.35)` |
+| `--dt-text-artboard-body-size` | semantic | `calc(var(--dt-font-size-md) * 2.5)` |
+| `--dt-text-artboard-display-family` | semantic | `var(--dt-text-display-lg-family)` |
+| `--dt-text-artboard-display-line` | semantic | `calc(var(--dt-line-height-7xl) * 2.55)` |
+| `--dt-text-artboard-display-size` | semantic | `calc(var(--dt-font-size-7xl) * 2.8)` |
+| `--dt-text-artboard-display-tracking` | semantic | `var(--dt-tracking-tightest)` |
+| `--dt-text-artboard-display-weight` | semantic | `var(--dt-text-display-lg-weight)` |
+| `--dt-text-artboard-meta-size` | semantic | `calc(var(--dt-font-size-sm) * 2.2)` |
+| `--dt-text-artboard-meta-tracking` | semantic | `var(--dt-tracking-wider)` |
+| `--dt-text-artboard-title-line` | semantic | `calc(var(--dt-line-height-7xl) * 1.7)` |
+| `--dt-text-artboard-title-size` | semantic | `calc(var(--dt-font-size-7xl) * 1.75)` |
+| `--dt-text-body-lg-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-body-lg-line` | semantic | `var(--dt-line-height-lg)` |
+| `--dt-text-body-lg-size` | semantic | `var(--dt-font-size-lg)` |
+| `--dt-text-body-lg-tracking` | semantic | `var(--dt-tracking-normal)` |
+| `--dt-text-body-lg-weight` | semantic | `var(--dt-font-weight-regular)` |
+| `--dt-text-body-md-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-body-md-line` | semantic | `var(--dt-line-height-md)` |
+| `--dt-text-body-md-size` | semantic | `var(--dt-font-size-md)` |
+| `--dt-text-body-md-tracking` | semantic | `var(--dt-tracking-normal)` |
+| `--dt-text-body-md-weight` | semantic | `var(--dt-font-weight-regular)` |
+| `--dt-text-body-sm-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-body-sm-line` | semantic | `var(--dt-line-height-sm)` |
+| `--dt-text-body-sm-size` | semantic | `var(--dt-font-size-sm)` |
+| `--dt-text-body-sm-tracking` | semantic | `var(--dt-tracking-normal)` |
+| `--dt-text-body-sm-weight` | semantic | `var(--dt-font-weight-regular)` |
+| `--dt-text-body-xs-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-body-xs-line` | semantic | `var(--dt-line-height-xs)` |
+| `--dt-text-body-xs-size` | semantic | `var(--dt-font-size-xs)` |
+| `--dt-text-body-xs-tracking` | semantic | `var(--dt-tracking-normal)` |
+| `--dt-text-body-xs-weight` | semantic | `var(--dt-font-weight-regular)` |
+| `--dt-text-brand` | semantic | `var(--dt-color-primary-700)` |
+| `--dt-text-brand-secondary` | semantic | `var(--dt-color-secondary-700)` |
+| `--dt-text-code-md-family` | semantic | `var(--dt-font-family-mono)` |
+| `--dt-text-code-md-line` | semantic | `var(--dt-line-height-sm)` |
+| `--dt-text-code-md-size` | semantic | `var(--dt-font-size-sm)` |
+| `--dt-text-code-md-tracking` | semantic | `var(--dt-tracking-normal)` |
+| `--dt-text-code-md-weight` | semantic | `var(--dt-font-weight-regular)` |
+| `--dt-text-code-sm-family` | semantic | `var(--dt-font-family-mono)` |
+| `--dt-text-code-sm-line` | semantic | `var(--dt-line-height-xs)` |
+| `--dt-text-code-sm-size` | semantic | `var(--dt-font-size-xs)` |
+| `--dt-text-code-sm-tracking` | semantic | `var(--dt-tracking-normal)` |
+| `--dt-text-code-sm-weight` | semantic | `var(--dt-font-weight-regular)` |
+| `--dt-text-danger` | semantic | `var(--dt-color-red-800)` |
+| `--dt-text-disabled` | semantic | `var(--dt-color-neutral-400)` |
+| `--dt-text-display-2xl-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-display-2xl-line` | semantic | `var(--dt-line-height-fluid)` |
+| `--dt-text-display-2xl-size` | semantic | `var(--dt-font-size-fluid-2xl)` |
+| `--dt-text-display-2xl-tracking` | semantic | `var(--dt-tracking-tightest)` |
+| `--dt-text-display-2xl-weight` | semantic | `var(--dt-font-weight-medium)` |
+| `--dt-text-display-lg-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-display-lg-line` | semantic | `var(--dt-line-height-7xl)` |
+| `--dt-text-display-lg-size` | semantic | `var(--dt-font-size-7xl)` |
+| `--dt-text-display-lg-tracking` | semantic | `var(--dt-tracking-tightest)` |
+| `--dt-text-display-lg-weight` | semantic | `var(--dt-font-weight-medium)` |
+| `--dt-text-display-md-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-display-md-line` | semantic | `var(--dt-line-height-6xl)` |
+| `--dt-text-display-md-size` | semantic | `var(--dt-font-size-6xl)` |
+| `--dt-text-display-md-tracking` | semantic | `var(--dt-tracking-tightest)` |
+| `--dt-text-display-md-weight` | semantic | `var(--dt-font-weight-medium)` |
+| `--dt-text-display-sm-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-display-sm-line` | semantic | `var(--dt-line-height-5xl)` |
+| `--dt-text-display-sm-size` | semantic | `var(--dt-font-size-5xl)` |
+| `--dt-text-display-sm-tracking` | semantic | `var(--dt-tracking-tighter)` |
+| `--dt-text-display-sm-weight` | semantic | `var(--dt-font-weight-medium)` |
+| `--dt-text-display-xl-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-display-xl-line` | semantic | `var(--dt-line-height-fluid)` |
+| `--dt-text-display-xl-size` | semantic | `var(--dt-font-size-fluid-xl)` |
+| `--dt-text-display-xl-tracking` | semantic | `var(--dt-tracking-tightest)` |
+| `--dt-text-display-xl-weight` | semantic | `var(--dt-font-weight-medium)` |
+| `--dt-text-eyebrow-family` | semantic | `var(--dt-font-family-secondary)` |
+| `--dt-text-eyebrow-line` | semantic | `var(--dt-line-height-2xs)` |
+| `--dt-text-eyebrow-size` | semantic | `var(--dt-font-size-2xs)` |
+| `--dt-text-eyebrow-tracking` | semantic | `var(--dt-tracking-wider)` |
+| `--dt-text-eyebrow-weight` | semantic | `var(--dt-font-weight-semibold)` |
+| `--dt-text-heading-lg-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-heading-lg-line` | semantic | `var(--dt-line-height-3xl)` |
+| `--dt-text-heading-lg-size` | semantic | `var(--dt-font-size-3xl)` |
+| `--dt-text-heading-lg-tracking` | semantic | `var(--dt-tracking-tight)` |
+| `--dt-text-heading-lg-weight` | semantic | `var(--dt-font-weight-medium)` |
+| `--dt-text-heading-md-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-heading-md-line` | semantic | `var(--dt-line-height-2xl)` |
+| `--dt-text-heading-md-size` | semantic | `var(--dt-font-size-2xl)` |
+| `--dt-text-heading-md-tracking` | semantic | `var(--dt-tracking-tight)` |
+| `--dt-text-heading-md-weight` | semantic | `var(--dt-font-weight-medium)` |
+| `--dt-text-heading-sm-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-heading-sm-line` | semantic | `var(--dt-line-height-xl)` |
+| `--dt-text-heading-sm-size` | semantic | `var(--dt-font-size-xl)` |
+| `--dt-text-heading-sm-tracking` | semantic | `var(--dt-tracking-snug)` |
+| `--dt-text-heading-sm-weight` | semantic | `var(--dt-font-weight-medium)` |
+| `--dt-text-heading-xl-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-heading-xl-line` | semantic | `var(--dt-line-height-4xl)` |
+| `--dt-text-heading-xl-size` | semantic | `var(--dt-font-size-4xl)` |
+| `--dt-text-heading-xl-tracking` | semantic | `var(--dt-tracking-tighter)` |
+| `--dt-text-heading-xl-weight` | semantic | `var(--dt-font-weight-medium)` |
+| `--dt-text-heading-xs-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-heading-xs-line` | semantic | `var(--dt-line-height-lg)` |
+| `--dt-text-heading-xs-size` | semantic | `var(--dt-font-size-lg)` |
+| `--dt-text-heading-xs-tracking` | semantic | `var(--dt-tracking-normal)` |
+| `--dt-text-heading-xs-weight` | semantic | `var(--dt-font-weight-medium)` |
+| `--dt-text-headline` | semantic | `var(--dt-text-primary)` |
+| `--dt-text-info` | semantic | `var(--dt-color-cyan-900)` |
+| `--dt-text-inverse` | semantic | `var(--dt-color-neutral-050)` |
+| `--dt-text-label-lg-family` | semantic | `var(--dt-font-family-secondary)` |
+| `--dt-text-label-lg-line` | semantic | `var(--dt-line-height-md)` |
+| `--dt-text-label-lg-size` | semantic | `var(--dt-font-size-md)` |
+| `--dt-text-label-lg-tracking` | semantic | `var(--dt-tracking-normal)` |
+| `--dt-text-label-lg-weight` | semantic | `var(--dt-font-weight-medium)` |
+| `--dt-text-label-md-family` | semantic | `var(--dt-font-family-secondary)` |
+| `--dt-text-label-md-line` | semantic | `var(--dt-line-height-sm)` |
+| `--dt-text-label-md-size` | semantic | `var(--dt-font-size-sm)` |
+| `--dt-text-label-md-tracking` | semantic | `var(--dt-tracking-normal)` |
+| `--dt-text-label-md-weight` | semantic | `var(--dt-font-weight-medium)` |
+| `--dt-text-label-sm-family` | semantic | `var(--dt-font-family-secondary)` |
+| `--dt-text-label-sm-line` | semantic | `var(--dt-line-height-xs)` |
+| `--dt-text-label-sm-size` | semantic | `var(--dt-font-size-xs)` |
+| `--dt-text-label-sm-tracking` | semantic | `var(--dt-tracking-normal)` |
+| `--dt-text-label-sm-weight` | semantic | `var(--dt-font-weight-medium)` |
+| `--dt-text-link` | semantic | `var(--dt-color-neutral-900)` |
+| `--dt-text-link-brand` | semantic | `var(--dt-color-primary-700)` |
+| `--dt-text-link-brand-hover` | semantic | `var(--dt-color-primary-800)` |
+| `--dt-text-link-hover` | semantic | `var(--dt-color-neutral-700)` |
+| `--dt-text-link-visited` | semantic | `var(--dt-color-neutral-700)` |
+| `--dt-text-on-action` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-action-brand` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-action-brand-secondary` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-action-danger` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-action-disabled` | semantic | `var(--dt-color-neutral-400)` |
+| `--dt-text-on-action-ghost` | semantic | `var(--dt-color-neutral-900)` |
+| `--dt-text-on-action-secondary` | semantic | `var(--dt-color-neutral-900)` |
+| `--dt-text-on-brand` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-brand-muted` | semantic | `var(--dt-color-primary-900)` |
+| `--dt-text-on-brand-secondary` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-brand-secondary-muted` | semantic | `var(--dt-color-secondary-900)` |
+| `--dt-text-on-danger` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-info` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-scrim` | semantic | `var(--dt-color-neutral-050)` |
+| `--dt-text-on-scrim-brand` | semantic | `var(--dt-color-primary-200)` |
+| `--dt-text-on-scrim-secondary` | semantic | `var(--dt-color-neutral-200)` |
+| `--dt-text-on-scrim-strong` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-selected` | semantic | `var(--dt-color-neutral-900)` |
+| `--dt-text-on-selected-brand` | semantic | `var(--dt-color-primary-900)` |
+| `--dt-text-on-success` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-warning` | semantic | `var(--dt-color-neutral-950)` |
+| `--dt-text-primary` | semantic | `var(--dt-color-neutral-900)` |
+| `--dt-text-secondary` | semantic | `var(--dt-color-neutral-600)` |
+| `--dt-text-success` | semantic | `var(--dt-color-green-800)` |
+| `--dt-text-tertiary` | semantic | `var(--dt-color-neutral-500)` |
+| `--dt-text-warning` | semantic | `var(--dt-color-amber-900)` |
+| `--dt-text-wordmark` | semantic | `var(--dt-text-primary)` |
 
 ## Source
 
@@ -443,7 +596,7 @@ const DRAWINGS = {
 const GROUPS = [["AI & automation",["context","prompt","refine","workflow"]],["Actions",["check","clipboard","close","copy","download","duplicate","edit","external-link","link","minus","plus","redo","refresh","save","search","share","trash","undo","unlink","upload"]],["App essentials",["award","bag","bell-add","briefcase","calendar-check","calendar-clock","calendar-range","credit-card-add","gift","rocket","sparkles","wallet"]],["Appearance",["contrast","corner-radius","fill","moon","opacity","stroke","sun"]],["Canvas",["anchor","crop","cursor","cursor-direct","diamond","ellipse","fit-view","flip-horizontal","flip-vertical","frame","hand","image","line","pen","pencil","polygon","rectangle","rotate","ruler","star","text","triangle","zoom-in","zoom-out"]],["Canvas & layout",["aspect-ratio","bezier","boolean-exclude","boolean-intersect","boolean-subtract","boolean-union","constraints","eraser","eyedropper","gradient","guides","height","layout-board","layout-footer","layout-header","layout-masonry","layout-split","layout-three","mask","node-add","node-remove","paintbrush","palette","path","position-absolute","position-fixed","rotate-clockwise","snap","width"]],["Commerce",["cart","payment","product","receipt"]],["Communication",["at","bell","chat","comment","mail","notification-off","send"]],["Content",["audio","collection","document","video"]],["Data & tools",["braces","brackets","branch","chart-area","chart-bar","chart-line","chart-pie","commit","compass","data-rows","drag-handle","flag","location-arrow","merge","pin-board","plug","power","pull-request","server","settings","table","trend-down","trend-up","wifi"]],["Devices",["code","desktop","laptop","phone","tablet","terminal"]],["Everyday",["bookmark","coffee","filter","globe","heart","key","pin","shield","sort","tag"]],["Files",["archive","cloud","database","file","file-add","file-audio","file-chart","file-check","file-close","file-code","file-download","file-image","file-lock","file-remove","file-search","file-settings","file-table","file-text","file-upload","file-video","file-zip","folder","folder-add","folder-check","folder-close","folder-download","folder-lock","folder-open","folder-remove","folder-search","folder-upload","image-add"]],["Forms",["checkbox","checkbox-empty","checkbox-mixed","cursor-text","form","input","keyboard","number-input","password","radio","radio-empty","select","slider","stepper","toggle-off","toggle-on"]],["Layers",["bring-front","component","component-set","eye","eye-off","group","layers","lock","send-back","ungroup","unlock"]],["Layout",["align-bottom","align-center","align-left","align-middle","align-right","align-top","columns","distribute-horizontal","distribute-vertical","gap-horizontal","gap-vertical","padding","rows","stack-horizontal","stack-vertical","wrap"]],["Media",["camera","headphones","microphone","microphone-off","mute","pause","play","repeat","shuffle","skip-next","skip-previous","stop","volume","volume-low"]],["Navigation",["arrow-circle-down","arrow-circle-left","arrow-circle-right","arrow-circle-up","arrow-down","arrow-down-left","arrow-down-right","arrow-left","arrow-left-right","arrow-right","arrow-up","arrow-up-down","arrow-up-left","arrow-up-right","chevron-down","chevron-left","chevron-right","chevron-up","chevrons-down","chevrons-left","chevrons-right","chevrons-up","collapse","dashboard","enter","exit","expand","grid","home","list","log-in","menu","more-horizontal","more-vertical","move","panel-bottom","sidebar-left","sidebar-right"]],["Objects",["book","building","light","plant"]],["People",["handoff","invite","person","person-add","person-check","person-close","person-lock","person-remove","person-search","team"]],["Projects",["calendar","milestone","project","workspace"]],["Status",["clock","error","help","history","info","loading","success","warning"]],["Typography",["bold","heading","indent-decrease","indent-increase","italic","letter-spacing","line-height","paragraph","quote","strikethrough","text-align-center","text-align-left","text-align-right","text-justify","text-size","underline"]]];
 /* @icons:end */
 
-export function Icon({ name = "star", size = "lg", label, style, ...rest }) {
+export function Icon({ name = "star", size = "lg", tone = "inherit", label, style, ...rest }) {
   const drawing = DRAWINGS[name] || DRAWINGS.star;
   const small = SMALL[size];
   const grid = small ? 16 : 24;
@@ -464,7 +617,7 @@ export function Icon({ name = "star", size = "lg", label, style, ...rest }) {
       aria-label={label || undefined}
       aria-hidden={label ? undefined : true}
       data-icon={name}
-      style={{ width: box, height: box, flex: "none", display: "inline-block", verticalAlign: "middle", ...style }}
+      style={{ width: box, height: box, flex: "none", display: "inline-block", verticalAlign: "middle", color: tone && tone !== "inherit" ? `var(--dt-text-${tone})` : undefined, ...style }}
       dangerouslySetInnerHTML={{ __html: body }}
       {...rest}
     />

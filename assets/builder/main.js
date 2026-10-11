@@ -36,6 +36,20 @@ import { openStore } from "./model/store.js";
 import { openStart } from "./model/share.js";
 import { createMirrorHub, watchStore } from "./cloud/mirror.js";
 
+/* The page is as tall as what the browser actually shows. On a tablet the
+   browser's own bars can cover the bottom of a 100dvh page, which hid the
+   left panel's search and the account button; the visual viewport is the
+   part that's really on screen. */
+(function fitViewport() {
+  var vv = window.visualViewport;
+  if (!vv) return;
+  var root = document.documentElement;
+  var set = function () { root.style.setProperty("--bd-vh", Math.round(vv.height) + "px"); };
+  set();
+  vv.addEventListener("resize", set);
+  window.addEventListener("orientationchange", function () { setTimeout(set, 300); });
+})();
+
 /* The store opens first (IndexedDB is asynchronous), then the project to
    show; the page says it's loading until then. The mirror watches the
    store from the start, and begins sending once someone signs in. */
