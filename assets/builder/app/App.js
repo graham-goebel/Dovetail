@@ -2874,7 +2874,7 @@ function App(props) {
      A band (a Section or a block) gets a page of its own instead. */
   var placeLoose = function (payload, hit) {
     var node = null, moving = null;
-    if (payload.kind === "new") { node = make(payload.type, Object.assign({}, payload.props), null, Object.assign({}, payload.extra && payload.extra.style)); if (payload.type === "Inline") node.props.wrap = false; }
+    if (payload.kind === "new") { node = make(payload.type, Object.assign({}, payload.props), null, Object.assign({}, payload.extra && payload.extra.style)); if (payload.extra && payload.extra.kids) node.children = payload.extra.kids.map(fresh); if (payload.type === "Inline") node.props.wrap = false; }
     else if (payload.kind === "asset") node = payload.media === "video" ? make("Video", { src: payload.src }) : make("Image", Object.assign({ src: payload.src, alt: payload.label }, payload.props), null, Object.assign({}, payload.extra && payload.extra.style));
     else if (payload.kind === "tool") node = toolNode(payload.tool, null);
     else if (payload.kind === "local") node = instanceOf(payload.comp);
@@ -3422,6 +3422,8 @@ function App(props) {
     if (props) Object.assign(n.props, props);
     if (extra && extra.name) n.name = extra.name;
     if (extra && extra.style) Object.assign(n.style, extra.style);
+    /* An example from a component's page brings what's in its slots and inside it. */
+    if (extra && extra.kids) n.children = extra.kids.map(fresh);
     if (t.free) { n.style.x = t.free.x; n.style.y = t.free.y; }
     /* A row added here stays on one line until it's told to wrap. */
     if (type === "Inline") n.props.wrap = false;
@@ -7963,7 +7965,7 @@ function App(props) {
     renamePage: onRenamePage, openPage: onOpenPage, deletePage: onDeletePage, duplicatePage: onDuplicatePage, movePage: onMovePage, placePage: onPlacePage, addFolder: onAddFolder, addPage: onAddPage, setIcon: onSetItemIcon, announce: announce };
 
   /* Assets and Content (Assets.js, Content.js) are memoized too. */
-  var onInsertWith = useEvent(function (type, props) { add(type, null, props); });
+  var onInsertWith = useEvent(function (type, props, extra) { add(type, null, props, extra); });
   var onAddOrSwap = useEvent(function (type, swap) { var s0 = selRef.current; if (swap && s0.length) { swapNode(s0[s0.length - 1], type, docRef.current.active); return; } add(type); });
   var onAddLocal = useEvent(addLocal), onRenameComponent = useEvent(renameComponent), onRemoveComponent = useEvent(removeComponent), onApplyVar = useEvent(applyVar), onSetStyles = useEvent(setStyles), onAddTemplate = useEvent(addTemplate);
   var onFrameAdd = useEvent(function (size, page, at, opts) { return frameOps.add(size, page, at, opts); });

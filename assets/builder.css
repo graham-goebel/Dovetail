@@ -9716,6 +9716,7 @@ input.bd-folder-name {
   touch-action: pan-y;
 }
 .bd-cd-stage { transform-origin: center; pointer-events: none; max-width: none; }
+.bd-cd-fit { position: relative; overflow: hidden; }
 .bd-cd-props { flex: 1; min-height: 0; overflow: auto; padding: 0 var(--dt-space-inset-md) var(--dt-space-inset-md); }
 .bd-cd-props .bd-field.is-inline { flex-direction: row; align-items: center; justify-content: space-between; }
 .bd-cd-foot {
@@ -9726,3 +9727,28 @@ input.bd-folder-name {
   border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
 }
 .bd-cd-insert { flex: 1; justify-content: center; }
+/* What's built from it: small live examples, two across (one for blocks). */
+.bd-cd-sub { margin: var(--dt-space-inset-sm) 0 var(--dt-space-inset-xs); color: var(--dt-text-secondary); font-size: var(--dt-font-size-xs); font-weight: var(--dt-font-weight-medium, 500); }
+.bd-cd-examples { margin-bottom: var(--dt-space-inset-xs); }
+.bd-cd-ex-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--dt-space-inset-xs); margin: 0; padding: 0; list-style: none; }
+.bd-cd-ex-list.is-wide { grid-template-columns: minmax(0, 1fr); }
+.bd-cd-ex {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-inset-2xs);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: grab;
+}
+.bd-cd-ex .bd-cd-preview.is-example { min-height: 88px; max-height: 120px; margin: 0; padding: var(--dt-space-inset-xs); pointer-events: none; }
+.bd-cd-ex-list.is-wide .bd-cd-ex .bd-cd-preview.is-example { max-height: 150px; }
+.bd-cd-ex.is-on .bd-cd-preview.is-example { border-color: var(--bd-select); box-shadow: 0 0 0 1px var(--bd-select); }
+.bd-cd-ex:hover .bd-cd-preview.is-example { border-color: var(--dt-border-default); }
+.bd-cd-ex:focus-visible { outline: 2px solid var(--bd-select); outline-offset: 2px; border-radius: var(--dt-radius-control); }
+.bd-cd-ex-name { overflow: hidden; color: var(--dt-text-secondary); font-size: var(--dt-font-size-xs); text-overflow: ellipsis; white-space: nowrap; }
+.bd-cd-ex.is-on .bd-cd-ex-name { color: var(--dt-text-primary); }

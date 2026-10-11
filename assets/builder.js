@@ -4,20 +4,20 @@
   // assets/builder/model/names.js
   var TEXT_KEYS = ["children", "title", "label", "heading", "eyebrow", "alt", "brand", "name"];
   var CONTAINERS = { Group: 1, Stack: 1, Inline: 1, Grid: 1, Section: 1, Card: 1, Carousel: 1 };
-  function short(t, n) {
+  function short(t, n2) {
     var s = String(t).replace(/\s+/g, " ").trim();
-    return s.length > n ? s.slice(0, n - 1).trim() + "…" : s;
+    return s.length > n2 ? s.slice(0, n2 - 1).trim() + "…" : s;
   }
-  function ownText(n) {
-    var p = n && n.props || {};
+  function ownText(n2) {
+    var p = n2 && n2.props || {};
     for (var i = 0; i < TEXT_KEYS.length; i++) {
       var v = p[TEXT_KEYS[i]];
       if (typeof v === "string" && v.trim() || typeof v === "number") return String(v);
     }
     return "";
   }
-  function find(n, test) {
-    var kids = n && n.children || [];
+  function find(n2, test) {
+    var kids = n2 && n2.children || [];
     for (var i = 0; i < kids.length; i++) {
       if (kids[i].hide) continue;
       if (test(kids[i])) return kids[i];
@@ -29,8 +29,8 @@
   function plural(type) {
     return /s$/.test(type) ? type : /y$/.test(type) ? type.slice(0, -1) + "ies" : type + "s";
   }
-  function shapeName(n) {
-    var p = n.props || {}, st = n.style || {};
+  function shapeName(n2) {
+    var p = n2.props || {}, st = n2.style || {};
     if (st.blur) return "Glow";
     if (p.shape === "line") return p.end === "arrow" || p.start === "arrow" ? "Arrow" : "Line";
     if (p.shape === "ellipse") return st.w && st.w === st.height ? "Circle" : "Ellipse";
@@ -38,22 +38,22 @@
     if (st.w === "fill" || /^x\d+$/.test(st.height || "")) return "Bar";
     return "Rectangle";
   }
-  function visibleKids(n) {
-    return (n.children || []).filter(function(c) {
+  function visibleKids(n2) {
+    return (n2.children || []).filter(function(c) {
       return !c.hide && c.type !== "Slot";
     });
   }
-  function textOf(n) {
-    return CONTAINERS[n.type] || n.type === "Shape" ? "" : ownText(n);
+  function textOf(n2) {
+    return CONTAINERS[n2.type] || n2.type === "Shape" ? "" : ownText(n2);
   }
-  function isPill(n) {
-    return CONTAINERS[n.type] && n.style && n.style.radius === "pill";
+  function isPill(n2) {
+    return CONTAINERS[n2.type] && n2.style && n2.style.radius === "pill";
   }
-  function isTile(n) {
-    var st = n.style || {};
-    return CONTAINERS[n.type] && !!(st.surface || st.gradient) && !!(st.radius || st.border);
+  function isTile(n2) {
+    var st = n2.style || {};
+    return CONTAINERS[n2.type] && !!(st.surface || st.gradient) && !!(st.radius || st.border);
   }
-  function count(n, test) {
+  function count(n2, test) {
     var k = 0;
     (function walk2(m) {
       (m.children || []).forEach(function(c) {
@@ -61,15 +61,15 @@
         if (test(c)) k++;
         walk2(c);
       });
-    })(n);
+    })(n2);
     return k;
   }
   var PLAIN = { Group: 1, Stack: 1, Inline: 1 };
   var ROLE = { Grid: "grid", Section: "section", Card: "card", Stack: "stack", Inline: "row", Carousel: "carousel" };
-  function roleWord(n) {
-    return n.type === "Group" ? (n.props || {}).direction === "column" ? "column" : "row" : ROLE[n.type] || n.type.toLowerCase();
+  function roleWord(n2) {
+    return n2.type === "Group" ? (n2.props || {}).direction === "column" ? "column" : "row" : ROLE[n2.type] || n2.type.toLowerCase();
   }
-  function ownLine(n, kids) {
+  function ownLine(n2, kids) {
     var h = kids.filter(function(c) {
       return c.type === "Heading" && textOf(c);
     })[0];
@@ -88,31 +88,31 @@
     })) return said2.join(" · ");
     return kids.map(textOf).filter(Boolean)[0];
   }
-  function containerName(n) {
-    var kids = visibleKids(n);
-    var st = n.style || {};
+  function containerName(n2) {
+    var kids = visibleKids(n2);
+    var st = n2.style || {};
     if (st.radius === "pill" && st.w && st.w === st.height) return "Ring";
     if (kids.length > 1 && kids.every(isPill)) return "Chips";
     if (kids.length > 1 && kids.every(isTile)) return "Tiles";
-    if (count(n, function(c) {
+    if (count(n2, function(c) {
       return c.type === "Shape" && shapeName(c) === "Bar";
-    }) >= 3 && !find(n, function(c) {
+    }) >= 3 && !find(n2, function(c) {
       return c.type === "Heading";
     })) return "Bar chart";
-    if (n.type === "Carousel") return kids.length && kids.every(function(c) {
+    if (n2.type === "Carousel") return kids.length && kids.every(function(c) {
       return c.type === kids[0].type;
     }) ? plural(kids[0].type) + " carousel" : "";
-    var own = ownLine(n, kids);
+    var own = ownLine(n2, kids);
     if (own) return short(own, 28);
-    if (kids.length === 1 && CONTAINERS[kids[0].type] && PLAIN[n.type]) {
+    if (kids.length === 1 && CONTAINERS[kids[0].type] && PLAIN[n2.type]) {
       var inner = kids[0].name || autoName(kids[0]);
       var base = inner.replace(/ (grid|section|card|stack|row|column|carousel|wrapper)$/, "");
       return inner ? short(base, 22) + " wrapper" : "";
     }
-    var heading2 = find(n, function(c) {
+    var heading2 = find(n2, function(c) {
       return c.type === "Heading" && ownText(c);
     });
-    if (heading2) return short(ownText(heading2), 22) + " " + roleWord(n);
+    if (heading2) return short(ownText(heading2), 22) + " " + roleWord(n2);
     if (kids.length > 1 && kids.every(function(c) {
       return c.type === kids[0].type;
     })) {
@@ -129,31 +129,31 @@
         return (c.type === "Shape" ? shapeName(c) : c.type) === one2;
       })) return kids.length + " " + plural(one2);
     }
-    var said2 = find(n, function(c) {
+    var said2 = find(n2, function(c) {
       return textOf(c);
     });
-    if (said2) return short(textOf(said2), 22) + " " + roleWord(n);
+    if (said2) return short(textOf(said2), 22) + " " + roleWord(n2);
     return "";
   }
-  function autoName(n) {
-    if (!n || n.name) return "";
-    if (n.type === "Shape") return shapeName(n);
-    if (CONTAINERS[n.type] && !(n.type === "Card" && ownText(n))) return containerName(n);
+  function autoName(n2) {
+    if (!n2 || n2.name) return "";
+    if (n2.type === "Shape") return shapeName(n2);
+    if (CONTAINERS[n2.type] && !(n2.type === "Card" && ownText(n2))) return containerName(n2);
     return "";
   }
-  function layerName(n) {
-    if (!n) return "a layer";
-    return n.name || autoName(n) || n.type;
+  function layerName(n2) {
+    if (!n2) return "a layer";
+    return n2.name || autoName(n2) || n2.type;
   }
 
   // assets/builder/config.js
   var mountEl = document.getElementById("builder");
   var DATA = window.DovetailBuilderData || { components: {}, tokens: {}, frames: [], groups: [], columnWidths: [], rootGaps: [] };
   var e = React.createElement;
-  function nodeLabel(n, scalars) {
-    if (n.name) return n.name;
-    var base = (scalars || {})[n.type] || {};
-    var text2 = n.props.children != null ? n.props.children : n.props.title != null ? n.props.title : n.props.label != null ? n.props.label : base.children || base.title || base.label || base.name || base.brand;
+  function nodeLabel(n2, scalars) {
+    if (n2.name) return n2.name;
+    var base = (scalars || {})[n2.type] || {};
+    var text2 = n2.props.children != null ? n2.props.children : n2.props.title != null ? n2.props.title : n2.props.label != null ? n2.props.label : base.children || base.title || base.label || base.name || base.brand;
     return typeof text2 === "string" || typeof text2 === "number" ? String(text2) : "";
   }
   function typeIcon(type) {
@@ -162,9 +162,9 @@
     if (g && GROUP_TYPE_ICON[g]) return GROUP_TYPE_ICON[g];
     return isContainer(type) ? "box" : "component";
   }
-  function isOwner(n) {
-    var m = META[n.type];
-    return !!m && !m.builder && !isContainer(n.type);
+  function isOwner(n2) {
+    var m = META[n2.type];
+    return !!m && !m.builder && !isContainer(n2.type);
   }
   var PRIMITIVE_TYPES = { Root: 1, Slot: 1, Image: 1, Video: 1 };
   (DATA.groups || []).forEach(function(g) {
@@ -172,12 +172,12 @@
       PRIMITIVE_TYPES[t] = 1;
     });
   });
-  function isComponentLayer(n) {
-    var m = n && META[n.type];
-    return !!n && (!!n.inst || !!m && !m.builder && !PRIMITIVE_TYPES[n.type]);
+  function isComponentLayer(n2) {
+    var m = n2 && META[n2.type];
+    return !!n2 && (!!n2.inst || !!m && !m.builder && !PRIMITIVE_TYPES[n2.type]);
   }
-  function nodeIsOpen(n, collapsed) {
-    return n.type === "Root" || isContainer(n.type) ? !collapsed[n.id] : collapsed[n.id] === false;
+  function nodeIsOpen(n2, collapsed) {
+    return n2.type === "Root" || isContainer(n2.type) ? !collapsed[n2.id] : collapsed[n2.id] === false;
   }
   function frameSize(f, boxes) {
     return f.width + " × " + (f.hug ? Math.round(((boxes || {})[f.id] || {}).h || f.height) : f.height);
@@ -256,13 +256,13 @@
     var list2 = slotTakes(ownerType, name);
     return list2 ? list2.indexOf(childType) >= 0 : !joinsFlow(childType);
   }
-  function hasSlots(n) {
-    return !!(n && n.children && n.children.some(function(c) {
+  function hasSlots(n2) {
+    return !!(n2 && n2.children && n2.children.some(function(c) {
       return c.type === "Slot";
     }));
   }
-  function nameOf(n) {
-    return n.type === "Slot" ? words(n.props.name) : layerName(n);
+  function nameOf(n2) {
+    return n2.type === "Slot" ? words(n2.props.name) : layerName(n2);
   }
   var IS_MAC = /Mac|iPhone|iPad|iPod/.test(typeof navigator !== "undefined" && (navigator.platform || navigator.userAgentData && navigator.userAgentData.platform) || "");
   var CHORD = /\b((?:(?:Ctrl|Cmd|Alt|Shift)(?:\+|-| (?=[A-Z0-9+\-−]\b|[+\-−]))){1,3})(F\d{1,2}\b|Up\b|Down\b|Left\b|Right\b|Arrows?\b|drag\b|click\b|[A-Z0-9](?![\w°])|[[\]\\=+\-−?/])/g;
@@ -805,8 +805,8 @@
   var isFunction = (target2) => typeof target2 === "function";
   var isBoolean = (target2) => typeof target2 === "boolean";
   function isArrayIndex(value2) {
-    const n = +value2;
-    return Number.isInteger(n) && String(n) === value2;
+    const n2 = +value2;
+    return Number.isInteger(n2) && String(n2) === value2;
   }
   var latest = (state) => state.copy_ || state.base_;
   var getFinalValue = (state) => state.modified_ ? state.copy_ : state.base_;
@@ -1522,16 +1522,16 @@
     if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
     return JSON.stringify(a) === JSON.stringify(b);
   }
-  function nodeRecord(n) {
+  function nodeRecord(n2) {
     var fields = {};
-    Object.keys(n).forEach(function(k) {
-      if (k !== "id" && k !== "children" && k !== "props" && k !== "style") fields[k] = n[k];
+    Object.keys(n2).forEach(function(k) {
+      if (k !== "id" && k !== "children" && k !== "props" && k !== "style") fields[k] = n2[k];
     });
     return {
       fields,
-      p: n.props === void 0 ? void 0 : Object.assign({}, n.props),
-      s: n.style === void 0 ? void 0 : Object.assign({}, n.style),
-      kids: Array.isArray(n.children) ? n.children.map(function(c) {
+      p: n2.props === void 0 ? void 0 : Object.assign({}, n2.props),
+      s: n2.style === void 0 ? void 0 : Object.assign({}, n2.style),
+      kids: Array.isArray(n2.children) ? n2.children.map(function(c) {
         return c.id;
       }) : void 0
     };
@@ -1545,9 +1545,9 @@
   }
   function nodesOf(f) {
     var out = [];
-    (function walk2(n) {
-      out.push(n);
-      (n.children || []).forEach(walk2);
+    (function walk2(n2) {
+      out.push(n2);
+      (n2.children || []).forEach(walk2);
     })(f.root);
     return out;
   }
@@ -1582,14 +1582,14 @@
   }
   function addFrame(out, f) {
     out.push({ t: "addF", f: f.id, rec: frameRecord(f) });
-    nodesOf(f).forEach(function(n) {
-      out.push({ t: "addN", f: f.id, n: n.id, rec: nodeRecord(n) });
+    nodesOf(f).forEach(function(n2) {
+      out.push({ t: "addN", f: f.id, n: n2.id, rec: nodeRecord(n2) });
     });
   }
   function delFrame(out, f) {
     out.push({ t: "delF", f: f.id, rec: frameRecord(f) });
-    nodesOf(f).forEach(function(n) {
-      out.push({ t: "delN", f: f.id, n: n.id, rec: nodeRecord(n) });
+    nodesOf(f).forEach(function(n2) {
+      out.push({ t: "delN", f: f.id, n: n2.id, rec: nodeRecord(n2) });
     });
   }
   function diff(prev, next) {
@@ -1611,13 +1611,13 @@
       diffFields(out, f.id, null, "f", frameRecord(was).fields, frameRecord(f).fields);
       if (was.root === f.root) return;
       var a = byId(nodesOf(was)), b = byId(nodesOf(f));
-      b.forEach(function(n, id) {
+      b.forEach(function(n2, id) {
         var old = a.get(id);
-        if (!old) out.push({ t: "addN", f: f.id, n: id, rec: nodeRecord(n) });
-        else if (old !== n) diffNode(out, f.id, old, n);
+        if (!old) out.push({ t: "addN", f: f.id, n: id, rec: nodeRecord(n2) });
+        else if (old !== n2) diffNode(out, f.id, old, n2);
       });
-      a.forEach(function(n, id) {
-        if (!b.has(id)) out.push({ t: "delN", f: f.id, n: id, rec: nodeRecord(n) });
+      a.forEach(function(n2, id) {
+        if (!b.has(id)) out.push({ t: "delN", f: f.id, n: id, rec: nodeRecord(n2) });
       });
     });
     prev.frames.forEach(function(f) {
@@ -1634,11 +1634,11 @@
     });
   }
   function build(nid, rec) {
-    var n = Object.assign({ id: nid }, rec.fields);
-    if (rec.p !== void 0) n.props = Object.assign({}, rec.p);
-    if (rec.s !== void 0) n.style = Object.assign({}, rec.s);
-    if (rec.kids !== void 0) n.children = [];
-    return n;
+    var n2 = Object.assign({ id: nid }, rec.fields);
+    if (rec.p !== void 0) n2.props = Object.assign({}, rec.p);
+    if (rec.s !== void 0) n2.style = Object.assign({}, rec.s);
+    if (rec.kids !== void 0) n2.children = [];
+    return n2;
   }
   function put(obj, k, v) {
     if (v === void 0) delete obj[k];
@@ -1654,11 +1654,11 @@
         if (index2[fid]) return index2[fid];
         var f = frames.get(fid);
         var nodes = /* @__PURE__ */ new Map(), parent = /* @__PURE__ */ new Map();
-        if (f) (function walk2(n, p) {
-          nodes.set(n.id, n);
-          if (p) parent.set(n.id, p);
-          (n.children || []).forEach(function(c) {
-            walk2(c, n);
+        if (f) (function walk2(n2, p) {
+          nodes.set(n2.id, n2);
+          if (p) parent.set(n2.id, p);
+          (n2.children || []).forEach(function(c) {
+            walk2(c, n2);
           });
         })(f.root, null);
         index2[fid] = { nodes, parent };
@@ -1786,16 +1786,16 @@
     return "n" + Date.now().toString(36).slice(-5) + seq.toString(36);
   }
   function make(type, props, children, style) {
-    var n = { id: uid(), type, props: props || {}, style: style || {} };
-    if (isContainer(type)) n.children = children || [];
-    if (type === "Carousel" && !children) n.children = CAROUSEL_ITEMS.map(function(it) {
+    var n2 = { id: uid(), type, props: props || {}, style: style || {} };
+    if (isContainer(type)) n2.children = children || [];
+    if (type === "Carousel" && !children) n2.children = CAROUSEL_ITEMS.map(function(it) {
       return make("Cover", { ratio: "3:4", eyebrow: it[1], title: it[0], alt: it[0] + " collection" });
     });
-    return n;
+    return n2;
   }
   function side(v, max, fallback, min) {
-    var n = Math.round(Number(v));
-    return isFinite(n) && n > 0 ? Math.max(min || MIN_SIDE, Math.min(max, n)) : fallback;
+    var n2 = Math.round(Number(v));
+    return isFinite(n2) && n2 > 0 ? Math.max(min || MIN_SIDE, Math.min(max, n2)) : fallback;
   }
   function makeFrame(name, preset, hug) {
     var p = PRESET[preset] || PRESET.desktop;
@@ -1828,19 +1828,19 @@
     var frame2 = fid && frameById(doc2, fid) || active(doc2);
     if (id === "root") return { node: frame2.root, parent: null, index: -1, path: [frame2.root] };
     var out = null;
-    (function walk2(n, path) {
-      (n.children || []).forEach(function(c, i) {
+    (function walk2(n2, path) {
+      (n2.children || []).forEach(function(c, i) {
         if (out) return;
-        if (c.id === id) out = { node: c, parent: n, index: i, path: path.concat([c]) };
+        if (c.id === id) out = { node: c, parent: n2, index: i, path: path.concat([c]) };
         else if (c.children) walk2(c, path.concat([c]));
       });
     })(frame2.root, [frame2.root]);
     return out;
   }
-  function fresh(n) {
-    var c = { id: uid(), type: n.type, props: Object.assign({}, n.props), style: Object.assign({}, n.style) };
-    if (n.name) c.name = n.name;
-    if (n.children) c.children = n.children.map(fresh);
+  function fresh(n2) {
+    var c = { id: uid(), type: n2.type, props: Object.assign({}, n2.props), style: Object.assign({}, n2.style) };
+    if (n2.name) c.name = n2.name;
+    if (n2.children) c.children = n2.children.map(fresh);
     return c;
   }
   function canHold(p, child) {
@@ -1858,7 +1858,7 @@
     return !at2 || !at2.parent || at2.node.type === "Slot";
   }
   var fixed = fixedSpot;
-  function autoLayout(n) {
+  function autoLayout(n2) {
     (function walk2(x) {
       if (x.type === "Group") {
         if (!x.props.direction) x.props.direction = "column";
@@ -1868,11 +1868,11 @@
         })) x.style.padding = "md";
       }
       (x.children || []).forEach(walk2);
-    })(n);
-    return n;
+    })(n2);
+    return n2;
   }
-  function settle(frame2, parentId, n) {
-    if (!frame2 || frame2.mode !== "structured") return n;
+  function settle(frame2, parentId, n2) {
+    if (!frame2 || frame2.mode !== "structured") return n2;
     (function unfree(x) {
       if (x.style) {
         delete x.style.x;
@@ -1881,19 +1881,19 @@
         delete x.style.cv;
       }
       (x.children || []).forEach(unfree);
-    })(n);
-    autoLayout(n);
-    if (parentId !== "root" || joinsFlow(n.type) || isContainer(n.type)) return n;
-    return make("Group", { direction: "column", gap: "md" }, [n], { padding: "md" });
+    })(n2);
+    autoLayout(n2);
+    if (parentId !== "root" || joinsFlow(n2.type) || isContainer(n2.type)) return n2;
+    return make("Group", { direction: "column", gap: "md" }, [n2], { padding: "md" });
   }
   var CONVERTS = ["Group", "Section", "Stack", "Inline", "Grid", "Card"];
   var ops = {
-    insert: function(doc2, parentId, index2, n, fid) {
+    insert: function(doc2, parentId, index2, n2, fid) {
       var p = locate(doc2, parentId, fid);
-      if (!canHold(p, n)) return null;
-      var put2 = settle(fid && frameById(doc2, fid) || active(doc2), parentId, n);
+      if (!canHold(p, n2)) return null;
+      var put2 = settle(fid && frameById(doc2, fid) || active(doc2), parentId, n2);
       p.node.children.splice(Math.max(0, Math.min(index2, p.node.children.length)), 0, put2);
-      return n.id;
+      return n2.id;
     },
     move: function(doc2, id, parentId, index2) {
       if (id === "root" || id === parentId) return null;
@@ -1919,8 +1919,8 @@
         return locate(doc2, id);
       }).filter(Boolean);
       spots = spots.filter(function(s) {
-        return !s.path.slice(0, -1).some(function(n) {
-          return ids.indexOf(n.id) >= 0;
+        return !s.path.slice(0, -1).some(function(n2) {
+          return ids.indexOf(n2.id) >= 0;
         });
       });
       if (!spots.length || spots.some(fixed)) return null;
@@ -1930,8 +1930,8 @@
         }) || !canHold(to, s.node);
       })) return null;
       var order = [];
-      (function walk2(n) {
-        (n.children || []).forEach(function(c) {
+      (function walk2(n2) {
+        (n2.children || []).forEach(function(c) {
           order.push(c.id);
           walk2(c);
         });
@@ -1943,17 +1943,17 @@
         return s.parent === to.node && s.index < index2;
       }).length;
       var nodes = spots.map(function(s) {
-        var n = s.node;
-        if (s.parent !== to.node && isFree(n.style)) {
-          delete n.style.x;
-          delete n.style.y;
-          delete n.style.ch;
-          delete n.style.cv;
+        var n2 = s.node;
+        if (s.parent !== to.node && isFree(n2.style)) {
+          delete n2.style.x;
+          delete n2.style.y;
+          delete n2.style.ch;
+          delete n2.style.cv;
         }
-        return n;
+        return n2;
       });
-      var gone = nodes.map(function(n) {
-        return n.id;
+      var gone = nodes.map(function(n2) {
+        return n2.id;
       });
       spots.forEach(function(s) {
         s.parent.children = s.parent.children.filter(function(c) {
@@ -1961,8 +1961,8 @@
         });
       });
       var at2 = Math.max(0, Math.min(index2 - before, to.node.children.length));
-      to.node.children.splice.apply(to.node.children, [at2, 0].concat(nodes.map(function(n) {
-        return settle(active(doc2), parentId, n);
+      to.node.children.splice.apply(to.node.children, [at2, 0].concat(nodes.map(function(n2) {
+        return settle(active(doc2), parentId, n2);
       })));
       return gone;
     },
@@ -1974,8 +1974,8 @@
         if (fixed(at2)) return;
         at2.parent.children.splice(at2.index, 1);
         any = true;
-        var n = at2.parent.children[at2.index] || at2.parent.children[at2.index - 1];
-        next = n ? n.id : at2.parent.id;
+        var n2 = at2.parent.children[at2.index] || at2.parent.children[at2.index - 1];
+        next = n2 ? n2.id : at2.parent.id;
       });
       return any ? next || "root" : null;
     },
@@ -1986,11 +1986,11 @@
       at2.parent.children.splice(at2.index + 1, 0, c);
       return c.id;
     },
-    replace: function(doc2, id, n) {
+    replace: function(doc2, id, n2) {
       var at2 = locate(doc2, id);
-      if (fixed(at2) || !canHold(parentSpot(at2), n)) return null;
-      at2.parent.children.splice(at2.index, 1, n);
-      return n.id;
+      if (fixed(at2) || !canHold(parentSpot(at2), n2)) return null;
+      at2.parent.children.splice(at2.index, 1, n2);
+      return n2.id;
     },
     wrap: function(doc2, id, type) {
       var at2 = locate(doc2, id);
@@ -2013,8 +2013,8 @@
         return locate(doc2, id);
       }).filter(Boolean);
       var inside = function(s) {
-        return s.path.slice(0, -1).some(function(n) {
-          return ids.indexOf(n.id) >= 0;
+        return s.path.slice(0, -1).some(function(n2) {
+          return ids.indexOf(n2.id) >= 0;
         });
       };
       var spots = all.filter(function(s) {
@@ -2022,8 +2022,8 @@
       });
       if (!spots.length || spots.some(fixed)) return null;
       var order = [];
-      (function walk2(n) {
-        (n.children || []).forEach(function(c) {
+      (function walk2(n2) {
+        (n2.children || []).forEach(function(c) {
           order.push(c.id);
           walk2(c);
         });
@@ -2039,8 +2039,8 @@
       var nodes = spots.map(function(s) {
         return s.node;
       });
-      var keep = nodes.map(function(n) {
-        return n.id;
+      var keep = nodes.map(function(n2) {
+        return n2.id;
       });
       var at2 = first.index;
       spots.forEach(function(s) {
@@ -2049,36 +2049,36 @@
         });
       });
       var look = {};
-      var free = oneParent && nodes.every(function(n) {
-        return isFree(n.style);
+      var free = oneParent && nodes.every(function(n2) {
+        return isFree(n2.style);
       });
       if (free) {
-        var b = function(n) {
-          var m = boxes && boxes[n.id];
-          return m || { x: n.style.x, y: n.style.y, w: n.style.fw || 1, h: n.style.fh || 1 };
+        var b = function(n2) {
+          var m = boxes && boxes[n2.id];
+          return m || { x: n2.style.x, y: n2.style.y, w: n2.style.fw || 1, h: n2.style.fh || 1 };
         };
-        var x0 = Math.min.apply(null, nodes.map(function(n) {
-          return b(n).x;
-        })), y0 = Math.min.apply(null, nodes.map(function(n) {
-          return b(n).y;
+        var x0 = Math.min.apply(null, nodes.map(function(n2) {
+          return b(n2).x;
+        })), y0 = Math.min.apply(null, nodes.map(function(n2) {
+          return b(n2).y;
         }));
-        var x1 = Math.max.apply(null, nodes.map(function(n) {
-          return b(n).x + b(n).w;
-        })), y1 = Math.max.apply(null, nodes.map(function(n) {
-          return b(n).y + b(n).h;
+        var x1 = Math.max.apply(null, nodes.map(function(n2) {
+          return b(n2).x + b(n2).w;
+        })), y1 = Math.max.apply(null, nodes.map(function(n2) {
+          return b(n2).y + b(n2).h;
         }));
         look = { x: x0, y: y0, fw: Math.max(1, Math.min(FREE_MAX, x1 - x0)), fh: Math.max(1, Math.min(FREE_MAX, y1 - y0)) };
-        nodes.forEach(function(n) {
-          n.style.x -= x0;
-          n.style.y -= y0;
+        nodes.forEach(function(n2) {
+          n2.style.x -= x0;
+          n2.style.y -= y0;
         });
       } else {
-        nodes.forEach(function(n) {
-          if (isFree(n.style)) {
-            delete n.style.x;
-            delete n.style.y;
-            delete n.style.ch;
-            delete n.style.cv;
+        nodes.forEach(function(n2) {
+          if (isFree(n2.style)) {
+            delete n2.style.x;
+            delete n2.style.y;
+            delete n2.style.ch;
+            delete n2.style.cv;
           }
         });
       }
@@ -2121,10 +2121,10 @@
       var kids = spots.filter(function(s) {
         return s !== shapeAt;
       }).map(function(s) {
-        var n = s.node;
-        n.style.x = Math.max(0, n.style.x - ms.x);
-        n.style.y = Math.max(0, n.style.y - ms.y);
-        return n;
+        var n2 = s.node;
+        n2.style.x = Math.max(0, n2.style.x - ms.x);
+        n2.style.y = Math.max(0, n2.style.y - ms.y);
+        return n2;
       });
       var box = make("Group", {}, kids, look);
       if (m.name) box.name = m.name;
@@ -2201,15 +2201,15 @@
       var kids = from.children.filter(function(c) {
         return c.type !== "Slot";
       });
-      var n = type === "Group" ? make("Group", { direction: from.type === "Inline" ? "row" : "column", gap: "md" }, kids, from.type === "Section" || from.type === "Card" ? { padding: "lg" } : {}) : make(type, {}, kids);
-      n.id = from.id;
-      if (from.name) n.name = from.name;
+      var n2 = type === "Group" ? make("Group", { direction: from.type === "Inline" ? "row" : "column", gap: "md" }, kids, from.type === "Section" || from.type === "Card" ? { padding: "lg" } : {}) : make(type, {}, kids);
+      n2.id = from.id;
+      if (from.name) n2.name = from.name;
       ["x", "y"].forEach(function(k) {
-        if (from.style && from.style[k] !== void 0) n.style[k] = from.style[k];
+        if (from.style && from.style[k] !== void 0) n2.style[k] = from.style[k];
       });
-      if (!canHold(parentSpot(at2), n)) return null;
-      at2.parent.children.splice(at2.index, 1, n);
-      return n.id;
+      if (!canHold(parentSpot(at2), n2)) return null;
+      at2.parent.children.splice(at2.index, 1, n2);
+      return n2.id;
     },
     nudge: function(doc2, id, by) {
       var at2 = locate(doc2, id);
@@ -2261,8 +2261,8 @@
   function isFree(st) {
     return !!st && typeof st.x === "number" && typeof st.y === "number";
   }
-  function groupFlows(n) {
-    return !!n && !(n.children || []).some(function(c) {
+  function groupFlows(n2) {
+    return !!n2 && !(n2.children || []).some(function(c) {
       return isFree(c.style);
     });
   }
@@ -2294,12 +2294,12 @@
     var span = function(px) {
       return Math.max(1, Math.min(FREE_MAX, Math.round(px / u)));
     };
-    frame2.root.children.forEach(function(n) {
-      var b = was[n.id];
-      if (!b || !isFree(n.style) || !isFree(b.style)) return;
+    frame2.root.children.forEach(function(n2) {
+      var b = was[n2.id];
+      if (!b || !isFree(n2.style) || !isFree(b.style)) return;
       var ch = b.style.ch, cv = b.style.cv;
       if (!ch && !cv) return;
-      var size = (!b.style.fw || !b.style.fh) && sizeOf ? sizeOf(n.id) : null;
+      var size = (!b.style.fw || !b.style.fh) && sizeOf ? sizeOf(n2.id) : null;
       var w = b.style.fw ? b.style.fw * u : size ? size.width : 0;
       var h = b.style.fh ? b.style.fh * u : size ? size.height : 0;
       var axis = function(pin, at2, len, has2, from, to) {
@@ -2311,10 +2311,10 @@
       };
       var x = axis(ch, b.style.x * u, w, !!b.style.fw, W0, W1);
       var y = axis(cv, b.style.y * u, h, !!b.style.fh, H0, H1);
-      n.style.x = steps(x.at);
-      n.style.y = steps(y.at);
-      if (x.len !== void 0) n.style.fw = span(x.len);
-      if (y.len !== void 0) n.style.fh = span(y.len);
+      n2.style.x = steps(x.at);
+      n2.style.y = steps(y.at);
+      if (x.len !== void 0) n2.style.fw = span(x.len);
+      if (y.len !== void 0) n2.style.fh = span(y.len);
       moved++;
     });
     return moved;
@@ -2383,29 +2383,29 @@
     });
     return { id: typeof c.id === "string" && /^[\w-]{1,40}$/.test(c.id) ? c.id : uid(), type: "Slot", props: { name }, style: {}, children: kids };
   }
-  function cleanNode(n, report) {
-    if (!n || typeof n !== "object") return null;
-    if (n.type === "Slot") {
+  function cleanNode(n2, report) {
+    if (!n2 || typeof n2 !== "object") return null;
+    if (n2.type === "Slot") {
       note(report, "A slot only lives inside the component it belongs to, so it was left out");
       return null;
     }
-    if (!META[n.type]) {
-      note(report, (n.type ? '"' + String(n.type).slice(0, 40) + '"' : "A node with no type") + " isn't something the builder places, so it and anything inside it were left out");
+    if (!META[n2.type]) {
+      note(report, (n2.type ? '"' + String(n2.type).slice(0, 40) + '"' : "A node with no type") + " isn't something the builder places, so it and anything inside it were left out");
       return null;
     }
-    var meta = META[n.type];
+    var meta = META[n2.type];
     var names = meta.props.map(function(p) {
       return p.name;
     });
     if (!meta.builder) names.push("children");
-    if (n.type === "Grid") names.push("minColumnWidth");
+    if (n2.type === "Grid") names.push("minColumnWidth");
     var props = {};
-    var given = Object.assign({}, n.props || {});
-    if (!isContainer(n.type) && !meta.builder && typeof n.children === "string" && given.children === void 0) given.children = n.children;
+    var given = Object.assign({}, n2.props || {});
+    if (!isContainer(n2.type) && !meta.builder && typeof n2.children === "string" && given.children === void 0) given.children = n2.children;
     Object.keys(given).forEach(function(k) {
       var v = given[k];
       if (names.indexOf(k) < 0) {
-        note(report, n.type + ": " + k + " isn't a prop the builder sets");
+        note(report, n2.type + ": " + k + " isn't a prop the builder sets");
         return;
       }
       var spec = meta.props.filter(function(p) {
@@ -2420,31 +2420,31 @@
       }
       if (spec && spec.kind === "media") {
         if (typeof v === "string" && MEDIA_URL.test(v)) props[k] = v;
-        else note(report, n.type + ": " + k + " takes an https URL");
+        else note(report, n2.type + ": " + k + " takes an https URL");
         return;
       }
       if (spec && spec.kind === "url") {
         if (typeof v === "string" && SAFE_HREF.test(v)) props[k] = v;
-        else note(report, n.type + ": " + k + " takes a page link (#page:id) or a safe address");
+        else note(report, n2.type + ": " + k + " takes a page link (#page:id) or a safe address");
         return;
       }
       if (spec && spec.kind === "list") {
         var lv = cleanList(spec, v);
         if (lv) props[k] = lv;
-        else note(report, n.type + ": " + k + " takes a list of " + (spec.of === "text" ? "text" : "{ " + spec.fields.map(function(f) {
+        else note(report, n2.type + ": " + k + " takes a list of " + (spec.of === "text" ? "text" : "{ " + spec.fields.map(function(f) {
           return f.name;
         }).join(", ") + " }") + ", with nothing else in its items");
         return;
       }
       if (spec && spec.kind === "enum" && spec.options.indexOf(v) < 0) {
-        note(report, n.type + ": " + k + " " + JSON.stringify(v) + " isn't one of " + spec.options.join(", "));
+        note(report, n2.type + ": " + k + " " + JSON.stringify(v) + " isn't one of " + spec.options.join(", "));
         return;
       }
       if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") props[k] = v;
-      else note(report, n.type + ": " + k + " takes text, a number or true/false, not an element or object");
+      else note(report, n2.type + ": " + k + " takes text, a number or true/false, not an element or object");
     });
     var style = {};
-    var st = Object.assign({}, n.style || {});
+    var st = Object.assign({}, n2.style || {});
     if (st.marginY) {
       st.marginTop = st.marginTop || st.marginY;
       st.marginBottom = st.marginBottom || st.marginY;
@@ -2462,14 +2462,14 @@
       if (freeOk(st.x) && freeOk(st.y)) {
         style.x = st.x;
         style.y = st.y;
-      } else note(report, n.type + ": x and y are whole steps of --dt-space-inset-2xs from 0 to " + FREE_MAX + ", not " + JSON.stringify([st.x, st.y]));
+      } else note(report, n2.type + ": x and y are whole steps of --dt-space-inset-2xs from 0 to " + FREE_MAX + ", not " + JSON.stringify([st.x, st.y]));
     }
     Object.keys(st).forEach(function(k) {
       if (k === "x" || k === "y") return;
       if (k === "ch" || k === "cv") {
         if (!isFree(style)) return;
         if ((k === "ch" ? H_PINS : V_PINS).indexOf(st[k]) > 0) style[k] = st[k];
-        else note(report, n.type + ": " + k + " is one of " + (k === "ch" ? H_PINS : V_PINS).slice(1).join(", ") + ", not " + JSON.stringify(st[k]));
+        else note(report, n2.type + ": " + k + " is one of " + (k === "ch" ? H_PINS : V_PINS).slice(1).join(", ") + ", not " + JSON.stringify(st[k]));
         return;
       }
       if (k === "dark") {
@@ -2478,68 +2478,68 @@
       }
       if (k === "fill" || k === "color") {
         if (HEX.test(String(st[k]))) style[k] = String(st[k]).toLowerCase();
-        else note(report, n.type + ": " + k + " takes a #rrggbb colour, not " + JSON.stringify(st[k]));
+        else note(report, n2.type + ": " + k + " takes a #rrggbb colour, not " + JSON.stringify(st[k]));
         return;
       }
       if (k === "fw" || k === "fh") {
         if (Number.isInteger(st[k]) && st[k] >= 1 && st[k] <= FREE_MAX) style[k] = st[k];
-        else note(report, n.type + ": " + k + " is a whole number of --dt-space-inset-2xs steps from 1 to " + FREE_MAX + ", not " + JSON.stringify(st[k]));
+        else note(report, n2.type + ": " + k + " is a whole number of --dt-space-inset-2xs steps from 1 to " + FREE_MAX + ", not " + JSON.stringify(st[k]));
         return;
       }
       if (k === "rw" || k === "rh") {
         if (relSize(st[k])) style[k] = st[k];
-        else note(report, n.type + ": " + k + " is a whole number from 1 to 999 followed by %, vw or vh, not " + JSON.stringify(st[k]));
+        else note(report, n2.type + ": " + k + " is a whole number from 1 to 999 followed by %, vw or vh, not " + JSON.stringify(st[k]));
         return;
       }
       if (k === "rot") {
         if (Number.isInteger(st.rot) && st.rot > -180 && st.rot <= 180 && st.rot !== 0) style.rot = st.rot;
-        else if (st.rot !== 0) note(report, n.type + ": rot is whole degrees from -179 to 180, not " + JSON.stringify(st.rot));
+        else if (st.rot !== 0) note(report, n2.type + ": rot is whole degrees from -179 to 180, not " + JSON.stringify(st.rot));
         return;
       }
       if (k === "flipH" || k === "flipV") {
         if (!isFree(style) && !isFree(st)) return;
         if (st[k] === true) style[k] = true;
-        else if (st[k] !== false) note(report, n.type + ": " + k + " is true or left out, not " + JSON.stringify(st[k]));
+        else if (st[k] !== false) note(report, n2.type + ": " + k + " is true or left out, not " + JSON.stringify(st[k]));
         return;
       }
       if (k === "alpha") {
         if (Number.isInteger(st.alpha) && st.alpha >= 0 && st.alpha < 100) style.alpha = st.alpha;
-        else note(report, n.type + ": alpha is a whole percent from 0 to 99, not " + JSON.stringify(st.alpha));
+        else note(report, n2.type + ": alpha is a whole percent from 0 to 99, not " + JSON.stringify(st.alpha));
         return;
       }
       if (tokenOption(k, st[k])) style[k] = st[k];
-      else if (DATA.tokens[k]) note(report, n.type + ": " + k + " " + JSON.stringify(st[k]) + " isn't a token option (" + DATA.tokens[k].options.map(function(o) {
+      else if (DATA.tokens[k]) note(report, n2.type + ": " + k + " " + JSON.stringify(st[k]) + " isn't a token option (" + DATA.tokens[k].options.map(function(o) {
         return o.value;
       }).join(", ") + ")");
-      else note(report, n.type + ": style " + k + " isn't one the builder sets");
+      else note(report, n2.type + ": style " + k + " isn't one the builder sets");
     });
-    var out = { id: typeof n.id === "string" && /^[\w-]{1,40}$/.test(n.id) ? n.id : uid(), type: n.type, props, style };
-    if (n.type !== "Slot" && typeof n.name === "string" && n.name.trim()) out.name = n.name.trim().slice(0, 60);
-    if (n.lock === true) out.lock = true;
-    if (n.hide === true) out.hide = true;
-    if (n.inst && typeof n.inst === "object" && typeof n.inst.of === "string" && /^[\w-]{1,40}$/.test(n.inst.of)) {
-      out.inst = { of: n.inst.of, rev: Number.isInteger(n.inst.rev) && n.inst.rev >= 0 ? n.inst.rev : 1 };
+    var out = { id: typeof n2.id === "string" && /^[\w-]{1,40}$/.test(n2.id) ? n2.id : uid(), type: n2.type, props, style };
+    if (n2.type !== "Slot" && typeof n2.name === "string" && n2.name.trim()) out.name = n2.name.trim().slice(0, 60);
+    if (n2.lock === true) out.lock = true;
+    if (n2.hide === true) out.hide = true;
+    if (n2.inst && typeof n2.inst === "object" && typeof n2.inst.of === "string" && /^[\w-]{1,40}$/.test(n2.inst.of)) {
+      out.inst = { of: n2.inst.of, rev: Number.isInteger(n2.inst.rev) && n2.inst.rev >= 0 ? n2.inst.rev : 1 };
     }
     var seenSlot0 = {};
     var slotChild = function(c) {
-      if (!c || c.type !== "Slot" || !c.props || !slotSpec(n.type, c.props.name) || seenSlot0[c.props.name]) return false;
+      if (!c || c.type !== "Slot" || !c.props || !slotSpec(n2.type, c.props.name) || seenSlot0[c.props.name]) return false;
       seenSlot0[c.props.name] = true;
       return true;
     };
-    if (isContainer(n.type)) out.children = (Array.isArray(n.children) ? n.children : []).map(function(c) {
-      return slotChild(c) ? cleanSlot(c, n.type, report) : cleanNode(c, report);
+    if (isContainer(n2.type)) out.children = (Array.isArray(n2.children) ? n2.children : []).map(function(c) {
+      return slotChild(c) ? cleanSlot(c, n2.type, report) : cleanNode(c, report);
     }).filter(Boolean);
-    else if (Array.isArray(n.children) && n.children.length) {
+    else if (Array.isArray(n2.children) && n2.children.length) {
       var seenSlot = {};
-      var slots = n.children.filter(function(c) {
-        if (!c || c.type !== "Slot" || !c.props || !slotSpec(n.type, c.props.name) || seenSlot[c.props.name]) return false;
+      var slots = n2.children.filter(function(c) {
+        if (!c || c.type !== "Slot" || !c.props || !slotSpec(n2.type, c.props.name) || seenSlot[c.props.name]) return false;
         seenSlot[c.props.name] = true;
         return true;
       });
       if (slots.length) out.children = slots.map(function(c) {
-        return cleanSlot(c, n.type, report);
+        return cleanSlot(c, n2.type, report);
       });
-      if (slots.length < n.children.length) note(report, n.type + " holds layers only in its slots (" + (META[n.type].props.filter(function(p) {
+      if (slots.length < n2.children.length) note(report, n2.type + " holds layers only in its slots (" + (META[n2.type].props.filter(function(p) {
         return p.kind === "node" && p.name !== "children";
       }).map(function(p) {
         return p.name;
@@ -2626,8 +2626,8 @@
       return cleanNode(c, report);
     }).filter(Boolean);
     var seen = {};
-    (function dedupe(n) {
-      (n.children || []).forEach(function(c) {
+    (function dedupe(n2) {
+      (n2.children || []).forEach(function(c) {
         if (seen[c.id]) c.id = uid();
         seen[c.id] = true;
         dedupe(c);
@@ -3093,10 +3093,10 @@
           var clean2 = cleanIcon(icon);
           var set2 = function(x) {
             if (x.id !== itemId) return x;
-            var n = Object.assign({}, x);
-            if (clean2) n.icon = clean2;
-            else delete n.icon;
-            return n;
+            var n2 = Object.assign({}, x);
+            if (clean2) n2.icon = clean2;
+            else delete n2.icon;
+            return n2;
           };
           if (kind === "folder") meta.folders = foldersOf(meta).map(set2);
           else meta.pages = pagesOf(meta).map(set2);
@@ -3123,10 +3123,10 @@
           if (!meta) return null;
           meta.folders = foldersOf(meta).map(function(f) {
             if (f.id !== folderId) return f;
-            var n = Object.assign({}, f);
-            if (open) delete n.open;
-            else n.open = false;
-            return n;
+            var n2 = Object.assign({}, f);
+            if (open) delete n2.open;
+            else n2.open = false;
+            return n2;
           });
           return b.put("projects", meta).then(function() {
             return meta;
@@ -3161,9 +3161,9 @@
           });
           meta.pages = pagesOf(meta).map(function(p) {
             if (p.folder !== folderId) return p;
-            var n = Object.assign({}, p);
-            delete n.folder;
-            return n;
+            var n2 = Object.assign({}, p);
+            delete n2.folder;
+            return n2;
           });
           return b.put("projects", meta).then(function() {
             return meta;
@@ -3180,9 +3180,9 @@
             if (!p.folder || ok.some(function(f) {
               return f.id === p.folder;
             })) return p;
-            var n = Object.assign({}, p);
-            delete n.folder;
-            return n;
+            var n2 = Object.assign({}, p);
+            delete n2.folder;
+            return n2;
           });
           return b.put("projects", meta).then(function() {
             return meta;
@@ -3702,9 +3702,9 @@
     };
     return api;
   }
-  function tally(meta, page, n) {
+  function tally(meta, page, n2) {
     if (!meta.pageFrames) meta.pageFrames = { main: meta.frames || 0 };
-    meta.pageFrames[page] = n;
+    meta.pageFrames[page] = n2;
     meta.frames = sum(meta);
   }
   function sum(meta) {
@@ -3827,10 +3827,10 @@
     ]);
   }
   function welcome() {
-    var n = 0;
+    var n2 = 0;
     var step = function(title, description) {
-      n++;
-      return make("Card", { eyebrow: "Step " + n, title, description: "" }, [text(description, "small", { tone: "secondary" })]);
+      n2++;
+      return make("Card", { eyebrow: "Step " + n2, title, description: "" }, [text(description, "small", { tone: "secondary" })]);
     };
     return doc(frame("Welcome", "desktop", [
       guide("Playground", "Welcome to the builder", "Arrange real Dovetail components into screens, styled only with the system's tokens. These pages walk you through it, and the example files beside this one are yours to take apart.", [
@@ -4209,9 +4209,9 @@
   function componentsFor(docs, library) {
     var want = {};
     docs.forEach(function(d) {
-      (function walk2(n) {
-        if (n.inst && typeof n.inst.of === "string") want[n.inst.of] = 1;
-        (n.children || []).forEach(walk2);
+      (function walk2(n2) {
+        if (n2.inst && typeof n2.inst.of === "string") want[n2.inst.of] = 1;
+        (n2.children || []).forEach(walk2);
       })({ children: (d && d.frames ? d.frames : []).map(function(f) {
         return f.root;
       }) });
@@ -4253,14 +4253,14 @@
   }
   function withoutUploads(doc2) {
     var d = copy(doc2), dropped = 0;
-    (function walk2(n) {
-      Object.keys(n.props || {}).forEach(function(k) {
-        if (typeof n.props[k] === "string" && /^data:/.test(n.props[k])) {
-          delete n.props[k];
+    (function walk2(n2) {
+      Object.keys(n2.props || {}).forEach(function(k) {
+        if (typeof n2.props[k] === "string" && /^data:/.test(n2.props[k])) {
+          delete n2.props[k];
           dropped++;
         }
       });
-      (n.children || []).forEach(walk2);
+      (n2.children || []).forEach(walk2);
     })({ children: d.frames.map(function(f) {
       return f.root;
     }) });
@@ -4284,9 +4284,9 @@
     }
     var m = /^#b=([\w-]+)((?:&[fn]=[\w-]{1,40}|&c=[\w-]+)*)$/.exec(location.hash);
     if (m) {
-      var f = /&f=([\w-]+)/.exec(m[2]), n = /&n=([\w-]+)/.exec(m[2]), c = /&c=([\w-]+)/.exec(m[2]);
+      var f = /&f=([\w-]+)/.exec(m[2]), n2 = /&n=([\w-]+)/.exec(m[2]), c = /&c=([\w-]+)/.exec(m[2]);
       var comps = c ? decode(c[1]) : null;
-      return { kind: "link", data: decode(m[1]), frame: f ? f[1] : null, node: n ? n[1] : null, components: Array.isArray(comps) ? comps : null };
+      return { kind: "link", data: decode(m[1]), frame: f ? f[1] : null, node: n2 ? n2[1] : null, components: Array.isArray(comps) ? comps : null };
     }
     return null;
   }
@@ -4610,8 +4610,8 @@
       while (i < s.length && s[i] !== q) {
         if (q === "`" && s[i] === "$" && s[i + 1] === "{") throw FAIL;
         if (s[i] === "\\") {
-          var n = s[i + 1];
-          out += n === "n" ? "\n" : n === "t" ? "	" : n;
+          var n2 = s[i + 1];
+          out += n2 === "n" ? "\n" : n2 === "t" ? "	" : n2;
           i += 2;
           continue;
         }
@@ -5004,8 +5004,8 @@
     var doc2 = clean(data, report);
     var layers2 = 0;
     doc2.frames.forEach(function(f) {
-      (function walk2(n) {
-        (n.children || []).forEach(function(c) {
+      (function walk2(n2) {
+        (n2.children || []).forEach(function(c) {
           layers2++;
           walk2(c);
         });
@@ -5105,16 +5105,16 @@
     return { layer: c.layer, set: set2 };
   }
   function walk(root, fn) {
-    (function go(n, trail) {
-      (n.children || []).forEach(function(c) {
+    (function go(n2, trail) {
+      (n2.children || []).forEach(function(c) {
         if (c.type === "Slot") return;
         fn(c, trail);
         go(c, trail.concat(c));
       });
     })(root, []);
   }
-  function ownText2(n) {
-    var p = n.props || {};
+  function ownText2(n2) {
+    var p = n2.props || {};
     for (var i = 0; i < TEXT_KEYS2.length; i++) if (typeof p[TEXT_KEYS2[i]] === "string" && p[TEXT_KEYS2[i]].trim()) return p[TEXT_KEYS2[i]];
     return "";
   }
@@ -5126,16 +5126,16 @@
     if (/…$/.test(a)) return b.indexOf(a.slice(0, -1)) === 0 && a.length > 4;
     return false;
   }
-  function pathOf(n, trail) {
-    return trail.slice(-2).map(layerName).concat(layerName(n)).join(" › ");
+  function pathOf(n2, trail) {
+    return trail.slice(-2).map(layerName).concat(layerName(n2)).join(" › ");
   }
   function find2(frame2, name, textOnly) {
     var byName = [], byText = [], byType = [];
-    walk(frame2.root, function(n, trail) {
-      var hit = { node: n, path: pathOf(n, trail) };
-      if (!textOnly && same2(name, n.name || autoName(n))) byName.push(hit);
-      if (same2(name, ownText2(n))) byText.push(hit);
-      if (!textOnly && norm(name) === norm(n.type)) byType.push(hit);
+    walk(frame2.root, function(n2, trail) {
+      var hit = { node: n2, path: pathOf(n2, trail) };
+      if (!textOnly && same2(name, n2.name || autoName(n2))) byName.push(hit);
+      if (same2(name, ownText2(n2))) byText.push(hit);
+      if (!textOnly && norm(name) === norm(n2.type)) byType.push(hit);
     });
     if (byName.length) return { hits: byName, via: "name" };
     if (byText.length) return { hits: byText, via: "text" };
@@ -5153,23 +5153,23 @@
     var t = f && f.label ? f.label : k.replace(/([A-Z])/g, " $1");
     return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
   }
-  function textKey(n) {
-    var specs = META[n.type] && META[n.type].props || [];
+  function textKey(n2) {
+    var specs = META[n2.type] && META[n2.type].props || [];
     return TEXT_PROPS.filter(function(k) {
-      return typeof (n.props || {})[k] === "string";
+      return typeof (n2.props || {})[k] === "string";
     })[0] || TEXT_PROPS.filter(function(k) {
       return specs.some(function(sp) {
         return sp.name === k;
       });
     })[0] || "";
   }
-  function setting(n, key, raw) {
+  function setting(n2, key, raw) {
     key = ALIAS[key] || key;
     var v = value(raw);
     if (key === "text") {
-      var tk = textKey(n);
-      if (!tk) return { error: n.type + " has no text of its own." };
-      return { group: "props", key: tk, value: String(raw == null ? "" : unquote(String(raw)).text), was: n.props[tk], kind: "text", label: "Text" };
+      var tk = textKey(n2);
+      if (!tk) return { error: n2.type + " has no text of its own." };
+      return { group: "props", key: tk, value: String(raw == null ? "" : unquote(String(raw)).text), was: n2.props[tk], kind: "text", label: "Text" };
     }
     var fam = DATA.tokens[key];
     if (fam) {
@@ -5179,12 +5179,12 @@
       })) return { error: s + " isn't a " + word(key).toLowerCase() + " token. It takes " + fam.options.slice(0, 8).map(function(o) {
         return o.value;
       }).join(", ") + (fam.options.length > 8 ? "…" : "") + "." };
-      return { group: "style", key, value: s, was: (n.style || {})[key], kind: ORDER_KEYS[key] ? "order" : SIZE_KEYS[key] ? "size" : "style", label: word(key) };
+      return { group: "style", key, value: s, was: (n2.style || {})[key], kind: ORDER_KEYS[key] ? "order" : SIZE_KEYS[key] ? "size" : "style", label: word(key) };
     }
-    var spec = META[n.type] && META[n.type].props.filter(function(p) {
+    var spec = META[n2.type] && META[n2.type].props.filter(function(p) {
       return p.name === key;
     })[0];
-    if (!spec) return { error: n.type + " has no " + key + " to set." };
+    if (!spec) return { error: n2.type + " has no " + key + " to set." };
     if (spec.kind === "enum") {
       var opt = spec.options.filter(function(o) {
         return String(o) === String(v);
@@ -5192,15 +5192,15 @@
       if (opt === void 0) return { error: v + " isn't one of " + key + "'s options: " + spec.options.join(", ") + "." };
       v = opt;
     }
-    return { group: "props", key, value: v, was: n.props[key], kind: SIZE_KEYS[key] ? "size" : "prop", label: word(key) };
+    return { group: "props", key, value: v, was: n2.props[key], kind: SIZE_KEYS[key] ? "size" : "prop", label: word(key) };
   }
-  function what(n) {
-    var t = ownText2(n);
-    return n.name || autoName(n) ? layerName(n) : t ? "“" + t.slice(0, 40) + "”" : n.type;
+  function what(n2) {
+    var t = ownText2(n2);
+    return n2.name || autoName(n2) ? layerName(n2) : t ? "“" + t.slice(0, 40) + "”" : n2.type;
   }
-  function countIn(n) {
+  function countIn(n2) {
     var k = 0;
-    walk(n, function() {
+    walk(n2, function() {
       k++;
     });
     return k;
@@ -5236,8 +5236,8 @@
           return { id: h.node.id, path: twins.length > 1 ? h.path + ", " + (twins.indexOf(h) + 1) + " of " + twins.length : h.path };
         });
       }
-      row.opsFor = function(n) {
-        return opsFor(n, it);
+      row.opsFor = function(n2) {
+        return opsFor(n2, it);
       };
       var n0 = found.hits[0].node;
       var first = row.opsFor(n0);
@@ -5256,10 +5256,10 @@
     });
     return { frame: frame2, rows };
   }
-  function opsFor(n, it) {
+  function opsFor(n2, it) {
     if (it.remove) {
-      var inside = countIn(n);
-      return { kind: "remove", title: what(n), detail: "Removed" + (inside ? ", with the " + inside + (inside === 1 ? " layer" : " layers") + " inside" : ""), ops: [{ op: "remove", id: n.id }] };
+      var inside = countIn(n2);
+      return { kind: "remove", title: what(n2), detail: "Removed" + (inside ? ", with the " + inside + (inside === 1 ? " layer" : " layers") + " inside" : ""), ops: [{ op: "remove", id: n2.id }] };
     }
     if (it.add) {
       var nodes = it.json ? it.add.map(function(a) {
@@ -5276,18 +5276,18 @@
       if (!nodes.length) return { error: "Nothing in it is a component the system has." };
       var firstNode = nodes[0], words4 = ownText2(firstNode);
       var where = it.at === 0 ? "first in " : it.at == null ? "last in " : "at " + (it.at + 1) + " in ";
-      return { kind: "add", title: words4 ? "“" + words4.slice(0, 40) + "”" : firstNode.type, detail: "New " + firstNode.type + (nodes.length > 1 ? " and " + (nodes.length - 1) + " more" : "") + ", " + where + what(n), ops: [{ op: "insert", parent: n.id, index: it.at, nodes }] };
+      return { kind: "add", title: words4 ? "“" + words4.slice(0, 40) + "”" : firstNode.type, detail: "New " + firstNode.type + (nodes.length > 1 ? " and " + (nodes.length - 1) + " more" : "") + ", " + where + what(n2), ops: [{ op: "insert", parent: n2.id, index: it.at, nodes }] };
     }
     var keys2 = Object.keys(it.set);
     var changes = [];
     for (var i = 0; i < keys2.length; i++) {
-      var s = setting(n, keys2[i], it.set[keys2[i]]);
+      var s = setting(n2, keys2[i], it.set[keys2[i]]);
       if (s.error) return { error: s.error };
       changes.push(s);
     }
     return {
       kind: changes.length === 1 ? changes[0].kind : "style",
-      title: what(n),
+      title: what(n2),
       detail: changes.map(function(c) {
         return c.label + (c.was != null && c.was !== "" ? " " + String(c.was).slice(0, 30) : "") + " → " + String(c.value).slice(0, 40);
       }).join(", "),
@@ -5298,7 +5298,7 @@
         return { label: c.label, was: c.was == null ? "" : String(c.was), value: String(c.value) };
       }),
       ops: changes.map(function(c) {
-        return { op: "set", id: n.id, group: c.group, key: c.key, value: c.value };
+        return { op: "set", id: n2.id, group: c.group, key: c.key, value: c.value };
       })
     };
   }
@@ -5312,11 +5312,11 @@
       }
       var id = choice && choice[r.key];
       if (!id || id === "skip") return;
-      var n = null;
+      var n2 = null;
       walk(plan.frame.root, function(m) {
-        if (m.id === id) n = m;
+        if (m.id === id) n2 = m;
       });
-      var o = n && r.opsFor(n);
+      var o = n2 && r.opsFor(n2);
       if (o && !o.error) out = out.concat(o.ops);
     });
     return out;
@@ -5390,9 +5390,9 @@
         var p = locate(d, o.parent, fid);
         if (!p) return;
         var at22 = o.index == null ? p.node.children.length : Math.max(0, Math.min(o.index, p.node.children.length));
-        o.nodes.forEach(function(n) {
-          if (!canHold(p, n)) return;
-          var c = fresh(n);
+        o.nodes.forEach(function(n2) {
+          if (!canHold(p, n2)) return;
+          var c = fresh(n2);
           p.node.children.splice(at22++, 0, c);
           touched.push(c.id);
         });
@@ -5729,9 +5729,9 @@
   // assets/builder/model/compare.js
   var KEYS = ["tone", "dark", "layout", "variant", "columns", "reverse", "texture", "titleSize", "size", "align", "width", "spacing", "bleed", "orientation", "drive"];
   var STYLE_KEYS2 = ["surface", "radius", "elevation", "gradient", "padding", "gap"];
-  function sig(n) {
-    var p = n.props || {}, st = n.style || {};
-    var own = n.type + "(" + KEYS.filter(function(k) {
+  function sig(n2) {
+    var p = n2.props || {}, st = n2.style || {};
+    var own = n2.type + "(" + KEYS.filter(function(k) {
       return p[k] != null && p[k] !== "";
     }).map(function(k) {
       return k + "=" + p[k];
@@ -5740,7 +5740,7 @@
     }).map(function(k) {
       return k + ":" + st[k];
     })).join(",") + ")";
-    var kids = (n.children || []).map(sig);
+    var kids = (n2.children || []).map(sig);
     return kids.length ? own + "[" + kids.join(" ") + "]" : own;
   }
   function sections(frame2) {
@@ -5751,11 +5751,11 @@
   function likeness(a, b) {
     var sa = sections(a), sb = sections(b);
     var pool = sa.map(sig), shared = [];
-    sb.forEach(function(n) {
-      var i = pool.indexOf(sig(n));
+    sb.forEach(function(n2) {
+      var i = pool.indexOf(sig(n2));
       if (i >= 0) {
         pool.splice(i, 1);
-        shared.push(n);
+        shared.push(n2);
       }
     });
     var total = Math.max(sa.length, sb.length) || 1;
@@ -5792,8 +5792,8 @@
     (library && library.components || []).forEach(function(c) {
       names[c.id] = c.name;
     });
-    (function walk2(n) {
-      (n.children || []).forEach(function(c) {
+    (function walk2(n2) {
+      (n2.children || []).forEach(function(c) {
         if (!SKIP[c.type]) {
           layers2++;
           var rec = comps[c.type] || (comps[c.type] = { type: c.type, count: 0, variants: {} });
@@ -5895,13 +5895,13 @@
   }
   function at(node, path) {
     if (!path) return node;
-    var n = node;
+    var n2 = node;
     var parts = path.split("/");
     for (var i = 0; i < parts.length; i++) {
-      n = n && n.children ? n.children[Number(parts[i])] : null;
-      if (!n) return null;
+      n2 = n2 && n2.children ? n2.children[Number(parts[i])] : null;
+      if (!n2) return null;
     }
-    return n;
+    return n2;
   }
   function overrides(inst, master) {
     var out = [];
@@ -5930,8 +5930,8 @@
     })(inst, master, "");
     return out;
   }
-  function reid(n) {
-    var c = copy(n);
+  function reid(n2) {
+    var c = copy(n2);
     (function walk2(x) {
       x.id = uid();
       (x.children || []).forEach(walk2);
@@ -5947,18 +5947,18 @@
   function applyOverrides(master, ovs) {
     var out = reid(master);
     ovs.forEach(function(o) {
-      var n = at(out, o.path);
-      if (!n) return;
+      var n2 = at(out, o.path);
+      if (!n2) return;
       if (o.props) {
-        n.props = n.props || {};
-        setKeys(n.props, o.props);
+        n2.props = n2.props || {};
+        setKeys(n2.props, o.props);
       }
       if (o.style) {
-        n.style = n.style || {};
-        setKeys(n.style, o.style);
+        n2.style = n2.style || {};
+        setKeys(n2.style, o.style);
       }
-      if (o.flags) setKeys(n, o.flags);
-      if (o.children && n.children) n.children = copy(o.children);
+      if (o.flags) setKeys(n2, o.flags);
+      if (o.children && n2.children) n2.children = copy(o.children);
     });
     return out;
   }
@@ -5989,9 +5989,9 @@
   function instancesOf(doc2, compId) {
     var out = [];
     doc2.frames.forEach(function(f) {
-      (function walk2(n) {
-        (n.children || []).forEach(function(c, i) {
-          if (c.inst && c.inst.of === compId) out.push({ fid: f.id, parent: n, index: i, node: c });
+      (function walk2(n2) {
+        (n2.children || []).forEach(function(c, i) {
+          if (c.inst && c.inst.of === compId) out.push({ fid: f.id, parent: n2, index: i, node: c });
           else walk2(c);
         });
       })(f.root);
@@ -5999,16 +5999,16 @@
     return out;
   }
   function updateInstances(doc2, compId, was, next, rev, exceptId) {
-    var hits = instancesOf(doc2, compId), n = 0;
+    var hits = instancesOf(doc2, compId), n2 = 0;
     hits.forEach(function(h) {
       if (h.node.id === exceptId) {
         h.node.inst = { of: compId, rev };
         return;
       }
       h.parent.children[h.index] = rebase(h.node, was, next, rev);
-      n++;
+      n2++;
     });
-    return n;
+    return n2;
   }
   function detachAll(doc2, compId) {
     var hits = instancesOf(doc2, compId);
@@ -6096,26 +6096,26 @@
       return c.toUpperCase();
     });
   }
-  function describe(n) {
+  function describe(n2) {
     return {
-      id: n.id,
-      type: n.type,
-      name: n.name || void 0,
-      props: n.props,
-      style: n.style,
-      children: (n.children || []).map(function(c) {
+      id: n2.id,
+      type: n2.type,
+      name: n2.name || void 0,
+      props: n2.props,
+      style: n2.style,
+      children: (n2.children || []).map(function(c) {
         return { id: c.id, type: c.type, name: c.name || void 0 };
       })
     };
   }
   var TEXT_KEYS3 = ["children", "title", "label", "text", "heading", "description", "alt"];
-  function short3(v, n) {
+  function short3(v, n2) {
     var t = String(v).replace(/\s+/g, " ").trim();
-    return t.length > n ? t.slice(0, n - 1) + "…" : t;
+    return t.length > n2 ? t.slice(0, n2 - 1) + "…" : t;
   }
-  function line(n, depth) {
-    var bits = [n.type + (n.name && n.name !== n.type ? ' "' + short3(n.name, 40) + '"' : ""), n.id];
-    var props = n.props || {};
+  function line(n2, depth) {
+    var bits = [n2.type + (n2.name && n2.name !== n2.type ? ' "' + short3(n2.name, 40) + '"' : ""), n2.id];
+    var props = n2.props || {};
     TEXT_KEYS3.forEach(function(k) {
       if (typeof props[k] === "string" && props[k].trim()) bits.push(k === "children" ? '"' + short3(props[k], 80) + '"' : k + '="' + short3(props[k], 60) + '"');
     });
@@ -6124,20 +6124,20 @@
       if (TEXT_KEYS3.indexOf(k) >= 0 || v == null || v === "" || typeof v === "object") return;
       bits.push(k + "=" + short3(v, 40));
     });
-    var st = n.style || {};
+    var st = n2.style || {};
     var toks = Object.keys(st).sort().filter(function(k) {
       return st[k] != null && st[k] !== "" && typeof st[k] !== "object";
     }).map(function(k) {
       return k + ":" + st[k];
     });
     if (toks.length) bits.push("{" + toks.join(" ") + "}");
-    if (n.hidden) bits.push("hidden");
-    if (n.locked) bits.push("locked");
+    if (n2.hidden) bits.push("hidden");
+    if (n2.locked) bits.push("locked");
     return new Array(depth + 1).join("  ") + "- " + bits.join(" · ");
   }
   var OUTLINE_MAX = 400;
-  function count2(n) {
-    return 1 + (n.children || []).reduce(function(a, c) {
+  function count2(n2) {
+    return 1 + (n2.children || []).reduce(function(a, c) {
       return a + count2(c);
     }, 0);
   }
@@ -6147,8 +6147,8 @@
       return !fid || f.id === fid;
     }).forEach(function(f) {
       out.push('Frame "' + f.name + '" ' + f.id + " · " + (f.mode || "free") + " · " + f.width + (f.height ? "×" + f.height : "") + (f.id === doc2.active ? " · active" : "") + (f.dark ? " · dark" : ""));
-      (function walk2(n, depth) {
-        (n.children || []).forEach(function(c) {
+      (function walk2(n2, depth) {
+        (n2.children || []).forEach(function(c) {
           if (out.length >= OUTLINE_MAX) {
             left += count2(c);
             return;
@@ -6257,28 +6257,28 @@
     });
   }
   function instanceNode(comp) {
-    var n = cleanNode(JSON.parse(JSON.stringify(comp.node)), null);
-    if (!n) return null;
-    n = fresh(n);
-    delete n.style.x;
-    delete n.style.y;
-    delete n.style.ch;
-    delete n.style.cv;
-    n.name = comp.name;
-    n.inst = { of: comp.id, rev: comp.rev || 1 };
-    return n;
+    var n2 = cleanNode(JSON.parse(JSON.stringify(comp.node)), null);
+    if (!n2) return null;
+    n2 = fresh(n2);
+    delete n2.style.x;
+    delete n2.style.y;
+    delete n2.style.ch;
+    delete n2.style.cv;
+    n2.name = comp.name;
+    n2.inst = { of: comp.id, rev: comp.rev || 1 };
+    return n2;
   }
   function added(nodes) {
-    return nodes.reduce(function(a, n) {
-      return a + count2(n);
+    return nodes.reduce(function(a, n2) {
+      return a + count2(n2);
     }, 0);
   }
   function fromJsx(jsx, api) {
     var els = readJsxElements(String(jsx || ""));
     var raw = els.length ? jsxNodes(els, []) : [];
     var missing = api ? withContent(api, raw) : [];
-    var out = raw.map(function(n) {
-      return cleanNode(n, null);
+    var out = raw.map(function(n2) {
+      return cleanNode(n2, null);
     }).filter(Boolean).map(fresh);
     out.missing = missing;
     return out;
@@ -6313,15 +6313,15 @@
   function withContent(api, nodes) {
     var missing = [];
     (function walk2(list2) {
-      list2.forEach(function(n) {
-        Object.keys(n.props || {}).forEach(function(k) {
-          var v = n.props[k];
+      list2.forEach(function(n2) {
+        Object.keys(n2.props || {}).forEach(function(k) {
+          var v = n2.props[k];
           if (typeof v !== "string" || !CONTENT_REF.test(v)) return;
           var got = fromContent(api, v);
           if (got === v) missing.push(v);
-          else n.props[k] = got;
+          else n2.props[k] = got;
         });
-        walk2(n.children || []);
+        walk2(n2.children || []);
       });
     })(nodes);
     return missing;
@@ -6363,12 +6363,12 @@
           if (input.frame && !(d.frames || []).some(function(f2) {
             return f2.id === input.frame;
           })) return fail("There's no frame " + input.frame + " on " + label2 + ".");
-          var n = (d.frames || []).filter(function(f2) {
+          var n2 = (d.frames || []).filter(function(f2) {
             return !input.frame || f2.id === input.frame;
           }).reduce(function(a, f2) {
             return a + count2(f2.root) - 1;
           }, 0);
-          return { ok: true, result: outline(d, input.frame || null), step: "Read " + label2 + " · " + n + (n === 1 ? " layer" : " layers") };
+          return { ok: true, result: outline(d, input.frame || null), step: "Read " + label2 + " · " + n2 + (n2 === 1 ? " layer" : " layers") };
         };
         if (other) return Promise.resolve(api.loadPage(other.id)).then(function(d) {
           return from(d, other.name);
@@ -6553,8 +6553,8 @@
         if (owed) return owed;
         var ids2 = api.insert(input.parent || null, typeof input.index === "number" ? input.index : null, made);
         if (!ids2 || !ids2.length) return fail("Those layers can't go there.");
-        return { ok: true, result: JSON.stringify({ added: ids2 }), change: { ids: ids2, label: "Added", value: made.map(function(n) {
-          return layerName(n);
+        return { ok: true, result: JSON.stringify({ added: ids2 }), change: { ids: ids2, label: "Added", value: made.map(function(n2) {
+          return layerName(n2);
         }).join(", "), on: "" } };
       }
       case "replace_jsx": {
@@ -6568,8 +6568,8 @@
         var was = nameOf3(input.id);
         var ids3 = api.replace(input.id, made2);
         if (!ids3 || !ids3.length) return fail("Those layers can't go there.");
-        return { ok: true, result: JSON.stringify({ added: ids3 }), change: { ids: ids3, label: "Rebuilt", value: was + " → " + made2.map(function(n) {
-          return layerName(n);
+        return { ok: true, result: JSON.stringify({ added: ids3 }), change: { ids: ids3, label: "Rebuilt", value: was + " → " + made2.map(function(n2) {
+          return layerName(n2);
         }).join(", "), on: "" } };
       }
       case "find_images": {
@@ -6640,12 +6640,12 @@
         var secs = [];
         tpl[2]().frames.forEach(function(fr2) {
           (fr2.root.children || []).forEach(function(c) {
-            var n = fresh(c);
-            delete n.style.x;
-            delete n.style.y;
-            delete n.style.ch;
-            delete n.style.cv;
-            secs.push(n);
+            var n2 = fresh(c);
+            delete n2.style.x;
+            delete n2.style.y;
+            delete n2.style.ch;
+            delete n2.style.cv;
+            secs.push(n2);
           });
         });
         if (!secs.length) return fail("That template is empty.");
@@ -6723,8 +6723,8 @@
         var spec = specOf(target2, api.library ? api.library() : null);
         var lines = part ? [line(part, 0)].concat((function() {
           var o = [];
-          (function walk2(n, dep) {
-            (n.children || []).forEach(function(c) {
+          (function walk2(n2, dep) {
+            (n2.children || []).forEach(function(c) {
               o.push(line(c, dep));
               walk2(c, dep + 1);
             });
@@ -6859,8 +6859,8 @@
         var w2 = typeof input.width === "number" ? Math.max(320, Math.min(2560, Math.round(input.width))) : null;
         var d2 = typeof input.dark === "boolean" ? input.dark : null;
         var opts2 = w2 || d2 !== null ? { width: w2, dark: d2 } : null;
-        var cmp = compareText(picked, function(n) {
-          return layerName(n);
+        var cmp = compareText(picked, function(n2) {
+          return layerName(n2);
         });
         var shoot = api.screenshot ? function(f2) {
           return Promise.resolve(api.screenshot(f2.id, null, opts2)).then(null, function() {
@@ -7204,8 +7204,8 @@
         });
         return { text: "Practice mode: since my last reply you changed " + mine.length + (mine.length === 1 ? " thing" : " things") + ": " + mine.join("; ") + ". I'd keep those.", calls: [] };
       }
-      var ids = sel.map(function(n) {
-        return n.id;
+      var ids = sel.map(function(n2) {
+        return n2.id;
       });
       var calls = [], said2 = [];
       var offered = (request.tools || []).map(function(t) {
@@ -7265,12 +7265,12 @@
         calls.push({ name: "set_style", input: { ids, family: "elevation", value: (el[1] || el[0]).value } });
         said2.push("a soft shadow");
       }
-      var headings = sel.filter(function(n) {
-        return n.type === "Heading";
+      var headings = sel.filter(function(n2) {
+        return n2.type === "Heading";
       });
       if (/bigger|larger|premium|bold/.test(text2) && headings.length) {
-        calls.push({ name: "set_prop", input: { ids: headings.map(function(n) {
-          return n.id;
+        calls.push({ name: "set_prop", input: { ids: headings.map(function(n2) {
+          return n2.id;
         }), name: "size", value: "display-md" } });
         said2.push("a display-size heading");
       }
@@ -7419,9 +7419,9 @@
     ].join("\n");
   }
   var ICON = { padding: "sliders", z: "layers2", w: "fit", h: "fit", height: "fit", minW: "fit" };
-  function short4(t, n) {
+  function short4(t, n2) {
     var s = String(t == null ? "" : t).replace(/\s+/g, " ").trim();
-    return s.length > n ? s.slice(0, n - 1) + "…" : s;
+    return s.length > n2 ? s.slice(0, n2 - 1) + "…" : s;
   }
   function rowsOf(call2, name, doc2) {
     var input = call2 && call2.input || {};
@@ -8204,10 +8204,10 @@
       if (p.dialogRef.current) p.dialogRef.current.close();
     };
     var set2 = function(k, v) {
-      var n = Object.assign({}, o);
-      n[k] = v;
-      if (k === "canEdit" && !v) n.askFirst = false;
-      p.setOptions(n);
+      var n2 = Object.assign({}, o);
+      n2[k] = v;
+      if (k === "canEdit" && !v) n2.askFirst = false;
+      p.setOptions(n2);
     };
     var row = function(key, icon, title, sub, on, disabled) {
       return e(
@@ -8311,8 +8311,8 @@
     };
     var has2 = !!(c.row && c.row.id);
     var state = c.status === "checking" ? "Making the link…" : c.status === "error" ? c.error : c.status === "live" ? "Connected: Claude edits this tab's canvas." : has2 ? "Connected, in another tab. Claude edits whichever Builder tab you're in; use this one to move it here." : "Not connected yet.";
-    var step = function(n, title, body) {
-      return e("li", { className: "bd-cc-step" }, e("span", { className: "bd-cc-n", "aria-hidden": true }, n), e("div", null, e("b", null, title), body));
+    var step = function(n2, title, body) {
+      return e("li", { className: "bd-cc-step" }, e("span", { className: "bd-cc-n", "aria-hidden": true }, n2), e("div", null, e("b", null, title), body));
     };
     return e(
       "dialog",
@@ -8571,14 +8571,14 @@
       if (!doc2 || !Array.isArray(doc2.frames)) return;
       doc2.frames.forEach(function(f) {
         note2(use, "surface", f.surface || "base");
-        (function walk2(n) {
-          if (n.type !== "Root" && n.type !== "Slot") use.types[n.type] = true;
-          var st = n.style || {};
+        (function walk2(n2) {
+          if (n2.type !== "Root" && n2.type !== "Slot") use.types[n2.type] = true;
+          var st = n2.style || {};
           Object.keys(st).forEach(function(k) {
             if (DATA.tokens[k]) note2(use, k, st[k]);
           });
-          var meta = META[n.type];
-          var props = n.props || {};
+          var meta = META[n2.type];
+          var props = n2.props || {};
           Object.keys(props).forEach(function(k) {
             if (typeof props[k] === "string" && TEXT_KEYS4[props[k]]) use.text[props[k]] = true;
           });
@@ -8587,7 +8587,7 @@
               return TEXT_KEYS4[o];
             })) use.text[p.default] = true;
           });
-          (n.children || []).forEach(walk2);
+          (n2.children || []).forEach(walk2);
         })(f.root);
       });
     });
@@ -8647,18 +8647,18 @@
       props.onChange(next);
     };
     var setAt = function(i, v) {
-      var n = items.slice();
-      n[i] = v;
-      put2(n);
+      var n2 = items.slice();
+      n2[i] = v;
+      put2(n2);
     };
     var move = function(i, by) {
       var j = i + by;
       if (j < 0 || j >= items.length) return;
-      var n = items.slice();
-      var t = n[i];
-      n[i] = n[j];
-      n[j] = t;
-      put2(n);
+      var n2 = items.slice();
+      var t = n2[i];
+      n2[i] = n2[j];
+      n2[j] = t;
+      put2(n2);
       setOpen(j);
     };
     var isId = function(f) {
@@ -8691,9 +8691,9 @@
         var taken = items.map(function(x) {
           return String(x[f.name]);
         });
-        var base = String(o[f.name]).replace(/-\d+$/, ""), n = 2;
-        while (taken.indexOf(base + "-" + n) >= 0) n++;
-        o[f.name] = base + "-" + n;
+        var base = String(o[f.name]).replace(/-\d+$/, ""), n2 = 2;
+        while (taken.indexOf(base + "-" + n2) >= 0) n2++;
+        o[f.name] = base + "-" + n2;
       });
       return o;
     };
@@ -9097,7 +9097,7 @@
     var activeI = activeState[0], setActive = activeState[1];
     var posState = useState(null);
     var pos = posState[0], setPos = posState[1];
-    var btn = useRef(null);
+    var btn2 = useRef(null);
     var list2 = useRef(null);
     var ids = useMemo(function() {
       ddSeq++;
@@ -9183,7 +9183,7 @@
       return true;
     };
     var place = function() {
-      var r = btn.current.getBoundingClientRect();
+      var r = btn2.current.getBoundingClientRect();
       var width = Math.max(r.width, props.narrow ? 188 : 248);
       var below = window.innerHeight - r.bottom - 12;
       var above = r.top - 12;
@@ -9208,7 +9208,7 @@
     var close = function(refocus) {
       if (props.onPreview) props.onPreview(null);
       setOpen(false);
-      if (refocus && btn.current) btn.current.focus();
+      if (refocus && btn2.current) btn2.current.focus();
     };
     var choose = function(o) {
       close(true);
@@ -9219,12 +9219,12 @@
       if (list2.current) list2.current.focus({ preventScroll: true });
       var away = function(ev) {
         if (list2.current && list2.current.contains(ev.target)) return;
-        if (btn.current && btn.current.contains(ev.target)) return;
+        if (btn2.current && btn2.current.contains(ev.target)) return;
         close(false);
       };
       var reflow = function(ev) {
         if (ev && list2.current && list2.current.contains(ev.target)) return;
-        if (!btn.current) return close(false);
+        if (!btn2.current) return close(false);
         var r = place();
         if (r.bottom < 0 || r.top > window.innerHeight) close(false);
       };
@@ -9288,7 +9288,7 @@
       e(
         "button",
         {
-          ref: btn,
+          ref: btn2,
           id: ids.btn,
           type: "button",
           className: cx("bd-dd", props.compact && "bd-dd-compact", props.mixed && "is-mixed", props.className),
@@ -9740,18 +9740,18 @@
     useEffect(function() {
       latest2.current = props.value;
     }, [props.value]);
-    var clamp = function(n) {
-      return Math.max(0, Math.min(100, Math.round(n)));
+    var clamp = function(n2) {
+      return Math.max(0, Math.min(100, Math.round(n2)));
     };
     var commit = function() {
-      var n = Number(String(text2).replace(/[^\d]/g, ""));
-      if (!String(text2).trim() || !isFinite(n)) {
+      var n2 = Number(String(text2).replace(/[^\d]/g, ""));
+      if (!String(text2).trim() || !isFinite(n2)) {
         setText(shown2);
         return;
       }
-      if (clamp(n) !== props.value) {
-        latest2.current = clamp(n);
-        props.onChange(clamp(n));
+      if (clamp(n2) !== props.value) {
+        latest2.current = clamp(n2);
+        props.onChange(clamp(n2));
       } else setText(shown2);
     };
     var step = function(ev, from) {
@@ -9830,8 +9830,8 @@
     }, []);
     var box = props.box, font = props.font || {}, s = props.scale;
     var px = function(v) {
-      var n = parseFloat(v);
-      return isNaN(n) ? void 0 : n * s + "px";
+      var n2 = parseFloat(v);
+      return isNaN(n2) ? void 0 : n2 * s + "px";
     };
     return e("textarea", {
       ref,
@@ -9972,11 +9972,11 @@
     useEffect(function() {
       setText(shown2);
     }, [shown2]);
-    var tidy = function(n) {
-      n = Math.round(n / step) * step;
-      if (props.min != null) n = Math.max(props.min, n);
-      if (props.max != null) n = Math.min(props.max, n);
-      return n;
+    var tidy = function(n2) {
+      n2 = Math.round(n2 / step) * step;
+      if (props.min != null) n2 = Math.max(props.min, n2);
+      if (props.max != null) n2 = Math.min(props.max, n2);
+      return n2;
     };
     var commit = function() {
       var raw = Number(text2);
@@ -9984,12 +9984,12 @@
         setText(shown2);
         return;
       }
-      var n = tidy(raw);
-      if (n === props.value) {
+      var n2 = tidy(raw);
+      if (n2 === props.value) {
         setText(shown2);
         return;
       }
-      props.onChange(n);
+      props.onChange(n2);
     };
     var scrub = function(ev) {
       if (ev.button !== 0 || !props.onScrub) return;
@@ -10168,8 +10168,8 @@
       { className: "bd-code-notes" },
       e("summary", null, "Left out of the code (" + list2.length + ")"),
       e("p", null, "Each instance is written as a call to its component. Changed text comes along as props; these other changes don't. Update the component from an instance, or detach it, to keep them."),
-      e("ul", null, list2.map(function(n) {
-        return e("li", { key: n.id }, e("strong", null, n.name), " (" + n.component + "): " + n.what.join("; "));
+      e("ul", null, list2.map(function(n2) {
+        return e("li", { key: n2.id }, e("strong", null, n2.name), " (" + n2.component + "): " + n2.what.join("; "));
       }))
     );
   }
@@ -10256,7 +10256,7 @@
     React.useEffect(function() {
       setChoice({});
     }, [p.text]);
-    var n = countOf(plan, choice);
+    var n2 = countOf(plan, choice);
     var asks = plan.rows.filter(function(r) {
       return r.choices && !choice[r.key];
     }).length;
@@ -10303,9 +10303,9 @@
         e("button", { type: "button", className: "bd-btn", onClick: function() {
           p.setText("");
         } }, "Clear"),
-        e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: !n, onClick: function() {
+        e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: !n2, onClick: function() {
           p.onApplyEdit(plan, choice);
-        } }, e(Icon, { name: "check" }), n ? "Apply " + n + (n === 1 ? " change" : " changes") : "Nothing to apply")
+        } }, e(Icon, { name: "check" }), n2 ? "Apply " + n2 + (n2 === 1 ? " change" : " changes") : "Nothing to apply")
       )
     );
   }
@@ -10382,15 +10382,15 @@
         if (!live || !got) return;
         got.added = added2;
         setShots(function(s) {
-          var n = Object.assign({}, s);
-          n[key] = got;
-          return n;
+          var n2 = Object.assign({}, s);
+          n2[key] = got;
+          return n2;
         });
       }, function() {
         if (live) setShots(function(s) {
-          var n = Object.assign({}, s);
-          n[key] = { error: true };
-          return n;
+          var n2 = Object.assign({}, s);
+          n2[key] = { error: true };
+          return n2;
         });
       });
       return function() {
@@ -10491,18 +10491,18 @@
   });
   function componentCheck(node) {
     var issues = [], tokens2 = {}, count3 = 0;
-    (function walk2(n, depth) {
+    (function walk2(n2, depth) {
       count3++;
-      var label2 = nameOf(n);
-      if (n.type === "Slot") issues.push({ level: "error", text: "A slot only lives inside its component. Select the component instead." });
-      Object.keys(n.style || {}).forEach(function(k) {
-        var v = n.style[k];
+      var label2 = nameOf(n2);
+      if (n2.type === "Slot") issues.push({ level: "error", text: "A slot only lives inside its component. Select the component instead." });
+      Object.keys(n2.style || {}).forEach(function(k) {
+        var v = n2.style[k];
         if (k === "x" || k === "y") {
-          if (depth > 0 && k === "x") issues.push({ level: "error", id: n.id, fix: "flow", text: label2 + " is placed by position. A component's layers sit in its flow." });
+          if (depth > 0 && k === "x") issues.push({ level: "error", id: n2.id, fix: "flow", text: label2 + " is placed by position. A component's layers sit in its flow." });
           return;
         }
         if (k === "fill" || k === "color") {
-          issues.push({ level: "error", id: n.id, key: k, fix: "token", text: label2 + " has a custom " + (k === "fill" ? "fill" : "text colour") + " (" + v + "), not a token." });
+          issues.push({ level: "error", id: n2.id, key: k, fix: "token", text: label2 + " has a custom " + (k === "fill" ? "fill" : "text colour") + " (" + v + "), not a token." });
           return;
         }
         var def = DATA.tokens[k];
@@ -10513,11 +10513,11 @@
           tokens2[t] = 1;
         });
       });
-      if (n.type === "Group" && n.props.gap && n.props.gap !== "none") tokens2["--dt-space-" + (n.props.direction === "row" ? "inline" : "stack") + "-" + n.props.gap] = 1;
-      Object.keys(n.props || {}).forEach(function(k) {
-        if (typeof n.props[k] === "string" && /^data:/.test(n.props[k])) issues.push({ level: "warn", text: label2 + " carries an uploaded file. It stays in this browser and isn't in share links." });
+      if (n2.type === "Group" && n2.props.gap && n2.props.gap !== "none") tokens2["--dt-space-" + (n2.props.direction === "row" ? "inline" : "stack") + "-" + n2.props.gap] = 1;
+      Object.keys(n2.props || {}).forEach(function(k) {
+        if (typeof n2.props[k] === "string" && /^data:/.test(n2.props[k])) issues.push({ level: "warn", text: label2 + " carries an uploaded file. It stays in this browser and isn't in share links." });
       });
-      (n.children || []).forEach(function(c) {
+      (n2.children || []).forEach(function(c) {
         walk2(c, depth + 1);
       });
     })(node, 0);
@@ -10817,7 +10817,7 @@
     var pics = files.filter(function(f) {
       return f.thumb;
     }).slice(0, 4);
-    var n = files.length;
+    var n2 = files.length;
     var when = p.sort === "created" ? "Made " + ago(g.createdAt).toLowerCase() : ago(sortWhen(p.sort, g, files));
     return e(
       "li",
@@ -10826,14 +10826,14 @@
         "button",
         { type: "button", className: "bd-proj-open", onClick: function() {
           p.goView(g.id);
-        }, "aria-label": "Open " + g.name + ", " + n + (n === 1 ? " file" : " files") },
+        }, "aria-label": "Open " + g.name + ", " + n2 + (n2 === 1 ? " file" : " files") },
         e(
           "span",
           { className: cx("bd-proj-thumb", !g.thumb && pics.length > 1 && "is-mosaic"), "aria-hidden": "true" },
           g.thumb ? e("img", { src: g.thumb, alt: "" }) : pics.length > 1 ? pics.map(function(f) {
             return e("img", { key: f.id, src: f.thumb, alt: "" });
           }) : pics.length ? e("img", { src: pics[0].thumb, alt: "" }) : e(Icon, { name: "folder" }),
-          e("span", { className: "bd-proj-badge" }, e(Icon, { name: "folder" }), n + (n === 1 ? " file" : " files"))
+          e("span", { className: "bd-proj-badge" }, e(Icon, { name: "folder" }), n2 + (n2 === 1 ? " file" : " files"))
         )
       ),
       e(
@@ -10877,7 +10877,7 @@
           }
         })
       ),
-      p.confirmDel === key ? confirmRow("Delete " + g.name, n ? "Delete the project and its " + (n === 1 ? "file" : n + " files") + "?" : "Delete this empty project?", n ? [
+      p.confirmDel === key ? confirmRow("Delete " + g.name, n2 ? "Delete the project and its " + (n2 === 1 ? "file" : n2 + " files") + "?" : "Delete this empty project?", n2 ? [
         e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function() {
           p.deleteGroup(g.id, false);
         } }, "Delete all"),
@@ -11059,11 +11059,11 @@
   var PART_ICON = { Heading: "heading", Text: "type", Image: "image", Video: "video", Icon: "star", Button: "pointer", Link: "link", Field: "form", Select: "form", "Text area": "form", Label: "type", List: "listView", Item: "listView", Figure: "figure", Navigation: "compass" };
   var Layers = React.memo(function Layers2(p) {
     var doc2 = p.doc, q = p.query.trim().toLowerCase();
-    var labelOf = function(n) {
-      return nodeLabel(n, p.scalars);
+    var labelOf = function(n2) {
+      return nodeLabel(n2, p.scalars);
     };
-    var isOpen = function(n) {
-      return nodeIsOpen(n, p.collapsed);
+    var isOpen = function(n2) {
+      return nodeIsOpen(n2, p.collapsed);
     };
     var frameIsOpen = function(f) {
       return p.openFrames[f.id] !== void 0 ? p.openFrames[f.id] : f.id === doc2.active;
@@ -11075,21 +11075,21 @@
       var at2 = locate(doc2, id);
       var owner = at2 && !isContainer(at2.node.type);
       p.setCollapsed(function(c) {
-        var n = Object.assign({}, c);
+        var n2 = Object.assign({}, c);
         if (owner) {
-          if (n[id] === false) delete n[id];
-          else n[id] = false;
-        } else if (n[id]) delete n[id];
-        else n[id] = true;
-        return n;
+          if (n2[id] === false) delete n2[id];
+          else n2[id] = false;
+        } else if (n2[id]) delete n2[id];
+        else n2[id] = true;
+        return n2;
       });
     };
     var rowsFor = function(f) {
       var keep = null;
       if (q) {
         keep = {};
-        (function walk3(n, path) {
-          (n.children || []).forEach(function(c) {
+        (function walk3(n2, path) {
+          (n2.children || []).forEach(function(c) {
             var hit = c.type.toLowerCase().indexOf(q) >= 0 || labelOf(c).toLowerCase().indexOf(q) >= 0;
             if (hit) {
               keep[c.id] = true;
@@ -11102,8 +11102,8 @@
         })(f.root, []);
       }
       var rows = [];
-      var walk2 = function(n, depth) {
-        (n.children || []).forEach(function(c) {
+      var walk2 = function(n2, depth) {
+        (n2.children || []).forEach(function(c) {
           if (keep && !keep[c.id]) return;
           rows.push({ n: c, depth });
           if (!(q || isOpen(c))) return;
@@ -11176,21 +11176,21 @@
     };
     var nodeRow = function(f, r) {
       if (r.part) return partRow(r, f);
-      var n = r.n;
+      var n2 = r.n;
       var mine = f.id === doc2.active;
-      var text2 = labelOf(n);
-      var on = mine && p.selection.indexOf(n.id) >= 0;
-      var owner = isOwner(n);
-      var open = isOpen(n) || !!q && !owner;
-      var folds = !!n.children || owner;
-      var renameable = n.type !== "Slot";
+      var text2 = labelOf(n2);
+      var on = mine && p.selection.indexOf(n2.id) >= 0;
+      var owner = isOwner(n2);
+      var open = isOpen(n2) || !!q && !owner;
+      var folds = !!n2.children || owner;
+      var renameable = n2.type !== "Slot";
       var listDrop2 = p.listDrop, hover = p.hover;
       return e(
         "div",
         {
-          key: n.id,
-          className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", n.inst && "is-instance", isComponentLayer(n) && "is-component", listDrop2 && listDrop2.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
-          "data-layer": mine ? n.id : void 0,
+          key: n2.id,
+          className: cx("bd-layer", on && "is-current", n2.hide && "is-hidden", n2.lock && "is-locked", n2.inst && "is-instance", isComponentLayer(n2) && "is-component", listDrop2 && listDrop2.inside === n2.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n2.id && "is-hover"),
+          "data-layer": mine ? n2.id : void 0,
           "data-frame-row": mine ? void 0 : f.id,
           "data-depth": r.depth,
           role: "treeitem",
@@ -11199,20 +11199,20 @@
           "aria-expanded": folds ? String(open) : void 0,
           style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
           onPointerEnter: function() {
-            p.setHover({ f: f.id, id: n.id });
+            p.setHover({ f: f.id, id: n2.id });
           },
           onPointerLeave: function() {
             p.setHover(null);
           },
           onContextMenu: function(ev) {
-            if (n.type !== "Slot") {
+            if (n2.type !== "Slot") {
               ev.preventDefault();
-              p.openMenu(ev.clientX, ev.clientY, n.id, f.id);
+              p.openMenu(ev.clientX, ev.clientY, n2.id, f.id);
             }
           }
         },
-        folds ? e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + nameOf(n), title: owner && !open ? "Show what " + n.type + " is made of" : void 0, onClick: function() {
-          toggle(n.id);
+        folds ? e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + nameOf(n2), title: owner && !open ? "Show what " + n2.type + " is made of" : void 0, onClick: function() {
+          toggle(n2.id);
         } }, e(Icon, { name: "right" })) : e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
         e(
           "button",
@@ -11220,49 +11220,49 @@
             type: "button",
             className: "bd-layer-main",
             onClick: function(ev) {
-              if (!p.justDragged.current) p.pick(n.id, mine && (ev.shiftKey || ev.metaKey || ev.ctrlKey), false, "layers", f.id);
+              if (!p.justDragged.current) p.pick(n2.id, mine && (ev.shiftKey || ev.metaKey || ev.ctrlKey), false, "layers", f.id);
             },
             onDoubleClick: function() {
-              if (renameable && mine) p.setRenaming({ id: n.id, where: "layer" });
+              if (renameable && mine) p.setRenaming({ id: n2.id, where: "layer" });
             },
             onPointerDown: function(ev) {
-              if (mine && ev.pointerType === "mouse" && n.type !== "Slot" && !n.lock) p.startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) });
+              if (mine && ev.pointerType === "mouse" && n2.type !== "Slot" && !n2.lock) p.startDrag(ev, { kind: "move", id: n2.id, label: nameOf(n2) });
             }
           },
-          e(Icon, { name: n.inst ? "component" : typeIcon(n.type) }),
-          renameable && mine && isRenaming(n.id, "layer") ? e(Renamable, { value: nameOf(n), label: "Layer name", startEditing: true, className: "bd-layer-name", onChange: function(v) {
+          e(Icon, { name: n2.inst ? "component" : typeIcon(n2.type) }),
+          renameable && mine && isRenaming(n2.id, "layer") ? e(Renamable, { value: nameOf(n2), label: "Layer name", startEditing: true, className: "bd-layer-name", onChange: function(v) {
             p.setRenaming(null);
-            p.setName(n.id, v === n.type || v === autoName(n) ? "" : v);
-          } }) : e("span", { className: "bd-layer-name" }, nameOf(n)),
-          text2 && !n.name ? e("span", { className: "bd-layer-text" }, text2) : null,
-          p.edited && p.edited[n.id] ? e("span", { className: "bd-layer-edited", title: "Changed by the edit you applied" }, e("span", { className: "visually-hidden" }, ", changed by the edit")) : null
+            p.setName(n2.id, v === n2.type || v === autoName(n2) ? "" : v);
+          } }) : e("span", { className: "bd-layer-name" }, nameOf(n2)),
+          text2 && !n2.name ? e("span", { className: "bd-layer-text" }, text2) : null,
+          p.edited && p.edited[n2.id] ? e("span", { className: "bd-layer-edited", title: "Changed by the edit you applied" }, e("span", { className: "visually-hidden" }, ", changed by the edit")) : null
         ),
         /* Hiding lives in the inspector's Layer section; a hidden row keeps
            a quiet eye-off, which also shows it again. */
-        n.type !== "Slot" ? e(
+        n2.type !== "Slot" ? e(
           "span",
-          { className: cx("bd-layer-flags", (n.hide || n.lock) && "is-set") },
-          n.hide ? e("button", {
+          { className: cx("bd-layer-flags", (n2.hide || n2.lock) && "is-set") },
+          n2.hide ? e("button", {
             type: "button",
             className: "bd-layer-flag is-hidden-mark",
-            "aria-label": "Show " + nameOf(n),
+            "aria-label": "Show " + nameOf(n2),
             title: "Hidden: press to show (Ctrl+Shift+H)",
             onClick: function(ev) {
               ev.stopPropagation();
-              p.flagLayer(n.id, f.id, "hide");
+              p.flagLayer(n2.id, f.id, "hide");
             }
           }, e(Icon, { name: "eyeOff" })) : null,
           e("button", {
             type: "button",
-            className: cx("bd-layer-flag", n.lock && "is-on"),
-            "aria-pressed": String(!!n.lock),
-            "aria-label": (n.lock ? "Unlock " : "Lock ") + nameOf(n),
-            title: n.lock ? "Locked: press to unlock (Ctrl+Shift+L)" : "Lock (Ctrl+Shift+L)",
+            className: cx("bd-layer-flag", n2.lock && "is-on"),
+            "aria-pressed": String(!!n2.lock),
+            "aria-label": (n2.lock ? "Unlock " : "Lock ") + nameOf(n2),
+            title: n2.lock ? "Locked: press to unlock (Ctrl+Shift+L)" : "Lock (Ctrl+Shift+L)",
             onClick: function(ev) {
               ev.stopPropagation();
-              p.flagLayer(n.id, f.id, "lock");
+              p.flagLayer(n2.id, f.id, "lock");
             }
-          }, e(Icon, { name: n.lock ? "lock" : "lockOpen" }))
+          }, e(Icon, { name: n2.lock ? "lock" : "lockOpen" }))
         ) : null
       );
     };
@@ -11349,8 +11349,8 @@
     var I = ds().Icon;
     return I ? e(I, { name: p.name, size: p.size || "lg" }) : null;
   }
-  function words2(n) {
-    return n.replace(/-/g, " ");
+  function words2(n2) {
+    return n2.replace(/-/g, " ");
   }
   function IconGrid(p) {
     var qState = useState("");
@@ -11360,8 +11360,8 @@
       if (!q) return all;
       return all.map(function(g) {
         var hit = g[0].toLowerCase().indexOf(q) >= 0;
-        return [g[0], hit ? g[1] : g[1].filter(function(n) {
-          return words2(n).indexOf(q) >= 0;
+        return [g[0], hit ? g[1] : g[1].filter(function(n2) {
+          return words2(n2).indexOf(q) >= 0;
         })];
       }).filter(function(g) {
         return g[1].length;
@@ -11386,23 +11386,23 @@
           "section",
           { key: g[0], className: "bd-iconlib-group", "aria-label": g[0] },
           e("h4", { className: "bd-iconlib-cat" }, g[0]),
-          e("div", { className: "bd-iconlib-cells", role: "list" }, g[1].map(function(n) {
+          e("div", { className: "bd-iconlib-cells", role: "list" }, g[1].map(function(n2) {
             return e("button", {
-              key: n,
+              key: n2,
               type: "button",
               role: "listitem",
-              className: cx("bd-iconlib-cell", p.current === n && "is-on"),
-              "data-icon-name": n,
-              "aria-label": words2(n),
-              "aria-pressed": p.current != null ? String(p.current === n) : void 0,
-              title: p.title ? p.title(n) : words2(n),
+              className: cx("bd-iconlib-cell", p.current === n2 && "is-on"),
+              "data-icon-name": n2,
+              "aria-label": words2(n2),
+              "aria-pressed": p.current != null ? String(p.current === n2) : void 0,
+              title: p.title ? p.title(n2) : words2(n2),
               onPointerDown: p.onDrag ? function(ev) {
-                if (ev.pointerType !== "touch") p.onDrag(ev, n);
+                if (ev.pointerType !== "touch") p.onDrag(ev, n2);
               } : void 0,
               onClick: function() {
-                p.onPick(n);
+                p.onPick(n2);
               }
-            }, e(Glyph, { name: n }));
+            }, e(Glyph, { name: n2 }));
           }))
         );
       }) : e("p", { className: "bd-empty-note" }, "No icons match.")
@@ -11430,8 +11430,8 @@
         e("span", { className: "bd-iconpick-name" }, p.mixed ? "Mixed" : words2(name || "star")),
         e("span", { className: "bd-iconpick-act" }, open[0] ? "Done" : "Swap")
       ),
-      open[0] ? e(IconGrid, { current: p.mixed ? null : name, autoFocus: true, onPick: function(n) {
-        p.onChange(n);
+      open[0] ? e(IconGrid, { current: p.mixed ? null : name, autoFocus: true, onPick: function(n2) {
+        p.onChange(n2);
       } }) : null
     );
   }
@@ -11539,8 +11539,8 @@
           p.onPick(null);
         } }, "Reset") : null
       ),
-      tab[0] === "icons" ? e(IconGrid, { current: /^lib:/.test(p.value || "") ? p.value.slice(4) : null, autoFocus: true, onPick: function(n) {
-        p.onPick("lib:" + n);
+      tab[0] === "icons" ? e(IconGrid, { current: /^lib:/.test(p.value || "") ? p.value.slice(4) : null, autoFocus: true, onPick: function(n2) {
+        p.onPick("lib:" + n2);
       } }) : e(
         "div",
         { className: "bd-chooser-emoji" },
@@ -11690,22 +11690,22 @@
         })[0];
         return q2 ? at2(q2.id) : pages.length;
       };
-      var slot2 = els.length, into = null;
+      var slot3 = els.length, into = null;
       for (var i = 0; i < els.length; i++) {
         var b = els[i].getBoundingClientRect();
         var row = rows2[i];
         if (row.kind === "folder" && y >= b.top + b.height * 0.25 && y <= b.bottom - b.height * 0.25) {
           into = row.folder.id;
-          slot2 = i;
+          slot3 = i;
           break;
         }
         if (y < b.top + b.height / 2) {
-          slot2 = i;
+          slot3 = i;
           break;
         }
       }
       if (into) return { into, index: endOfFolder(projectRef.current, into, dr.id), folder: into, line: null };
-      var before = rows2[slot2], prev = rows2[slot2 - 1];
+      var before = rows2[slot3], prev = rows2[slot3 - 1];
       var tucked = x > listBox.left + 28;
       var folder = null, index2;
       if (before && before.kind === "page" && before.folder && prev && (prev.kind === "page" ? prev.folder === before.folder : prev.folder.id === before.folder)) {
@@ -11727,7 +11727,7 @@
         folder = null;
         index2 = pages.length;
       }
-      var edge = slot2 < els.length ? els[slot2].getBoundingClientRect().top : els.length ? els[els.length - 1].getBoundingClientRect().bottom : listBox.top;
+      var edge = slot3 < els.length ? els[slot3].getBoundingClientRect().top : els.length ? els[els.length - 1].getBoundingClientRect().bottom : listBox.top;
       return { into: null, index: index2, folder, line: { top: edge - listBox.top + list2.scrollTop, depth: folder ? 1 : 0 } };
     };
     var rowDown = function(pg) {
@@ -11944,6 +11944,172 @@
     );
   });
 
+  // assets/builder/model/gallery.js
+  function n(type, props, kids) {
+    return { type, props: props || {}, children: kids || null };
+  }
+  function slot2(name, kids) {
+    return n("Slot", { name }, kids);
+  }
+  function btn(label2, props) {
+    return n("Button", Object.assign({ size: "sm", children: label2 }, props || {}));
+  }
+  var GALLERY = {
+    Card: [
+      { label: "Plan", props: { eyebrow: "Plan", title: "Starter", description: "One editor, 100 invoices a month." }, kids: [slot2("footer", [btn("Choose", { variant: "secondary" })])] },
+      { label: "Interactive", props: { interactive: true, eyebrow: "Plan", title: "Team", description: "Five editors, unlimited invoices." }, kids: [slot2("footer", [btn("Choose", { variant: "secondary" })])] },
+      { label: "Selected", props: { selected: true, eyebrow: "Plan", title: "Business", description: "Unlimited editors, SSO, audit log." }, kids: [slot2("footer", [btn("Current plan")])] },
+      { label: "With media", props: { eyebrow: "Guide", title: "Migrating to tokens", description: "Replace literal values one screen at a time." }, kids: [slot2("media", [n("Image", { alt: "Cover picture", ratio: "16:9" })])] },
+      { label: "Settings panel", props: { title: "Profile", description: "How the workspace appears to its members." }, kids: [
+        n("Stack", { layer: "group" }, [n("Input", { label: "Workspace name", size: "sm" }), n("Switch", { label: "Two-factor authentication", defaultChecked: true })])
+      ] },
+      { label: "Panel", props: { title: "Revenue", description: "Last 30 days." }, kids: [n("Stat", { label: "Paid", value: "$48,200", delta: "+12%", deltaDirection: "up" })] }
+    ],
+    Button: [
+      { label: "Primary", props: { children: "Save changes" } },
+      { label: "Secondary", props: { variant: "secondary", children: "Cancel" } },
+      { label: "Ghost", props: { variant: "ghost", children: "Learn more" } },
+      { label: "Brand", props: { variant: "brand", children: "Get started" } },
+      { label: "Danger", props: { variant: "danger", children: "Delete project" } },
+      { label: "Large, full width", props: { size: "lg", fullWidth: true, children: "Continue" } }
+    ],
+    Badge: [
+      { label: "Status", props: { tone: "success", dot: true, children: "Live" } },
+      { label: "Warning", props: { tone: "warning", children: "Due soon" } },
+      { label: "Danger", props: { tone: "danger", children: "Past due" } },
+      { label: "Solid", props: { tone: "primary", variant: "solid", children: "New" } },
+      { label: "Category", props: { children: "Owner" } },
+      { label: "Brand", props: { tone: "brand", children: "Beta" } }
+    ],
+    Alert: [
+      { label: "Info", props: { tone: "info", title: "Read-only mode", children: "Your trial ended. Add a payment method to keep editing." } },
+      { label: "Success", props: { tone: "success", title: "Invoice sent", children: "INV-2043 was emailed to Pallas Freight." } },
+      { label: "With action", props: { tone: "warning", title: "Unverified domain", children: "Emails may be marked as spam until it's verified." }, kids: [slot2("action", [btn("Verify", { variant: "secondary" })])] },
+      { label: "Danger", props: { tone: "danger", title: "Payment failed", children: "The card ending 4242 was declined." }, kids: [slot2("action", [btn("Update card", { variant: "secondary" })])] }
+    ],
+    EmptyState: [
+      { label: "First run", props: { title: "No projects yet", description: "Projects you make or are invited to show up here." }, kids: [slot2("action", [btn("New project")])] },
+      { label: "No results", props: { size: "sm", title: "Nothing matches", description: "Try fewer filters or a different word." }, kids: [slot2("action", [btn("Clear filters", { variant: "secondary" })])] }
+    ],
+    HeroBlock: [
+      { label: "Split", props: {} },
+      { label: "Centred", props: { layout: "centered" } },
+      { label: "Brand", props: { tone: "brand" } },
+      { label: "Big and centred", props: { layout: "centered", titleSize: "display-lg", tone: "subtle" } },
+      { label: "Dark", props: { dark: true } }
+    ],
+    FeatureGridBlock: [
+      { label: "Plain", props: {} },
+      { label: "Cards", props: { variant: "cards", tone: "subtle" } },
+      { label: "Four across, left", props: { columns: 4, align: "start" } },
+      { label: "Two across, brand", props: { columns: 2, tone: "brand-muted", variant: "cards" } },
+      { label: "Dark", props: { dark: true, variant: "cards" } }
+    ],
+    SplitBlock: [
+      { label: "Picture right", props: {} },
+      { label: "Picture left", props: { reverse: true } },
+      { label: "Top aligned, subtle", props: { align: "top", tone: "subtle" } },
+      { label: "Brand", props: { tone: "brand-muted", reverse: true } },
+      { label: "Dark", props: { dark: true } }
+    ],
+    StatsBlock: [
+      { label: "Left", props: {} },
+      { label: "Centred", props: { align: "center", tone: "subtle" } },
+      { label: "Brand", props: { tone: "brand", align: "center" } },
+      { label: "Dark", props: { dark: true } }
+    ],
+    TestimonialBlock: [
+      { label: "Plain", props: {} },
+      { label: "Subtle", props: { tone: "subtle" } },
+      { label: "Brand", props: { tone: "brand-muted" } },
+      { label: "Dark", props: { dark: true } }
+    ],
+    FaqBlock: [
+      { label: "Split", props: {} },
+      { label: "Stacked", props: { layout: "stacked", width: "narrow" } },
+      { label: "Subtle", props: { tone: "subtle" } },
+      { label: "Dark", props: { dark: true, layout: "stacked", width: "narrow" } }
+    ],
+    CtaBlock: [
+      { label: "Brand", props: {} },
+      { label: "Quiet brand", props: { tone: "brand-muted" } },
+      { label: "Textured", props: { texture: true } },
+      { label: "Plain", props: { tone: "base" } },
+      { label: "Dark", props: { tone: "base", dark: true } }
+    ],
+    BlockHeader: [
+      { label: "Left", props: {} },
+      { label: "Centred", props: { align: "center" } },
+      { label: "Display", props: { align: "center", size: "display-sm" } }
+    ],
+    ChatBlock: [
+      { label: "Support", props: {} },
+      { label: "Assistant", props: { variant: "assistant" } },
+      { label: "Away", props: { presence: "away" } }
+    ],
+    MenuBlock: [
+      { label: "List", props: {} },
+      { label: "Grid", props: { layout: "grid" } },
+      { label: "Subtle grid", props: { layout: "grid", tone: "subtle" } }
+    ],
+    ProductGridBlock: [
+      { label: "Four across", props: {} },
+      { label: "Three across", props: { columns: 3, tone: "subtle" } },
+      { label: "Two across", props: { columns: 2 } },
+      { label: "Dark", props: { dark: true, columns: 3 } }
+    ],
+    ProductDetailBlock: [
+      { label: "In stock", props: {} },
+      { label: "Sold out", props: { soldOut: true } },
+      { label: "Tall pictures", props: { ratio: "4:5", tone: "subtle" } }
+    ],
+    CartBlock: [
+      { label: "Plain", props: {} },
+      { label: "Subtle", props: { tone: "subtle" } },
+      { label: "Dark", props: { dark: true } }
+    ],
+    CheckoutBlock: [
+      { label: "Plain", props: {} },
+      { label: "Subtle", props: { tone: "subtle" } },
+      { label: "Dark", props: { dark: true } }
+    ],
+    OrderTrackingBlock: [
+      { label: "Plain", props: {} },
+      { label: "Subtle", props: { tone: "subtle" } },
+      { label: "Dark", props: { dark: true } }
+    ]
+  };
+  var MAIN2 = ["variant", "layout", "tone", "surface", "shape", "state", "mode", "size"];
+  var AUTO_MAX = 6;
+  function autoGallery(type) {
+    var m = META[type];
+    if (!m || m.builder) return [];
+    var spec = null;
+    MAIN2.some(function(name) {
+      spec = m.props.filter(function(p) {
+        return p.name === name && p.kind === "enum" && p.options && p.options.length > 1;
+      })[0] || null;
+      return !!spec;
+    });
+    if (!spec) return [];
+    return spec.options.slice(0, AUTO_MAX).map(function(o) {
+      var props = {};
+      props[spec.name] = o;
+      return { label: words(String(o)).replace(/-/g, " "), props };
+    });
+  }
+  function galleryOf(type) {
+    return GALLERY[type] || autoGallery(type);
+  }
+  function grow(spec) {
+    var node = make(spec.type, Object.assign({}, spec.props));
+    if (spec.children) node.children = spec.children.map(grow);
+    return node;
+  }
+  function exampleKids(example) {
+    return example && example.kids ? example.kids.map(grow) : null;
+  }
+
   // assets/builder/app/ComponentDetail.js
   function ds2() {
     return window.BeamMobileDesignSystem_e33121 || {};
@@ -11979,17 +12145,51 @@
     });
     return props;
   }
+  function drawNode(node, key) {
+    var Comp = ds2()[node.type];
+    if (!Comp) return null;
+    var props = Object.assign({ key }, baseProps(node.type));
+    var own = node.props || {};
+    Object.keys(own).forEach(function(k) {
+      if (own[k] == null) delete props[k];
+      else props[k] = own[k];
+    });
+    var kids = node.children || [];
+    kids.forEach(function(c, i) {
+      if (c.type === "Slot") props[c.props.name] = c.children && c.children.length ? c.children.map(function(k, j) {
+        return drawNode(k, i + "." + j);
+      }) : null;
+    });
+    var flow = kids.filter(function(c) {
+      return c.type !== "Slot";
+    });
+    if (isContainer(node.type)) {
+      delete props.children;
+      if (flow.length) return e(Comp, props, flow.map(function(c, i) {
+        return drawNode(c, "f" + i);
+      }));
+    }
+    return e(Comp, props);
+  }
   function Preview2(p) {
     var box = useRef(null), stage = useRef(null);
-    var scaleState = useState(1);
+    var fixed2 = p.wide ? 1280 : p.width || 0;
+    var fitState = useState({ s: 1, w: 0, h: 0 }), fit = fitState[0], setFit = fitState[1];
     useEffect(function() {
-      var fit = function() {
+      var measure = function() {
         if (!box.current || !stage.current) return;
-        var W = box.current.clientWidth - 24, w = stage.current.scrollWidth;
-        scaleState[1](w > 0 && W > 0 ? Math.min(1, W / w) : 1);
+        var cs = getComputedStyle(box.current);
+        var padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight), padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+        var W = box.current.clientWidth - padX, H = (parseFloat(cs.maxHeight) || Infinity) - padY;
+        var w = fixed2 || stage.current.scrollWidth, h = stage.current.offsetHeight;
+        var s2 = w > 0 && W > 0 ? Math.min(1, W / w) : 1;
+        if (fixed2 && h > 0 && isFinite(H) && h * s2 > H) s2 = H / h;
+        setFit(function(f) {
+          return f.s === s2 && f.w === w && f.h === h ? f : { s: s2, w, h };
+        });
       };
-      fit();
-      var ro = window.ResizeObserver ? new ResizeObserver(fit) : null;
+      measure();
+      var ro = window.ResizeObserver ? new ResizeObserver(measure) : null;
       if (ro) {
         ro.observe(box.current);
         ro.observe(stage.current);
@@ -11997,24 +12197,66 @@
       return function() {
         if (ro) ro.disconnect();
       };
-    }, [p.wide]);
-    var Comp = ds2()[p.type];
-    var s = scaleState[0];
+    }, [fixed2]);
+    var s = fit.s;
+    var node = { type: p.type, props: p.props, children: p.kids || [] };
+    var drawn = e(
+      "div",
+      {
+        className: "bd-cd-stage",
+        ref: stage,
+        inert: "",
+        "aria-hidden": "true",
+        style: fixed2 ? { width: fixed2, transform: "scale(" + s + ")", transformOrigin: "0 0" } : { transform: s < 1 ? "scale(" + s + ")" : void 0 }
+      },
+      ds2()[p.type] ? e(ThumbGuard, { key: JSON.stringify(p.props) + (p.kids ? p.kids.length : 0) }, drawNode(node, "root")) : null
+    );
     return e(
       "div",
       {
-        className: "bd-cd-preview",
+        className: cx("bd-cd-preview", p.className),
         ref: box,
-        title: "Drag onto a frame to place it as set",
+        title: p.title == null ? "Drag onto a frame to place it as set" : p.title || void 0,
         onPointerDown: function(ev) {
           if (ev.pointerType !== "touch") p.onDrag(ev, box.current);
         }
       },
-      e(
-        "div",
-        { className: "bd-cd-stage", ref: stage, inert: "", "aria-hidden": "true", style: { width: p.wide ? 1280 : void 0, transform: s < 1 ? "scale(" + s + ")" : void 0 } },
-        Comp ? e(ThumbGuard, { key: JSON.stringify(p.props) }, e(Comp, p.props)) : null
-      )
+      fixed2 ? e("div", { className: "bd-cd-fit", style: { width: Math.ceil(fixed2 * s), height: Math.ceil(fit.h * s) } }, drawn) : drawn
+    );
+  }
+  function Examples(p) {
+    var list2 = p.list;
+    if (!list2.length) return null;
+    return e(
+      "section",
+      { className: "bd-cd-examples", "aria-label": "Examples" },
+      e("h3", { className: "bd-cd-sub" }, "Examples"),
+      e("ul", { className: cx("bd-cd-ex-list", p.wide && "is-wide"), role: "list" }, list2.map(function(ex, i) {
+        var on = p.picked === i;
+        return e(
+          "li",
+          { key: i },
+          e(
+            "button",
+            {
+              type: "button",
+              className: cx("bd-cd-ex", on && "is-on"),
+              "aria-pressed": on,
+              "data-example": ex.label,
+              title: ex.label + ": press to start from it, or drag onto a frame",
+              onPointerDown: function(ev) {
+                if (ev.pointerType !== "touch") p.onDrag(ev, i, ev.currentTarget.firstChild);
+              },
+              onClick: function() {
+                if (!p.justDragged.current) p.pick(on ? null : i);
+              }
+            },
+            e(Preview2, { type: p.type, props: Object.assign({}, p.base, ex.props), kids: ex.kids, wide: p.wide, width: 320, className: "is-example", title: "", onDrag: function() {
+            } }),
+            e("span", { className: "bd-cd-ex-name" }, ex.label)
+          )
+        );
+      }))
     );
   }
   function control(spec, value2, set2) {
@@ -12054,8 +12296,8 @@
       value: value2 == null ? "" : value2,
       placeholder: spec.default == null ? "" : String(spec.default),
       onChange: function(ev) {
-        var n = ev.target.value === "" ? void 0 : Number(ev.target.value);
-        set2(isNaN(n) ? void 0 : n);
+        var n2 = ev.target.value === "" ? void 0 : Number(ev.target.value);
+        set2(isNaN(n2) ? void 0 : n2);
       }
     }));
     if ((spec.kind === "text" || spec.kind === "node") && (value2 == null || typeof value2 === "string")) return row(false, e("input", {
@@ -12075,13 +12317,22 @@
       return baseProps(p.type);
     }, [p.type]);
     var chosenState = useState({}), chosen = chosenState[0], setChosen = chosenState[1];
+    var examples = useMemo(function() {
+      return galleryOf(p.type);
+    }, [p.type]);
+    var pickedState = useState(null), picked = pickedState[0], setPicked = pickedState[1];
+    var example = picked == null ? null : examples[picked];
+    var pick2 = function(i) {
+      setPicked(i);
+      setChosen(i == null ? {} : Object.assign({}, examples[i].props));
+    };
     var set2 = function(k) {
       return function(v) {
         setChosen(function(c) {
-          var n = Object.assign({}, c);
-          if (v === void 0) delete n[k];
-          else n[k] = v;
-          return n;
+          var n2 = Object.assign({}, c);
+          if (v === void 0) delete n2[k];
+          else n2[k] = v;
+          return n2;
         });
       };
     };
@@ -12093,10 +12344,12 @@
     var rows = (hasText ? [control({ name: "children", kind: "text" }, live.children, set2("children"))] : []).concat(specs.map(function(sp) {
       return control(sp, live[sp.name], set2(sp.name));
     })).filter(Boolean);
-    var payload = function(thumb) {
-      return { kind: "new", type: p.type, label: p.type, props: Object.assign({}, chosen), thumb };
+    var payload = function(thumb, ex, props) {
+      var kids = exampleKids(ex);
+      return { kind: "new", type: p.type, label: ex ? ex.label + " " + p.type : p.type, props: Object.assign({}, props), thumb, extra: kids ? { kids } : void 0 };
     };
-    var changed = Object.keys(chosen).length;
+    var wide = meta.group === "blocks";
+    var changed = Object.keys(chosen).length || picked != null;
     return e(
       "div",
       { className: "bd-cd" },
@@ -12108,24 +12361,40 @@
         meta.href ? e("a", { className: "bd-act bd-act-ghost", href: meta.href, target: "_blank", rel: "noopener", "aria-label": p.type + " docs", title: "Open the docs" }, e(Icon, { name: "book" })) : null
       ),
       meta.blurb ? e("p", { className: "bd-cd-blurb" }, meta.blurb + ".") : null,
-      e(Preview2, { type: p.type, props: live, wide: meta.group === "blocks", onDrag: function(ev, el) {
-        p.startDrag(ev, payload(el));
+      e(Preview2, { type: p.type, props: live, kids: example && example.kids, wide, onDrag: function(ev, el) {
+        p.startDrag(ev, payload(el, example, chosen));
       } }),
       e(
         "div",
         { className: "bd-cd-props" },
+        e(Examples, {
+          type: p.type,
+          list: examples,
+          base,
+          wide,
+          picked,
+          pick: pick2,
+          justDragged: p.justDragged,
+          onDrag: function(ev, i, el) {
+            p.startDrag(ev, payload(el, examples[i], examples[i].props));
+          }
+        }),
+        examples.length ? e("h3", { className: "bd-cd-sub" }, "Properties") : null,
         rows.length ? rows : e("p", { className: "bd-empty-note" }, "Nothing to set before it's placed. Change it from the inspector once it's on a frame.")
       ),
       e(
         "div",
         { className: "bd-cd-foot" },
         changed ? e("button", { type: "button", className: "bd-btn", onClick: function() {
-          setChosen({});
+          pick2(null);
         } }, "Reset") : null,
         e(
           "button",
           { type: "button", className: "bd-btn bd-btn-primary bd-cd-insert", title: "Add it to " + p.frameName + " as set", onClick: function() {
-            if (!p.justDragged.current) p.insert(p.type, Object.assign({}, chosen));
+            if (!p.justDragged.current) {
+              var pl = payload(null, example, chosen);
+              p.insert(p.type, pl.props, pl.extra);
+            }
           } },
           e(Icon, { name: "plus" }),
           "Insert"
@@ -12154,45 +12423,45 @@
     return [];
   }
   function usableIn(p, g) {
-    return g.items.filter(function(n) {
-      return !p.placeable || p.placeable[n];
+    return g.items.filter(function(n2) {
+      return !p.placeable || p.placeable[n2];
     });
   }
   var PLAIN2 = {};
   groupsOf("primitives").forEach(function(g) {
-    g.items.forEach(function(n) {
-      PLAIN2[n] = true;
+    g.items.forEach(function(n2) {
+      PLAIN2[n2] = true;
     });
   });
   function tileList(p, items, open) {
-    return e("ul", { className: cx("bd-tiles", p.view === "list" ? "is-list" : "is-grid") }, items.map(function(n) {
-      var meta = META[n];
-      var plain = PLAIN2[n];
+    return e("ul", { className: cx("bd-tiles", p.view === "list" ? "is-list" : "is-grid") }, items.map(function(n2) {
+      var meta = META[n2];
+      var plain = PLAIN2[n2], adds = plain && !GALLERY[n2];
       return e(
         "li",
-        { key: n },
+        { key: n2 },
         e(
           "button",
           {
             type: "button",
-            className: cx("bd-tile", plain && "is-icon"),
-            "data-type": n,
-            "aria-label": plain ? "Add " + n : n,
-            title: (meta.blurb ? n + ": " + meta.blurb : n) + (plain ? ". Press to add, or drag onto a frame." : ". Press to see it and set it up before adding; drag onto a frame to add it now. Cmd-drag onto a component to swap it."),
+            className: cx("bd-tile", adds && "is-icon"),
+            "data-type": n2,
+            "aria-label": adds ? "Add " + n2 : n2,
+            title: (meta.blurb ? n2 + ": " + meta.blurb : n2) + (adds ? ". Press to add, or drag onto a frame." : ". Press to see it and set it up before adding; drag onto a frame to add it now. Cmd-drag onto a component to swap it."),
             onPointerDown: function(ev) {
-              p.startDrag(ev, { kind: "new", type: n, label: n, thumb: ev.currentTarget.querySelector(".bd-thumb") });
+              p.startDrag(ev, { kind: "new", type: n2, label: n2, thumb: ev.currentTarget.querySelector(".bd-thumb") });
             },
             onClick: function(ev) {
               if (p.justDragged.current) return;
-              if (plain || ev.metaKey || ev.ctrlKey || !open) p.addOrSwap(n, ev.metaKey || ev.ctrlKey);
-              else open(n);
+              if (adds || ev.metaKey || ev.ctrlKey || !open) p.addOrSwap(n2, ev.metaKey || ev.ctrlKey);
+              else open(n2);
             }
           },
-          plain ? e("span", { className: "bd-thumb is-icon", "aria-hidden": true }, e(Icon, { name: TYPE_ICON[n] || BUILDER_ICON[n] || "box", className: "bd-thumb-ic" })) : e(Thumb, { type: n, wide: meta.group === "blocks" }),
+          plain ? e("span", { className: "bd-thumb is-icon", "aria-hidden": true }, e(Icon, { name: TYPE_ICON[n2] || BUILDER_ICON[n2] || "box", className: "bd-thumb-ic" })) : e(Thumb, { type: n2, wide: meta.group === "blocks" }),
           e(
             "span",
             { className: "bd-tile-text" },
-            e("span", { className: "bd-tile-name" }, n),
+            e("span", { className: "bd-tile-name" }, n2),
             p.view === "list" ? e("span", { className: "bd-tile-blurb" }, meta.blurb || "") : null
           )
         )
@@ -12213,8 +12482,8 @@
   function variablesPanel(p, varScope, setVarScope) {
     var picked = p.picked;
     var sc = p.scope;
-    var own = picked.length && picked.every(function(n) {
-      return n.type === picked[0].type;
+    var own = picked.length && picked.every(function(n2) {
+      return n2.type === picked[0].type;
     }) && META[picked[0].type] ? META[picked[0].type].ownPadding : null;
     return e(
       "div",
@@ -12239,8 +12508,8 @@
           return (vs[0] !== "w" || o.family !== "fit" && o.family !== "container") && (!sc || optionAllowed(vs[0], o, sc)) && (varScope !== "used" || usesToken(p.used, keys2, o.value));
         });
         if (varScope === "used" && !opts.length) return e("section", { key: vs[0], className: "bd-vars-sec" }, e("h3", { className: "bd-content-h" }, vs[1]), e("p", { className: "bd-sec-empty" }, "None in this project yet."));
-        var cur = picked.length && allSame(picked.map(function(n) {
-          return n.style[vs[0]] || "";
+        var cur = picked.length && allSame(picked.map(function(n2) {
+          return n2.style[vs[0]] || "";
         })) ? picked[0].style[vs[0]] || "" : null;
         return e(
           "section",
@@ -12259,8 +12528,8 @@
                 DATA.tokens.padding.sides.forEach(function(k) {
                   patch[k] = void 0;
                 });
-                p.setStyles(picked.map(function(n) {
-                  return n.id;
+                p.setStyles(picked.map(function(n2) {
+                  return n2.id;
                 }), patch);
                 p.announce(nameOf(picked[0]) + " takes its own padding, " + own.label);
               }
@@ -12384,9 +12653,9 @@
   function mineList(p, list2) {
     return e("ul", { className: "bd-mine", role: "list" }, list2.map(function(c) {
       var layers2 = 0;
-      (function walk2(n) {
+      (function walk2(n2) {
         layers2++;
-        (n.children || []).forEach(walk2);
+        (n2.children || []).forEach(walk2);
       })(c.node);
       return e(
         "li",
@@ -12443,16 +12712,16 @@
         back: function() {
           openDetail(null);
         },
-        insert: function(type, props) {
-          p.insertWith(type, props);
+        insert: function(type, props, extra) {
+          p.insertWith(type, props, extra);
         }
       }));
     }
     if (q) {
       var found = [];
       DATA.groups.forEach(function(g) {
-        usableIn(p, g).forEach(function(n) {
-          if (n.toLowerCase().indexOf(q) >= 0 || String(META[n].blurb || "").toLowerCase().indexOf(q) >= 0) found.push(n);
+        usableIn(p, g).forEach(function(n2) {
+          if (n2.toLowerCase().indexOf(q) >= 0 || String(META[n2].blurb || "").toLowerCase().indexOf(q) >= 0) found.push(n2);
         });
       });
       var foundMine = (p.library.components || []).filter(function(c) {
@@ -12581,8 +12850,8 @@
     var mark = b.mark ? { kind: "asset", src: b.mark, label: name + " mark", media: "image", props: { ratio: "square", fit: "contain", radius: "none" }, extra: { name: "Brand mark", style: { w: "x2" } } } : null;
     return { logo, mark };
   }
-  function iconPiece(n) {
-    return { kind: "new", type: "Icon", label: n.replace(/-/g, " "), props: { name: n }, extra: { name: n.replace(/-/g, " ") + " icon" } };
+  function iconPiece(n2) {
+    return { kind: "new", type: "Icon", label: n2.replace(/-/g, " "), props: { name: n2 }, extra: { name: n2.replace(/-/g, " ") + " icon" } };
   }
   function brandPanel(p) {
     var b = p.brand;
@@ -12800,14 +13069,14 @@
         e("h3", { className: "bd-content-h", id: "bd-dticons-h" }, "Dovetail Icons"),
         e("p", { className: "bd-content-note" }, "The system's own library, v1. Drag an icon onto a frame, or press it to add it at 24px; swap it later from the inspector."),
         e(IconGrid, {
-          title: function(n) {
-            return n.replace(/-/g, " ") + ": drag onto a frame, or press to add";
+          title: function(n2) {
+            return n2.replace(/-/g, " ") + ": drag onto a frame, or press to add";
           },
-          onDrag: function(ev, n) {
-            p.startDrag(ev, iconPiece(n));
+          onDrag: function(ev, n2) {
+            p.startDrag(ev, iconPiece(n2));
           },
-          onPick: function(n) {
-            if (!p.justDragged.current) p.placeBrand(iconPiece(n));
+          onPick: function(n2) {
+            if (!p.justDragged.current) p.placeBrand(iconPiece(n2));
           }
         })
       ) : null,
@@ -12832,8 +13101,8 @@
                 onClick: function() {
                   if (window.DovetailConfigurePanel && window.DovetailConfigurePanel.setIconLib) {
                     window.DovetailConfigurePanel.setIconLib(k);
-                    p.setThemeStamp(function(n) {
-                      return n + 1;
+                    p.setThemeStamp(function(n2) {
+                      return n2 + 1;
                     });
                   }
                 }
@@ -12995,16 +13264,16 @@
     return { id: uid(), kind: "doc", source: "written", use: "always", pages: [], title: title || "Untitled doc", body: "", updatedAt: Date.now() };
   }
   function newSkill(name) {
-    var n = skillName(name || "new-skill");
+    var n2 = skillName(name || "new-skill");
     return {
       id: uid(),
       kind: "skill",
       source: "written",
       enabled: true,
       pages: [],
-      name: n,
+      name: n2,
       description: "",
-      files: [{ path: "SKILL.md", body: "---\nname: " + n + "\ndescription: \n---\n\n# " + n + "\n\nWhat to do, step by step.\n" }],
+      files: [{ path: "SKILL.md", body: "---\nname: " + n2 + "\ndescription: \n---\n\n# " + n2 + "\n\nWhat to do, step by step.\n" }],
       updatedAt: Date.now()
     };
   }
@@ -13091,10 +13360,10 @@
         if (it.kind === "skill" && it.enabled && forPage(it, pageId)) skills.push(Object.assign({ scope }, it));
       });
     });
-    var count3 = docs.reduce(function(n, d) {
-      return n + tokens(d.title) + tokens(d.body);
-    }, 0) + skills.reduce(function(n, s) {
-      return n + tokens(s.name) + tokens(s.description);
+    var count3 = docs.reduce(function(n2, d) {
+      return n2 + tokens(d.title) + tokens(d.body);
+    }, 0) + skills.reduce(function(n2, s) {
+      return n2 + tokens(s.name) + tokens(s.description);
     }, 0);
     return { docs, skills, tokens: count3 };
   }
@@ -13122,10 +13391,10 @@
   function crc32(bytes) {
     if (!crcTable) {
       crcTable = new Uint32Array(256);
-      for (var n = 0; n < 256; n++) {
-        var c = n;
+      for (var n2 = 0; n2 < 256; n2++) {
+        var c = n2;
         for (var k = 0; k < 8; k++) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
-        crcTable[n] = c >>> 0;
+        crcTable[n2] = c >>> 0;
       }
     }
     var crc = 4294967295;
@@ -13272,7 +13541,7 @@
     var at2 = view.getUint32(end + 16, true);
     if (count3 > limits.entries) return Promise.reject(new Error("That zip holds more than " + limits.entries + " files."));
     var entries = [], total = 0;
-    for (var n = 0; n < count3; n++) {
+    for (var n2 = 0; n2 < count3; n2++) {
       if (at2 + 46 > bytes.length || view.getUint32(at2, true) !== CENTRAL_SIG2) return Promise.reject(new Error("That zip is damaged."));
       var method = view.getUint16(at2 + 10, true), crc = view.getUint32(at2 + 16, true);
       var csize = view.getUint32(at2 + 20, true), usize = view.getUint32(at2 + 24, true);
@@ -13366,8 +13635,8 @@
       })[0];
       return pg ? pg.name : null;
     }).filter(Boolean);
-    return names.length ? e("div", { className: "bd-cx-chips" }, names.map(function(n) {
-      return e("span", { key: n, className: "bd-cx-chip is-page" }, n);
+    return names.length ? e("div", { className: "bd-cx-chips" }, names.map(function(n2) {
+      return e("span", { key: n2, className: "bd-cx-chip is-page" }, n2);
     })) : null;
   }
   function itemRow(p, scope, it, open) {
@@ -13699,23 +13968,23 @@
     if (b.type === "text") return textTokens(b.text);
     if (b.type === "thinking") return textTokens(b.thinking);
     if (b.type === "tool_use") return textTokens(b.name) + textTokens(JSON.stringify(b.input || {}));
-    if (b.type === "tool_result") return Array.isArray(b.content) ? b.content.reduce(function(n, c) {
-      return n + blockTokens(c);
+    if (b.type === "tool_result") return Array.isArray(b.content) ? b.content.reduce(function(n2, c) {
+      return n2 + blockTokens(c);
     }, 0) : textTokens(b.content);
     return textTokens(JSON.stringify(b));
   }
   function estimateRequest(req) {
-    var n = textTokens(req && req.stable) + textTokens(req && req.system) + textTokens(JSON.stringify(req && req.tools || []));
+    var n2 = textTokens(req && req.stable) + textTokens(req && req.system) + textTokens(JSON.stringify(req && req.tools || []));
     (req && req.messages || []).forEach(function(m) {
-      n += typeof m.content === "string" ? textTokens(m.content) : (m.content || []).reduce(function(a, b) {
+      n2 += typeof m.content === "string" ? textTokens(m.content) : (m.content || []).reduce(function(a, b) {
         return a + blockTokens(b);
       }, 0);
     });
-    return n;
+    return n2;
   }
   function estimateReply(content) {
-    return (content || []).reduce(function(n, b) {
-      return n + blockTokens(b);
+    return (content || []).reduce(function(n2, b) {
+      return n2 + blockTokens(b);
     }, 0);
   }
   var ZERO = { input: 0, cacheRead: 0, cacheWrite: 0, output: 0, requests: 0, estimated: false };
@@ -13757,19 +14026,19 @@
     });
     return sum2 ? Object.assign(sum2, { replies }) : null;
   }
-  function shortCount(n) {
-    n = Math.max(0, Math.round(n || 0));
-    if (n < 1e3) return String(n);
-    if (n < 1e5) return (Math.round(n / 100) / 10).toFixed(1).replace(/\.0$/, "") + "k";
-    if (n < 1e6) return Math.round(n / 1e3) + "k";
-    return (Math.round(n / 1e5) / 10).toFixed(1).replace(/\.0$/, "") + "M";
+  function shortCount(n2) {
+    n2 = Math.max(0, Math.round(n2 || 0));
+    if (n2 < 1e3) return String(n2);
+    if (n2 < 1e5) return (Math.round(n2 / 100) / 10).toFixed(1).replace(/\.0$/, "") + "k";
+    if (n2 < 1e6) return Math.round(n2 / 1e3) + "k";
+    return (Math.round(n2 / 1e5) / 10).toFixed(1).replace(/\.0$/, "") + "M";
   }
-  function fullCount(n) {
-    return String(Math.max(0, Math.round(n || 0))).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  function fullCount(n2) {
+    return String(Math.max(0, Math.round(n2 || 0))).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
   function usageLabel(u, live) {
-    var n = totalOf(u) + (live || 0);
-    return (u && u.estimated || live ? "≈ " : "") + shortCount(n) + " tokens";
+    var n2 = totalOf(u) + (live || 0);
+    return (u && u.estimated || live ? "≈ " : "") + shortCount(n2) + " tokens";
   }
   function usageDetail(u) {
     if (!u) return "";
@@ -13781,9 +14050,9 @@
   }
 
   // assets/builder/model/threads.js
-  function short5(t, n) {
+  function short5(t, n2) {
     var s = String(t || "").replace(/\s+/g, " ").trim();
-    return s.length > n ? s.slice(0, n - 1) + "…" : s;
+    return s.length > n2 ? s.slice(0, n2 - 1) + "…" : s;
   }
   function titleOf(thread, named) {
     if (named) return short5(named, 60);
@@ -14129,8 +14398,8 @@
       open ? e("ol", { className: "bd-as-plan-steps" }, pl.steps.map(function(st, i) {
         return e("li", { key: i }, e("b", null, st.title), st.detail ? e("span", null, st.detail) : null);
       })) : null,
-      open && pl.notes && pl.notes.length ? e("div", { className: "bd-as-plan-notes" }, pl.notes.map(function(n, i) {
-        return e("p", { key: i }, e(Icon, { name: "alert" }), e("span", null, n));
+      open && pl.notes && pl.notes.length ? e("div", { className: "bd-as-plan-notes" }, pl.notes.map(function(n2, i) {
+        return e("p", { key: i }, e(Icon, { name: "alert" }), e("span", null, n2));
       })) : null,
       pl.status === "pending" ? e(
         "div",
@@ -14393,9 +14662,9 @@
     };
     var toggle = function(key, v) {
       foldState[1](function(f) {
-        var n = Object.assign({}, f);
-        n[key] = v;
-        return n;
+        var n2 = Object.assign({}, f);
+        n2[key] = v;
+        return n2;
       });
     };
     var cp = Object.assign({}, p, { isOpen, toggle });
@@ -14638,23 +14907,23 @@
   var PLACEHOLDER = /\b(lorem|ipsum|dolor sit|placeholder|todo|tbd|xxx+)\b/i;
   var TEXT_KEYS5 = ["children", "title", "label", "text", "description", "heading", "eyebrow"];
   var DESTRUCTIVE = /\b(delete|remove|discard|erase|revoke|cancel (my |your |the )?(account|subscription|plan|order)|close (my |your |the )?account|leave|reset|destroy|unsubscribe|deactivate|disconnect|uninstall|clear all|empty trash)\b/i;
-  function label(n) {
-    return layerName(n);
+  function label(n2) {
+    return layerName(n2);
   }
-  function said(n) {
-    if (!n) return "a layer";
-    if (n.name || autoName(n)) return layerName(n);
-    var p = n.props || {};
+  function said(n2) {
+    if (!n2) return "a layer";
+    if (n2.name || autoName(n2)) return layerName(n2);
+    var p = n2.props || {};
     var t = typeof p.children === "string" && p.children.trim() ? p.children : typeof p.title === "string" && p.title.trim() ? p.title : typeof p.label === "string" && p.label.trim() ? p.label : "";
     t = t.replace(/\s+/g, " ").trim();
-    return n.type + (t ? " “" + (t.length > 24 ? t.slice(0, 23) + "…" : t) + "”" : "");
+    return n2.type + (t ? " “" + (t.length > 24 ? t.slice(0, 23) + "…" : t) + "”" : "");
   }
   function layers(frame2) {
     var m = {};
-    (function walk2(n, parent) {
-      m[n.id] = { node: n, parent };
-      (n.children || []).forEach(function(c) {
-        walk2(c, n.id);
+    (function walk2(n2, parent) {
+      m[n2.id] = { node: n2, parent };
+      (n2.children || []).forEach(function(c) {
+        walk2(c, n2.id);
       });
     })(frame2.root, null);
     return m;
@@ -14671,14 +14940,14 @@
   }
   function lintFrame(frame2) {
     var found = [];
-    var add = function(kind, level, n, text2) {
-      found.push({ kind, level, id: n.id, text: text2 });
+    var add = function(kind, level, n2, text2) {
+      found.push({ kind, level, id: n2.id, text: text2 });
     };
     var headings = [];
     var bands = {};
     var callouts = {};
-    (function walk2(n, band, inCard, inSection) {
-      (n.children || []).forEach(function(c) {
+    (function walk2(n2, band, inCard, inSection) {
+      (n2.children || []).forEach(function(c) {
         if (c.hidden) return;
         var p = c.props || {};
         var here = band || (c.type === "Section" || META[c.type] && META[c.type].group === "blocks" ? c.id : null);
@@ -14862,9 +15131,9 @@
 
   // assets/builder/model/recent.js
   var TEXT = ["children", "title", "label", "text", "heading", "description", "eyebrow", "alt"];
-  function short6(v, n) {
+  function short6(v, n2) {
     var t = String(v).replace(/\s+/g, " ").trim();
-    return t.length > n ? t.slice(0, n - 1) + "…" : t;
+    return t.length > n2 ? t.slice(0, n2 - 1) + "…" : t;
   }
   function shown(v) {
     if (v === void 0 || v === null || v === "") return "none";
@@ -14874,23 +15143,23 @@
   function index(doc2) {
     var m = {};
     (doc2.frames || []).forEach(function(f) {
-      (function walk2(n, parent) {
-        m[f.id + "/" + n.id] = { node: n, parent, frame: f };
-        (n.children || []).forEach(function(c) {
-          walk2(c, n.id);
+      (function walk2(n2, parent) {
+        m[f.id + "/" + n2.id] = { node: n2, parent, frame: f };
+        (n2.children || []).forEach(function(c) {
+          walk2(c, n2.id);
         });
       })(f.root, null);
     });
     return m;
   }
-  function nameOf2(n, bare) {
-    if (!n) return "a layer";
-    if (n.id === "root") return "the frame";
-    if (bare) return n.name || autoName(n) || n.type;
-    if (!n.name && autoName(n)) return autoName(n);
-    var p = n.props || {};
+  function nameOf2(n2, bare) {
+    if (!n2) return "a layer";
+    if (n2.id === "root") return "the frame";
+    if (bare) return n2.name || autoName(n2) || n2.type;
+    if (!n2.name && autoName(n2)) return autoName(n2);
+    var p = n2.props || {};
     var said2 = typeof p.children === "string" && p.children.trim() ? " “" + short6(p.children, 24) + "”" : typeof p.title === "string" && p.title.trim() ? " “" + short6(p.title, 24) + "”" : "";
-    return n.name ? n.name : n.type + said2;
+    return n2.name ? n2.name : n2.type + said2;
   }
   function recentEdits(prev, next, max) {
     max = max || 12;
@@ -15109,9 +15378,9 @@
       events.push({ type: "content_block_stop", index: i });
       i++;
     }
-    (calls || []).forEach(function(c, n) {
+    (calls || []).forEach(function(c, n2) {
       var json = JSON.stringify(c.input || {});
-      events.push({ type: "content_block_start", index: i, content_block: { type: "tool_use", id: "practice_" + n, name: c.name, input: {} } });
+      events.push({ type: "content_block_start", index: i, content_block: { type: "tool_use", id: "practice_" + n2, name: c.name, input: {} } });
       for (var at2 = 0; at2 < json.length; at2 += 32) events.push({ type: "content_block_delta", index: i, delta: { type: "input_json_delta", partial_json: json.slice(at2, at2 + 32) } });
       events.push({ type: "content_block_stop", index: i });
       i++;
@@ -15410,10 +15679,10 @@
     if (p.canvasView.columns) p.doc.frames.forEach(function(f) {
       var b = p.boxes[f.id], m = p.colInfo[f.id];
       if (!b || f.bare || !m) return;
-      var n = columnsOf(f), inner = Math.max(0, Math.min(m.pw, b.w - 2 * m.gut)), x0 = (b.w - inner) / 2, cw = (inner - (n - 1) * m.gap) / n;
+      var n2 = columnsOf(f), inner = Math.max(0, Math.min(m.pw, b.w - 2 * m.gut)), x0 = (b.w - inner) / 2, cw = (inner - (n2 - 1) * m.gap) / n2;
       if (!(cw > 0)) return;
       var cols = [];
-      for (var i = 0; i < n; i++) cols.push(e("span", { key: i, className: "bd-col", style: { left: (x0 + i * (cw + m.gap)) * z, width: cw * z } }));
+      for (var i = 0; i < n2; i++) cols.push(e("span", { key: i, className: "bd-col", style: { left: (x0 + i * (cw + m.gap)) * z, width: cw * z } }));
       parts.push(e(
         "div",
         { key: "cols-" + f.id, className: "bd-cols", "data-frame": f.id, style: { left: cam.x + b.x * z, top: cam.y + b.y * z, width: b.w * z, height: b.h * z } },
@@ -15454,8 +15723,8 @@
     if (p.preview || !p.canvasView.rulers || !p.wide || !b) return null;
     var ins = p.insets(), z = cam.z, X0 = cam.x + b.x * z, Y0 = cam.y + b.y * z;
     var w = Math.max(0, p.box.w - ins.l - ins.r - p.RULER), h = Math.max(0, p.box.h - p.RULER);
-    var step = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1e3, 2e3, 5e3].filter(function(n) {
-      return n * z >= 56;
+    var step = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1e3, 2e3, 5e3].filter(function(n2) {
+      return n2 * z >= 56;
     })[0] || 5e3;
     var ticks = function(from, len, origin) {
       var out = [];
@@ -15737,9 +16006,9 @@
         set2(function(p) {
           return p.status === "recovery" ? Object.assign({}, p, { account: a }) : { status: "in", account: a, joined: p.joined };
         });
-        auth.acceptInvites().then(function(n) {
-          if (live && n) set2(function(p) {
-            return Object.assign({}, p, { joined: p.joined + n });
+        auth.acceptInvites().then(function(n2) {
+          if (live && n2) set2(function(p) {
+            return Object.assign({}, p, { joined: p.joined + n2 });
           });
         }, function() {
         });
@@ -16374,8 +16643,8 @@
       return c.toUpperCase();
     }).replace(/^\d/, "C$&") || "Component";
     if (META[base] || base === "Root" || base === "Slot") base = "My" + base;
-    var out = base, n = 2;
-    while (taken[out]) out = base + n++;
+    var out = base, n2 = 2;
+    while (taken[out]) out = base + n2++;
     taken[out] = true;
     return out;
   }
@@ -16406,17 +16675,17 @@
   function codeWithComponents(roots, library) {
     var comps = {}, order = [], taken = {}, notes2 = [];
     var found = {};
-    var collect = function(n) {
-      var comp = n.inst ? masterOf(library, n) : null;
+    var collect = function(n2) {
+      var comp = n2.inst ? masterOf(library, n2) : null;
       if (comp) {
-        (found[comp.id] = found[comp.id] || { comp, instances: [] }).instances.push(n);
+        (found[comp.id] = found[comp.id] || { comp, instances: [] }).instances.push(n2);
         if (!found[comp.id].seen) {
           found[comp.id].seen = true;
           (comp.node.children || []).forEach(collect);
         }
         return;
       }
-      (n.children || []).forEach(collect);
+      (n2.children || []).forEach(collect);
     };
     roots.forEach(collect);
     Object.keys(found).forEach(function(id) {
@@ -16442,14 +16711,14 @@
       });
       comps[id] = { id, comp: f.comp, params, keys: keys2, instances: f.instances };
     });
-    var call2 = function(n) {
-      var c = comps[n.inst.of];
+    var call2 = function(n2) {
+      var c = comps[n2.inst.of];
       if (!c.fn) {
         c.fn = functionName(c.comp.name, taken);
         order.push(c);
         c.node = asComponent(c);
       }
-      var ovs = overrides(n, c.comp.node), values = {};
+      var ovs = overrides(n2, c.comp.node), values = {};
       ovs.forEach(function(o) {
         Object.keys(o.props || {}).forEach(function(k) {
           var name = c.keys[o.path + "\0" + k];
@@ -16457,19 +16726,19 @@
         });
       });
       var what3 = leftOut(ovs, c.comp.node, c.keys);
-      if (what3.length) notes2.push({ id: n.id, name: n.name || c.comp.name, component: c.fn, what: what3 });
+      if (what3.length) notes2.push({ id: n2.id, name: n2.name || c.comp.name, component: c.fn, what: what3 });
       var own = {};
       OWN_STYLE.forEach(function(k) {
-        if (n.style && n.style[k] !== void 0) own[k] = n.style[k];
+        if (n2.style && n2.style[k] !== void 0) own[k] = n2.style[k];
       });
-      var out2 = { id: n.id, type: "__Call", props: { name: c.fn, values }, style: own };
-      if (n.hide) out2.hide = true;
+      var out2 = { id: n2.id, type: "__Call", props: { name: c.fn, values }, style: own };
+      if (n2.hide) out2.hide = true;
       return out2;
     };
-    var swap = function(n) {
-      if (n.inst && comps[n.inst.of]) return call2(n);
-      if (!n.children) return n;
-      return Object.assign({}, n, { children: n.children.map(swap) });
+    var swap = function(n2) {
+      if (n2.inst && comps[n2.inst.of]) return call2(n2);
+      if (!n2.children) return n2;
+      return Object.assign({}, n2, { children: n2.children.map(swap) });
     };
     var asComponent = function(c) {
       var node = copy(c.comp.node);
@@ -16513,8 +16782,8 @@
         taken.index = true;
         return;
       }
-      var base = slug(pg.name, "page-" + (i + 1)), name = base, n = 2;
-      while (taken[name]) name = base + "-" + n++;
+      var base = slug(pg.name, "page-" + (i + 1)), name = base, n2 = 2;
+      while (taken[name]) name = base + "-" + n2++;
       taken[name] = true;
       out[pg.id] = { file: name, path: "/" + name };
     });
@@ -16551,8 +16820,8 @@
       if (assets[src]) return assets[src];
       var m = DATA_URL.exec(src);
       if (!m) return null;
-      var base = slug(named[src], "picture"), name = base, n = 2, ext = EXT[m[1]] || "bin";
-      while (assetNames[name + "." + ext]) name = base + "-" + n++;
+      var base = slug(named[src], "picture"), name = base, n2 = 2, ext = EXT[m[1]] || "bin";
+      while (assetNames[name + "." + ext]) name = base + "-" + n2++;
       var file = name + "." + ext;
       assetNames[file] = true;
       entries.push({ name: "assets/" + file, data: base64Bytes(m[2]) });
@@ -16586,8 +16855,8 @@
     var theme = opts.themeCss || "";
     if (theme) entries.push({ name: "theme.css", data: theme });
     entries.push({ name: "README.md", data: readme(opts.name, files, firstFn, got.components, theme, pages, map, Object.keys(assetNames)) });
-    var rank = function(n) {
-      return n === "README.md" ? 0 : n === "theme.css" ? 1 : /^pages\//.test(n) ? 2 : /^components\//.test(n) ? 3 : 4;
+    var rank = function(n2) {
+      return n2 === "README.md" ? 0 : n2 === "theme.css" ? 1 : /^pages\//.test(n2) ? 2 : /^components\//.test(n2) ? 3 : 4;
     };
     entries = entries.map(function(x, i) {
       return { x, i };
@@ -16745,9 +17014,9 @@
       setTray(null);
       var info = TOOL_INFO[id];
       if (info && info.group) setLastTool(function(l) {
-        var n = Object.assign({}, l);
-        n[info.group] = id;
-        return n;
+        var n2 = Object.assign({}, l);
+        n2[info.group] = id;
+        return n2;
       });
     };
     var collapsedState = useState({});
@@ -16868,8 +17137,8 @@
       var ids = [];
       selection.forEach(function(id) {
         var at2 = locate(doc2, id);
-        (at2 ? at2.path : []).forEach(function(n) {
-          if (n.type === "Carousel" && ids.indexOf(n.id) < 0) ids.push(n.id);
+        (at2 ? at2.path : []).forEach(function(n2) {
+          if (n2.type === "Carousel" && ids.indexOf(n2.id) < 0) ids.push(n2.id);
         });
       });
       return ids.join(" ");
@@ -17084,9 +17353,9 @@
       var k = ctxKey(scope);
       if (!k) return;
       setCtxItems(function(c) {
-        var n = Object.assign({}, c);
-        n[scope] = items;
-        return n;
+        var n2 = Object.assign({}, c);
+        n2[scope] = items;
+        return n2;
       });
       store.saveContext(k, items).catch(function() {
         announce("This browser is out of room for context. Remove something, or use smaller files.");
@@ -17631,9 +17900,9 @@
         if (!at0) return [];
         var at2 = t.index == null ? (at0.node.children || []).length : t.index, made = [];
         change(function(d) {
-          nodes.forEach(function(n) {
-            if (ops.insert(d, t.parent, at2, n, d.active)) {
-              made.push(n.id);
+          nodes.forEach(function(n2) {
+            if (ops.insert(d, t.parent, at2, n2, d.active)) {
+              made.push(n2.id);
               at2++;
             }
           });
@@ -17676,8 +17945,8 @@
           if (!ops.replace(d, id, nodes[0])) return null;
           made.push(nodes[0].id);
           var at2 = locate(d, nodes[0].id);
-          nodes.slice(1).forEach(function(n, i) {
-            if (at2 && ops.insert(d, at2.parent.id, at2.index + 1 + i, n, d.active)) made.push(n.id);
+          nodes.slice(1).forEach(function(n2, i) {
+            if (at2 && ops.insert(d, at2.parent.id, at2.index + 1 + i, n2, d.active)) made.push(n2.id);
           });
           return void 0;
         });
@@ -17828,9 +18097,9 @@
           return it.src === ph.url;
         });
         if (!have) setLibrary(function(l) {
-          var n = Object.assign({}, l);
-          n.images = [{ id: uid(), name: (ph.alt ? ph.alt.slice(0, 60) + " · " : "") + (ph.credit ? "Photo by " + ph.credit : "Stock photo"), src: ph.url, credit: ph.credit || "", creditUrl: ph.creditUrl || "" }].concat(l.images || []);
-          return n;
+          var n2 = Object.assign({}, l);
+          n2.images = [{ id: uid(), name: (ph.alt ? ph.alt.slice(0, 60) + " · " : "") + (ph.credit ? "Photo by " + ph.credit : "Stock photo"), src: ph.url, credit: ph.credit || "", creditUrl: ph.creditUrl || "" }].concat(l.images || []);
+          return n2;
         });
         if (!have) stockUsed(ph);
       },
@@ -17926,8 +18195,8 @@
       var ctx = asContext();
       var fr = active(docRef.current);
       var planOn = asPlanState[0];
-      var canvas = "# Canvas\n\nFrame: " + fr.name + " (" + (fr.mode || "free") + ", " + fr.width + " wide). " + (asReachState[0] === "page" ? "You may change anything on this page." : sel2.length ? "Selected: " + sel2.map(function(n) {
-        return nameOf(n) + " (" + n.id + ")";
+      var canvas = "# Canvas\n\nFrame: " + fr.name + " (" + (fr.mode || "free") + ", " + fr.width + " wide). " + (asReachState[0] === "page" ? "You may change anything on this page." : sel2.length ? "Selected: " + sel2.map(function(n2) {
+        return nameOf(n2) + " (" + n2.id + ")";
       }).join(", ") + ". Change only these unless asked for more." : "Nothing is selected.") + (planOn ? "" : "\n\nPlans are off: build without propose_plan.");
       var system = [contextText(ctx), canvas].filter(Boolean).join("\n\n");
       var tools2 = toolsFor({ look: canLook(), plan: planOn });
@@ -17990,7 +18259,7 @@
       asAbort.current = abort;
       var script = practiceScript(sel2);
       var edits = 0;
-      var round = function(n) {
+      var round = function(n2) {
         var c = collector();
         var shown3 = "";
         var reqNow = { stable: systemPrompt(), messages: asMsgs.current, tools: tools2, effort: asEffortState[0], model: asModelState[0] };
@@ -18074,7 +18343,7 @@
               });
             });
             asMsgs.current = asMsgs.current.concat([{ role: "user", content: results }]);
-            return n < 11 ? round(n + 1) : null;
+            return n2 < 11 ? round(n2 + 1) : null;
           });
         });
       };
@@ -18092,8 +18361,8 @@
         if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" });
         if (askWait.current) askWait.current.resolve(null);
         asBase.current = { page: pageRef.current, doc: docRef.current };
-        asBaseTick[1](function(n) {
-          return n + 1;
+        asBaseTick[1](function(n2) {
+          return n2 + 1;
         });
         var left2 = asNotes.current.splice(0);
         if (left2.length) {
@@ -18153,8 +18422,8 @@
         asIdRef.current = null;
         asIdState[1](null);
         asViewState[1]("chat");
-        asBaseTick[1](function(n) {
-          return n + 1;
+        asBaseTick[1](function(n2) {
+          return n2 + 1;
         });
         if (projectRef.current) store.openThread(projectRef.current.id, null).catch(function() {
         });
@@ -18226,8 +18495,8 @@
             setAsThread(back);
             asMsgs.current = got.msgs;
             asViewState[1]("chat");
-            asBaseTick[1](function(n) {
-              return n + 1;
+            asBaseTick[1](function(n2) {
+              return n2 + 1;
             });
             var kept = Object.assign({}, line2, { remote: void 0, rev: got.rev, title: got.title, updated: Date.now() });
             asListState[1](function(l) {
@@ -18258,8 +18527,8 @@
           setAsThread(back);
           asMsgs.current = Array.isArray(v.msgs) ? v.msgs : [];
           asViewState[1]("chat");
-          asBaseTick[1](function(n) {
-            return n + 1;
+          asBaseTick[1](function(n2) {
+            return n2 + 1;
           });
           store.openThread(meta.id, id).catch(function() {
           });
@@ -18386,8 +18655,8 @@
       /* Leave the edits since the last reply out of the next message. */
       dropEdits: function() {
         asBase.current = { page: pageRef.current, doc: docRef.current };
-        asBaseTick[1](function(n) {
-          return n + 1;
+        asBaseTick[1](function(n2) {
+          return n2 + 1;
         });
       },
       approvePlan: function(id) {
@@ -18431,8 +18700,8 @@
           else window.localStorage.setItem(LOOK_KEY + projectRef.current.id, "off");
         } catch (err) {
         }
-        asLookTick[1](function(n) {
-          return n + 1;
+        asLookTick[1](function(n2) {
+          return n2 + 1;
         });
         announce(on ? "The agent can look at this file's canvas" : "The agent won't send pictures of this file's canvas");
       },
@@ -18449,8 +18718,8 @@
           announce("Other edits came after this reply, so undo them first, or use Undo step by step.");
           return;
         }
-        var n = end - ch.at;
-        for (var i = 0; i < n; i++) undo();
+        var n2 = end - ch.at;
+        for (var i = 0; i < n2; i++) undo();
         patchTurn(id, function(x) {
           var changes = x.changes.map(function(c) {
             return c.at >= ch.at ? Object.assign({}, c, { undone: true }) : c;
@@ -18460,7 +18729,7 @@
           });
           return { changes, made: ch.at - x.from, undone: all, checks: all ? x.checks : null };
         });
-        announce("Undid " + (n === 1 ? "that step" : "that step and the ones after it"));
+        announce("Undid " + (n2 === 1 ? "that step" : "that step and the ones after it"));
       },
       /* The conversation as Markdown, to keep or share. */
       exportThread: function() {
@@ -18909,8 +19178,8 @@
       var timer = null;
       var changed = function() {
         var P = window.DovetailConfigurePanel;
-        setBrandTick(function(n) {
-          return n + 1;
+        setBrandTick(function(n2) {
+          return n2 + 1;
         });
         if (!themeLoaded.current || !P || !P.theme) return;
         clearTimeout(timer);
@@ -19023,10 +19292,10 @@
     var setPanel = function(side2, w, closed) {
       var b = PANELS[side2];
       setPanels(function(p) {
-        var n = Object.assign({}, p);
-        if (w != null) n[side2] = Math.min(b.max, Math.max(b.min, Math.round(w / PANELS.step) * PANELS.step));
-        if (closed != null) n[side2 + "Closed"] = closed;
-        return n;
+        var n2 = Object.assign({}, p);
+        if (w != null) n2[side2] = Math.min(b.max, Math.max(b.min, Math.round(w / PANELS.step) * PANELS.step));
+        if (closed != null) n2[side2 + "Closed"] = closed;
+        return n2;
       });
     };
     var startPanel = function(ev, side2) {
@@ -19443,8 +19712,8 @@
       var sat = selId && selId !== h.id ? locate(d, selId) : null;
       var sr = sat ? f.rect(selId) : null;
       if (sat && sr) {
-        var inside = sat.path.some(function(n) {
-          return n.id === h.id;
+        var inside = sat.path.some(function(n2) {
+          return n2.id === h.id;
         });
         if (inside) {
           var tok = function(side2) {
@@ -19496,10 +19765,10 @@
       var at2 = owner && owner !== "root" ? locate(d, owner) : null;
       select(at2 ? [owner] : []);
       setClosedSecs(function(c) {
-        var n = Object.assign({}, c);
-        if (FOLDED_FIRST[sec2]) n[sec2] = false;
-        else delete n[sec2];
-        return n;
+        var n2 = Object.assign({}, c);
+        if (FOLDED_FIRST[sec2]) n2[sec2] = false;
+        else delete n2[sec2];
+        return n2;
       });
       setFocusSec(sec2);
     };
@@ -19626,9 +19895,9 @@
       var next = on === void 0 ? !viewRef.current[k] : on;
       if (viewRef.current[k] === next) return;
       setCanvasView(function(v) {
-        var n = Object.assign({}, v);
-        n[k] = next;
-        return n;
+        var n2 = Object.assign({}, v);
+        n2[k] = next;
+        return n2;
       });
       announce(VIEW_SAYS[k] + (next ? " on" : " off"));
     };
@@ -19774,8 +20043,8 @@
       if (id === "root") return { where: "list", parent: "root", index: 0, indicator: { top: row.offsetTop + row.offsetHeight, left: 22 } };
       var at2 = locate(d, id);
       if (!at2) return null;
-      if (payload.id && at2.path.some(function(n) {
-        return n.id === payload.id;
+      if (payload.id && at2.path.some(function(n2) {
+        return n2.id === payload.id;
       })) return null;
       var r = row.getBoundingClientRect();
       var depth = Number(row.getAttribute("data-depth")) || 0;
@@ -19978,9 +20247,9 @@
           return ops.moveMany(d, many, hit.parent, hit.index);
         }, "Moved " + many.length + " layers")) {
           if (hit.parent !== "root") setCollapsed(function(c) {
-            var n = Object.assign({}, c);
-            delete n[hit.parent];
-            return n;
+            var n2 = Object.assign({}, c);
+            delete n2[hit.parent];
+            return n2;
           });
         }
         return;
@@ -20057,9 +20326,9 @@
           return ops.moveMany(d, group2, hit.parent, hit.index);
         }, "Moved " + group2.length + " layers")) {
           if (hit.parent !== "root") setCollapsed(function(c) {
-            var n = Object.assign({}, c);
-            delete n[hit.parent];
-            return n;
+            var n2 = Object.assign({}, c);
+            delete n2[hit.parent];
+            return n2;
           });
         }
         return;
@@ -20068,9 +20337,9 @@
         return ops.move(d, dr.payload.id, hit.parent, hit.index);
       }, "Moved " + dr.payload.label)) {
         if (hit.parent !== "root") setCollapsed(function(c) {
-          var n = Object.assign({}, c);
-          delete n[hit.parent];
-          return n;
+          var n2 = Object.assign({}, c);
+          delete n2[hit.parent];
+          return n2;
         });
       }
     };
@@ -20171,42 +20440,42 @@
       var a = api(fid);
       var r = a && a.rect ? a.rect(id) : null;
       var pr = a && a.rect && at0.parent && at0.parent.id !== "root" ? a.rect(at0.parent.id) : null;
-      var n = make(type);
-      if (type === "Inline") n.props.wrap = false;
-      n.style = copy(at0.node.style);
-      if (r && !n.style.w) {
-        var w = sizeNear("w", r.width, !!pr && Math.abs(pr.width - r.width) < 2 && !isFree(n.style), false, [n]);
-        if (w) n.style.w = w;
+      var n2 = make(type);
+      if (type === "Inline") n2.props.wrap = false;
+      n2.style = copy(at0.node.style);
+      if (r && !n2.style.w) {
+        var w = sizeNear("w", r.width, !!pr && Math.abs(pr.width - r.width) < 2 && !isFree(n2.style), false, [n2]);
+        if (w) n2.style.w = w;
       }
-      if (r && !n.style.height) {
-        var h = sizeNear("height", r.height, false, false, [n]);
-        if (h) n.style.height = h;
+      if (r && !n2.style.height) {
+        var h = sizeNear("height", r.height, false, false, [n2]);
+        if (h) n2.style.height = h;
       }
-      if (n.children && at0.node.children) n.children = at0.node.children.filter(function(c) {
+      if (n2.children && at0.node.children) n2.children = at0.node.children.filter(function(c) {
         return c.type !== "Slot";
       }).map(copy);
       var was = nameOf(at0.node);
       var ok = change(function(d) {
         d.active = fid;
-        return ops.replace(d, id, n);
+        return ops.replace(d, id, n2);
       }, "Swapped " + was + " for " + type + ", the same size");
       if (!ok) announce(type + " can't go where " + was + " is");
     };
     var instanceOf = function(comp) {
-      var n = cleanNode(copy(comp.node), null);
-      if (!n) return null;
-      n = fresh(n);
-      delete n.style.x;
-      delete n.style.y;
-      delete n.style.ch;
-      delete n.style.cv;
-      n.name = comp.name;
-      n.inst = { of: comp.id, rev: comp.rev || 1 };
-      return n;
+      var n2 = cleanNode(copy(comp.node), null);
+      if (!n2) return null;
+      n2 = fresh(n2);
+      delete n2.style.x;
+      delete n2.style.y;
+      delete n2.style.ch;
+      delete n2.style.cv;
+      n2.name = comp.name;
+      n2.inst = { of: comp.id, rev: comp.rev || 1 };
+      return n2;
     };
     var addLocal = function(comp, where) {
-      var n = instanceOf(comp);
-      if (!n) {
+      var n2 = instanceOf(comp);
+      if (!n2) {
         announce(comp.name + " couldn't be read back");
         return;
       }
@@ -20222,13 +20491,13 @@
         t = { parent: fr0 && beside.parent === fr0.root ? "root" : beside.parent.id, index: beside.index + 1, frame: fid };
       }
       if (t.free) {
-        n.style.x = t.free.x;
-        n.style.y = t.free.y;
+        n2.style.x = t.free.x;
+        n2.style.y = t.free.y;
       }
       var fr = frameById(docRef.current, fid);
       if (!change(function(d) {
         d.active = fid;
-        return ops.insert(d, t.parent, t.index, n, fid);
+        return ops.insert(d, t.parent, t.index, n2, fid);
       }, "Added " + comp.name + " to " + (fr ? fr.name : "the frame"))) announce(comp.name + " can't go there");
       else if (beside) announce(comp.name + " can't go inside itself, so it's beside " + nameOf(self));
     };
@@ -20236,6 +20505,7 @@
       var node = null, moving = null;
       if (payload.kind === "new") {
         node = make(payload.type, Object.assign({}, payload.props), null, Object.assign({}, payload.extra && payload.extra.style));
+        if (payload.extra && payload.extra.kids) node.children = payload.extra.kids.map(fresh);
         if (payload.type === "Inline") node.props.wrap = false;
       } else if (payload.kind === "asset") node = payload.media === "video" ? make("Video", { src: payload.src }) : make("Image", Object.assign({ src: payload.src, alt: payload.label }, payload.props), null, Object.assign({}, payload.extra && payload.extra.style));
       else if (payload.kind === "tool") node = toolNode(payload.tool, null);
@@ -20250,19 +20520,19 @@
       }
       var made = null;
       change(function(d) {
-        var n = node;
+        var n2 = node;
         if (moving) {
           var at2 = locate(d, moving);
           if (fixedSpot(at2)) return null;
           at2.parent.children.splice(at2.index, 1);
-          n = at2.node;
+          n2 = at2.node;
           ["x", "y", "position", "anchor", "offset"].forEach(function(k) {
-            delete n.style[k];
+            delete n2.style[k];
           });
         }
-        if (!n) return null;
-        var band = joinsFlow(n.type);
-        var f = makeFrame(band ? "Frame " + (d.frames.length + 1) : nameOf(n), "desktop", true);
+        if (!n2) return null;
+        var band = joinsFlow(n2.type);
+        var f = makeFrame(band ? "Frame " + (d.frames.length + 1) : nameOf(n2), "desktop", true);
         f.x = Math.round(hit.x);
         f.y = Math.round(hit.y);
         if (band && had) f.width = Math.max(MIN_SIDE, Math.min(MAX_WIDTH, had));
@@ -20273,11 +20543,11 @@
             f.sized = true;
           }
         }
-        f.root.children = [n];
+        f.root.children = [n2];
         d.frames.push(f);
         d.active = f.id;
-        made = n.id;
-        return n.id;
+        made = n2.id;
+        return n2.id;
       }, (moving ? "Moved " : "Added ") + payload.label + " onto the canvas");
       return made;
     };
@@ -20408,8 +20678,8 @@
                 return;
               }
               var to = fid === docRef.current.active ? scopeRef.current(id) : id;
-              var n = to === id && part2 && typeof part2.n === "number" ? part2.n : null;
-              if (!h || h.f !== fid || h.id !== to || h.n !== n) setHover({ f: fid, id: to, n });
+              var n2 = to === id && part2 && typeof part2.n === "number" ? part2.n : null;
+              if (!h || h.f !== fid || h.id !== to || h.n !== n2) setHover({ f: fid, id: to, n: n2 });
             }),
             key: function(ev) {
               return keyRef.current(ev);
@@ -20485,9 +20755,9 @@
       if (!api(fid)) return;
       delete rendered.current[fid];
       setReady(function(m) {
-        var n = Object.assign({}, m);
-        n[fid] = (m[fid] || 0) + 1;
-        return n;
+        var n2 = Object.assign({}, m);
+        n2[fid] = (m[fid] || 0) + 1;
+        return n2;
       });
     };
     var readyRef = useRef(frameReady);
@@ -20516,16 +20786,16 @@
       var first = slotFrame();
       if (first) {
         var tpl = slotSample;
-        var wants = function(n) {
-          var m = META[n.type];
-          return !!m && !m.builder && !hasSlots(n) && tpl(n.type).length > 0;
+        var wants = function(n2) {
+          var m = META[n2.type];
+          return !!m && !m.builder && !hasSlots(n2) && tpl(n2.type).length > 0;
         };
         var missing = false;
         doc2.frames.forEach(function(f) {
           if (scanned.current.has(f)) return;
           var here = false;
-          (function walk2(n) {
-            (n.children || []).forEach(function(c) {
+          (function walk2(n2) {
+            (n2.children || []).forEach(function(c) {
               if (wants(c)) here = true;
               walk2(c);
             });
@@ -20536,8 +20806,8 @@
         if (missing) {
           quiet(function(d) {
             d.frames.forEach(function(f) {
-              (function walk2(n) {
-                (n.children || []).forEach(function(c) {
+              (function walk2(n2) {
+                (n2.children || []).forEach(function(c) {
                   if (wants(c)) {
                     c.children = tpl(c.type).map(function(t) {
                       return { id: uid(), type: "Slot", props: { name: t.name }, style: {}, children: t.nodes.map(function(k) {
@@ -20570,10 +20840,10 @@
       });
       if (any && !placeable) {
         var ok = {}, sc = {}, det = {};
-        Object.keys(META).forEach(function(n) {
-          ok[n] = any.has(n) && (META[n].container || META[n].builder || any.hasStarter(n));
-          sc[n] = any.scalars(n);
-          det[n] = any.canDetach(n);
+        Object.keys(META).forEach(function(n2) {
+          ok[n2] = any.has(n2) && (META[n2].container || META[n2].builder || any.hasStarter(n2));
+          sc[n2] = any.scalars(n2);
+          det[n2] = any.canDetach(n2);
         });
         setPlaceable(ok);
         setScalars(sc);
@@ -20626,8 +20896,8 @@
     }, [ready[doc2.active], doc2.active, frame2.spacing, frame2.width, themeStamp]);
     useEffect(function() {
       var bump = function() {
-        setThemeStamp(function(n) {
-          return n + 1;
+        setThemeStamp(function(n2) {
+          return n2 + 1;
         });
       };
       window.addEventListener("storage", bump);
@@ -20725,8 +20995,8 @@
       var open = {};
       selRef.current.forEach(function(sid) {
         var s0 = locate(d, sid);
-        if (s0) s0.path.forEach(function(n) {
-          open[n.id] = true;
+        if (s0) s0.path.forEach(function(n2) {
+          open[n2.id] = true;
         });
       });
       for (var i = 1; i < at2.path.length - 1; i++) {
@@ -20815,10 +21085,10 @@
         var own = Array.isArray(node.props[spec.name]) ? node.props[spec.name] : null;
         var items = own || (f && f.listSample ? f.listSample(node.type, spec.name) : null);
         if (!Array.isArray(items)) continue;
-        for (var n = 0; n < items.length; n++) {
-          var item = items[n];
+        for (var n2 = 0; n2 < items.length; n2++) {
+          var item = items[n2];
           if (spec.of === "text") {
-            if (String(item).trim() === want) return { prop: spec.name, index: n, value: String(item), sample: own ? null : items };
+            if (String(item).trim() === want) return { prop: spec.name, index: n2, value: String(item), sample: own ? null : items };
             continue;
           }
           var fields = (spec.fields || []).filter(function(x) {
@@ -20826,7 +21096,7 @@
           });
           for (var q = 0; q < fields.length; q++) {
             var fv = item && item[fields[q].name];
-            if (typeof fv === "string" && fv.trim() === want) return { prop: spec.name, index: n, field: fields[q].name, value: fv, sample: own ? null : items };
+            if (typeof fv === "string" && fv.trim() === want) return { prop: spec.name, index: n2, field: fields[q].name, value: fv, sample: own ? null : items };
           }
         }
       }
@@ -20905,20 +21175,21 @@
           t = { parent: ownerAt.parent.id, index: ownerAt.index + 1, frame: fid };
         }
       }
-      var n = make(type);
-      if (props2) Object.assign(n.props, props2);
-      if (extra && extra.name) n.name = extra.name;
-      if (extra && extra.style) Object.assign(n.style, extra.style);
+      var n2 = make(type);
+      if (props2) Object.assign(n2.props, props2);
+      if (extra && extra.name) n2.name = extra.name;
+      if (extra && extra.style) Object.assign(n2.style, extra.style);
+      if (extra && extra.kids) n2.children = extra.kids.map(fresh);
       if (t.free) {
-        n.style.x = t.free.x;
-        n.style.y = t.free.y;
+        n2.style.x = t.free.x;
+        n2.style.y = t.free.y;
       }
-      if (type === "Inline") n.props.wrap = false;
+      if (type === "Inline") n2.props.wrap = false;
       var parentAt = t.parent === "root" ? null : locate(docRef.current, t.parent, fid);
       var parentName = parentAt ? parentAt.node.type : (frameById(docRef.current, fid) || frame2).name;
       change(function(d) {
         d.active = fid;
-        return ops.insert(d, t.parent, t.index, n, fid);
+        return ops.insert(d, t.parent, t.index, n2, fid);
       }, "Added " + type + " to " + parentName);
       if (mql("(max-width: 900px)")) setPane("canvas");
     };
@@ -20973,8 +21244,8 @@
           return p[a[0]] - q[a[0]];
         });
         var first = sorted[0], last = sorted[sorted.length - 1];
-        var span = last[a[2]] - first[a[0]], sum2 = sorted.reduce(function(n, i) {
-          return n + i[a[1]];
+        var span = last[a[2]] - first[a[0]], sum2 = sorted.reduce(function(n2, i) {
+          return n2 + i[a[1]];
         }, 0);
         var gap = (span - sum2) / (sorted.length - 1), at2 = first[a[0]];
         sorted.forEach(function(i) {
@@ -21037,8 +21308,8 @@
       ["tidy", "Tidy up", "tidy", "Shift+Alt+T"]
     ];
     var arrangeRow = function(nodes) {
-      var spots = arrangeable(nodes.map(function(n) {
-        return n.id;
+      var spots = arrangeable(nodes.map(function(n2) {
+        return n2.id;
       }));
       if (!spots) return null;
       var few = nodes.length < 3;
@@ -21050,8 +21321,8 @@
           return e("button", { key: a[0], type: "button", className: "bd-act bd-act-sm bd-arrange-btn", "aria-label": a[1], title: a[1] + (off ? " (three or more)" : " (" + a[3] + ")"), disabled: off || void 0, onClick: function() {
             arrange(a[0]);
           } }, e(Icon, { name: a[2] }));
-        }).concat(nodes.length > 1 && nodes.every(function(n) {
-          return n.type === "Shape" && n.props.shape !== "line";
+        }).concat(nodes.length > 1 && nodes.every(function(n2) {
+          return n2.type === "Shape" && n2.props.shape !== "line";
         }) ? [e(Dropdown, {
           key: "bool",
           menu: true,
@@ -21101,8 +21372,8 @@
             scaleBy(Number(v) / 100);
           }
         })]).concat([["flipH", "Flip across", "Shift+H"], ["flipV", "Flip down", "Shift+V"]].map(function(f) {
-          var on = nodes.every(function(n) {
-            return n.style[f[0]];
+          var on = nodes.every(function(n2) {
+            return n2.style[f[0]];
           });
           return e("button", { key: f[0], type: "button", className: "bd-act bd-act-sm bd-flip-btn", "aria-label": f[1], "aria-pressed": String(on), title: f[1] + " (" + f[2] + ")", onClick: function() {
             flip(f[0]);
@@ -21150,9 +21421,9 @@
       var SPACE_KEYS = Object.keys(DATA.tokens).filter(function(k) {
         return DATA.tokens[k].section === "spacing";
       });
-      var inner = function(n) {
+      var inner = function(n2) {
         SPACE_KEYS.forEach(function(k) {
-          var v = n.style[k], px = v ? pxMap[k + "|" + v] : null;
+          var v = n2.style[k], px = v ? pxMap[k + "|" + v] : null;
           if (px == null) return;
           var opt = tokenOption(k, v);
           var list2 = DATA.tokens[k].options.filter(function(o) {
@@ -21161,19 +21432,19 @@
             return { value: o.value, px: pxMap[k + "|" + o.value] };
           });
           var pick3 = nearest(list2, px * factor);
-          if (pick3) n.style[k] = pick3.value;
+          if (pick3) n2.style[k] = pick3.value;
         });
-        var sc = SCALE_TYPE[n.type];
-        if (sc && typePx[n.type].length) {
-          var base = scalars[n.type] || {};
-          var cur = n.props[sc.prop] || base[sc.prop] || (n.type === "Heading" ? HEADING_DEFAULT[n.props.level || base.level || 2] : "body");
-          var now = typePx[n.type].filter(function(o) {
+        var sc = SCALE_TYPE[n2.type];
+        if (sc && typePx[n2.type].length) {
+          var base = scalars[n2.type] || {};
+          var cur = n2.props[sc.prop] || base[sc.prop] || (n2.type === "Heading" ? HEADING_DEFAULT[n2.props.level || base.level || 2] : "body");
+          var now = typePx[n2.type].filter(function(o) {
             return o.value === cur;
           })[0];
-          var to = now ? nearest(typePx[n.type], now.px * factor) : null;
-          if (to) n.props[sc.prop] = to.value;
+          var to = now ? nearest(typePx[n2.type], now.px * factor) : null;
+          if (to) n2.props[sc.prop] = to.value;
         }
-        (n.children || []).forEach(function(c) {
+        (n2.children || []).forEach(function(c) {
           if (isFree(c.style)) {
             c.style.x = clamp(c.style.x * factor, 0);
             c.style.y = clamp(c.style.y * factor, 0);
@@ -21285,8 +21556,8 @@
         if (POSITION_KEYS.indexOf(k) < 0) out[k] = at2.node.style[k];
       });
       styleClip.current = out;
-      var n = Object.keys(out).length;
-      announce(n ? "Copied the style of " + nameOf(at2.node) + " (" + n + (n === 1 ? " property)" : " properties)") : "Copied a plain style");
+      var n2 = Object.keys(out).length;
+      announce(n2 ? "Copied the style of " + nameOf(at2.node) + " (" + n2 + (n2 === 1 ? " property)" : " properties)") : "Copied a plain style");
       return true;
     };
     var pasteStyle = function() {
@@ -21304,8 +21575,8 @@
       var at2 = selRef.current.length ? locate(docRef.current, selRef.current[selRef.current.length - 1]) : null;
       if (!at2) return;
       var type = at2.node.type, ids = [];
-      (function walk2(n) {
-        (n.children || []).forEach(function(c) {
+      (function walk2(n2) {
+        (n2.children || []).forEach(function(c) {
           if (c.type === type) ids.push(c.id);
           walk2(c);
         });
@@ -21331,10 +21602,10 @@
           { value: "fitFrame", label: "Zoom to " + active(d).name, hint: "Shift+2", icon: "frame", group: "View" }
         ];
       }
-      var allHidden = nodes.every(function(n) {
-        return n.hide;
-      }), allLocked = nodes.every(function(n) {
-        return n.lock;
+      var allHidden = nodes.every(function(n2) {
+        return n2.hide;
+      }), allLocked = nodes.every(function(n2) {
+        return n2.lock;
       });
       var free = spots.every(function(at2) {
         return isFree(at2.node.style);
@@ -21356,8 +21627,8 @@
         one2 && one2.type === "Group" ? { value: "ungroup", label: "Ungroup", hint: "Ctrl+Shift+G", icon: "group", group: "Layer" } : { value: "group", label: "Group", hint: "Ctrl+G", icon: "group", group: "Layer" },
         { value: "hide", label: allHidden ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: allHidden ? "eye" : "eyeOff", group: "Layer" },
         { value: "lock", label: allLocked ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: allLocked ? "lockOpen" : "lock", group: "Layer" }
-      ]).concat(frame2.mode !== "structured" && one2 && one2.type === "Group" && !one2.style.bool ? [groupFlows(one2) ? { value: "freelayout", label: "Remove auto layout", hint: "Shift+A", icon: "frame", group: "Layer" } : { value: "autolayout", label: "Add auto layout", hint: "Shift+A", icon: "row", group: "Layer" }] : []).concat(free && nodes.length > 1 && nodes.some(function(n) {
-        return n.type === "Shape" && n.props.shape !== "line";
+      ]).concat(frame2.mode !== "structured" && one2 && one2.type === "Group" && !one2.style.bool ? [groupFlows(one2) ? { value: "freelayout", label: "Remove auto layout", hint: "Shift+A", icon: "frame", group: "Layer" } : { value: "autolayout", label: "Add auto layout", hint: "Shift+A", icon: "row", group: "Layer" }] : []).concat(free && nodes.length > 1 && nodes.some(function(n2) {
+        return n2.type === "Shape" && n2.props.shape !== "line";
       }) ? [{ value: "mask", label: "Use the shape as a mask", icon: "shapeEllipse", group: "Layer" }] : []).concat(one2 && one2.type !== "Slot" ? [{ value: "rename", label: "Rename", hint: "F2", icon: "pencil", group: "Layer" }] : []).concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component", group: "Layer" }]).concat(one2 ? [{ value: "link", label: "Copy link to this layer", icon: "link", group: "Layer" }, { value: "png", label: "Export as PNG", icon: "image", group: "Layer" }] : []);
     };
     var onMenu = function(v) {
@@ -21631,8 +21902,8 @@
           for (var i = 1; i < items.length; i++) gaps.push(row ? items[i].r.left - items[i - 1].r.right : items[i].r.top - items[i - 1].r.bottom);
           var steps = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"];
           if (gaps.length) {
-            var want = Math.max(0, gaps.reduce(function(n, g) {
-              return n + g;
+            var want = Math.max(0, gaps.reduce(function(n2, g) {
+              return n2 + g;
             }, 0) / gaps.length);
             var got = a.measure(steps.map(function(s2) {
               return "var(--dt-space-" + (row ? "inline" : "stack") + "-" + s2 + ")";
@@ -22352,9 +22623,9 @@
         if (made) {
           var h = heightsRef.current[id];
           if (h) setHeights(function(hs) {
-            var n = Object.assign({}, hs);
-            n[made] = h;
-            return n;
+            var n2 = Object.assign({}, hs);
+            n2[made] = h;
+            return n2;
           });
           setTimeout(function() {
             showFrameRef.current(made, true);
@@ -22433,9 +22704,9 @@
         return a.node;
       });
       var parts = [];
-      picked2.forEach(function(n) {
-        if (n.type === "Slot") parts = parts.concat(n.children);
-        else parts.push(n);
+      picked2.forEach(function(n2) {
+        if (n2.type === "Slot") parts = parts.concat(n2.children);
+        else parts.push(n2);
       });
       var got = codeOf(fr, parts);
       if (!got) return;
@@ -22491,8 +22762,8 @@
       return true;
     };
     var pasteNodes = function(raw) {
-      var nodes = (raw || []).map(function(n) {
-        return cleanNode(JSON.parse(JSON.stringify(n)), null);
+      var nodes = (raw || []).map(function(n2) {
+        return cleanNode(JSON.parse(JSON.stringify(n2)), null);
       }).filter(Boolean).map(fresh);
       if (!nodes.length) return false;
       var d = docRef.current;
@@ -22503,25 +22774,25 @@
       var made = [];
       change(function(dd) {
         var at2 = t.index;
-        nodes.forEach(function(n) {
+        nodes.forEach(function(n2) {
           if (t.parent !== "root" || fr.mode === "structured" || fr.bare) {
-            delete n.style.x;
-            delete n.style.y;
-            delete n.style.ch;
-            delete n.style.cv;
-          } else if (same5 && isFree(n.style)) {
-            n.style.x = Math.min(FREE_MAX, n.style.x + 4);
-            n.style.y = Math.min(FREE_MAX, n.style.y + 4);
+            delete n2.style.x;
+            delete n2.style.y;
+            delete n2.style.ch;
+            delete n2.style.cv;
+          } else if (same5 && isFree(n2.style)) {
+            n2.style.x = Math.min(FREE_MAX, n2.style.x + 4);
+            n2.style.y = Math.min(FREE_MAX, n2.style.y + 4);
           }
-          if (ops.insert(dd, t.parent, at2, n, fid)) {
-            made.push(n.id);
+          if (ops.insert(dd, t.parent, at2, n2, fid)) {
+            made.push(n2.id);
             at2++;
           }
         });
         return made.length ? made : null;
       }, "Pasted " + (nodes.length === 1 ? nameOf(nodes[0]) : nodes.length + " layers") + " into " + fr.name);
-      if (same5 && clip.current) clip.current = { nodes: clip.current.nodes.map(function(n) {
-        var c = copy(n);
+      if (same5 && clip.current) clip.current = { nodes: clip.current.nodes.map(function(n2) {
+        var c = copy(n2);
         if (isFree(c.style)) {
           c.style.x += 4;
           c.style.y += 4;
@@ -22545,11 +22816,11 @@
         made = made.filter(Boolean);
         if (!made.length) return;
         setLibrary(function(l) {
-          var n = Object.assign({}, l);
+          var n2 = Object.assign({}, l);
           made.forEach(function(m) {
-            n[m.kind] = [m.item].concat(l[m.kind] || []);
+            n2[m.kind] = [m.item].concat(l[m.kind] || []);
           });
-          return n;
+          return n2;
         });
         made.forEach(function(m) {
           add("Image", null, { src: m.item.src, alt: m.item.name });
@@ -22657,8 +22928,8 @@
       }).filter(Boolean).map(function(a) {
         return a.node;
       });
-      if (!nodes.length || !nodes.every(function(n) {
-        return TYPE_SCALE[n.type];
+      if (!nodes.length || !nodes.every(function(n2) {
+        return TYPE_SCALE[n2.type];
       })) return false;
       var said2 = null;
       change(function(dd) {
@@ -22967,7 +23238,7 @@
         return p.name;
       });
       var name = s ? s[1] : "Untitled";
-      for (var n = 2; taken.indexOf(name) >= 0; n++) name = (s ? s[1] : "Untitled") + " " + n;
+      for (var n2 = 2; taken.indexOf(name) >= 0; n2++) name = (s ? s[1] : "Untitled") + " " + n2;
       var P = window.DovetailConfigurePanel;
       var settings = { stage: "", theme: P && P.theme ? P.theme() : void 0, group: homeRef.current ? homeViewRef.current : projectRef.current.group };
       captureThumb().then(flush).then(function() {
@@ -22991,7 +23262,7 @@
         return g.name;
       });
       var name = "Untitled project";
-      for (var n = 2; taken.indexOf(name) >= 0; n++) name = "Untitled project " + n;
+      for (var n2 = 2; taken.indexOf(name) >= 0; n2++) name = "Untitled project " + n2;
       store.createGroup(name).then(function(g) {
         return refreshProjects().then(function() {
           goHomeView(g.id);
@@ -23153,8 +23424,8 @@
       var taken = pagesOf(meta).map(function(x) {
         return x.name;
       });
-      var n = taken.length + 1, name = "Page " + n;
-      while (taken.indexOf(name) >= 0) name = "Page " + ++n;
+      var n2 = taken.length + 1, name = "Page " + n2;
+      while (taken.indexOf(name) >= 0) name = "Page " + ++n2;
       flush().then(function() {
         return store.addPage(meta.id, name, emptyDoc(), pageRef.current);
       }).then(function(got) {
@@ -23179,8 +23450,8 @@
       var taken = foldersOf(meta).map(function(f) {
         return f.name;
       });
-      var n = taken.length + 1, name = "Folder " + n;
-      while (taken.indexOf(name) >= 0) name = "Folder " + ++n;
+      var n2 = taken.length + 1, name = "Folder " + n2;
+      while (taken.indexOf(name) >= 0) name = "Folder " + ++n2;
       store.addFolder(meta.id, name).then(function(got) {
         if (!got) return;
         takeMeta(got.meta);
@@ -23515,21 +23786,21 @@
         ids.forEach(function(id) {
           var at2 = locate(d, id);
           if (!at2) return;
-          (function walk2(n, depth) {
+          (function walk2(n2, depth) {
             ["fill", "color"].forEach(function(k) {
-              if (n.style[k]) {
-                delete n.style[k];
+              if (n2.style[k]) {
+                delete n2.style[k];
                 any = true;
               }
             });
-            if (depth > 0 && (n.style.x !== void 0 || n.style.y !== void 0)) {
-              delete n.style.x;
-              delete n.style.y;
-              delete n.style.ch;
-              delete n.style.cv;
+            if (depth > 0 && (n2.style.x !== void 0 || n2.style.y !== void 0)) {
+              delete n2.style.x;
+              delete n2.style.y;
+              delete n2.style.ch;
+              delete n2.style.cv;
               any = true;
             }
-            (n.children || []).forEach(function(c) {
+            (n2.children || []).forEach(function(c) {
               walk2(c, depth + 1);
             });
           })(at2.node, 0);
@@ -23555,11 +23826,11 @@
       var entry = { id: cid, name, node: kept, tokens: check5.tokens, rev: 1, made: Date.now() };
       libRef.current = Object.assign({}, libRef.current, { components: [entry].concat(libRef.current.components || []) });
       setLibrary(function(l) {
-        var n = Object.assign({}, l);
-        n.components = [entry].concat((l.components || []).filter(function(c) {
+        var n2 = Object.assign({}, l);
+        n2.components = [entry].concat((l.components || []).filter(function(c) {
           return c.id !== cid;
         }));
-        return n;
+        return n2;
       });
       if (ids.length === 1) {
         setName(ids[0], name);
@@ -23584,11 +23855,11 @@
     };
     var removeComponent = function(id) {
       setLibrary(function(l) {
-        var n = Object.assign({}, l);
-        n.components = (l.components || []).filter(function(c) {
+        var n2 = Object.assign({}, l);
+        n2.components = (l.components || []).filter(function(c) {
           return c.id !== id;
         });
-        return n;
+        return n2;
       });
       quiet(function(d) {
         return detachAll(d, id) ? void 0 : null;
@@ -23621,11 +23892,11 @@
         delete master.hide;
         var rev = (comp.rev || 1) + 1, was = comp.node;
         setLibrary(function(l) {
-          var n = Object.assign({}, l);
-          n.components = (l.components || []).map(function(c) {
+          var n2 = Object.assign({}, l);
+          n2.components = (l.components || []).map(function(c) {
             return c.id === comp.id ? Object.assign({}, c, { node: master, prev: was, rev, tokens: check5.tokens }) : c;
           });
-          return n;
+          return n2;
         });
         var here = 0;
         change(function(d) {
@@ -23639,12 +23910,12 @@
         Promise.all(others2.map(function(pg) {
           return store.loadDoc(pid, pg.id).then(function(d) {
             if (!d) return 0;
-            var n = 0;
+            var n2 = 0;
             var next = produce(d, function(dr) {
-              n = updateInstances(dr, comp.id, was, master, rev, null);
+              n2 = updateInstances(dr, comp.id, was, master, rev, null);
             });
-            return n ? store.saveDoc(pid, next, pg.id).then(function() {
-              return n;
+            return n2 ? store.saveDoc(pid, next, pg.id).then(function() {
+              return n2;
             }) : 0;
           }).catch(function() {
             return 0;
@@ -23698,16 +23969,16 @@
         }, nameOf(at2.node) + " is detached from " + (comp ? comp.name : "its component") + "; changes to it stay here");
       }
     };
-    var instanceRow = function(n) {
-      var comp = masterOf(library, n);
-      var stale = !!comp && (comp.rev || 1) > (n.inst.rev || 1);
+    var instanceRow = function(n2) {
+      var comp = masterOf(library, n2);
+      var stale = !!comp && (comp.rev || 1) > (n2.inst.rev || 1);
       return e(
         "div",
         { className: cx("bd-inst", !comp && "is-lost", stale && "is-stale") },
         e(Icon, { name: "component" }),
         e("span", { className: "bd-inst-text" }, comp ? e(React.Fragment, null, "Instance of ", e("strong", null, comp.name), stale ? ", which has changed since" : "") : "Its component was deleted; it's on its own now"),
         stale ? e("button", { type: "button", className: "bd-btn bd-btn-sm bd-inst-update", onClick: function() {
-          instanceActions.pull(n.id);
+          instanceActions.pull(n2.id);
         } }, "Update") : null,
         e(Dropdown, {
           menu: true,
@@ -23719,7 +23990,7 @@
           className: "bd-dd-icon bd-inst-menu",
           options: (comp ? [{ value: "update", label: "Update component from this", hint: "Every instance follows", icon: "upload" }, { value: "reset", label: "Reset to " + comp.name, icon: "undo" }] : []).concat([{ value: "detach", label: "Detach from component", icon: "detach" }]),
           onChange: function(v) {
-            if (instanceActions[v]) instanceActions[v](n.id);
+            if (instanceActions[v]) instanceActions[v](n2.id);
           }
         })
       );
@@ -23731,11 +24002,11 @@
       if (!c) return;
       var name = window.prompt("Rename " + c.name, c.name);
       if (name && name.trim()) setLibrary(function(l) {
-        var n = Object.assign({}, l);
-        n.components = l.components.map(function(x) {
+        var n2 = Object.assign({}, l);
+        n2.components = l.components.map(function(x) {
           return x.id === id ? Object.assign({}, x, { name: name.trim().slice(0, 60) }) : x;
         });
-        return n;
+        return n2;
       });
     };
     var openImport = function() {
@@ -23792,13 +24063,13 @@
       var fid = plan.frame && plan.frame.id;
       if (!ops2.length || !fid) return;
       var touched = [];
-      var n = plan.rows.filter(function(r) {
+      var n2 = plan.rows.filter(function(r) {
         return r.kind !== "none" && (!r.choices || choice[r.key] && choice[r.key] !== "skip");
       }).length;
       var ok = change(function(d) {
         touched = applyOps(d, fid, ops2);
         return touched.length ? void 0 : null;
-      }, "Applied " + n + (n === 1 ? " change" : " changes") + " from the edit. Undo takes them back.");
+      }, "Applied " + n2 + (n2 === 1 ? " change" : " changes") + " from the edit. Undo takes them back.");
       var dlg = importRef.current;
       if (dlg) dlg.close();
       if (!ok) {
@@ -23829,7 +24100,7 @@
       var removed = plan.rows.filter(function(r) {
         return r.kind === "remove" && (!r.choices || choice[r.key] && choice[r.key] !== "skip");
       }).length;
-      var marks = { fid, doc: docRef.current, items, n, removed };
+      var marks = { fid, doc: docRef.current, items, n: n2, removed };
       editMarksRef.current = marks;
       setEditMarks(marks);
       setTimeout(remeasure, 60);
@@ -23925,9 +24196,9 @@
       var type = pic.image.slice(5, pic.image.indexOf(";"));
       return readForLibrary(new File([bytes], "picture", { type }), "images").then(function(src) {
         setLibrary(function(l) {
-          var n = Object.assign({}, l);
-          n.images = [{ id: uid(), name: pic.alt ? pic.alt.slice(0, 80) : "Picture from an agent", src }].concat(l.images || []);
-          return n;
+          var n2 = Object.assign({}, l);
+          n2.images = [{ id: uid(), name: pic.alt ? pic.alt.slice(0, 80) : "Picture from an agent", src }].concat(l.images || []);
+          return n2;
         });
         if (input.id) {
           var hasAlt = (META[at2.node.type].props || []).some(function(p) {
@@ -24395,8 +24666,8 @@
         announce("This browser didn't allow copying.");
       });
     };
-    var labelOf = function(n) {
-      return nodeLabel(n, scalars);
+    var labelOf = function(n2) {
+      return nodeLabel(n2, scalars);
     };
     var nodesOf2 = function(ids) {
       return ids.map(function(id) {
@@ -24443,20 +24714,20 @@
     };
     var scopeFor = function(nodes) {
       var d = docRef.current;
-      var top = nodes.length > 0 && nodes.every(function(n) {
-        var at2 = locate(d, n.id);
+      var top = nodes.length > 0 && nodes.every(function(n2) {
+        var at2 = locate(d, n2.id);
         return !!at2 && !!at2.parent && at2.parent.type === "Root";
       });
       var fr = active(d);
-      return scopeOf(nodes.map(function(n) {
-        return n.type;
+      return scopeOf(nodes.map(function(n2) {
+        return n2.type;
       }), { top, social: !!fr && fr.typeScale === "social" });
     };
     var tokenDropdown = function(key, nodes, id, opts) {
       opts = opts || {};
       var def = DATA.tokens[key];
-      var values = nodes.map(function(n) {
-        return n.style[key] || "";
+      var values = nodes.map(function(n2) {
+        return n2.style[key] || "";
       });
       var mixed = !same4(values);
       var value2 = mixed ? "" : values[0];
@@ -24500,8 +24771,8 @@
         var a = api(), r = a && nodes[0] ? a.rect(nodes[0].id) : null;
         return r ? key === "w" || key === "minW" ? r.width : r.height : null;
       };
-      var ids0 = nodes.map(function(n) {
-        return n.id;
+      var ids0 = nodes.map(function(n2) {
+        return n2.id;
       });
       return e(Dropdown, {
         labelledBy: id || void 0,
@@ -24542,17 +24813,17 @@
       var a = api();
       if (!a) return;
       var wide2 = key === "w" || key === "minW";
-      var picks = nodes.map(function(n) {
-        var r = a.rect(n.id);
-        return r ? sizeNear(key, wide2 ? r.width : r.height, false, true, [n]) : null;
+      var picks = nodes.map(function(n2) {
+        var r = a.rect(n2.id);
+        return r ? sizeNear(key, wide2 ? r.width : r.height, false, true, [n2]) : null;
       });
       if (!picks.some(Boolean)) {
         announce("No size token to hold it at");
         return;
       }
       change(function(d) {
-        nodes.forEach(function(n, i) {
-          var at2 = locate(d, n.id);
+        nodes.forEach(function(n2, i) {
+          var at2 = locate(d, n2.id);
           if (at2 && picks[i]) at2.node.style[key] = picks[i];
         });
         return void 0;
@@ -24564,13 +24835,13 @@
     };
     var tokenControl = function(key, nodes, id, label2) {
       var def = DATA.tokens[key];
-      var cur = !nodes.some(function(n) {
-        return n.style[key] !== nodes[0].style[key];
+      var cur = !nodes.some(function(n2) {
+        return n2.style[key] !== nodes[0].style[key];
       }) ? tokenOption(key, nodes[0].style[key]) : null;
       var sides = def.sides;
-      var anySide = sides && nodes.some(function(n) {
+      var anySide = sides && nodes.some(function(n2) {
         return sides.some(function(k) {
-          return n.style[k];
+          return n2.style[k];
         });
       });
       var open = !!sidesOpen[key] || anySide;
@@ -24589,9 +24860,9 @@
             "aria-label": def.label + (key === "radius" ? ", each corner" : ", each side"),
             onClick: function() {
               setSidesOpen(function(s) {
-                var n = Object.assign({}, s);
-                n[key] = !open;
-                return n;
+                var n2 = Object.assign({}, s);
+                n2[key] = !open;
+                return n2;
               });
             }
           }, e(Icon, { name: "sides" })) : null
@@ -24608,14 +24879,14 @@
     };
     var TEXT_BOX = { Text: 1, Heading: 1 };
     var linesRow = function(nodes) {
-      if (!nodes.every(function(n) {
-        return TEXT_BOX[n.type];
+      if (!nodes.every(function(n2) {
+        return TEXT_BOX[n2.type];
       })) return null;
-      var ids = nodes.map(function(n) {
-        return n.id;
+      var ids = nodes.map(function(n2) {
+        return n2.id;
       });
-      var vs = nodes.map(function(n) {
-        return n.style.textWrap || "";
+      var vs = nodes.map(function(n2) {
+        return n2.style.textWrap || "";
       });
       var lid = "bd-lines-" + nodes[0].id;
       var opts = [{ value: "", label: "Wrap", hint: "Breaks where the line runs out" }].concat(DATA.tokens.textWrap.options.map(function(o) {
@@ -24630,11 +24901,11 @@
       );
     };
     var textBoxRow = function(nodes) {
-      if (frame2.mode === "structured" || !nodes.every(function(n) {
-        return TEXT_BOX[n.type] && isFree(n.style);
+      if (frame2.mode === "structured" || !nodes.every(function(n2) {
+        return TEXT_BOX[n2.type] && isFree(n2.style);
       })) return null;
-      var modeOf = function(n) {
-        return !n.style.fw && !n.style.rw ? "auto" : n.style.fh || n.style.rh ? "fixed" : "height";
+      var modeOf = function(n2) {
+        return !n2.style.fw && !n2.style.rw ? "auto" : n2.style.fh || n2.style.rh ? "fixed" : "height";
       };
       var modes = nodes.map(modeOf);
       var tid = "bd-textbox-" + nodes[0].id;
@@ -24655,10 +24926,10 @@
               return Math.max(1, Math.min(FREE_MAX, Math.round(px / unit)));
             };
             change(function(d) {
-              nodes.forEach(function(n) {
-                var at2 = locate(d, n.id);
+              nodes.forEach(function(n2) {
+                var at2 = locate(d, n2.id);
                 if (!at2) return;
-                var st = at2.node.style, r = a && a.rect ? a.rect(n.id) : null;
+                var st = at2.node.style, r = a && a.rect ? a.rect(n2.id) : null;
                 delete st.rw;
                 delete st.rh;
                 if (v === "auto") {
@@ -24678,8 +24949,8 @@
     var BORDER_LOOK_ICON = { borderWidth: { "": "weightDefault", strong: "weightStrong" }, borderStyle: { "": "lineSolid", dashed: "lineDashed", dotted: "lineDotted" } };
     var borderLookRow = function(nodes, nid) {
       var menu2 = function(key, prefix, noneLabel, noneHint) {
-        var values = nodes.map(function(n) {
-          return n.style[key] || "";
+        var values = nodes.map(function(n2) {
+          return n2.style[key] || "";
         });
         var icons = BORDER_LOOK_ICON[key];
         return e(Dropdown, {
@@ -24695,8 +24966,8 @@
             return { value: o.value, label: o.label || o.value, hint: o.tokens.join(" · ") || "CSS keyword", icon: icons[o.value] };
           })),
           onChange: function(v) {
-            setStyle(nodes.map(function(n) {
-              return n.id;
+            setStyle(nodes.map(function(n2) {
+              return n2.id;
             }), key, v || void 0);
           }
         });
@@ -24733,10 +25004,10 @@
       }, (axis === "h" ? "Across: " : "Down: ") + PIN_WORD2[axis][value2]);
     };
     var pinsField = function(nodes, ids) {
-      var hs = nodes.map(function(n) {
-        return n.style.ch || "left";
-      }), vs = nodes.map(function(n) {
-        return n.style.cv || "top";
+      var hs = nodes.map(function(n2) {
+        return n2.style.ch || "left";
+      }), vs = nodes.map(function(n2) {
+        return n2.style.cv || "top";
       });
       var h = same4(hs) ? hs[0] : null, v = same4(vs) ? vs[0] : null;
       var pick3 = function(line2, shift) {
@@ -24850,23 +25121,23 @@
       change(boxApply.apply(null, b.last), boxWord(b.last[1], b.last[2], b.last[3], b.last[4]));
     };
     var boxModel = function(nodes) {
-      var ids = nodes.map(function(n) {
-        return n.id;
+      var ids = nodes.map(function(n2) {
+        return n2.id;
       });
-      var oneType = nodes.length && nodes.every(function(n) {
-        return n.type === nodes[0].type;
+      var oneType = nodes.length && nodes.every(function(n2) {
+        return n2.type === nodes[0].type;
       });
       var ownPad = oneType && META[nodes[0].type] ? META[nodes[0].type].ownPadding : null;
       var ownLabel = ownPad ? "Default: " + ownPad.label : null;
       var a = nodes.length === 1 ? api() : null;
       var drawn = a && a.spacing ? a.spacing(nodes[0].id) : null;
       var side2 = function(key, all, where) {
-        var allValues = nodes.map(function(n) {
-          return n.style[all] || "";
+        var allValues = nodes.map(function(n2) {
+          return n2.style[all] || "";
         });
         var inherited = same4(allValues) ? allValues[0] : "";
-        var own = nodes.some(function(n) {
-          return n.style[key];
+        var own = nodes.some(function(n2) {
+          return n2.style[key];
         });
         var px = drawn ? drawn[key] : null;
         var from = all === "padding" && ownPad ? ownPad.label + " (" + ownPad.token + ")" : oneType ? nodes[0].type + "'s own " + all : "";
@@ -24956,12 +25227,12 @@
     };
     var SIZE_UNITS = [{ value: "px", label: "px" }, { value: "%", label: "%" }, { value: "vw", label: "vw" }, { value: "vh", label: "vh" }];
     var sizeGrid = function(nodes, part2) {
-      var ids = nodes.map(function(n) {
-        return n.id;
+      var ids = nodes.map(function(n2) {
+        return n2.id;
       });
       var a = api();
-      var free = frame2.mode !== "structured" && nodes.every(function(n) {
-        return isFree(n.style);
+      var free = frame2.mode !== "structured" && nodes.every(function(n2) {
+        return isFree(n2.style);
       });
       var measured = function(id, wide2) {
         var sz = a && a.size ? a.size(id) : null;
@@ -24980,8 +25251,8 @@
       var dim = function(wide2) {
         var short7 = wide2 ? "W" : "H", label2 = wide2 ? "Width" : "Height";
         var fkey = wide2 ? "fw" : "fh", tkey = wide2 ? "w" : "height", rkey = wide2 ? "rw" : "rh";
-        var units = nodes.map(function(n) {
-          var r = relSize(n.style[rkey]);
+        var units = nodes.map(function(n2) {
+          var r = relSize(n2.style[rkey]);
           return r ? r.unit : "px";
         });
         var unit = same4(units) ? units[0] : null;
@@ -25004,13 +25275,13 @@
         clear[fkey] = void 0;
         clear[tkey] = void 0;
         clear[rkey] = void 0;
-        var setRel = function(n, u, live) {
-          n = Math.max(1, Math.min(999, Math.round(n)));
+        var setRel = function(n2, u, live) {
+          n2 = Math.max(1, Math.min(999, Math.round(n2)));
           apply2(function() {
             var p = Object.assign({}, clear);
-            p[rkey] = n + u;
+            p[rkey] = n2 + u;
             return p;
-          }, label2 + " " + n + u, live);
+          }, label2 + " " + n2 + u, live);
         };
         var onUnit = function(u) {
           if (u === unit) return;
@@ -25033,8 +25304,8 @@
         var picker = e(Dropdown, { label: label2 + " unit", value: unit, mixed: !unit, mixedLabel: "~", options: SIZE_UNITS, compact: true, narrow: true, alignEnd: true, className: "bd-dd-unit", onChange: onUnit });
         var body;
         if (unit && unit !== "px") {
-          var ns = nodes.map(function(n) {
-            return relSize(n.style[rkey]).n;
+          var ns = nodes.map(function(n2) {
+            return relSize(n2.style[rkey]).n;
           });
           body = e(NumberField, {
             short: short7,
@@ -25052,9 +25323,9 @@
             }
           });
         } else if (free) {
-          var px = function(n) {
-            if (n.style[fkey]) return n.style[fkey] * 4;
-            var m = measured(n.id, wide2);
+          var px = function(n2) {
+            if (n2.style[fkey]) return n2.style[fkey] * 4;
+            var m = measured(n2.id, wide2);
             return m ? Math.round(m / 4) * 4 : null;
           };
           var vs = nodes.map(px);
@@ -25092,11 +25363,11 @@
       return e("div", { className: "bd-grid2" }, dim(true), dim(false), field("minW", "Min W"), field("h", "Min H"));
     };
     var selfRow = function(nodes) {
-      var ids = nodes.map(function(n) {
-        return n.id;
+      var ids = nodes.map(function(n2) {
+        return n2.id;
       });
-      var values = nodes.map(function(n) {
-        return n.style.self || "";
+      var values = nodes.map(function(n2) {
+        return n2.style.self || "";
       });
       var id = "bd-self-" + nodes[0].id;
       return e(
@@ -25134,8 +25405,8 @@
     };
     var flexSection = function(nodes, meta) {
       var first = nodes[0];
-      var ids = nodes.map(function(n) {
-        return n.id;
+      var ids = nodes.map(function(n2) {
+        return n2.id;
       });
       var base = scalars[first.type] || {};
       var spec = function(name) {
@@ -25148,8 +25419,8 @@
       };
       var val = function(name) {
         var p = spec(name);
-        var vs = nodes.map(function(n) {
-          return n.props[name] !== void 0 ? n.props[name] : base[name] !== void 0 ? base[name] : dflt(p);
+        var vs = nodes.map(function(n2) {
+          return n2.props[name] !== void 0 ? n2.props[name] : base[name] !== void 0 ? base[name] : dflt(p);
         });
         return same4(vs) ? vs[0] : void 0;
       };
@@ -25260,14 +25531,14 @@
       var id = "bd-p-" + first.id + "-" + p.name;
       var base = scalars[first.type] || {};
       var dflt = p.default != null ? p.kind === "boolean" ? p.default === "true" : p.kind === "number" ? Number(p.default) : p.default : void 0;
-      var values = nodes.map(function(n) {
-        var own2 = n.props[p.name];
+      var values = nodes.map(function(n2) {
+        var own2 = n2.props[p.name];
         return own2 !== void 0 ? own2 : base[p.name] !== void 0 ? base[p.name] : dflt;
       });
       var mixed = !same4(values);
       var current2 = mixed ? void 0 : values[0];
-      var ids = nodes.map(function(n) {
-        return n.id;
+      var ids = nodes.map(function(n2) {
+        return n2.id;
       });
       var set2 = function(v) {
         setProp(ids, p.name, v);
@@ -25409,8 +25680,8 @@
           })
         });
       } else if (p.kind === "enum" && (first.type === "Shape" && ENUM_MENU[p.name] || first.type === "Image" && p.name === "position")) {
-        if ((p.name === "start" || p.name === "end") && !nodes.every(function(n) {
-          return n.props.shape === "line";
+        if ((p.name === "start" || p.name === "end") && !nodes.every(function(n2) {
+          return n2.props.shape === "line";
         })) return null;
         var pics = ENUM_MENU[p.name];
         control2 = e(Dropdown, {
@@ -25455,12 +25726,12 @@
       } else if (p.kind === "boolean") {
         return e(Field, { key: p.name, id, label: label2, note: p.note, inline: true }, e(Switch2, { labelledBy: id, value: !!current2, mixed, onChange: set2 }));
       } else if (p.kind === "number" && first.type === "Grid" && p.name === "columns") {
-        control2 = e(Dropdown, { labelledBy: id, value: current2, mixed, onChange: set2, options: [1, 2, 3, 4, 5, 6].map(function(n) {
-          return { value: n, label: n + (n === 1 ? " column" : " columns") };
+        control2 = e(Dropdown, { labelledBy: id, value: current2, mixed, onChange: set2, options: [1, 2, 3, 4, 5, 6].map(function(n2) {
+          return { value: n2, label: n2 + (n2 === 1 ? " column" : " columns") };
         }) });
       } else if (p.kind === "number" && first.type === "Carousel" && p.name === "defaultIndex") {
-        var count0 = Math.max(1, Math.min.apply(null, nodes.map(function(n) {
-          return (n.children || []).filter(function(c) {
+        var count0 = Math.max(1, Math.min.apply(null, nodes.map(function(n2) {
+          return (n2.children || []).filter(function(c) {
             return c.type !== "Slot";
           }).length || 1;
         })));
@@ -25507,22 +25778,22 @@
         setLibBusy(null);
         if (!made.length) return;
         setLibrary(function(l) {
-          var n = Object.assign({}, l);
-          n[kind] = made.concat(l[kind]);
-          return n;
+          var n2 = Object.assign({}, l);
+          n2[kind] = made.concat(l[kind]);
+          return n2;
         });
         announce("Added " + made.length + " to " + kind + ". They stay in this browser.");
       });
     };
     var libUpdate = function(kind, id, patch) {
       setLibrary(function(l) {
-        var n = Object.assign({}, l);
-        n[kind] = l[kind].map(function(it) {
+        var n2 = Object.assign({}, l);
+        n2[kind] = l[kind].map(function(it) {
           return it.id === id ? Object.assign({}, it, patch) : it;
         }).filter(function(it) {
           return !it.removed;
         });
-        return n;
+        return n2;
       });
     };
     var cutBackground = function(src) {
@@ -25564,8 +25835,8 @@
         return false;
       }
       setBrandErr(null);
-      setBrandTick(function(n) {
-        return n + 1;
+      setBrandTick(function(n2) {
+        return n2 + 1;
       });
       return true;
     };
@@ -25629,14 +25900,14 @@
           if (!f) return null;
           incoming.forEach(function(src) {
             (src.root.children || []).forEach(function(c) {
-              var n = fresh(c);
-              if (f.bare || f.mode === "structured" || !joinsFlow(n.type)) {
-                delete n.style.x;
-                delete n.style.y;
-                delete n.style.ch;
-                delete n.style.cv;
+              var n2 = fresh(c);
+              if (f.bare || f.mode === "structured" || !joinsFlow(n2.type)) {
+                delete n2.style.x;
+                delete n2.style.y;
+                delete n2.style.ch;
+                delete n2.style.cv;
               }
-              if (ops.insert(d, "root", f.root.children.length, n, fid)) made.push(n.id);
+              if (ops.insert(d, "root", f.root.children.length, n2, fid)) made.push(n2.id);
             });
           });
           d.active = fid;
@@ -25665,15 +25936,15 @@
       }, 0);
       return first;
     };
-    var isOpen = function(n) {
-      return nodeIsOpen(n, collapsed);
+    var isOpen = function(n2) {
+      return nodeIsOpen(n2, collapsed);
     };
     useEffect(function() {
       var opens = {};
       selection.forEach(function(id) {
         var at2 = locate(doc2, id);
-        if (at2) at2.path.slice(1, -1).forEach(function(n) {
-          if (!isOpen(n)) opens[n.id] = isContainer(n.type) ? "del" : false;
+        if (at2) at2.path.slice(1, -1).forEach(function(n2) {
+          if (!isOpen(n2)) opens[n2.id] = isContainer(n2.type) ? "del" : false;
         });
       });
       if (selection.length && openFrames[doc2.active] === false) setOpenFrames(function(m) {
@@ -25683,12 +25954,12 @@
       });
       if (!Object.keys(opens).length) return;
       setCollapsed(function(c) {
-        var n = Object.assign({}, c);
+        var n2 = Object.assign({}, c);
         Object.keys(opens).forEach(function(id) {
-          if (opens[id] === "del") delete n[id];
-          else n[id] = false;
+          if (opens[id] === "del") delete n2[id];
+          else n2[id] = false;
         });
-        return n;
+        return n2;
       });
     }, [selection]);
     var isRenaming = function(id, where) {
@@ -25704,8 +25975,8 @@
     };
     var everyNode = function(fn) {
       doc2.frames.forEach(function(f) {
-        (function walk2(n) {
-          (n.children || []).forEach(function(c) {
+        (function walk2(n2) {
+          (n2.children || []).forEach(function(c) {
             fn(c);
             walk2(c);
           });
@@ -25734,7 +26005,7 @@
     };
     var openPartsSt = useState({}), openParts = openPartsSt[0], setOpenParts = openPartsSt[1];
     var placeSummary = function(nodes, free) {
-      var n = nodes[0], st = n.style || {};
+      var n2 = nodes[0], st = n2.style || {};
       if (nodes.length > 1) return nodes.length + " layers";
       var pos = free ? "Free" : st.position ? words(st.position) : "In flow";
       var side2 = function(fk, tk, rk) {
@@ -25755,11 +26026,11 @@
         closed: empty || isClosed(key, changed),
         onToggle: empty ? void 0 : function() {
           setClosedSecs(function(c) {
-            var n = Object.assign({}, c), was = isClosed(key, changed);
-            if (FOLDED_FIRST[key]) n[key] = !was;
-            else if (was) delete n[key];
-            else n[key] = true;
-            return n;
+            var n2 = Object.assign({}, c), was = isClosed(key, changed);
+            if (FOLDED_FIRST[key]) n2[key] = !was;
+            else if (was) delete n2[key];
+            else n2[key] = true;
+            return n2;
           });
         }
       }, children);
@@ -25768,17 +26039,17 @@
       return DATA.tokens[k].section === "spacing";
     });
     var styled = function(nodes, keys2) {
-      return nodes.some(function(n) {
+      return nodes.some(function(n2) {
         return keys2.some(function(k) {
-          return n.style[k] !== void 0;
+          return n2.style[k] !== void 0;
         });
       });
     };
     var propsSet = function(nodes, names) {
-      return nodes.some(function(n) {
-        var base = scalars[n.type] || {};
+      return nodes.some(function(n2) {
+        var base = scalars[n2.type] || {};
         return names.some(function(k) {
-          var v = n.props[k];
+          var v = n2.props[k];
           return v !== void 0 && v !== base[k];
         });
       });
@@ -25807,40 +26078,40 @@
       return e("button", { type: "button", className: "bd-act bd-act-ghost", title: label2, "aria-label": label2, "aria-pressed": pressed === void 0 ? void 0 : String(pressed), onClick }, e(Icon, { name: icon }));
     };
     var lookSections = function(nodes, extra) {
-      var ids = nodes.map(function(n) {
-        return n.id;
+      var ids = nodes.map(function(n2) {
+        return n2.id;
       });
       var first = nodes[0];
       var sidesOf = DATA.tokens.border.sides;
-      var hasBorder = nodes.some(function(n) {
-        return n.style.border || sidesOf.some(function(k) {
-          return n.style[k];
+      var hasBorder = nodes.some(function(n2) {
+        return n2.style.border || sidesOf.some(function(k) {
+          return n2.style[k];
         });
       });
-      var lines = nodes.every(function(n) {
-        return n.type === "Shape" && n.props.shape === "line";
+      var lines = nodes.every(function(n2) {
+        return n2.type === "Shape" && n2.props.shape === "line";
       });
-      var shadowValues = nodes.map(function(n) {
-        return n.style.elevation || "";
+      var shadowValues = nodes.map(function(n2) {
+        return n2.style.elevation || "";
       });
       var cornersOf = DATA.tokens.radius.sides || [];
-      var hasRadius = nodes.some(function(n) {
-        return n.style.radius || cornersOf.some(function(k) {
-          return n.style[k];
+      var hasRadius = nodes.some(function(n2) {
+        return n2.style.radius || cornersOf.some(function(k) {
+          return n2.style[k];
         });
       });
-      var hasShadow = nodes.some(function(n) {
-        return n.style.elevation;
+      var hasShadow = nodes.some(function(n2) {
+        return n2.style.elevation;
       });
-      var darkValues = nodes.map(function(n) {
-        return !!n.style.dark;
+      var darkValues = nodes.map(function(n2) {
+        return !!n2.style.dark;
       });
       var rid = "bd-radius-" + first.id, sid = "bd-shadow-" + first.id, mid = "bd-mode-" + first.id;
       var free = frame2.mode !== "structured";
-      var fills = nodes.map(function(n) {
-        return n.style.fill || "";
-      }), inks = nodes.map(function(n) {
-        return n.style.color || "";
+      var fills = nodes.map(function(n2) {
+        return n2.style.fill || "";
+      }), inks = nodes.map(function(n2) {
+        return n2.style.color || "";
       });
       var fillHex = same4(fills) ? fills[0] : "", inkHex = same4(inks) ? inks[0] : "";
       var picker = function(key, value2, label2, clears) {
@@ -25856,26 +26127,26 @@
           }
         });
       };
-      var blendValues = nodes.map(function(n) {
-        return n.style.blend || "";
+      var blendValues = nodes.map(function(n2) {
+        return n2.style.blend || "";
       });
-      var invValues = nodes.map(function(n) {
-        return n.style.invert === "on";
+      var invValues = nodes.map(function(n2) {
+        return n2.style.invert === "on";
       });
       var lid = "bd-layer-" + first.id;
-      var textOnly = nodes.every(function(n) {
-        return TEXT_TYPES[n.type];
+      var textOnly = nodes.every(function(n2) {
+        return TEXT_TYPES[n2.type];
       });
-      var picturesOnly = nodes.every(function(n) {
-        return PICTURE_TYPES[n.type];
+      var picturesOnly = nodes.every(function(n2) {
+        return PICTURE_TYPES[n2.type];
       });
       var blendNow = same4(blendValues) ? blendValues[0] : null;
       var blendOpt = blendNow ? DATA.tokens.blend.options.filter(function(o) {
         return o.value === blendNow;
       })[0] : null;
       var darkOn = same4(darkValues) && darkValues[0];
-      var surfaces = nodes.map(function(n) {
-        return n.style.surface || "";
+      var surfaces = nodes.map(function(n2) {
+        return n2.style.surface || "";
       });
       var surfaceNow = same4(surfaces) ? surfaces[0] : null;
       var darkToggle = headAction("moon", darkOn ? "Dark band: everything inside resolves dark. Press for inherit." : "Make this a dark band", function() {
@@ -25902,18 +26173,18 @@
               }
             })
           ),
-          nodes.every(function(n) {
-            return n.type === "Group" && n.style.bool;
+          nodes.every(function(n2) {
+            return n2.type === "Group" && n2.style.bool;
           }) ? e(
             Field,
             { key: "bool", id: lid + "-bool", label: "Combine", hint: "Off shows the shapes as they are" },
             e(Dropdown, {
               labelledBy: lid + "-bool",
-              value: same4(nodes.map(function(n) {
-                return n.style.bool;
+              value: same4(nodes.map(function(n2) {
+                return n2.style.bool;
               })) ? nodes[0].style.bool : null,
-              mixed: !same4(nodes.map(function(n) {
-                return n.style.bool;
+              mixed: !same4(nodes.map(function(n2) {
+                return n2.style.bool;
               })),
               className: "bd-dd-field",
               iconValue: true,
@@ -25925,8 +26196,8 @@
               }
             })
           ) : null,
-          nodes.every(function(n) {
-            return n.type === "Group";
+          nodes.every(function(n2) {
+            return n2.type === "Group";
           }) ? e(
             Field,
             { key: "clip", id: lid + "-clip", label: "Clip content", hint: "Cuts off what reaches past its edge" },
@@ -25940,11 +26211,11 @@
             } })
           ) : null,
           free ? (function() {
-            var alphas = nodes.map(function(n) {
-              return typeof n.style.alpha === "number" ? n.style.alpha : n.style.opacity ? null : 100;
+            var alphas = nodes.map(function(n2) {
+              return typeof n2.style.alpha === "number" ? n2.style.alpha : n2.style.opacity ? null : 100;
             });
-            var role = nodes.map(function(n) {
-              return n.style.opacity;
+            var role = nodes.map(function(n2) {
+              return n2.style.opacity;
             }).filter(Boolean)[0];
             return e(
               Field,
@@ -25961,8 +26232,8 @@
             tokenDropdown("opacity", nodes, lid + "-op", { label: "Opacity", noneLabel: "Opaque", className: "bd-dd-field", noPreview: true })
           )
         ], (function() {
-          var hidden = nodes.every(function(n) {
-            return n.hide;
+          var hidden = nodes.every(function(n2) {
+            return n2.hide;
           });
           return headAction(hidden ? "eyeOff" : "eye", hidden ? "Hidden: press to show (Ctrl+Shift+H)" : "Visible: press to hide (Ctrl+Shift+H)", actions2.hide, hidden);
         })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "clip", "bool"])),
@@ -26087,17 +26358,17 @@
     };
     var POSITION_DEFAULT_ANCHOR = { sticky: "", pinned: "bottom-right", floating: "top-right" };
     var positionRows = function(nodes) {
-      var ids = nodes.map(function(n) {
-        return n.id;
+      var ids = nodes.map(function(n2) {
+        return n2.id;
       });
-      if (frame2.mode !== "structured" && nodes.every(function(n) {
-        return isFree(n.style);
+      if (frame2.mode !== "structured" && nodes.every(function(n2) {
+        return isFree(n2.style);
       })) {
         var unit = pxMap["padding|2xs"] || 4;
-        var xs = nodes.map(function(n) {
-          return n.style.x;
-        }), ys = nodes.map(function(n) {
-          return n.style.y;
+        var xs = nodes.map(function(n2) {
+          return n2.style.x;
+        }), ys = nodes.map(function(n2) {
+          return n2.style.y;
         });
         var fid2 = "bd-free-" + nodes[0].id;
         return [
@@ -26116,8 +26387,8 @@
               } }),
               sizeGrid(nodes, "dims"),
               (function() {
-                var rs = nodes.map(function(n) {
-                  return n.style.rot || 0;
+                var rs = nodes.map(function(n2) {
+                  return n2.style.rot || 0;
                 });
                 return e(NumberField, {
                   short: "↻",
@@ -26146,11 +26417,11 @@
           } }, "Put it in the flow")
         ];
       }
-      var pv = nodes.map(function(n) {
-        return n.style.position || "";
+      var pv = nodes.map(function(n2) {
+        return n2.style.position || "";
       });
-      var av = nodes.map(function(n) {
-        return n.style.anchor || "";
+      var av = nodes.map(function(n2) {
+        return n2.style.anchor || "";
       });
       var position = same4(pv) ? pv[0] : null;
       var anchor = same4(av) ? av[0] : null;
@@ -26183,8 +26454,8 @@
           )
         ) : null,
         (function() {
-          var zv = nodes.map(function(n) {
-            return n.style.z || "";
+          var zv = nodes.map(function(n2) {
+            return n2.style.z || "";
           });
           var zid = "bd-z-" + nodes[0].id;
           var z = same4(zv) ? zv[0] : null;
@@ -26504,10 +26775,10 @@
               "button",
               { type: "button", className: "bd-part-name", "aria-expanded": String(open), onClick: function() {
                 setOpenParts(function(o) {
-                  var n = Object.assign({}, o);
-                  if (n[c.id]) delete n[c.id];
-                  else n[c.id] = true;
-                  return n;
+                  var n2 = Object.assign({}, o);
+                  if (n2[c.id]) delete n2[c.id];
+                  else n2[c.id] = true;
+                  return n2;
                 });
               } },
               e(Icon, { name: c.inst ? "component" : typeIcon(c.type) }),
@@ -26593,8 +26864,8 @@
                 step: 1,
                 bigStep: 4,
                 onChange: function(v) {
-                  var n = Math.max(1, Math.min(COLUMNS_MAX, Math.round(v || 0)));
-                  setFrame("columns", n, frame2.name + " shows " + n + " columns");
+                  var n2 = Math.max(1, Math.min(COLUMNS_MAX, Math.round(v || 0)));
+                  setFrame("columns", n2, frame2.name + " shows " + n2 + " columns");
                   if (!viewRef.current.columns) toggleView("columns", true);
                 }
               }),
@@ -26939,8 +27210,8 @@
       var first = nodes[0];
       var many = nodes.length > 1;
       if (!many && part && part.id === first.id) return partInspector(first, part);
-      var sameType = nodes.every(function(n) {
-        return n.type === first.type;
+      var sameType = nodes.every(function(n2) {
+        return n2.type === first.type;
       });
       var meta = sameType ? META[first.type] || { props: [] } : { props: [] };
       var base = scalars[first.type] || {};
@@ -26952,12 +27223,12 @@
       var textId = "bd-text-" + first.id;
       var hasText = sameType && !meta.container && !meta.builder && (typeof base.children === "string" || typeof first.props.children === "string");
       var columnsId = "bd-cols-" + first.id;
-      var ids = nodes.map(function(n) {
-        return n.id;
+      var ids = nodes.map(function(n2) {
+        return n2.id;
       });
       var selected = !many ? locate(doc2, first.id) : null;
-      var textValues = nodes.map(function(n) {
-        return n.props.children != null ? String(n.props.children) : String(base.children || "");
+      var textValues = nodes.map(function(n2) {
+        return n2.props.children != null ? String(n2.props.children) : String(base.children || "");
       });
       var colourProp = sameType && (TEXT_TYPES[first.type] || first.type === "Icon") ? meta.props.filter(function(p) {
         return p.name === "tone";
@@ -27007,8 +27278,8 @@
           return p.name;
         }).concat(t === "content" && hasText ? ["children"] : []).concat(t === "content" && colourProp ? ["tone"] : []).concat(t === "layout" && first.type === "Grid" ? ["minColumnWidth"] : []);
       };
-      var placedFree = frame2.mode !== "structured" && nodes.every(function(n) {
-        return isFree(n.style);
+      var placedFree = frame2.mode !== "structured" && nodes.every(function(n2) {
+        return isFree(n2.style);
       });
       var autoGroup = !many && first.type === "Group" && !first.style.bool && frame2.mode !== "structured" && !frame2.bare;
       var groupOn = autoGroup && groupFlows(first);
@@ -27099,15 +27370,15 @@
                 }).map(function(w) {
                   return { value: "wrap:" + w, label: "Wrap in " + w, icon: typeIcon(w) };
                 })).concat(!many && detachable[first.type] ? [{ value: "detach", label: "Detach into primitives", icon: "detach" }] : []).concat(!many ? [{ value: "link", label: "Copy link to this layer", icon: "link" }, { value: "same", label: "Select all " + first.type + (first.type.endsWith("s") ? "" : "s"), icon: "layers2" }] : []).concat([{ value: "copyStyle", label: "Copy style", hint: "Ctrl+Alt+C", icon: "swatch" }, { value: "pasteStyle", label: "Paste style", hint: "Ctrl+Alt+V", icon: "swatch", disabled: !styleClip.current }]).concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component" }]).concat([
-                  { value: "hide", label: nodes.every(function(n) {
-                    return n.hide;
-                  }) ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: nodes.every(function(n) {
-                    return n.hide;
+                  { value: "hide", label: nodes.every(function(n2) {
+                    return n2.hide;
+                  }) ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: nodes.every(function(n2) {
+                    return n2.hide;
                   }) ? "eye" : "eyeOff" },
-                  { value: "lock", label: nodes.every(function(n) {
-                    return n.lock;
-                  }) ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: nodes.every(function(n) {
-                    return n.lock;
+                  { value: "lock", label: nodes.every(function(n2) {
+                    return n2.lock;
+                  }) ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: nodes.every(function(n2) {
+                    return n2.lock;
                   }) ? "lockOpen" : "lock" }
                 ]),
                 onChange: function(v) {
@@ -27165,13 +27436,13 @@
       var last = sel ? locate(doc2, sel) : null;
       if (last) {
         var many = selection.length > 1;
-        last.path.forEach(function(n, i) {
+        last.path.forEach(function(n2, i) {
           var isLast = i === last.path.length - 1 && !many && !part;
-          var name = n.type === "Root" ? frame2.name : nameOf(n);
-          crumbs.push(sep(n.id));
-          crumbs.push(isLast ? e("span", { key: n.id, className: "bd-crumb", "aria-current": "true" }, name) : e("button", { key: n.id, type: "button", className: "bd-crumb", onClick: function() {
+          var name = n2.type === "Root" ? frame2.name : nameOf(n2);
+          crumbs.push(sep(n2.id));
+          crumbs.push(isLast ? e("span", { key: n2.id, className: "bd-crumb", "aria-current": "true" }, name) : e("button", { key: n2.id, type: "button", className: "bd-crumb", onClick: function() {
             setPart(null);
-            select(n.id === "root" ? [] : [n.id]);
+            select(n2.id === "root" ? [] : [n2.id]);
           } }, name));
         });
         if (many) crumbs.push(sep("many"), e("span", { key: "many", className: "bd-crumb", "aria-current": "true" }, selection.length + " layers"));
@@ -27389,9 +27660,9 @@
         return;
       }
       setLastTool(function(m) {
-        var n = Object.assign({}, m);
-        n[it.group || TOOL_INFO[it.id].group] = it.id;
-        return n;
+        var n2 = Object.assign({}, m);
+        n2[it.group || TOOL_INFO[it.id].group] = it.id;
+        return n2;
       });
       setTray(null);
       placeTool(it.id, null);
@@ -27598,10 +27869,10 @@
         setSizing(null);
         setReadout(null);
         if (first) return;
-        var n = locate(docRef.current, id);
-        if (!n) return;
-        var st = n.node.style;
-        announce(nameOf(n.node) + (st.fw ? " is " + st.fw * 4 + " wide" : st.w ? " is " + st.w + " wide" : "") + (st.fh ? ", " + st.fh * 4 + " tall" : st.height ? ", " + st.height + " tall" : ""));
+        var n2 = locate(docRef.current, id);
+        if (!n2) return;
+        var st = n2.node.style;
+        announce(nameOf(n2.node) + (st.fw ? " is " + st.fw * 4 + " wide" : st.w ? " is " + st.w + " wide" : "") + (st.fh ? ", " + st.fh * 4 + " tall" : st.height ? ", " + st.height + " tall" : ""));
       };
       window.addEventListener("pointermove", move);
       window.addEventListener("pointerup", up);
@@ -28082,10 +28353,10 @@
       );
     };
     var PADDING_KEYS = ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft"];
-    var inspector = selectedNodes.length === 1 && selectedNodes[0].type === "Slot" ? slotInspector(selectedNodes[0]) || frameInspector() : selectedNodes.length ? nodeInspector(selectedNodes.filter(function(n) {
-      return n.type !== "Slot";
-    }).length ? selectedNodes.filter(function(n) {
-      return n.type !== "Slot";
+    var inspector = selectedNodes.length === 1 && selectedNodes[0].type === "Slot" ? slotInspector(selectedNodes[0]) || frameInspector() : selectedNodes.length ? nodeInspector(selectedNodes.filter(function(n2) {
+      return n2.type !== "Slot";
+    }).length ? selectedNodes.filter(function(n2) {
+      return n2.type !== "Slot";
     }) : selectedNodes) : frameOn ? frameInspector() : builderInspector();
     var closeShown = useEvent(function() {
       setShown(null);
@@ -28210,8 +28481,8 @@
       setIcon: onSetItemIcon,
       announce
     };
-    var onInsertWith = useEvent(function(type, props2) {
-      add(type, null, props2);
+    var onInsertWith = useEvent(function(type, props2, extra) {
+      add(type, null, props2, extra);
     });
     var onAddOrSwap = useEvent(function(type, swap) {
       var s0 = selRef.current;
@@ -28226,8 +28497,8 @@
       return frameOps.add(size, page, at2, opts);
     });
     var picked = useMemo(function() {
-      return nodesOf2(selection).filter(function(n) {
-        return n.type !== "Slot";
+      return nodesOf2(selection).filter(function(n2) {
+        return n2.type !== "Slot";
       });
     }, [selection, doc2]);
     var pickedScope = useMemo(function() {
@@ -28288,7 +28559,7 @@
     useEffect(function() {
       if (left !== "assistant") setAgentSheet(false);
     }, [left]);
-    var slot2 = wide ? document.getElementById("app-toolbar") : null;
+    var slot3 = wide ? document.getElementById("app-toolbar") : null;
     function toggleAgentSheet(on) {
       if (on) {
         setLeft("assistant");
@@ -28303,7 +28574,7 @@
     return e(
       React.Fragment,
       null,
-      slot2 ? ReactDOM.createPortal(toolbar, slot2) : null,
+      slot3 ? ReactDOM.createPortal(toolbar, slot3) : null,
       home ? null : e(
         "div",
         { className: "bd-tabs", role: "tablist", "aria-label": "Builder panels" },
@@ -28484,7 +28755,7 @@
             left === "configure" ? e(SearchField, { className: "bd-search-dock", label: "Search settings", placeholder: "Search settings", value: configQuery, onChange: setConfigQuery }) : left === "pages" ? e(SearchField, { className: "bd-search-dock", label: "Filter pages", placeholder: "Filter pages", value: pageQuery, onChange: setPageQuery }) : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery }) : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }) : left === "assistant" ? null : left === "context" ? e(SearchField, { className: "bd-search-dock", label: "Filter context", placeholder: "Filter docs and skills", value: contextQuery, onChange: setContextQuery }) : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })
           )
         ),
-        e("div", { className: "bd-center" }, slot2 ? null : toolbar, stage),
+        e("div", { className: "bd-center" }, slot3 ? null : toolbar, stage),
         e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || rightClosed || void 0 }, inspector),
         wide && !hidePanels && !home ? [panelHandle("left"), panelHandle("right")] : null
       ),
@@ -28502,7 +28773,7 @@
         confirmDel,
         dark,
         account: account2,
-        toolbar: slot2 ? null : toolbar,
+        toolbar: slot3 ? null : toolbar,
         setQuery: setProjQuery,
         setSort: homeSetSort,
         setRenamingProj,

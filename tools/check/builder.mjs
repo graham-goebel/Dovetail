@@ -745,11 +745,11 @@ try {
     await emptyFrame(page);
     await category(page, "Display");
     await page.locator('.bd-tile[data-type="Badge"]').first().click();
-    await page.locator(".bd-cd .bd-cd-preview").waitFor();
+    await page.locator(".bd-cd > .bd-cd-preview").waitFor();
     expect(await frame().locator('[data-bf-type="Badge"]').count() === 0, "pressing the tile opens its page and adds nothing yet");
     const text = page.locator(".bd-cd input[type=text]").first();
     await text.fill("Limited run");
-    await page.waitForFunction(() => /Limited run/.test(document.querySelector(".bd-cd-preview")?.textContent || ""));
+    await page.waitForFunction(() => /Limited run/.test(document.querySelector(".bd-cd > .bd-cd-preview")?.textContent || ""));
     ok("pressing Badge opens its page; typed words show in the live preview, and nothing is placed yet");
     await page.locator(".bd-cd-insert").click();
     await frame().waitForFunction(() => /Limited run/.test(document.querySelector('[data-bf-type="Badge"]')?.textContent || ""));
@@ -759,6 +759,54 @@ try {
     expect(book >= 1, "the docs link sits in the inspector head");
     ok("the inspector opens its own properties in a box in the component colour, under its name");
     await page.close();
+  });
+
+  await step("Examples on a component's page: Card's live examples, one picked fills the preview and Insert brings its slots; a block's examples, one dragged onto the frame", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    await startFrom(page, "Blank frame");
+    await emptyFrame(page);
+    await page.locator(".bd-search-dock input").fill("card");
+    await page.locator('.bd-tile[data-type="Card"]').first().click();
+    await page.locator(".bd-cd-ex").first().waitFor();
+    const names = await page.locator(".bd-cd-ex-name").allTextContents();
+    expect(names.length >= 4 && names.includes("Plan") && names.includes("Selected"), `Card shows its examples, got ${names.join(", ")}`);
+    expect(await page.locator('.bd-cd-ex[data-example="Plan"] .bd-cd-stage').evaluate((el) => /Starter/.test(el.textContent) && /Choose/.test(el.textContent)), "each example is drawn live, slots and all");
+    ok("Card's page shows its examples live under the preview");
+    await page.locator('.bd-cd-ex[data-example="Plan"]').click();
+    await page.waitForFunction(() => { const t = document.querySelector(".bd-cd > .bd-cd-preview")?.textContent || ""; return /Starter/.test(t) && /Choose/.test(t); });
+    expect(await page.locator('.bd-cd-ex[data-example="Plan"]').getAttribute("aria-pressed") === "true", "the picked example shows as pressed");
+    ok("pressing an example starts the preview from it");
+    await page.locator(".bd-cd-insert").click();
+    await frame().waitForFunction(() => { const c = document.querySelector('[data-bf-type="Card"]'); return !!c && /Starter/.test(c.textContent) && !!c.querySelector('[data-bf-type="Slot"] [data-bf-type="Button"]'); });
+    const card = await page.evaluate(() => window.__builder.doc().frames[0].root.children.filter((c) => c.type === "Card")[0]);
+    const footer = (card.children || []).filter((c) => c.type === "Slot" && c.props.name === "footer")[0];
+    expect(card.props.title === "Starter" && footer && footer.children[0].type === "Button" && footer.children[0].props.children === "Choose", "the placed Card holds its footer Button in its slot");
+    ok("Insert places the example with what's in its slots");
+    await page.locator('.bd-cd button[aria-label="Back to the components"]').click();
+    await category(page, "Blocks");
+    await page.locator('.bd-tile[data-type="HeroBlock"]').first().click();
+    await page.locator('.bd-cd-ex[data-example="Centred"]').waitFor();
+    expect(await page.locator(".bd-cd-ex-list.is-wide").count() === 1, "a block's examples sit one across");
+    const from = await page.locator('.bd-cd-ex[data-example="Centred"]').boundingBox();
+    const to = await page.locator("iframe.bd-frame").first().boundingBox();
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 12 });
+    await page.mouse.up();
+    await page.waitForFunction(() => window.__builder.doc().frames[0].root.children.some((c) => c.type === "HeroBlock" && c.props.layout === "centered"));
+    ok("a block's example drags onto the frame as set");
+    await page.close();
+    /* On a phone the examples fit the pane, and nothing scrolls sideways. */
+    const phone = await open({ width: 390, height: 844 });
+    await phone.page.locator(".bd-tabs [role=tab]", { hasText: "Add" }).click();
+    await category(phone.page, "Blocks");
+    await phone.page.locator('.bd-tile[data-type="CtaBlock"]').first().click();
+    await phone.page.locator('.bd-cd-ex[data-example="Dark"]').waitFor();
+    if (process.env.GALLERY_SHOTS) await phone.page.screenshot({ path: process.env.GALLERY_SHOTS + "/phone.png" });
+    const fit = await phone.page.evaluate(() => { const ex = document.querySelector(".bd-cd-ex .bd-cd-preview").getBoundingClientRect(); return { right: Math.round(ex.right), scroll: document.documentElement.scrollWidth }; });
+    expect(fit.right <= 390 && fit.scroll <= 390, `the examples fit a phone, got ${JSON.stringify(fit)}`);
+    ok("on a phone a block's examples fit the pane");
+    await phone.page.close();
   });
 
   await step("Shift+A wraps a layer in an auto layout Group; two selected free shapes drag together; nothing selected shows the canvas's switches", async () => {
