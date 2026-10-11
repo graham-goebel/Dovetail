@@ -168,3 +168,35 @@ test("the Playground stays in this browser", async () => {
   assert.equal(sb.db.projects.length, 0);
   assert.equal(sb.db.file_groups.length, 0);
 });
+
+test("a save that can't go up is marked, and the next sync sends it", async () => {
+  const { store, hub, sb } = await started("u1", async (s) => { await s.createProject("Kiln site", doc("Kiln")); });
+  const meta = (await store.listProjects())[0];
+  const real = sb.from;
+  sb.from = (table) => { if (table === "pages") throw new Error("Failed to fetch"); return real(table); };
+  await store.saveDoc(meta.id, doc("Kiln, offline"));
+  assert.equal(hub.state().pending, 1, "the save is waiting");
+  await tick(900);
+  await hub.sync().catch(() => {});
+  assert.deepEqual((await store.getProject(meta.id)).cloudDirty, { main: true }, "the page is marked to go again");
+  assert.equal(hub.state().pending, 0);
+  sb.from = real;
+  await hub.sync();
+  assert.equal(headingOf(sb.db.pages[0].doc), "Kiln, offline", "the next sync sent it");
+  assert.deepEqual((await store.getProject(meta.id)).cloudDirty, {});
+});
+
+test("a file moved out of the Playground goes up", async () => {
+  let g, file;
+  const { store, sb } = await started("u1", async (s) => {
+    g = await s.createGroup("Playground", { kind: "playground" });
+    file = await s.createProject("Getting started", doc("Hi"), { group: g.id });
+  });
+  assert.equal(sb.db.projects.length, 0);
+  await store.moveFile(file.id, null);
+  await tick(900);
+  await tick(50);
+  assert.equal(sb.db.projects.length, 1, "it's in the cloud");
+  assert.equal(sb.db.projects[0].name, "Getting started");
+  assert.ok((await store.getProject(file.id)).cloud);
+});

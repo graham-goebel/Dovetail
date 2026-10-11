@@ -294,6 +294,20 @@ function columnsOf(f) { return f.columns || (f.width < 600 ? 4 : f.width < 1024 
 var HEX = /^#[0-9a-f]{6}$/i;
 function isFree(st) { return !!st && typeof st.x === "number" && typeof st.y === "number"; }
 
+/* Auto layout, on or off. A Group lays out what it holds in a row or a
+   column once nothing in it is placed freely. A structured frame always
+   does; a freeform one does once it has a flow of its own and nothing on
+   its page is placed freely. */
+function groupFlows(n) { return !!n && !(n.children || []).some(function (c) { return isFree(c.style); }); }
+function frameFlows(f) { return !!f && (f.mode === "structured" || (!!f.flow && !(f.root.children || []).some(function (c) { return isFree(c.style); }))); }
+/* What a layer placed freely keeps that a layer in a flow doesn't: where
+   it is, its pins and its turn; and its drawn size, except a shape's or a
+   picture's, which keeps it. */
+function unfreeze(c) {
+  ["x", "y", "ch", "cv", "rot", "flipH", "flipV"].concat(c.type === "Shape" || c.type === "Image" ? [] : ["fw", "fh"]).forEach(function (k) { delete c.style[k]; });
+  return c;
+}
+
 /* Constraints: across, a free layer keeps to its frame's
    left edge (the default), its right, both (it stretches), its centre, or
    scales with it; down, the same with top and bottom. */
@@ -554,4 +568,4 @@ function clean(doc, report) {
   return out;
 }
 
-export { COLUMNS_MAX, GUIDES_MAX, columnsOf, H_PINS, V_PINS, constrain, CONVERTS, FREE_MAX, HEX, SAFE_HREF, active, autoLayout, canHold, clean, cleanFrame, cleanList, cleanNode, cleanSlot, copy, emptyDoc, fixed, fixedSpot, frameById, fresh, isFree, locate, relSize, make, makeFrame, note, ops, parentSpot, presetOf, seq, settle, side, tokenOption, uid };
+export { frameFlows, groupFlows, unfreeze, COLUMNS_MAX, GUIDES_MAX, columnsOf, H_PINS, V_PINS, constrain, CONVERTS, FREE_MAX, HEX, SAFE_HREF, active, autoLayout, canHold, clean, cleanFrame, cleanList, cleanNode, cleanSlot, copy, emptyDoc, fixed, fixedSpot, frameById, fresh, isFree, locate, relSize, make, makeFrame, note, ops, parentSpot, presetOf, seq, settle, side, tokenOption, uid };

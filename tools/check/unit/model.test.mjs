@@ -343,3 +343,17 @@ test("a layer order comes back from pasted JSX, with the position it rode on and
   const floated = readLayout(`<div style={{ position: "absolute", zIndex: "var(--dt-z-raised)", display: "flex" }} />`).doc.frames[0].root.children[0];
   assert.equal(floated.style.position, "floating", "a floating Group pastes back floating");
 });
+
+test("auto layout is on for a Group with nothing placed freely, and for a frame that's structured or has a flow and nothing free", async () => {
+  const { groupFlows, frameFlows, unfreeze } = await import("../../../assets/builder/model/tree.js");
+  const free = { type: "Shape", style: { x: 1, y: 2, fw: 4, fh: 4, rot: 10 } };
+  const text = { type: "Text", style: { x: 1, y: 2, fw: 20 } };
+  assert.equal(groupFlows({ children: [] }), true, "an empty Group lays out");
+  assert.equal(groupFlows({ children: [{ style: {} }, free] }), false, "one free child and it doesn't");
+  assert.equal(frameFlows({ mode: "structured", root: { children: [free] } }), true);
+  assert.equal(frameFlows({ mode: "free", root: { children: [] } }), false, "a freeform frame needs a flow");
+  assert.equal(frameFlows({ mode: "free", flow: { direction: "column" }, root: { children: [{ style: {} }] } }), true);
+  assert.equal(frameFlows({ mode: "free", flow: { direction: "column" }, root: { children: [free] } }), false);
+  assert.deepEqual(unfreeze(JSON.parse(JSON.stringify(free))).style, { fw: 4, fh: 4 }, "a shape keeps its size, nothing else");
+  assert.deepEqual(unfreeze(JSON.parse(JSON.stringify(text))).style, {}, "text sizes itself in a flow");
+});

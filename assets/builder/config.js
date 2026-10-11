@@ -130,7 +130,7 @@ var SHORTCUTS = [
     ["Spread across, down", "Shift+Alt+H, Shift+Alt+V"], ["Tidy up", "Shift+Alt+T"]]],
   ["On a freeform canvas", [["Nudge, four steps", "Arrows, Shift+Arrows"], ["Opacity 10% to 90%, opaque", "1 to 9, 0"], ["Keep proportions while resizing", "Shift-drag"],
     ["Resize from the centre", "Alt-drag"], ["Keep to one axis, once moving", "Shift"], ["Drag a copy", "Alt-drag"], ["Turn in 15° steps, while turning", "Shift"],
-    ["Move without snapping, held", "Ctrl"], ["Flip across, down", "Shift+H, Shift+V"], ["Auto layout on a free group, or free again", "Shift+A"]]],
+    ["Move without snapping, held", "Ctrl"], ["Flip across, down", "Shift+H, Shift+V"], ["Add or remove auto layout on a group, or the frame with nothing selected", "Shift+A"]]],
   ["Components", [["Swap for another", "Cmd-drag"], ["Step a heading's size", "Shift+Up, Shift+Down"]]],
 ];
 var STYLE_KEYS = Object.keys(DATA.tokens);

@@ -111,14 +111,20 @@ the mirror watches it and sends each change on:
   in `settings`, and a `pages` row per page); cloud files this browser lacks
   are downloaded; a file both have is brought level page by page. Home's
   projects mirror to `file_groups`. The Playground the Builder makes for
-  itself stays local.
+  itself stays local; moving a file out of it (Home's ⋯ menu, or "Move out
+  of the Playground" in Share) sends it up straight away.
 - **Each save** goes up a moment later, naming the page version it was made
   from. If someone saved that page first, the cloud wins: what was here is
   kept under Versions as "Before reloading from the cloud", and the cloud's
   copy replaces it on the canvas.
 - **Offline**, saves land here and the page is marked to go up on the next
   sync, which runs when the browser is back online, when the tab wakes, and
-  on sign-in. The Account dialog says how the last sync went.
+  on sign-in. A send that fails for any reason is marked the same way, as is
+  one still waiting when you sign out.
+- **Where a file is kept** shows as a cloud mark in the top bar and a line in
+  Share (`cloud/status.js`): in the cloud and up to date, syncing, offline,
+  failed, or only in this browser (the Playground). On a phone the mark shows
+  only when something needs attention.
 - **Deleting** a file here deletes it in the cloud (only its owner can; a
   file shared with you comes back on the next sync until sharing has a
   "leave"). A file deleted elsewhere stays here as a file of its own.

@@ -331,7 +331,7 @@
       ["Turn in 15° steps, while turning", "Shift"],
       ["Move without snapping, held", "Ctrl"],
       ["Flip across, down", "Shift+H, Shift+V"],
-      ["Auto layout on a free group, or free again", "Shift+A"]
+      ["Add or remove auto layout on a group, or the frame with nothing selected", "Shift+A"]
     ]],
     ["Components", [["Swap for another", "Cmd-drag"], ["Step a heading's size", "Shift+Up, Shift+Down"]]]
   ];
@@ -2130,6 +2130,22 @@
   var HEX = /^#[0-9a-f]{6}$/i;
   function isFree(st) {
     return !!st && typeof st.x === "number" && typeof st.y === "number";
+  }
+  function groupFlows(n) {
+    return !!n && !(n.children || []).some(function(c) {
+      return isFree(c.style);
+    });
+  }
+  function frameFlows(f) {
+    return !!f && (f.mode === "structured" || !!f.flow && !(f.root.children || []).some(function(c) {
+      return isFree(c.style);
+    }));
+  }
+  function unfreeze(c) {
+    ["x", "y", "ch", "cv", "rot", "flipH", "flipV"].concat(c.type === "Shape" || c.type === "Image" ? [] : ["fw", "fh"]).forEach(function(k) {
+      delete c.style[k];
+    });
+    return c;
   }
   var H_PINS = ["left", "right", "both", "center", "scale"];
   var V_PINS = ["top", "bottom", "both", "center", "scale"];
@@ -7627,6 +7643,8 @@
     close: ["M6 6l12 12", "M18 6 6 18"],
     search: ["M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z", "m20 20-3.5-3.5"],
     check: ["m5 12 5 5 9-10"],
+    cloud: ["M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z"],
+    cloudOff: ["M7 18a4 4 0 0 1-.6-7.96 6 6 0 0 1 1.9-3.3", "M11 4.1A6 6 0 0 1 18 9a4.5 4.5 0 0 1 2.2 8.1", "M17 18H7", "M3 3l18 18"],
     alert: ["M12 8v5", "M12 16h.01", "M10.3 3.9 2.5 17.5A2 2 0 0 0 4.2 20.5h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"],
     phone: ["M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z", "M11 18h2"],
     tablet: ["M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z", "M11 18h2"],
@@ -14884,8 +14902,8 @@
     if (c.status === "syncing") return base + "Syncing…";
     if (c.status === "offline") return base + "You're offline: changes are saved here and go up when you're back.";
     if (c.status === "error") return base + "The last sync didn't finish" + (c.error ? ": " + c.error : ".") + " It tries again on the next change.";
-    var ago3 = c.at ? Math.round((Date.now() - c.at) / 1e3) : null;
-    return base + (ago3 == null ? "" : ago3 < 45 ? "Synced just now." : ago3 < 3600 ? "Synced " + Math.round(ago3 / 60) + " min ago." : "Synced " + Math.round(ago3 / 3600) + " h ago.");
+    var ago4 = c.at ? Math.round((Date.now() - c.at) / 1e3) : null;
+    return base + (ago4 == null ? "" : ago4 < 45 ? "Synced just now." : ago4 < 3600 ? "Synced " + Math.round(ago4 / 60) + " min ago." : "Synced " + Math.round(ago4 / 3600) + " h ago.");
   }
   function AccountDialog(props) {
     var s = props.state, setState = props.setState, ref = props.dialogRef;
@@ -15112,7 +15130,13 @@
     if (!me) {
       body = e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: sharing is tied to your account. ", e("button", { type: "button", className: "bd-link", onClick: p.onSignIn }, "Sign in"));
     } else if (!file.cloud) {
-      body = e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "This file is on its way to the cloud. Once it's there, you can share it.");
+      var c = p.cloud || { detail: "This file is on its way to the cloud. Once it's there, you can share it." };
+      body = e(
+        "div",
+        { className: "bd-sh-local" },
+        e("p", { className: "bd-br-note" }, e(Icon, { name: c.kind === "local" ? "info" : c.icon || "info" }), c.detail),
+        c.kind === "local" ? e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: p.onMoveOut }, e(Icon, { name: "cloud" }), "Move out of the Playground") : null
+      );
     } else {
       body = e(
         React.Fragment,
@@ -15183,6 +15207,7 @@
       e(
         "div",
         { className: "bd-br-body" },
+        me && file.cloud && p.cloud ? e("p", { className: cx("bd-sh-status", "is-" + p.cloud.kind), role: "status" }, e(Icon, { name: p.cloud.icon }), e("span", null, e("b", null, p.cloud.label), " " + p.cloud.detail)) : null,
         body,
         people.error ? e("p", { className: cx("bd-acct-msg", "is-error"), role: "status" }, e(Icon, { name: "alert" }), e("span", null, people.error)) : null
       ),
@@ -15194,6 +15219,45 @@
         e("button", { type: "button", className: "bd-btn", onClick: close }, "Done")
       )
     );
+  }
+
+  // assets/builder/cloud/status.js
+  function ago3(at2, now) {
+    if (!at2) return "";
+    var s = Math.max(0, Math.round((now - at2) / 1e3));
+    if (s < 45) return "just now";
+    if (s < 3600) return Math.round(s / 60) + " min ago";
+    if (s < 86400) return Math.round(s / 3600) + " h ago";
+    return Math.round(s / 86400) + (Math.round(s / 86400) === 1 ? " day ago" : " days ago");
+  }
+  function waitingIn(meta) {
+    return Object.keys(meta && meta.cloudDirty || {}).length;
+  }
+  function fileCloud(input) {
+    var account2 = input && input.account || {};
+    var meta = input && input.meta || {};
+    var group2 = input && input.group;
+    var mirror = input && input.mirror || { status: "off" };
+    var now = input && input.now || Date.now();
+    if (!account2.status || account2.status === "off") return null;
+    if (account2.status !== "in") {
+      return { kind: "out", icon: "cloudOff", label: "Only in this browser", detail: "Sign in to keep your files in the cloud, open them anywhere and share them." };
+    }
+    if (group2 && group2.kind) {
+      return { kind: "local", icon: "cloudOff", label: "Only in this browser", detail: "Files in the Playground stay in this browser. Move this one out of the Playground to keep it in the cloud and share it." };
+    }
+    var error = mirror.error ? ": " + mirror.error : ".";
+    if (!meta.cloud) {
+      if (mirror.status === "offline") return { kind: "offline", icon: "cloudOff", label: "Not in the cloud yet", detail: "You're offline. It goes up when you're back." };
+      if (mirror.status === "error") return { kind: "error", icon: "alert", label: "Not in the cloud yet", detail: "The upload didn't finish" + error + " It tries again when the tab wakes or you're back online." };
+      return { kind: "uploading", icon: "cloud", busy: true, label: "Going up to the cloud", detail: "This file is on its way to the cloud. Once it's there, you can share it." };
+    }
+    var waiting = waitingIn(meta) + (mirror.pending || 0);
+    if (mirror.status === "offline") return { kind: "offline", icon: "cloudOff", label: "Offline", detail: "Changes are saved in this browser and go up when you're back online." };
+    if (mirror.status === "error") return { kind: "error", icon: "alert", label: "Not synced", detail: "The last sync didn't finish" + error + " It tries again on the next change." };
+    if (mirror.status === "syncing" || waiting) return { kind: "pending", icon: "cloud", busy: true, label: "Syncing", detail: "Changes are going up to the cloud." };
+    var when = ago3(mirror.at, now);
+    return { kind: "synced", icon: "cloud", label: "In the cloud", detail: "Saved to the cloud" + (when ? " " + when : "") + ". It opens wherever you sign in." };
   }
 
   // assets/builder/cloud/sync.js
@@ -18759,7 +18823,7 @@
       var moving = payload.kind === "move" && payload.id ? locate(docRef.current, payload.id) : null;
       var type = moving ? moving.node.type : payload.kind === "new" || payload.kind === "local" ? payload.type : payload.kind === "asset" ? "Image" : payload.kind === "tool" ? (/^comp:(\w+)$/.exec(payload.tool) || [0, payload.tool === "box" ? "Group" : null])[1] : null;
       var hostFrame = frameById(docRef.current, at2.fid);
-      if (hit.parent === "root" && type && !joinsFlow(type) && hostFrame && hostFrame.mode !== "structured" && !hostFrame.bare) {
+      if (hit.parent === "root" && type && !joinsFlow(type) && hostFrame && !frameFlows(hostFrame) && !hostFrame.bare) {
         var unit = f.measure && f.measure(["var(--dt-space-inset-2xs)"])[0] || 4;
         var fx = (x - at2.r.left) / z, fy = (y - at2.r.top) / z;
         var w = 120, h = 40;
@@ -20272,9 +20336,7 @@
         one2 && one2.type === "Group" ? { value: "ungroup", label: "Ungroup", hint: "Ctrl+Shift+G", icon: "group", group: "Layer" } : { value: "group", label: "Group", hint: "Ctrl+G", icon: "group", group: "Layer" },
         { value: "hide", label: allHidden ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: allHidden ? "eye" : "eyeOff", group: "Layer" },
         { value: "lock", label: allLocked ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: allLocked ? "lockOpen" : "lock", group: "Layer" }
-      ]).concat(free && one2 && one2.type === "Group" && !one2.style.bool && (one2.children || []).length ? [(one2.children || []).every(function(c) {
-        return isFree(c.style);
-      }) ? { value: "autolayout", label: "Use auto layout", hint: "Shift+A", icon: "row", group: "Layer" } : { value: "freelayout", label: "Free positions", hint: "Shift+A", icon: "frame", group: "Layer" }] : []).concat(free && nodes.length > 1 && nodes.some(function(n) {
+      ]).concat(frame2.mode !== "structured" && one2 && one2.type === "Group" && !one2.style.bool ? [groupFlows(one2) ? { value: "freelayout", label: "Remove auto layout", hint: "Shift+A", icon: "frame", group: "Layer" } : { value: "autolayout", label: "Add auto layout", hint: "Shift+A", icon: "row", group: "Layer" }] : []).concat(free && nodes.length > 1 && nodes.some(function(n) {
         return n.type === "Shape" && n.props.shape !== "line";
       }) ? [{ value: "mask", label: "Use the shape as a mask", icon: "shapeEllipse", group: "Layer" }] : []).concat(one2 && one2.type !== "Slot" ? [{ value: "rename", label: "Rename", hint: "F2", icon: "pencil", group: "Layer" }] : []).concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component", group: "Layer" }]).concat(one2 ? [{ value: "link", label: "Copy link to this layer", icon: "link", group: "Layer" }, { value: "png", label: "Export as PNG", icon: "image", group: "Layer" }] : []);
     };
@@ -20487,106 +20549,129 @@
           return ops.group(d, ids);
         }, "Grouped " + ids.length + (ids.length === 1 ? " item" : " items"))) announce("Only items side by side in the same parent can be grouped");
       },
-      /* A free group's free children laid out in a row or a column, in the
-       order they stand: the direction from how they spread, the gap and the
-       padding the nearest tokens to what they had. The group keeps its own
-       place and hugs what it holds. */
-      autoLayout: function() {
-        var id = selRef.current[0], d = docRef.current, at2 = selRef.current.length === 1 ? locate(d, id) : null, a = api();
-        if (!at2 || at2.node.type !== "Group" || at2.node.style.bool || !isFree(at2.node.style) || !a || !a.rect || !a.measure) return false;
-        var kids = at2.node.children || [];
-        if (!kids.length || !kids.every(function(c) {
-          return isFree(c.style);
-        })) return false;
-        var gr = a.rect(id);
+      /* Auto layout on: what a Group holds, or what's on a freeform frame's
+         page, laid out in a row or a column in the order it stands. The
+         direction comes from how it spreads, the gap and padding from the
+         nearest tokens to what it had. A Group keeps its own place and hugs
+         what it holds. id is a Group's, or the frame's id for its page; left
+         out, the one selected Group, or the frame when nothing is. */
+      autoLayout: function(id) {
+        var d = docRef.current, fr = active(d);
+        if (id === void 0) id = selRef.current.length === 1 ? selRef.current[0] : selRef.current.length ? null : fr.id;
+        if (!id) return false;
+        var onFrame = id === fr.id;
+        if (onFrame && (fr.mode === "structured" || fr.bare)) return false;
+        var at2 = onFrame ? null : locate(d, id);
+        if (!onFrame && (!at2 || at2.node.type !== "Group" || at2.node.style.bool)) return false;
+        var kids = onFrame ? fr.root.children : at2.node.children || [];
+        if (onFrame ? frameFlows(fr) : groupFlows(at2.node)) return false;
+        var a = api();
+        if (!a || !a.rect || !a.measure) return false;
+        var gr = onFrame ? { left: 0, top: 0 } : a.rect(id);
         var items = kids.map(function(c) {
           return { id: c.id, r: a.rect(c.id) };
         }).filter(function(i2) {
           return i2.r;
         });
         if (!gr || items.length !== kids.length) return false;
-        var spanX = Math.max.apply(null, items.map(function(i2) {
-          return i2.r.right;
-        })) - Math.min.apply(null, items.map(function(i2) {
-          return i2.r.left;
-        }));
-        var spanY = Math.max.apply(null, items.map(function(i2) {
-          return i2.r.bottom;
-        })) - Math.min.apply(null, items.map(function(i2) {
-          return i2.r.top;
-        }));
-        var row = spanX >= spanY;
-        items.sort(function(p, q) {
-          return row ? p.r.left - q.r.left : p.r.top - q.r.top;
-        });
-        var gaps = [];
-        for (var i = 1; i < items.length; i++) gaps.push(row ? items[i].r.left - items[i - 1].r.right : items[i].r.top - items[i - 1].r.bottom);
-        var want = gaps.length ? Math.max(0, gaps.reduce(function(n, g) {
-          return n + g;
-        }, 0) / gaps.length) : 0;
-        var steps = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"];
-        var got = a.measure(steps.map(function(s2) {
-          return "var(--dt-space-" + (row ? "inline" : "stack") + "-" + s2 + ")";
-        }));
-        var gap = "none", best = want;
-        steps.forEach(function(s2, j) {
-          if (got[j] != null && Math.abs(got[j] - want) < best) {
-            best = Math.abs(got[j] - want);
-            gap = s2;
+        var row = false, gap = onFrame ? "md" : "sm", pad = null;
+        if (items.length) {
+          var spanX = Math.max.apply(null, items.map(function(i2) {
+            return i2.r.right;
+          })) - Math.min.apply(null, items.map(function(i2) {
+            return i2.r.left;
+          }));
+          var spanY = Math.max.apply(null, items.map(function(i2) {
+            return i2.r.bottom;
+          })) - Math.min.apply(null, items.map(function(i2) {
+            return i2.r.top;
+          }));
+          row = items.length > 1 && spanX >= spanY;
+          items.sort(function(p, q) {
+            return row ? p.r.left - q.r.left : p.r.top - q.r.top;
+          });
+          var gaps = [];
+          for (var i = 1; i < items.length; i++) gaps.push(row ? items[i].r.left - items[i - 1].r.right : items[i].r.top - items[i - 1].r.bottom);
+          var steps = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"];
+          if (gaps.length) {
+            var want = Math.max(0, gaps.reduce(function(n, g) {
+              return n + g;
+            }, 0) / gaps.length);
+            var got = a.measure(steps.map(function(s2) {
+              return "var(--dt-space-" + (row ? "inline" : "stack") + "-" + s2 + ")";
+            }));
+            var best = want;
+            gap = "none";
+            steps.forEach(function(s2, j) {
+              if (got[j] != null && Math.abs(got[j] - want) < best) {
+                best = Math.abs(got[j] - want);
+                gap = s2;
+              }
+            });
           }
-        });
-        var inset = Math.max(0, Math.min(Math.min.apply(null, items.map(function(it) {
-          return it.r.left - gr.left;
-        })), Math.min.apply(null, items.map(function(it) {
-          return it.r.top - gr.top;
-        }))));
-        var pad = null, pbest = inset;
-        steps.forEach(function(s2) {
-          var px = pxMap["padding|" + s2];
-          if (px != null && Math.abs(px - inset) < pbest) {
-            pbest = Math.abs(px - inset);
-            pad = s2;
-          }
-        });
+          var inset = Math.max(0, Math.min(Math.min.apply(null, items.map(function(it) {
+            return it.r.left - gr.left;
+          })), Math.min.apply(null, items.map(function(it) {
+            return it.r.top - gr.top;
+          }))));
+          var pbest = inset;
+          steps.forEach(function(s2) {
+            var px = pxMap["padding|" + s2];
+            if (px != null && Math.abs(px - inset) < pbest) {
+              pbest = Math.abs(px - inset);
+              pad = s2;
+            }
+          });
+        }
         var order = items.map(function(it) {
           return it.id;
         });
         change(function(dd) {
-          var g = locate(dd, id);
-          if (!g) return null;
+          var f = active(dd);
+          var holder = onFrame ? f.root : (locate(dd, id) || {}).node;
+          if (!holder) return null;
           var byId2 = {};
-          g.node.children.forEach(function(c) {
+          holder.children.forEach(function(c) {
             byId2[c.id] = c;
           });
-          g.node.children = order.map(function(k) {
+          holder.children = order.map(function(k) {
             return byId2[k];
           });
-          g.node.children.forEach(function(c) {
-            ["x", "y", "ch", "cv", "rot", "flipH", "flipV"].concat(c.type === "Shape" || c.type === "Image" ? [] : ["fw", "fh"]).forEach(function(k) {
-              delete c.style[k];
-            });
-          });
-          g.node.props.direction = row ? "row" : "column";
-          g.node.props.gap = gap;
-          g.node.props.align = "flex-start";
-          delete g.node.style.fw;
-          delete g.node.style.fh;
-          if (pad) g.node.style.padding = pad;
-          else delete g.node.style.padding;
+          holder.children.forEach(unfreeze);
+          if (onFrame) {
+            f.flow = Object.assign({}, f.flow, { direction: row ? "row" : "column", align: "flex-start" });
+            if (gap !== "none") f.flow.gap = gap;
+            else delete f.flow.gap;
+            delete f.gap;
+            if (pad) f.flow.padding = pad;
+            else delete f.flow.padding;
+            return [];
+          }
+          holder.props.direction = row ? "row" : "column";
+          holder.props.gap = gap;
+          holder.props.align = "flex-start";
+          delete holder.style.fw;
+          delete holder.style.fh;
+          if (pad) holder.style.padding = pad;
+          else delete holder.style.padding;
           return [id];
-        }, "Auto layout: a " + (row ? "row" : "column") + ", gap " + gap);
+        }, "Auto layout on " + (onFrame ? fr.name : "the group") + ": a " + (row ? "row" : "column") + ", gap " + gap);
         return true;
       },
-      /* Back to free: each child pinned where the layout put it, and the
-         group the size it was drawn at. */
-      freeLayout: function() {
-        var id = selRef.current[0], d = docRef.current, at2 = selRef.current.length === 1 ? locate(d, id) : null, a = api();
-        if (!at2 || at2.node.type !== "Group" || at2.node.style.bool || !isFree(at2.node.style) || !a || !a.rect) return false;
-        var kids = at2.node.children || [];
-        if (!kids.length || kids.some(function(c) {
-          return isFree(c.style);
-        })) return false;
-        var unit = pxMap["padding|2xs"] || 4, gr = a.rect(id);
+      /* Auto layout off: each child pinned where the layout put it, and a
+         Group the size it was laid out at. Only in a freeform frame. */
+      freeLayout: function(id) {
+        var d = docRef.current, fr = active(d);
+        if (id === void 0) id = selRef.current.length === 1 ? selRef.current[0] : selRef.current.length ? null : fr.id;
+        if (!id || fr.mode === "structured" || fr.bare) return false;
+        var onFrame = id === fr.id;
+        var at2 = onFrame ? null : locate(d, id);
+        if (!onFrame && (!at2 || at2.node.type !== "Group" || at2.node.style.bool)) return false;
+        if (!(onFrame ? frameFlows(fr) : groupFlows(at2.node))) return false;
+        var kids = onFrame ? fr.root.children : at2.node.children || [];
+        var a = api();
+        if (!a || !a.rect) return false;
+        var unit = pxMap["padding|2xs"] || 4, gr = onFrame ? { left: 0, top: 0 } : a.rect(id);
         var boxes2 = {};
         kids.forEach(function(c) {
           boxes2[c.id] = a.rect(c.id);
@@ -20598,11 +20683,16 @@
           return Math.max(0, Math.min(FREE_MAX, Math.round(px / unit)));
         };
         change(function(dd) {
-          var g = locate(dd, id);
-          if (!g) return null;
-          g.node.style.fw = Math.max(1, st(gr.width));
-          g.node.style.fh = Math.max(1, st(gr.height));
-          g.node.children.forEach(function(c) {
+          var f = active(dd);
+          var holder = onFrame ? f.root : (locate(dd, id) || {}).node;
+          if (!holder) return null;
+          if (onFrame) delete f.flow;
+          else if (holder.children.length) {
+            holder.style.fw = Math.max(1, st(gr.width));
+            holder.style.fh = Math.max(1, st(gr.height));
+          }
+          holder.children.forEach(function(c) {
+            if (onFrame && joinsFlow(c.type)) return;
             var r = boxes2[c.id];
             c.style.x = st(r.left - gr.left);
             c.style.y = st(r.top - gr.top);
@@ -20611,8 +20701,8 @@
               c.style.fh = Math.max(1, st(r.height));
             }
           });
-          return [id];
-        }, "Free positions");
+          return onFrame ? [] : [id];
+        }, "Auto layout off" + (onFrame ? " on " + fr.name : "") + ": free positions");
         return true;
       },
       mask: function() {
@@ -24526,6 +24616,9 @@
         return g.options.length;
       });
     };
+    var autoButton = function(on, onClick, what3) {
+      return on ? e("button", { type: "button", className: "bd-act bd-act-ghost bd-auto-off", title: "Remove auto layout from " + what3 + ": free positions (Shift+A)", "aria-label": "Remove auto layout from " + what3, onClick }, e(Icon, { name: "minus" })) : e("button", { type: "button", className: "bd-btn bd-btn-sm bd-auto-on", title: "Lay out " + what3 + " in a row or a column (Shift+A)", "aria-label": "Add auto layout to " + what3, onClick }, e(Icon, { name: "plus" }), "Add");
+    };
     var headAction = function(icon, label2, onClick, pressed) {
       return e("button", { type: "button", className: "bd-act bd-act-ghost", title: label2, "aria-label": label2, "aria-pressed": pressed === void 0 ? void 0 : String(pressed), onClick }, e(Icon, { name: icon }));
     };
@@ -24935,6 +25028,13 @@
       })[0];
       var gapNow = fl.gap || frame2.gap || "none";
       var a = fl.align || "stretch", j = fl.justify || "flex-start";
+      var free = frame2.mode !== "structured" && !frame2.bare;
+      var on = frameFlows(frame2);
+      var toggle = free ? autoButton(on, function() {
+        if (on) actions2.freeLayout(frame2.id);
+        else actions2.autoLayout(frame2.id);
+      }, frame2.name) : null;
+      if (free && !on) return sec("frame-auto", "Auto layout", null, toggle);
       return sec("frame-auto", "Auto layout", [
         e(
           "div",
@@ -25013,7 +25113,7 @@
             }, e(Icon, { name: "justifyBetween" }), "Space between")
           )
         )
-      ]);
+      ], toggle);
     };
     var frameOverflow = function() {
       var scroll = frame2.scroll || "none";
@@ -25496,10 +25596,15 @@
       var placedFree = frame2.mode !== "structured" && nodes.every(function(n) {
         return isFree(n.style);
       });
+      var autoGroup = !many && first.type === "Group" && !first.style.bool && frame2.mode !== "structured" && !frame2.bare;
+      var groupOn = autoGroup && groupFlows(first);
       var body = [
         sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "z", "x", "y"].concat(placedFree ? ["fw", "fh", "rw", "rh", "rot"] : []))),
         sec("size", "Size", placedFree ? [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes, "mins")] : [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, placedFree ? ["minW", "h", "textWrap"] : ["w", "minW", "height", "h", "self", "textWrap", "fw", "fh", "rw", "rh"])),
-        meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
+        autoGroup ? sec("flex", "Auto layout", groupOn ? flex : null, autoButton(groupOn, function() {
+          if (groupOn) actions2.freeLayout(first.id);
+          else actions2.autoLayout(first.id);
+        }, first.name || "the group"), groupOn && propsSet(nodes, propNames("layout"))) : meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
         arrange2 ? sec("props-arrange", "Arrangement", arrange2, null, propsSet(nodes, propNames("layout"))) : null,
         sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
         contentRows.length ? sec("content", "Content", contentRows, null, propsSet(nodes, propNames("content"))) : null,
@@ -25647,6 +25752,7 @@
         e("button", { type: "button", className: "bd-btn bd-home-back", onClick: closeProjects, title: "Back to the canvas (Esc)" }, e(Icon, { name: "left" }), e("span", { className: "bd-home-back-text" }, "Back to " + project.name))
       )
     );
+    var cloudSt = fileCloud({ account: account2, meta: project, group: project.group ? groupById(project.group) : null, mirror: mirrorState });
     var workBar = e(
       "div",
       { className: "bd-toolbar", role: "toolbar", "aria-label": "Builder" },
@@ -25752,6 +25858,15 @@
         }),
         /* Saving is quiet; the bar speaks up only when this browser can't keep the work. */
         saved.ok ? null : e("span", { className: "bd-saved is-error", title: savedTitle, role: "status" }, e(Icon, { name: "alert" }), e("span", { className: "bd-saved-text" }, "Not saved")),
+        /* Where the file is kept: in the cloud and up to date, still going
+           up, or only in this browser (the Playground). */
+        cloudSt && cloudSt.kind !== "out" ? e("button", {
+          type: "button",
+          className: cx("bd-act", "bd-cloud-st", "is-" + cloudSt.kind, cloudSt.busy && "is-busy"),
+          "aria-label": cloudSt.label + ". " + cloudSt.detail,
+          title: cloudSt.label + ". " + cloudSt.detail,
+          onClick: openShare
+        }, e(Icon, { name: cloudSt.icon })) : null,
         /* Who's on the file: you, and others once live editing brings them. */
         e(People, { account: account2, others, onOpen: account2.status === "in" ? openShare : openAccount }),
         e("button", { type: "button", className: "bd-act", title: "Play: see " + frame2.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame2.id], onClick: function() {
@@ -27034,7 +27149,9 @@
         onLoad: onRenderPlay
       }),
       e(AccountDialog, { dialogRef: accountRef, state: account2, setState: accountState[1], cloud: mirrorState }),
-      e(ShareDialog, { dialogRef: shareRef, account: account2, file: project, people, onInvite, onWithdraw, onRemove, onLeave, onSignIn: openAccount, onAccount: openAccount }),
+      e(ShareDialog, { dialogRef: shareRef, account: account2, file: project, people, cloud: cloudSt, onMoveOut: function() {
+        moveFile(project.id, null);
+      }, onInvite, onWithdraw, onRemove, onLeave, onSignIn: openAccount, onAccount: openAccount }),
       menu ? e(ContextMenu, { x: menu.x, y: menu.y, label: "Actions", options: menuOptions(menu.ids), onClose: function() {
         setMenu(null);
       }, onChoose: onMenu }) : null,
@@ -27450,12 +27567,29 @@
         return store.setCloud(pid, { cloudDirty: d });
       });
     };
-    var schedule = function(key, fn) {
+    var waiting = {};
+    var count3 = function() {
+      say({ pending: Object.keys(waiting).length });
+    };
+    var schedule = function(key, fn, dirty) {
       clearTimeout(timers[key]);
+      if (!waiting[key]) {
+        waiting[key] = true;
+        count3();
+      }
       timers[key] = setTimeout(function() {
         delete timers[key];
         later(function() {
-          return fn().catch(fail);
+          return fn().catch(function(err) {
+            fail(err);
+            return dirty ? dirty().catch(function() {
+            }) : null;
+          }).then(function() {
+            if (!timers[key]) {
+              delete waiting[key];
+              count3();
+            }
+          });
         });
       }, PUSH_DELAY);
     };
@@ -27478,9 +27612,13 @@
         hooks = {};
         Object.keys(timers).forEach(function(k) {
           clearTimeout(timers[k]);
+          var m = /^(doc|meta):([^:]+)(?::(.+))?$/.exec(k);
+          if (m && store) markDirty(m[2], m[1] === "doc" ? m[3] : "meta").catch(function() {
+          });
         });
         timers = {};
-        say({ status: "off", error: "" });
+        waiting = {};
+        say({ status: "off", error: "", pending: 0 });
       },
       sync,
       state: function() {
@@ -27491,11 +27629,17 @@
       saved: function(pid, pageId) {
         if (stopped) return markDirty(pid, pageId).catch(function() {
         });
-        schedule("doc:" + pid + ":" + pageId, function() {
-          return push(pid, pageId).then(function() {
-            say({ status: "synced", at: Date.now(), error: "" });
-          });
-        });
+        schedule(
+          "doc:" + pid + ":" + pageId,
+          function() {
+            return push(pid, pageId).then(function() {
+              say({ status: "synced", at: Date.now(), error: "" });
+            });
+          },
+          function() {
+            return markDirty(pid, pageId);
+          }
+        );
         return void 0;
       },
       metaChanged: function(pid) {
@@ -27508,6 +27652,8 @@
               return pushMeta(sb, meta, g);
             });
           });
+        }, function() {
+          return markDirty(pid, "meta");
         });
         return void 0;
       },
@@ -27622,6 +27768,7 @@
     };
     w.moveFile = function(id, group2) {
       return store.moveFile(id, group2).then(function(meta) {
+        if (meta && !meta.cloud) hub.fileMade(id);
         return told(hub.metaChanged(id), meta);
       });
     };
