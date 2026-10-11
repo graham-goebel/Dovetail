@@ -7707,17 +7707,15 @@
     if (res && res.error) throw new Error(res.error.message || "The cloud didn't answer. Try again.");
     return res ? res.data : null;
   }
-  function startBridge(opts) {
-    var key = randomKey();
-    var sb = null, id = null, channel = null, timer = null, ended = false;
+  function listen(sb, id, opts) {
+    var channel = null, timer = null, stopped = false;
     var seen = {}, queue = Promise.resolve();
     var status = opts.onStatus || function() {
     };
     var handle = function(row) {
-      if (ended || !row || seen[row.id] || row.status === "done" || row.session_id && row.session_id !== id) return;
+      if (stopped || !row || seen[row.id] || row.status === "done" || row.session_id && row.session_id !== id) return;
       seen[row.id] = true;
-      queue = queue.then(function() {
-        if (ended) return null;
+      var runIt = function() {
         return Promise.resolve().then(function() {
           return opts.onCall(row.call || {});
         }).catch(function(err) {
@@ -7727,49 +7725,173 @@
         }).catch(function() {
           status("An answer couldn't be sent back. Claude will see the step time out.");
         });
+      };
+      queue = queue.then(function() {
+        if (stopped) return null;
+        return Promise.resolve(opts.mine ? opts.mine() : true).then(function(ok) {
+          if (!ok || stopped) {
+            delete seen[row.id];
+            return null;
+          }
+          return runIt();
+        });
       });
     };
     var look = function() {
-      if (ended) return;
+      if (stopped) return;
       sb.from("bridge_calls").select("id, call, status").eq("session_id", id).eq("status", "waiting").order("id", { ascending: true }).then(function(res) {
         (check(res) || []).forEach(handle);
       }).catch(function() {
       });
     };
+    channel = sb.channel("bridge:" + id).on("postgres_changes", { event: "INSERT", schema: "public", table: "bridge_calls", filter: "session_id=eq." + id }, function(m) {
+      if (m.new && m.new.call && typeof m.new.call.name === "string") handle(m.new);
+      else look();
+    });
+    channel.subscribe(function(s) {
+      if (s === "SUBSCRIBED") look();
+    });
+    timer = setInterval(look, POLL_MS);
+    return function stop() {
+      if (stopped) return;
+      stopped = true;
+      clearInterval(timer);
+      if (channel) sb.removeChannel(channel);
+    };
+  }
+  function signedIn() {
+    var sb = null;
     return getClient().then(function(client) {
       sb = client;
       return sb.auth.getSession();
     }).then(function(res) {
       if (!(res && res.data && res.data.session)) throw new Error("Sign in first: a session is tied to your account.");
+      return sb;
+    });
+  }
+  function sessionRow(fields) {
+    var row = {};
+    if ("canEdit" in fields) row.can_edit = !!fields.canEdit;
+    if ("askFirst" in fields) row.ask_first = !!fields.askFirst;
+    if ("paused" in fields) row.paused = !!fields.paused;
+    return row;
+  }
+  function startBridge(opts) {
+    var key = randomKey();
+    var sb = null, id = null, stop = null, ended = false;
+    return signedIn().then(function(client) {
+      sb = client;
       return sha256(key);
     }).then(function(hash) {
       return sb.from("bridge_sessions").insert({ key_hash: hash, can_edit: !!opts.canEdit, ask_first: !!opts.askFirst, label: String(opts.label || "").slice(0, 120) }).select("id").single();
     }).then(function(res) {
       id = check(res).id;
-      channel = sb.channel("bridge:" + id).on("postgres_changes", { event: "INSERT", schema: "public", table: "bridge_calls", filter: "session_id=eq." + id }, function(m) {
-        if (m.new && m.new.call && typeof m.new.call.name === "string") handle(m.new);
-        else look();
-      });
-      channel.subscribe(function(s) {
-        if (s === "SUBSCRIBED") look();
-      });
-      timer = setInterval(look, POLL_MS);
+      stop = listen(sb, id, opts);
       return {
         id,
         link: cloudConfig().url + "/functions/v1/bridge?s=" + id + "&k=" + key,
         update: function(fields) {
-          var row = {};
-          if ("canEdit" in fields) row.can_edit = !!fields.canEdit;
-          if ("askFirst" in fields) row.ask_first = !!fields.askFirst;
-          if ("paused" in fields) row.paused = !!fields.paused;
-          return sb.from("bridge_sessions").update(row).eq("id", id).then(check);
+          return sb.from("bridge_sessions").update(sessionRow(fields)).eq("id", id).then(check);
         },
         end: function() {
           if (ended) return Promise.resolve();
           ended = true;
-          clearInterval(timer);
-          if (channel) sb.removeChannel(channel);
+          stop();
           return sb.from("bridge_sessions").update({ ended_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", id).then(check);
+        }
+      };
+    });
+  }
+  var BEAT_MS = 3e4;
+  var TAB_ID = randomKey().slice(0, 16);
+  function connectorUrl(id, key) {
+    return cloudConfig().url + "/functions/v1/bridge/mcp/" + id + "." + key;
+  }
+  function findConnector() {
+    return signedIn().then(function(sb) {
+      return sb.from("bridge_sessions").select("id, created_at, last_call, tab, tab_seen, ended_at, connector").eq("connector", true).then(function(res) {
+        var live = (check(res) || []).filter(function(r) {
+          return !r.ended_at;
+        })[0] || null;
+        return live ? Object.assign({}, live, { here: live.tab === TAB_ID }) : null;
+      });
+    });
+  }
+  function makeConnector() {
+    var key = randomKey(), sb = null;
+    return signedIn().then(function(client) {
+      sb = client;
+      return findConnector();
+    }).then(function(old) {
+      return old ? sb.from("bridge_sessions").update({ ended_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", old.id).then(check) : null;
+    }).then(function() {
+      return sha256(key);
+    }).then(function(hash) {
+      return sb.from("bridge_sessions").insert({ key_hash: hash, connector: true, can_edit: true, ask_first: false, label: "Claude (connector)" }).select("id").single();
+    }).then(function(res) {
+      var id = check(res).id;
+      return { id, url: connectorUrl(id, key) };
+    });
+  }
+  function revokeConnector(id) {
+    return signedIn().then(function(sb) {
+      return sb.from("bridge_sessions").update({ ended_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", id).then(check);
+    });
+  }
+  function attachConnector(id, opts) {
+    var sb = null, stop = null, beat = null, done = false;
+    var lost = function(why) {
+      if (done) return;
+      done = true;
+      clearInterval(beat);
+      if (stop) stop();
+      if (opts.onLost) opts.onLost(why);
+    };
+    return signedIn().then(function(client) {
+      sb = client;
+      return sb.from("bridge_sessions").update({ tab: TAB_ID, tab_seen: (/* @__PURE__ */ new Date()).toISOString(), tools: opts.tools || null, paused: false }).eq("id", id).then(check);
+    }).then(function() {
+      stop = listen(sb, id, Object.assign({}, opts, {
+        mine: function() {
+          return sb.from("bridge_sessions").select("id, tab, ended_at").eq("id", id).maybeSingle().then(function(res) {
+            var row = check(res);
+            if (row && !row.ended_at && row.tab === TAB_ID) return true;
+            lost(row && !row.ended_at ? "elsewhere" : "revoked");
+            return false;
+          }, function() {
+            return true;
+          });
+        }
+      }));
+      beat = setInterval(function() {
+        sb.from("bridge_sessions").select("id, tab, ended_at").eq("id", id).maybeSingle().then(function(res) {
+          var row = check(res);
+          if (!row || row.ended_at) {
+            lost("revoked");
+            return null;
+          }
+          if (row.tab !== TAB_ID) {
+            lost("elsewhere");
+            return null;
+          }
+          return sb.from("bridge_sessions").update({ tab_seen: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", id).then(check);
+        }).catch(function() {
+        });
+      }, BEAT_MS);
+      return {
+        id,
+        update: function(fields) {
+          return sb.from("bridge_sessions").update(sessionRow(fields)).eq("id", id).then(check);
+        },
+        end: function() {
+          if (done) return Promise.resolve();
+          done = true;
+          clearInterval(beat);
+          stop();
+          return sb.from("bridge_sessions").select("id, tab").eq("id", id).maybeSingle().then(function(res) {
+            var row = check(res);
+            return row && row.tab === TAB_ID ? sb.from("bridge_sessions").update({ tab: "", tab_seen: null }).eq("id", id).then(check) : null;
+          });
         }
       };
     });
@@ -8108,7 +8230,15 @@
           "div",
           { className: "bd-code-intro" },
           e("h2", { id: "bd-br-title" }, "Let agents edit this file"),
-          e("p", { className: "bd-inspect-sub" }, "An agent works on your open canvas with the Agent panel's own tools: it reads the page, makes changes, runs the checks and takes pictures. Each gets its own link, so you see who did what, and can end one without the others.")
+          e(
+            "p",
+            { className: "bd-inspect-sub" },
+            "An agent works on your open canvas with the Agent panel's own tools: it reads the page, makes changes, runs the checks and takes pictures. Each gets its own link, so you see who did what, and can end one without the others. ",
+            p.onConnectClaude ? e("button", { type: "button", className: "bd-link", onClick: function() {
+              close();
+              p.onConnectClaude();
+            } }, "Use your own Claude instead") : null
+          )
         ),
         e("div", { className: "bd-code-actions" }, e("button", { type: "button", className: "bd-act", "aria-label": "Close", onClick: close }, e(Icon, { name: "close" })))
       ),
@@ -8125,7 +8255,7 @@
               "div",
               { className: "bd-br-agent-t" },
               e("b", null, a.name),
-              e("span", null, a.status === "starting" ? "Starting…" : a.status === "error" ? a.error : what2(a)),
+              e("span", null, a.status === "starting" ? "Starting…" : a.status === "error" ? a.error : a.connector ? "Your Claude, through its connector" : what2(a)),
               a.link ? e("code", { className: "bd-br-link" }, a.link) : null
             ),
             a.link ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
@@ -8170,6 +8300,65 @@
         list2.length > 1 ? e("button", { type: "button", className: "bd-btn", onClick: p.onEndAll }, "End all") : null,
         e("button", { type: "button", className: "bd-btn", onClick: close }, list2.length ? "Done" : "Cancel"),
         e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: out || starting, onClick: p.onAdd }, e(Icon, { name: "plus" }), list2.length ? "Add agent" : "Start session")
+      )
+    );
+  });
+  var ClaudeDialog = memo(function ClaudeDialog2(p) {
+    var c = p.claude || {};
+    var off = p.account.status === "off", out = p.account.status !== "in";
+    var close = function() {
+      if (p.dialogRef.current) p.dialogRef.current.close();
+    };
+    var has2 = !!(c.row && c.row.id);
+    var state = c.status === "checking" ? "Making the link…" : c.status === "error" ? c.error : c.status === "live" ? "Connected: Claude edits this tab's canvas." : has2 ? "Connected, in another tab. Claude edits whichever Builder tab you're in; use this one to move it here." : "Not connected yet.";
+    var step = function(n, title, body) {
+      return e("li", { className: "bd-cc-step" }, e("span", { className: "bd-cc-n", "aria-hidden": true }, n), e("div", null, e("b", null, title), body));
+    };
+    return e(
+      "dialog",
+      { className: "bd-code bd-claude-dlg", ref: p.dialogRef, "aria-labelledby": "bd-cc-title" },
+      e(
+        "div",
+        { className: "bd-code-head" },
+        e(
+          "div",
+          { className: "bd-code-intro" },
+          e("h2", { id: "bd-cc-title" }, "Connect Claude"),
+          e("p", { className: "bd-inspect-sub" }, "Use the Claude you already have, on its own plan, with no API key. Add your link to Claude as a connector once, then ask Claude for pages and changes: it works on the canvas you have open with the Agent panel's own tools, and each step shows here, ready to undo.")
+        ),
+        e("div", { className: "bd-code-actions" }, e("button", { type: "button", className: "bd-act", "aria-label": "Close", onClick: close }, e(Icon, { name: "close" })))
+      ),
+      e(
+        "div",
+        { className: "bd-br-body" },
+        off ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Connecting runs through the builder's cloud, which isn't connected here yet (docs/cloud.md).") : out ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: the connector is tied to your account. ", e("button", { type: "button", className: "bd-link", onClick: p.onSignIn }, "Sign in")) : e("p", { className: cx("bd-br-note bd-cc-state", c.status === "live" && "is-live", c.status === "error" && "is-error"), role: "status" }, e(Icon, { name: c.status === "live" ? "check" : c.status === "error" ? "alert" : "link" }), state),
+        out ? null : e(
+          "ol",
+          { className: "bd-cc-steps", role: "list" },
+          step(
+            1,
+            c.url ? "Copy your connector link" : has2 ? "Your connector link" : "Make your connector link",
+            c.url ? e(
+              "div",
+              { className: "bd-cc-link" },
+              e("code", { className: "bd-br-link" }, c.url),
+              e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: p.onCopy }, e(Icon, { name: "copy" }), "Copy"),
+              e("span", null, "Shown once. Anyone with it can edit the canvas you have open, so keep it to yourself.")
+            ) : e("span", null, has2 ? "It's in Claude already if you added it. Lost it? Make a new one; the old one stops working." : "One link for your account. It works for whichever file you have open.")
+          ),
+          step(2, "Add it to Claude", e("span", null, "In Claude's settings, under Connectors, add a custom connector and paste the link. In Claude Code: ", e("code", null, "claude mcp add --transport http dovetail <link>"), ".")),
+          step(3, "Ask Claude", e("span", null, "Keep this Builder open, then ask, say, “build a pricing page in Dovetail”. Claude reads the design system first and uses only its components and tokens."))
+        )
+      ),
+      e(
+        "div",
+        { className: "bd-br-foot" },
+        e("span", { className: "bd-edit-undo" }, e(Icon, { name: "lock" }), "Claude sees only what it asks for. Every step can be undone."),
+        e("span", { className: "bd-edit-sp" }),
+        has2 && !out ? e("button", { type: "button", className: "bd-btn", onClick: p.onRevoke }, "Disconnect") : null,
+        has2 && !out && c.status !== "live" ? e("button", { type: "button", className: "bd-btn", onClick: p.onUseHere }, "Use this tab") : null,
+        e("button", { type: "button", className: cx("bd-btn", (has2 || out) && "bd-btn-primary"), onClick: close }, "Done"),
+        out ? null : e("button", { type: "button", className: cx("bd-btn", !has2 && "bd-btn-primary"), disabled: c.status === "checking", onClick: p.onMake }, e(Icon, { name: "link" }), has2 ? "New link" : "Make link")
       )
     );
   });
@@ -8300,7 +8489,7 @@
         ) : null,
         steps.length ? e("ul", { className: "bd-br-list", role: "list" }, steps.map(function(s) {
           return stepRow(s, byKey[s.key] || gone, p.onUndo);
-        })) : !b.pending ? e("p", { className: "bd-sec-empty" }, "Waiting for " + (who ? who.name : b.sessions.length > 1 ? "the agents" : b.sessions[0].name) + ". Give it the link and ask for what you want; each step shows here as it happens.") : null
+        })) : !b.pending ? e("p", { className: "bd-sec-empty" }, "Waiting for " + (who ? who.name : b.sessions.length > 1 ? "the agents" : b.sessions[0].name) + ". " + ((who || b.sessions[0]).connector ? "Ask Claude for what you want; each step shows here as it happens." : "Give it the link and ask for what you want; each step shows here as it happens.")) : null
       ),
       e(
         "div",
@@ -14115,6 +14304,10 @@
             p.setMode(v ? "live" : "practice");
           }, labelledBy: "bd-as-m-live", disabled: !p.canLive })
         ),
+        p.connectClaude ? e("button", { type: "button", className: "bd-as-mbtn", onClick: function() {
+          setOpen(false);
+          p.connectClaude();
+        } }, e(Icon, { name: "link" }), "Use your own Claude…") : null,
         e("hr"),
         row("bd-as-m-plan", "Plan before big changes", "New pages, or more than about 10 layers. Small edits just happen.", p.plans, p.setPlans),
         row("bd-as-m-look", "Look at the canvas", "Sends a picture of what it built so it can check and fix it. Off keeps this file's canvas private.", p.look, p.setLook),
@@ -14946,7 +15139,7 @@
 
   // assets/builder/cloud/assistant.js
   var MODE_KEY = "dovetail-assistant";
-  function assistantMode(signedIn) {
+  function assistantMode(signedIn2) {
     var asked = null;
     try {
       var over = typeof window !== "undefined" && window.DovetailAssistant;
@@ -14955,7 +15148,7 @@
     }
     if (!cloudReady()) return "practice";
     if (asked === "live" || asked === "practice") return asked;
-    return signedIn ? "live" : "practice";
+    return signedIn2 ? "live" : "practice";
   }
   function setAssistantMode(mode) {
     try {
@@ -15540,7 +15733,7 @@
     useEffect(function() {
       if (!ready) return void 0;
       var live = true;
-      var signedIn = function(a) {
+      var signedIn2 = function(a) {
         set2(function(p) {
           return p.status === "recovery" ? Object.assign({}, p, { account: a }) : { status: "in", account: a, joined: p.joined };
         });
@@ -15553,7 +15746,7 @@
       };
       auth.current().then(function(a) {
         if (!live) return;
-        if (a) signedIn(a);
+        if (a) signedIn2(a);
         else set2(function(p) {
           return p.status === "loading" ? { status: "out", account: null, joined: 0 } : p;
         });
@@ -15564,7 +15757,7 @@
         if (!live) return;
         if (event === "PASSWORD_RECOVERY") set2({ status: "recovery", account: a, joined: 0 });
         else if (event === "SIGNED_OUT" || !a) set2({ status: "out", account: null, joined: 0 });
-        else if (event === "SIGNED_IN") signedIn(a);
+        else if (event === "SIGNED_IN") signedIn2(a);
         else set2(function(p) {
           return Object.assign({}, p, { account: a });
         });
@@ -16579,6 +16772,9 @@
     var bridgeState = useState(null);
     var bridge = bridgeState[0], setBridge = bridgeState[1];
     var bridgeOptsState = useState({ name: "", canEdit: true, askFirst: false });
+    var claudeState = useState({ status: "none" });
+    var claude = claudeState[0], setClaude = claudeState[1];
+    var claudeDlgRef = useRef(null), claudeLetGo = useRef(false);
     var bridgeHandles = useRef({}), bridgeLives = useRef({}), bridgeWait = useRef([]), bridgeDlgRef = useRef(null), bridgeCallRef = useRef(null), bridgeHolds = useRef({}), bridgeColorN = useRef(0), bridgeSessionsRef = useRef([]);
     var savedState = useState({ ok: true, at: null });
     var saved = savedState[0], setSaved = savedState[1];
@@ -23924,6 +24120,12 @@
       });
     };
     var endAgent = function(key) {
+      if (key === CLAUDE_KEY) {
+        claudeLetGo.current = true;
+        setClaude(function(c) {
+          return Object.assign({}, c, { status: "elsewhere" });
+        });
+      }
       var h = bridgeHandles.current[key];
       delete bridgeHandles.current[key];
       delete bridgeLives.current[key];
@@ -24008,6 +24210,162 @@
       if (!a || !a.link) return;
       copyText(a.link).then(function() {
         announce(a.name + "'s link copied. Paste it into the agent.");
+      }, function() {
+        announce("This browser didn't allow copying.");
+      });
+    };
+    var CLAUDE_KEY = "claude-connector";
+    var claudeTools = function() {
+      var describe2 = { name: "describe", description: "Call this first: the design system's rules, components and tokens, and how this session works.", input_schema: { type: "object", properties: {}, additionalProperties: false } };
+      return [describe2].concat(bridgeTools(toolsFor({ look: true, plan: false }), true).map(function(t) {
+        return { name: t.name, description: t.description, input_schema: t.input_schema };
+      }));
+    };
+    var dropClaudeAgent = function() {
+      delete bridgeHandles.current[CLAUDE_KEY];
+      delete bridgeLives.current[CLAUDE_KEY];
+      setBridge(function(b) {
+        if (!b) return b;
+        var left2 = b.sessions.filter(function(x) {
+          return x.key !== CLAUDE_KEY;
+        });
+        return left2.length ? Object.assign({}, b, { sessions: left2, filter: b.filter === CLAUDE_KEY ? "" : b.filter }) : null;
+      });
+    };
+    var attachClaude = function(row) {
+      if (bridgeLives.current[CLAUDE_KEY]) return;
+      claudeLetGo.current = false;
+      bridgeLives.current[CLAUDE_KEY] = { canEdit: true, askFirst: false, paused: false, label: projectRef.current.name, name: "Claude", connector: true };
+      var agent = { key: CLAUDE_KEY, name: "Claude", mark: null, color: "var(--dt-color-amber-500)", status: "starting", canEdit: true, askFirst: false, connector: true };
+      setBridge(function(b) {
+        return Object.assign({ steps: [], pending: null, open: false, paused: false, filter: "" }, b || {}, { sessions: (b ? b.sessions.filter(function(x) {
+          return x.key !== CLAUDE_KEY;
+        }) : []).concat([agent]) });
+      });
+      attachConnector(row.id, {
+        tools: claudeTools(),
+        onCall: function(c) {
+          return bridgeCallRef.current(CLAUDE_KEY, c);
+        },
+        onStatus: announce,
+        onLost: function(why) {
+          dropClaudeAgent();
+          setClaude(function(c) {
+            return Object.assign({}, c, why === "revoked" ? { status: "none", row: null } : { status: "elsewhere" });
+          });
+          announce(why === "revoked" ? "Claude was disconnected." : "Claude is working in another Builder tab now.");
+        }
+      }).then(function(h) {
+        if (!bridgeLives.current[CLAUDE_KEY]) {
+          h.end().catch(function() {
+          });
+          return;
+        }
+        bridgeHandles.current[CLAUDE_KEY] = h;
+        patchAgent(CLAUDE_KEY, { status: "live" });
+        setClaude(function(c) {
+          return Object.assign({}, c, { status: "live", row: Object.assign({}, row, { here: true }) });
+        });
+      }, function(err) {
+        dropClaudeAgent();
+        setClaude(function(c) {
+          return Object.assign({}, c, { status: "error", error: String(err && err.message || err) });
+        });
+      });
+    };
+    var lookForClaude = function(andAttach) {
+      if (account2.status !== "in" || !cloudReady()) {
+        setClaude({ status: "none" });
+        return Promise.resolve(null);
+      }
+      return findConnector().then(function(row) {
+        if (!row) {
+          setClaude(function(c) {
+            return { status: "none", url: c.url };
+          });
+          return null;
+        }
+        setClaude(function(c) {
+          return Object.assign({}, c, { row, status: bridgeLives.current[CLAUDE_KEY] ? "live" : row.here ? "live" : "elsewhere" });
+        });
+        if (andAttach && !claudeLetGo.current) attachClaude(row);
+        return row;
+      }, function() {
+        return null;
+      });
+    };
+    useEffect(function() {
+      if (account2.status === "in") lookForClaude(true);
+      else {
+        var h = bridgeHandles.current[CLAUDE_KEY];
+        if (h) {
+          h.end().catch(function() {
+          });
+          dropClaudeAgent();
+        }
+        setClaude({ status: "none" });
+      }
+    }, [account2.status]);
+    useEffect(function() {
+      var back = function() {
+        if (document.visibilityState === "visible" && !bridgeLives.current[CLAUDE_KEY] && !claudeLetGo.current && account2.status === "in") lookForClaude(true);
+      };
+      document.addEventListener("visibilitychange", back);
+      return function() {
+        document.removeEventListener("visibilitychange", back);
+      };
+    }, [account2.status]);
+    var openClaude = function() {
+      lookForClaude(false);
+      var dlg = claudeDlgRef.current;
+      if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+    };
+    var makeClaude = function() {
+      setClaude(function(c) {
+        return Object.assign({}, c, { status: "checking", url: null });
+      });
+      var h = bridgeHandles.current[CLAUDE_KEY];
+      if (h) {
+        h.end().catch(function() {
+        });
+        dropClaudeAgent();
+      }
+      makeConnector().then(function(made) {
+        setClaude({ status: "none", url: made.url, row: { id: made.id } });
+        attachClaude({ id: made.id });
+        announce("Your Claude connector is ready. Copy its link into Claude.");
+      }, function(err) {
+        setClaude({ status: "error", error: String(err && err.message || err) });
+      });
+    };
+    var revokeClaude = function() {
+      var id = claude.row && claude.row.id;
+      var h = bridgeHandles.current[CLAUDE_KEY];
+      if (h) {
+        h.end().catch(function() {
+        });
+        dropClaudeAgent();
+      }
+      if (!id) return;
+      revokeConnector(id).then(
+        function() {
+          setClaude({ status: "none" });
+          announce("Claude is disconnected. Its link no longer works.");
+        },
+        function(err) {
+          setClaude(function(c) {
+            return Object.assign({}, c, { status: "error", error: String(err && err.message || err) });
+          });
+        }
+      );
+    };
+    var useClaudeHere = function() {
+      if (claude.row) attachClaude(claude.row);
+    };
+    var copyClaudeLink = function() {
+      if (!claude.url) return;
+      copyText(claude.url).then(function() {
+        announce("Connector link copied. Paste it into Claude.");
       }, function() {
         announce("This browser didn't allow copying.");
       });
@@ -26868,6 +27226,7 @@
           ].concat(project.thumbSet ? [{ value: "auto-picture", label: "Picture follows the canvas", icon: "rotate" }] : []).concat([
             { value: "import", label: "Paste a layout…", icon: "upload" },
             { value: "bridge", label: bridge ? "Agents on this file…" : "Let agents edit…", icon: "wand" },
+            { value: "claude", label: "Connect Claude…", icon: "link" },
             { value: "blank", label: "Start over with a blank frame", icon: "trash", danger: true }
           ]),
           onChange: function(v) {
@@ -26881,6 +27240,7 @@
             else if (v === "duplicate") duplicateProject(project.id);
             else if (v === "export") exportProject(project.id);
             else if (v === "bridge") openBridge();
+            else if (v === "claude") openClaude();
             else if (v === "import" || v === "blank") startFrom(v);
           }
         })
@@ -27740,6 +28100,7 @@
       return docRef.current;
     }), onEditPreview = useEvent(editPreview), onApplyEdit = useEvent(applyEdit);
     var onAddAgent = useEvent(addAgent), onEndAgent = useEvent(endAgent), onEndAllAgents = useEvent(endAllAgents), onCopyBridge = useEvent(copyBridgeLink);
+    var onMakeClaude = useEvent(makeClaude), onRevokeClaude = useEvent(revokeClaude), onUseClaudeHere = useEvent(useClaudeHere), onCopyClaude = useEvent(copyClaudeLink), onOpenClaude = useEvent(openClaude);
     var onUndoBridge = useEvent(undoBridgeStep), onUndoBridgeAll = useEvent(undoBridgeAll), onAnswerBridge = useEvent(answerBridge), onCloseBridge = useEvent(function() {
       patchBridge({ open: false });
     }), onFilterBridge = useEvent(function(k) {
@@ -28035,6 +28396,7 @@
                 canLive: cloudReady() && account2.status === "in",
                 cloudOn: cloudReady(),
                 signIn: openAccount,
+                connectClaude: onOpenClaude,
                 target: selectedNodes.length ? selectedNodes.length === 1 ? selectedNodes[0].name || selectedNodes[0].type : selectedNodes.length + " layers" : null,
                 includeSel: asSelState[0],
                 toggleSel: function() {
@@ -28193,7 +28555,8 @@
         onDownloadProject
       }),
       e(ImportDialog, { dialogRef: importRef, text: importText, setText: setImportText, onImport: onImportLayout, getDoc: onGetDoc, preview: onEditPreview, onApplyEdit }),
-      e(BridgeDialog, { dialogRef: bridgeDlgRef, account: account2, bridge, options: bridgeOptsState[0], setOptions: bridgeOptsState[1], onAdd: onAddAgent, onEnd: onEndAgent, onEndAll: onEndAllAgents, onCopy: onCopyBridge, onSignIn: openAccount }),
+      e(BridgeDialog, { dialogRef: bridgeDlgRef, account: account2, bridge, options: bridgeOptsState[0], setOptions: bridgeOptsState[1], onAdd: onAddAgent, onEnd: onEndAgent, onEndAll: onEndAllAgents, onCopy: onCopyBridge, onSignIn: openAccount, onConnectClaude: onOpenClaude }),
+      e(ClaudeDialog, { dialogRef: claudeDlgRef, account: account2, claude, onMake: onMakeClaude, onRevoke: onRevokeClaude, onUseHere: onUseClaudeHere, onCopy: onCopyClaude, onSignIn: openAccount }),
       e(SessionPanel, { bridge, onUndo: onUndoBridge, onUndoAll: onUndoBridgeAll, onAnswer: onAnswerBridge, onClose: onCloseBridge, onFilter: onFilterBridge }),
       editMarks && !editMarks.quiet ? e(
         "div",

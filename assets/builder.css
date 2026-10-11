@@ -3941,6 +3941,7 @@ span.bd-layer-twisty.is-open .bd-ic {
 /* The live canvas bridge: the dialog that starts a session, the pill in the
    top bar while one runs, and the Session panel with its steps. */
 .bd-code.bd-bridge-dlg,
+.bd-code.bd-claude-dlg,
 .bd-code.bd-share-dlg {
   width: min(680px, calc(100vw - 32px));
   height: fit-content;
@@ -3980,6 +3981,87 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-br-step {
   display: flex;
   gap: var(--dt-space-inline-sm);
+}
+
+/* Connect Claude: where it stands, then three numbered steps. */
+.bd-cc-state {
+  flex-wrap: nowrap;
+}
+
+.bd-cc-state.is-live {
+  color: var(--dt-text-success);
+}
+
+.bd-cc-state.is-error {
+  color: var(--dt-text-danger);
+}
+
+.bd-cc-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bd-cc-step {
+  display: flex;
+  gap: var(--dt-space-inline-sm);
+  min-width: 0;
+}
+
+.bd-cc-step > div {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+  min-width: 0;
+  font-size: var(--dt-font-size-sm);
+}
+
+.bd-cc-step > div > span {
+  color: var(--dt-text-secondary);
+}
+
+.bd-cc-step code {
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+.bd-cc-n {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: 50%;
+  font-size: var(--dt-font-size-xs);
+  font-weight: var(--dt-font-weight-semibold);
+}
+
+.bd-cc-link {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dt-space-inline-xs);
+  align-items: center;
+  min-width: 0;
+}
+
+.bd-cc-link .bd-br-link {
+  flex: 1 1 200px;
+  min-width: 0;
+  padding: var(--dt-space-inset-2xs) var(--dt-space-inset-xs);
+  border-radius: var(--dt-radius-control);
+  background: var(--bd-field);
+}
+
+.bd-cc-link > span {
+  flex-basis: 100%;
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
 }
 
 .bd-br-n {

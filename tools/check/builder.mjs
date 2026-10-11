@@ -524,7 +524,7 @@ try {
     expect(code.includes('paddingTop: "var(--dt-space-inset-2xl)"'), "the code should carry the per-side token");
     const values = [...code.matchAll(/style=\{\{([^}]*)\}\}/g)].flatMap((m) => [...m[1].matchAll(/:\s*"([^"]*)"/g)].map((v) => v[1]));
     expect(!values.some(raw), `style values that aren't tokens: ${values.filter(raw).join(", ")}`);
-    const box = await page.locator(".bd-code:not(.bd-import):not(.bd-new):not(.bd-comp-dlg):not(.bd-projects):not(.bd-versions):not(.bd-keys):not(.bd-acct):not(.bd-bridge-dlg):not(.bd-share-dlg)").boundingBox();
+    const box = await page.locator(".bd-code:not(.bd-import):not(.bd-new):not(.bd-comp-dlg):not(.bd-projects):not(.bd-versions):not(.bd-keys):not(.bd-acct):not(.bd-bridge-dlg):not(.bd-claude-dlg):not(.bd-share-dlg)").boundingBox();
     expect(box.height > 700, `the code overlay should use most of the screen, got ${Math.round(box.height)}px`);
     ok(`exported code is named after the frame, its ${values.length} style values are tokens or keywords, and the overlay is ${Math.round(box.height)}px tall`);
     await page.keyboard.press("Escape");
@@ -2152,6 +2152,119 @@ try {
     expect(back.includes("Spending") && (await pg.page.locator(".bd-edit-on-tag").count()) === 0, `Undo takes the whole edit back and the labels with it, got ${back}`);
     ok("the canvas labels each change and the toast's Undo takes the whole edit back");
     await pg.page.close();
+  });
+
+  await step("Connect Claude: a lasting connector link, made once and shown once, this tab runs Claude's steps, a new link replaces it, Disconnect ends it", async () => {
+    /* A stand-in for supabase-js: a signed-in account and the bridge tables,
+       whole rows back from a select. push(call) adds a waiting step to the
+       live connector, as the function would, and resolves with the answer. */
+    const FAKE = `
+      export function createClient() {
+        const session = { user: { id: "u1", email: "ann@example.com" }, access_token: "t" };
+        const db = { bridge_sessions: [], bridge_calls: [] }, listeners = [];
+        let nextCall = 1, nextSession = 1;
+        window.__fakeClaude = { db,
+          push(call) {
+            const s = db.bridge_sessions.filter((x) => x.connector && !x.ended_at).slice(-1)[0];
+            const row = { id: nextCall++, session_id: s.id, call, status: "waiting", result: null };
+            db.bridge_calls.push(row);
+            const done = new Promise((res) => { row.resolve = res; });
+            setTimeout(() => listeners.forEach((f) => f({ new: row })), 0);
+            return done;
+          } };
+        const from = (table) => {
+          let op = "select", payload = null, single = false;
+          const filters = [];
+          const api = {
+            select() { return api; }, order() { return api; },
+            insert(p) { op = "insert"; payload = p; return api; },
+            update(p) { op = "update"; payload = p; return api; },
+            eq(k, v) { filters.push([k, v]); return api; },
+            single() { single = true; return api; }, maybeSingle() { single = true; return api; },
+            then(res, rej) { return Promise.resolve(run()).then(res, rej); },
+          };
+          const match = (r) => filters.every(([k, v]) => r[k] === v);
+          const run = () => {
+            if (op === "insert") {
+              const row = Object.assign({ id: table === "bridge_sessions" ? "c1000000-0000-4000-8000-00000000000" + nextSession++ : nextCall++, ended_at: null, tab: "" }, payload);
+              db[table].push(row);
+              return { data: single ? { id: row.id } : [row], error: null };
+            }
+            if (op === "update") {
+              db[table].filter(match).forEach((r) => { Object.assign(r, payload); if (table === "bridge_calls") { r.status = "done"; if (r.resolve) r.resolve(payload.result); } });
+              return { data: null, error: null };
+            }
+            const rows = db[table].filter(match).map((r) => Object.assign({}, r));
+            return { data: single ? rows[0] || null : rows, error: null };
+          };
+          return api;
+        };
+        return {
+          auth: {
+            getSession: async () => ({ data: { session }, error: null }),
+            onAuthStateChange: (f) => { setTimeout(() => f("INITIAL_SESSION", session), 0); return { data: { subscription: { unsubscribe() {} } } }; },
+          },
+          rpc: async () => ({ data: 0, error: null }),
+          from,
+          channel() { const ch = { on(t, f, cb) { if (f && f.table === "bridge_calls") { const want = String(f.filter || "").replace("session_id=eq.", ""); listeners.push((m) => { if (!want || m.new.session_id === want) cb(m); }); } return ch; }, subscribe(cb) { if (cb) setTimeout(() => cb("SUBSCRIBED"), 0); return ch; }, send: async () => {}, track() {}, presenceState: () => ({}) }; return ch; },
+          removeChannel() {},
+          realtime: { setAuth: async () => {} },
+        };
+      }`;
+    const { page } = await open({ width: 1440, height: 900 }, { before: async (p) => {
+      await p.addInitScript(() => { window.DovetailCloud = { url: "https://stand-in.supabase.co/", anonKey: "stand-in-anon-key-0123456789" }; });
+      await p.route(/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@/, (r) => r.fulfill({ status: 200, contentType: "text/javascript", headers: { "access-control-allow-origin": "*" }, body: FAKE }));
+    } });
+    await page.waitForFunction(() => /ann@example\.com/.test(document.querySelector(".bd-rail-account")?.getAttribute("aria-label") || ""));
+    const sessions = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__fakeClaude.db.bridge_sessions)));
+    await page.locator("button[aria-label='File actions']").click();
+    await page.getByText("Connect Claude…", { exact: true }).click();
+    await page.waitForSelector(".bd-claude-dlg[open]");
+    expect(/Not connected yet/.test(await page.locator(".bd-claude-dlg .bd-cc-state").textContent()), "with no connector it says so");
+    await page.locator(".bd-claude-dlg .bd-br-foot .bd-btn", { hasText: "Make link" }).click();
+    await page.waitForSelector(".bd-claude-dlg .bd-cc-link code");
+    const link = await page.locator(".bd-claude-dlg .bd-cc-link code").textContent();
+    const m = /^https:\/\/stand-in\.supabase\.co\/functions\/v1\/bridge\/mcp\/(c1000000-[\w-]+)\.([\w-]{32,})$/.exec(link);
+    expect(!!m, `the link is the function's /mcp/ address with the connector and a long key, got ${link}`);
+    await page.waitForFunction(() => /Connected: Claude edits this tab/.test(document.querySelector(".bd-claude-dlg .bd-cc-state")?.textContent || ""));
+    const made = (await sessions())[0];
+    const toolNames = (made.tools || []).map((t) => t.name);
+    expect(made.connector === true && /^[0-9a-f]{64}$/.test(made.key_hash) && !JSON.stringify(made).includes(m[2]) && made.tab.length >= 8 && !!made.tab_seen, `only the key's hash is stored, as a connector this tab has claimed, got ${JSON.stringify(Object.assign({}, made, { tools: undefined }))}`);
+    expect(toolNames.includes("describe") && toolNames.includes("edit_by_name") && toolNames.includes("set_style") && !toolNames.includes("propose_plan"), `the tab leaves the tools Claude may call, got ${toolNames.join(", ")}`);
+    ok("Connect Claude makes a connector: the link (shown once) is the function's MCP address, only a hash is stored, and this tab claims it with its tools");
+
+    await page.locator(".bd-claude-dlg .bd-br-foot .bd-btn", { hasText: "Done" }).click();
+    expect(/Claude can edit/.test(await page.locator(".bd-br-pill").textContent()), "the top bar shows Claude can edit");
+    const read = await page.evaluate(() => window.__fakeClaude.push({ name: "read_page", input: {} }));
+    expect(read.ok && typeof read.result === "string" && read.result.length > 20, `a step from Claude runs on this canvas, got ${JSON.stringify(read).slice(0, 120)}`);
+    ok("Claude's steps run on the open canvas, and the top bar says Claude can edit");
+
+    /* Another tab takes the connector: this one leaves the next step for it. */
+    await page.evaluate(() => { window.__fakeClaude.db.bridge_sessions[0].tab = "another-tab"; window.__fakeClaude.push({ name: "read_page", input: {} }); });
+    await page.waitForFunction(() => !document.querySelector(".bd-br-pill"));
+    expect(await page.evaluate(() => window.__fakeClaude.db.bridge_calls.slice(-1)[0].status === "waiting"), "a step that comes after another tab took over is left for that tab");
+    await page.locator("button[aria-label='File actions']").click();
+    await page.getByText("Connect Claude…", { exact: true }).click();
+    await page.waitForFunction(() => /in another tab/.test(document.querySelector(".bd-claude-dlg .bd-cc-state")?.textContent || ""));
+    await page.locator(".bd-claude-dlg .bd-br-foot .bd-btn", { hasText: "Use this tab" }).click();
+    await page.waitForFunction(() => window.__fakeClaude.db.bridge_calls.slice(-1)[0].status === "done" && !!document.querySelector(".bd-br-pill"));
+    await page.locator(".bd-claude-dlg .bd-br-foot .bd-btn", { hasText: "Done" }).click();
+    ok("when another tab takes Claude over, this one stops running its steps; Use this tab takes it back and runs the one waiting");
+
+    await page.locator(".bd-as-menu-btn").click().catch(async () => { await page.locator(".bd-rail .bd-tab", { hasText: "Agent" }).click(); await page.locator(".bd-as-menu-btn").click(); });
+    await page.locator(".bd-as-mbtn", { hasText: "Use your own Claude" }).click();
+    await page.waitForSelector(".bd-claude-dlg[open]");
+    expect(await page.locator(".bd-claude-dlg .bd-cc-link code").count() === 1, "the link made in this tab is still there to copy");
+    await page.locator(".bd-claude-dlg .bd-br-foot .bd-btn", { hasText: "New link" }).click();
+    await page.waitForFunction((old) => { const c = document.querySelector(".bd-claude-dlg .bd-cc-link code"); return c && c.textContent !== old && /Connected: Claude/.test(document.querySelector(".bd-claude-dlg .bd-cc-state").textContent); }, link);
+    let all = await sessions();
+    expect(all.length === 2 && !!all[0].ended_at && !all[1].ended_at && all[1].connector, "a new link revokes the old connector and makes another");
+    await page.locator(".bd-claude-dlg .bd-br-foot .bd-btn", { hasText: "Disconnect" }).click();
+    await page.waitForFunction(() => /Not connected yet/.test(document.querySelector(".bd-claude-dlg .bd-cc-state")?.textContent || ""));
+    all = await sessions();
+    expect(all.every((r) => !!r.ended_at) && (await page.locator(".bd-br-pill").count()) === 0, "Disconnect ends the connector and Claude leaves the top bar");
+    ok("the Agent panel's menu opens it too; New link replaces the connector, and Disconnect ends it");
+    await page.close();
   });
 
   await step("Agents on the canvas: a session from the File menu, steps run on the canvas, listed with undo, paused, asked first, two agents with their own marks and holds, pictures, ended", async () => {

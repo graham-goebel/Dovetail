@@ -43,7 +43,8 @@ var BridgeDialog = memo(function BridgeDialog(p) {
   return e("dialog", { className: "bd-code bd-bridge-dlg", ref: p.dialogRef, "aria-labelledby": "bd-br-title" },
     e("div", { className: "bd-code-head" },
       e("div", { className: "bd-code-intro" }, e("h2", { id: "bd-br-title" }, "Let agents edit this file"),
-        e("p", { className: "bd-inspect-sub" }, "An agent works on your open canvas with the Agent panel's own tools: it reads the page, makes changes, runs the checks and takes pictures. Each gets its own link, so you see who did what, and can end one without the others.")),
+        e("p", { className: "bd-inspect-sub" }, "An agent works on your open canvas with the Agent panel's own tools: it reads the page, makes changes, runs the checks and takes pictures. Each gets its own link, so you see who did what, and can end one without the others. ",
+          p.onConnectClaude ? e("button", { type: "button", className: "bd-link", onClick: function () { close(); p.onConnectClaude(); } }, "Use your own Claude instead") : null)),
       e("div", { className: "bd-code-actions" }, e("button", { type: "button", className: "bd-act", "aria-label": "Close", onClick: close }, e(Icon, { name: "close" })))),
     e("div", { className: "bd-br-body" },
       off ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sessions run through the builder's cloud, which isn't connected here yet (docs/cloud.md).")
@@ -51,7 +52,7 @@ var BridgeDialog = memo(function BridgeDialog(p) {
       list.length ? e("ul", { className: "bd-br-agents", role: "list", "aria-label": "Agents on this file" }, list.map(function (a) {
         return e("li", { key: a.key, className: "bd-br-agent" },
           e(Avatar, { agent: a }),
-          e("div", { className: "bd-br-agent-t" }, e("b", null, a.name), e("span", null, a.status === "starting" ? "Starting…" : a.status === "error" ? a.error : what(a)),
+          e("div", { className: "bd-br-agent-t" }, e("b", null, a.name), e("span", null, a.status === "starting" ? "Starting…" : a.status === "error" ? a.error : a.connector ? "Your Claude, through its connector" : what(a)),
             a.link ? e("code", { className: "bd-br-link" }, a.link) : null),
           a.link ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { p.onCopy(a.key); } }, e(Icon, { name: "copy" }), "Copy link") : null,
           e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { p.onEnd(a.key); } }, a.status === "error" ? "Remove" : "End"));
@@ -71,6 +72,47 @@ var BridgeDialog = memo(function BridgeDialog(p) {
       list.length > 1 ? e("button", { type: "button", className: "bd-btn", onClick: p.onEndAll }, "End all") : null,
       e("button", { type: "button", className: "bd-btn", onClick: close }, list.length ? "Done" : "Cancel"),
       e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: out || starting, onClick: p.onAdd }, e(Icon, { name: "plus" }), list.length ? "Add agent" : "Start session")));
+});
+
+/* Connect Claude: one link the person adds to Claude as a custom connector,
+   so the Claude they already use (on its own plan) edits their open canvas
+   with the Agent panel's tools. The link is shown once, when it's made.
+   { dialogRef, account, claude: { status, row, url, error }, onMake,
+     onRevoke, onUseHere, onCopy, onSignIn } */
+var ClaudeDialog = memo(function ClaudeDialog(p) {
+  var c = p.claude || {};
+  var off = p.account.status === "off", out = p.account.status !== "in";
+  var close = function () { if (p.dialogRef.current) p.dialogRef.current.close(); };
+  var has = !!(c.row && c.row.id);
+  var state = c.status === "checking" ? "Making the link…"
+    : c.status === "error" ? c.error
+    : c.status === "live" ? "Connected: Claude edits this tab's canvas."
+    : has ? "Connected, in another tab. Claude edits whichever Builder tab you're in; use this one to move it here."
+    : "Not connected yet.";
+  var step = function (n, title, body) { return e("li", { className: "bd-cc-step" }, e("span", { className: "bd-cc-n", "aria-hidden": true }, n), e("div", null, e("b", null, title), body)); };
+  return e("dialog", { className: "bd-code bd-claude-dlg", ref: p.dialogRef, "aria-labelledby": "bd-cc-title" },
+    e("div", { className: "bd-code-head" },
+      e("div", { className: "bd-code-intro" }, e("h2", { id: "bd-cc-title" }, "Connect Claude"),
+        e("p", { className: "bd-inspect-sub" }, "Use the Claude you already have, on its own plan, with no API key. Add your link to Claude as a connector once, then ask Claude for pages and changes: it works on the canvas you have open with the Agent panel's own tools, and each step shows here, ready to undo.")),
+      e("div", { className: "bd-code-actions" }, e("button", { type: "button", className: "bd-act", "aria-label": "Close", onClick: close }, e(Icon, { name: "close" })))),
+    e("div", { className: "bd-br-body" },
+      off ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Connecting runs through the builder's cloud, which isn't connected here yet (docs/cloud.md).")
+        : out ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: the connector is tied to your account. ", e("button", { type: "button", className: "bd-link", onClick: p.onSignIn }, "Sign in"))
+        : e("p", { className: cx("bd-br-note bd-cc-state", c.status === "live" && "is-live", c.status === "error" && "is-error"), role: "status" }, e(Icon, { name: c.status === "live" ? "check" : c.status === "error" ? "alert" : "link" }), state),
+      out ? null : e("ol", { className: "bd-cc-steps", role: "list" },
+        step(1, c.url ? "Copy your connector link" : has ? "Your connector link" : "Make your connector link",
+          c.url ? e("div", { className: "bd-cc-link" }, e("code", { className: "bd-br-link" }, c.url), e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: p.onCopy }, e(Icon, { name: "copy" }), "Copy"),
+              e("span", null, "Shown once. Anyone with it can edit the canvas you have open, so keep it to yourself."))
+            : e("span", null, has ? "It's in Claude already if you added it. Lost it? Make a new one; the old one stops working." : "One link for your account. It works for whichever file you have open.")),
+        step(2, "Add it to Claude", e("span", null, "In Claude's settings, under Connectors, add a custom connector and paste the link. In Claude Code: ", e("code", null, "claude mcp add --transport http dovetail <link>"), ".")),
+        step(3, "Ask Claude", e("span", null, "Keep this Builder open, then ask, say, \u201cbuild a pricing page in Dovetail\u201d. Claude reads the design system first and uses only its components and tokens.")))),
+    e("div", { className: "bd-br-foot" },
+      e("span", { className: "bd-edit-undo" }, e(Icon, { name: "lock" }), "Claude sees only what it asks for. Every step can be undone."),
+      e("span", { className: "bd-edit-sp" }),
+      has && !out ? e("button", { type: "button", className: "bd-btn", onClick: p.onRevoke }, "Disconnect") : null,
+      has && !out && c.status !== "live" ? e("button", { type: "button", className: "bd-btn", onClick: p.onUseHere }, "Use this tab") : null,
+      e("button", { type: "button", className: cx("bd-btn", (has || out) && "bd-btn-primary"), onClick: close }, "Done"),
+      out ? null : e("button", { type: "button", className: cx("bd-btn", !has && "bd-btn-primary"), disabled: c.status === "checking", onClick: p.onMake }, e(Icon, { name: "link" }), has ? "New link" : "Make link")));
 });
 
 /* The top bar while agents work. { bridge, frameName, onPause, onEnd, onOpen, onManage } */
@@ -137,11 +179,11 @@ var SessionPanel = memo(function SessionPanel(p) {
           e("span", { className: "bd-edit-sp" }),
           e("button", { type: "button", className: "bd-btn bd-btn-sm bd-btn-primary", onClick: function () { p.onAnswer(true); setNote(""); } }, "Apply " + b.pending.rows.length + (b.pending.rows.length === 1 ? " change" : " changes")))) : null,
       steps.length ? e("ul", { className: "bd-br-list", role: "list" }, steps.map(function (s) { return stepRow(s, byKey[s.key] || gone, p.onUndo); }))
-        : !b.pending ? e("p", { className: "bd-sec-empty" }, "Waiting for " + (who ? who.name : b.sessions.length > 1 ? "the agents" : b.sessions[0].name) + ". Give it the link and ask for what you want; each step shows here as it happens.") : null),
+        : !b.pending ? e("p", { className: "bd-sec-empty" }, "Waiting for " + (who ? who.name : b.sessions.length > 1 ? "the agents" : b.sessions[0].name) + ". " + ((who || b.sessions[0]).connector ? "Ask Claude for what you want; each step shows here as it happens." : "Give it the link and ask for what you want; each step shows here as it happens.")) : null),
     e("div", { className: "bd-br-sf" },
       e("button", { type: "button", className: "bd-btn bd-btn-sm", disabled: !undoable, onClick: function () { p.onUndoAll(b.filter || ""); } }, e(Icon, { name: "undo" }), undoable ? (who ? "Undo " + who.name + "'s " + undoable : "Undo all " + undoable) : "Undo all"),
       e("span", { className: "bd-edit-sp" }),
       e("span", { className: "bd-edit-n" }, "Each step is one undo")));
 });
 
-export { Avatar, BridgeDialog, BridgePill, SessionPanel };
+export { Avatar, BridgeDialog, BridgePill, ClaudeDialog, SessionPanel };

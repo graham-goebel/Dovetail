@@ -19,8 +19,8 @@ small change here.
 | `assets/builder/cloud/client.js` | Sign in, sign up, reset a password; a live channel per page. |
 | `assets/builder/cloud/sync.js` | Live editing: sends each edit as small changes and applies everyone else's. |
 | `assets/builder/cloud/Account.js` | The Account button's dialog. |
-| `supabase/bridge.sql`, `supabase/functions/bridge` | Live sessions in which Claude edits an open canvas from outside the Builder. |
-| `assets/builder/cloud/bridge.js` | Starts a session and answers its steps. |
+| `supabase/bridge.sql`, `supabase/functions/bridge` | Live sessions in which Claude edits an open canvas from outside the Builder, and Connect Claude's connector (MCP at `bridge/mcp/…`). |
+| `assets/builder/cloud/bridge.js` | Starts a session, makes and claims a connector, and answers their steps. |
 
 ## Connecting a Supabase project
 
@@ -264,6 +264,18 @@ The Builder's design assistant reads context (docs and skills) and makes changes
 3. Optionally set **`BRIDGE_HOURLY_LIMIT`** (steps per session per hour, 900 by default).
 
 `sh supabase/tests/run.sh` tries who can see and answer a session, too.
+
+## Connect Claude
+
+**Connect Claude…** (in a file's ⋯ menu, the Agent panel's menu, or the agents dialog) lets someone use the Claude they already have, on its own plan, with no API key: Claude edits their open canvas as an agent, through a connector they add to it once. Apps outside Claude can't sign in with a Claude account or spend its plan's usage, so the Builder never asks for either. Instead it gives Claude an address to call, and Claude, running in its own app, does the work.
+
+**The connector.** Making one stores a row in `bridge_sessions` with `connector` on and the SHA-256 of a random key, and shows its address once: `functions/v1/bridge/mcp/<id>.<key>`. The person adds that to Claude as a custom connector (in Claude's settings, under Connectors), or to Claude Code with `claude mcp add --transport http dovetail <address>`. It lasts until they make a new one (which revokes the old) or press **Disconnect**. One live connector per person.
+
+**Which canvas.** A signed-in Builder tab claims the connector when it opens, and again whenever it comes back to the front, so Claude edits the tab in view. The tab writes its id (`tab`), says it's still there every 30 seconds (`tab_seen`), and leaves the tools it offers (`tools`). A tab that sees another has taken over lets go. Claude shows in the top bar and the Session panel like any agent, with Pause, End (which lets go in this tab without revoking) and an undo for every step.
+
+**How a step travels.** The function speaks MCP over Streamable HTTP at the connector's address, answering each request with JSON and keeping no server session. `tools/list` gives the tools the tab left, plus `wait_for_step`; `tools/call` writes a step to `bridge_calls` as a session's would and waits up to 50 seconds for the tab's answer, returning its words as text and a picture as an image. A step still running comes back with its id for `wait_for_step`. With no tab there in the last 75 seconds, or the connector paused, a call says so and writes nothing. A wrong key or a revoked connector gets a 404.
+
+**Setting it up:** the same as for agents above. Run `supabase/bridge.sql` again (it adds the connector's columns) and redeploy the `bridge` function.
 
 ## What's built and what's next
 

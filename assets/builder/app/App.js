@@ -6,8 +6,8 @@ import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.
 import { readLayout } from "../model/paste.js";
 import { applyOps, opsOf, planEdit, readEdit } from "../model/nameedit.js";
 import { agentFrom, pictureFrom as agentPicture, allowed as bridgeAllowed, bridgeTools, describeText, isRead as bridgeRead, rowsOf as bridgeRows, targetsOf as bridgeTargets } from "../model/bridge.js";
-import { startBridge } from "../cloud/bridge.js";
-import { BridgeDialog, BridgePill, SessionPanel } from "./Bridge.js";
+import { attachConnector, findConnector, makeConnector, revokeConnector, startBridge } from "../cloud/bridge.js";
+import { BridgeDialog, BridgePill, ClaudeDialog, SessionPanel } from "./Bridge.js";
 import { People } from "./People.js";
 import { mergeUsage, usageOf } from "../model/usage.js";
 import { absorbComponents, componentsFor, copyText, encode, loadLibrary, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
@@ -210,6 +210,11 @@ function App(props) {
   var bridgeState = useState(null);
   var bridge = bridgeState[0], setBridge = bridgeState[1];
   var bridgeOptsState = useState({ name: "", canEdit: true, askFirst: false });
+  /* Connect Claude: the person's lasting connector, as this tab sees it.
+     { status: "checking" | "none" | "live" | "elsewhere" | "error", row, url, error } */
+  var claudeState = useState({ status: "none" });
+  var claude = claudeState[0], setClaude = claudeState[1];
+  var claudeDlgRef = useRef(null), claudeLetGo = useRef(false);
   var bridgeHandles = useRef({}), bridgeLives = useRef({}), bridgeWait = useRef([]), bridgeDlgRef = useRef(null), bridgeCallRef = useRef(null), bridgeHolds = useRef({}), bridgeColorN = useRef(0), bridgeSessionsRef = useRef([]);
   var savedState = useState({ ok: true, at: null });
   var saved = savedState[0], setSaved = savedState[1];
@@ -5622,6 +5627,7 @@ function App(props) {
     });
   };
   var endAgent = function (key) {
+    if (key === CLAUDE_KEY) { claudeLetGo.current = true; setClaude(function (c) { return Object.assign({}, c, { status: "elsewhere" }); }); }
     var h = bridgeHandles.current[key];
     delete bridgeHandles.current[key];
     delete bridgeLives.current[key];
@@ -5672,6 +5678,96 @@ function App(props) {
     var a = agentOf(key);
     if (!a || !a.link) return;
     copyText(a.link).then(function () { announce(a.name + "'s link copied. Paste it into the agent."); }, function () { announce("This browser didn't allow copying."); });
+  };
+  /* Connect Claude. A connector is one more agent on the canvas, named
+     Claude, that this tab runs while it holds the connector: it claims it
+     when the person is signed in, and again whenever the tab comes back to
+     the front (so the tab in view is the one Claude edits), unless they let
+     go of it here. Its steps go through the same bridgeCall as any agent's. */
+  var CLAUDE_KEY = "claude-connector";
+  var claudeTools = function () {
+    var describe = { name: "describe", description: "Call this first: the design system's rules, components and tokens, and how this session works.", input_schema: { type: "object", properties: {}, additionalProperties: false } };
+    return [describe].concat(bridgeTools(toolsFor({ look: true, plan: false }), true).map(function (t) { return { name: t.name, description: t.description, input_schema: t.input_schema }; }));
+  };
+  var dropClaudeAgent = function () {
+    delete bridgeHandles.current[CLAUDE_KEY];
+    delete bridgeLives.current[CLAUDE_KEY];
+    setBridge(function (b) {
+      if (!b) return b;
+      var left = b.sessions.filter(function (x) { return x.key !== CLAUDE_KEY; });
+      return left.length ? Object.assign({}, b, { sessions: left, filter: b.filter === CLAUDE_KEY ? "" : b.filter }) : null;
+    });
+  };
+  var attachClaude = function (row) {
+    if (bridgeLives.current[CLAUDE_KEY]) return;
+    claudeLetGo.current = false;
+    bridgeLives.current[CLAUDE_KEY] = { canEdit: true, askFirst: false, paused: false, label: projectRef.current.name, name: "Claude", connector: true };
+    var agent = { key: CLAUDE_KEY, name: "Claude", mark: null, color: "var(--dt-color-amber-500)", status: "starting", canEdit: true, askFirst: false, connector: true };
+    setBridge(function (b) { return Object.assign({ steps: [], pending: null, open: false, paused: false, filter: "" }, b || {}, { sessions: (b ? b.sessions.filter(function (x) { return x.key !== CLAUDE_KEY; }) : []).concat([agent]) }); });
+    attachConnector(row.id, {
+      tools: claudeTools(),
+      onCall: function (c) { return bridgeCallRef.current(CLAUDE_KEY, c); },
+      onStatus: announce,
+      onLost: function (why) {
+        dropClaudeAgent();
+        setClaude(function (c) { return Object.assign({}, c, why === "revoked" ? { status: "none", row: null } : { status: "elsewhere" }); });
+        announce(why === "revoked" ? "Claude was disconnected." : "Claude is working in another Builder tab now.");
+      },
+    }).then(function (h) {
+      if (!bridgeLives.current[CLAUDE_KEY]) { h.end().catch(function () {}); return; }
+      bridgeHandles.current[CLAUDE_KEY] = h;
+      patchAgent(CLAUDE_KEY, { status: "live" });
+      setClaude(function (c) { return Object.assign({}, c, { status: "live", row: Object.assign({}, row, { here: true }) }); });
+    }, function (err) {
+      dropClaudeAgent();
+      setClaude(function (c) { return Object.assign({}, c, { status: "error", error: String((err && err.message) || err) }); });
+    });
+  };
+  var lookForClaude = function (andAttach) {
+    if (account.status !== "in" || !cloudReady()) { setClaude({ status: "none" }); return Promise.resolve(null); }
+    return findConnector().then(function (row) {
+      if (!row) { setClaude(function (c) { return { status: "none", url: c.url }; }); return null; }
+      setClaude(function (c) { return Object.assign({}, c, { row: row, status: bridgeLives.current[CLAUDE_KEY] ? "live" : row.here ? "live" : "elsewhere" }); });
+      if (andAttach && !claudeLetGo.current) attachClaude(row);
+      return row;
+    }, function () { return null; });
+  };
+  useEffect(function () {
+    if (account.status === "in") lookForClaude(true);
+    else { var h = bridgeHandles.current[CLAUDE_KEY]; if (h) { h.end().catch(function () {}); dropClaudeAgent(); } setClaude({ status: "none" }); }
+  }, [account.status]);
+  useEffect(function () {
+    var back = function () { if (document.visibilityState === "visible" && !bridgeLives.current[CLAUDE_KEY] && !claudeLetGo.current && account.status === "in") lookForClaude(true); };
+    document.addEventListener("visibilitychange", back);
+    return function () { document.removeEventListener("visibilitychange", back); };
+  }, [account.status]);
+  var openClaude = function () {
+    lookForClaude(false);
+    var dlg = claudeDlgRef.current;
+    if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+  };
+  var makeClaude = function () {
+    setClaude(function (c) { return Object.assign({}, c, { status: "checking", url: null }); });
+    var h = bridgeHandles.current[CLAUDE_KEY];
+    if (h) { h.end().catch(function () {}); dropClaudeAgent(); }
+    makeConnector().then(function (made) {
+      setClaude({ status: "none", url: made.url, row: { id: made.id } });
+      attachClaude({ id: made.id });
+      announce("Your Claude connector is ready. Copy its link into Claude.");
+    }, function (err) { setClaude({ status: "error", error: String((err && err.message) || err) }); });
+  };
+  var revokeClaude = function () {
+    var id = claude.row && claude.row.id;
+    var h = bridgeHandles.current[CLAUDE_KEY];
+    if (h) { h.end().catch(function () {}); dropClaudeAgent(); }
+    if (!id) return;
+    revokeConnector(id).then(function () { setClaude({ status: "none" }); announce("Claude is disconnected. Its link no longer works."); },
+      function (err) { setClaude(function (c) { return Object.assign({}, c, { status: "error", error: String((err && err.message) || err) }); }); });
+  };
+  var useClaudeHere = function () { if (claude.row) attachClaude(claude.row); };
+  var copyClaudeLink = function () {
+    if (!claude.url) return;
+    copyText(claude.url).then(function () { announce("Connector link copied. Paste it into Claude."); }, function () { announce("This browser didn't allow copying."); });
   };
   useEffect(function () {
     var leave = function () { Object.keys(bridgeHandles.current).forEach(function (k) { bridgeHandles.current[k].end().catch(function () {}); }); };
@@ -7214,6 +7310,7 @@ function App(props) {
           .concat([
             { value: "import", label: "Paste a layout…", icon: "upload" },
             { value: "bridge", label: bridge ? "Agents on this file…" : "Let agents edit…", icon: "wand" },
+            { value: "claude", label: "Connect Claude…", icon: "link" },
             { value: "blank", label: "Start over with a blank frame", icon: "trash", danger: true },
           ]),
         onChange: function (v) {
@@ -7227,6 +7324,7 @@ function App(props) {
           else if (v === "duplicate") duplicateProject(project.id);
           else if (v === "export") exportProject(project.id);
           else if (v === "bridge") openBridge();
+          else if (v === "claude") openClaude();
           else if (v === "import" || v === "blank") startFrom(v);
         } })),
     e("span", { className: "bd-tb-side bd-tb-right" },
@@ -7827,6 +7925,7 @@ function App(props) {
   var onImportLayout = useEvent(importLayout);
   var onGetDoc = useEvent(function () { return docRef.current; }), onEditPreview = useEvent(editPreview), onApplyEdit = useEvent(applyEdit);
   var onAddAgent = useEvent(addAgent), onEndAgent = useEvent(endAgent), onEndAllAgents = useEvent(endAllAgents), onCopyBridge = useEvent(copyBridgeLink);
+  var onMakeClaude = useEvent(makeClaude), onRevokeClaude = useEvent(revokeClaude), onUseClaudeHere = useEvent(useClaudeHere), onCopyClaude = useEvent(copyClaudeLink), onOpenClaude = useEvent(openClaude);
   var onUndoBridge = useEvent(undoBridgeStep), onUndoBridgeAll = useEvent(undoBridgeAll), onAnswerBridge = useEvent(answerBridge), onCloseBridge = useEvent(function () { patchBridge({ open: false }); }), onFilterBridge = useEvent(function (k) { patchBridge({ filter: k }); });
   var onCopyCode = useEvent(function () { copyText(code).then(function () { announce("Code copied"); }); });
   var onExportImage = useEvent(function (type) { exportImage(frame.id, type, { scale: exportScale, id: codePick }); });
@@ -7917,7 +8016,7 @@ function App(props) {
           e("div", { className: cx("bd-left-main", left === "configure" && "bd-config-main") },
             left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-panel-head bd-panel-top" }, e("h2", { className: "bd-panel-title" }, "Configure")), e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null)
               : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps)
-              : left === "assistant" ? e(AssistantPanel, { thread: asThread, busy: asBusy, draft: asDraftState[0], setDraft: asDraftState[1], mode: asModeState[0], setMode: function (m) { setAssistantMode(m); asModeState[1](assistantMode(account.status === "in")); }, canLive: cloudReady() && account.status === "in", cloudOn: cloudReady(), signIn: openAccount,
+              : left === "assistant" ? e(AssistantPanel, { thread: asThread, busy: asBusy, draft: asDraftState[0], setDraft: asDraftState[1], mode: asModeState[0], setMode: function (m) { setAssistantMode(m); asModeState[1](assistantMode(account.status === "in")); }, canLive: cloudReady() && account.status === "in", cloudOn: cloudReady(), signIn: openAccount, connectClaude: onOpenClaude,
                   target: selectedNodes.length ? (selectedNodes.length === 1 ? (selectedNodes[0].name || selectedNodes[0].type) : selectedNodes.length + " layers") : null,
                   includeSel: asSelState[0], toggleSel: function () { asSelState[1](!asSelState[0]); }, reach: asReachState[0], setReach: asReachState[1],
                   docs: asContext().docs, skills: asContext().skills, dropDoc: function (id) { asDropState[1](asDropState[0].concat([id])); },
@@ -7955,7 +8054,8 @@ function App(props) {
     e(CodeDialog, { dialogRef: dialogRef, code: code, notes: codeNotes, title: codeTitle, picked: !!codePick, frameName: frame.name, scale: exportScale, setScale: setExportScale, hasSelection: !!sel,
       onCopyCode: onCopyCode, onExportImage: onExportImage, onCopyLayout: onCopyLayout, onShare: onShare, onDownloadProject: onDownloadProject }),
     e(ImportDialog, { dialogRef: importRef, text: importText, setText: setImportText, onImport: onImportLayout, getDoc: onGetDoc, preview: onEditPreview, onApplyEdit: onApplyEdit }),
-    e(BridgeDialog, { dialogRef: bridgeDlgRef, account: account, bridge: bridge, options: bridgeOptsState[0], setOptions: bridgeOptsState[1], onAdd: onAddAgent, onEnd: onEndAgent, onEndAll: onEndAllAgents, onCopy: onCopyBridge, onSignIn: openAccount }),
+    e(BridgeDialog, { dialogRef: bridgeDlgRef, account: account, bridge: bridge, options: bridgeOptsState[0], setOptions: bridgeOptsState[1], onAdd: onAddAgent, onEnd: onEndAgent, onEndAll: onEndAllAgents, onCopy: onCopyBridge, onSignIn: openAccount, onConnectClaude: onOpenClaude }),
+    e(ClaudeDialog, { dialogRef: claudeDlgRef, account: account, claude: claude, onMake: onMakeClaude, onRevoke: onRevokeClaude, onUseHere: onUseClaudeHere, onCopy: onCopyClaude, onSignIn: openAccount }),
     e(SessionPanel, { bridge: bridge, onUndo: onUndoBridge, onUndoAll: onUndoBridgeAll, onAnswer: onAnswerBridge, onClose: onCloseBridge, onFilter: onFilterBridge }),
     editMarks && !editMarks.quiet ? e("div", { className: "bd-toast", role: "status" },
       e(Icon, { name: "check" }),
