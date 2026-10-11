@@ -22,6 +22,9 @@
      drags it onto the canvas; a frame's edge resizes it; a frame takes a
      custom canvas colour; sections show a dot when something is set; Shift
      shows spacing with its token; Play shows a frame at a screen's height;
+   - a component holds what's in it: the first click picks it, the next its
+     own part (its lead, a list item, its picture) or a layer in its slot,
+     with the part outlined and set from the props it comes from;
    - a block's element props are slots: its own buttons are picked on the
      canvas, changed, and exported as JSX in the prop; a slot empties, takes
      its sample back, and only takes the kinds it allows; a layer dropped on
@@ -34,7 +37,7 @@
      frames; Code shows just the selection; Shift+Up and Down step text
      along the type scale; a press on the empty canvas shows the builder's
      own settings and its background colour; Layers shows a component's own
-     parts, disabled, and folds everything at once; something dropped off
+     parts, each pickable, and folds everything at once; something dropped off
      every frame stays loose on the canvas; a dragged node is carried as
      itself; a frame keeps its proportions; a brand page re-points its text;
      a frame exports as PNG; tones show swatches; blend modes and invert
@@ -267,14 +270,21 @@ async function pickLayer(page, text) {
   await page.locator(".bd-layer[data-layer] .bd-layer-main", { hasText: text }).first().click();
 }
 /* Presses the canvas button that reads `text`, in frame `i`, to select it. */
+/* A button on the canvas, pressed until it's the one selected: one in a
+   component's slot takes a second press, since the first picks the
+   component that holds it. */
 async function pressButton(page, text, i = 0) {
   const at = await page.evaluate(({ text, i }) => {
     const f = document.querySelectorAll("iframe.bd-frame")[i];
     const b = [...f.contentDocument.querySelectorAll("button")].find((x) => x.textContent.includes(text));
     const r = b.getBoundingClientRect(), box = f.getBoundingClientRect(), s = box.width / parseFloat(f.style.width);
-    return { x: box.left + (r.left + r.width / 2) * s, y: box.top + (r.top + r.height / 2) * s };
+    return { x: box.left + (r.left + r.width / 2) * s, y: box.top + (r.top + r.height / 2) * s, held: !!b.closest('[data-bf-type="Slot"]') };
   }, { text, i });
   await page.mouse.click(at.x, at.y);
+  if (at.held) {
+    await page.waitForFunction(() => window.__builder.selection().length === 1);
+    await page.mouse.click(at.x, at.y);
+  }
 }
 const row = (page, name) => page.locator(`.bd-layer[data-layer]:has(.bd-layer-name:text-is("${name}")) .bd-layer-main`);
 /* The inspector is one panel; it once had tabs, and steps still name the
@@ -1196,6 +1206,11 @@ try {
     const pt = await frame().evaluate((sel) => { const b = [...document.querySelectorAll(sel)].find((x) => /Shop the collection/.test(x.textContent)); const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, SLOTTED);
     const ib = await page.locator("iframe.bd-frame").boundingBox();
     const sc = await page.evaluate(() => { const i = document.querySelector("iframe.bd-frame"); return i.getBoundingClientRect().width / parseFloat(i.style.width); });
+    /* The hero holds what's in it: the first click picks the hero, the next its button. */
+    await page.mouse.click(ib.x + pt.x * sc, ib.y + pt.y * sc);
+    await page.waitForFunction(() => /HeroBlock/.test(document.querySelector(".bd-inspect-title")?.textContent || "")).catch(async () => {
+      throw new Error(`the first click on the hero's button should select the hero, got "${await page.locator(".bd-inspect-title").first().textContent().catch(() => "nothing")}"`);
+    });
     await page.mouse.click(ib.x + pt.x * sc, ib.y + pt.y * sc);
     await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || "")).catch(async () => {
       throw new Error(`clicking the hero's button should select it, got "${await page.locator(".bd-inspect-title").first().textContent().catch(() => "nothing")}"`);
@@ -1217,7 +1232,7 @@ try {
       return getComputedStyle(b).backgroundColor === want;
     });
     expect(await frame().locator('[data-bf-type="HeroBlock"]').count() === 1, "the hero is still a HeroBlock, not detached");
-    ok(`clicking the hero's button selects it (${crumbs.replace(/\s+/g, " ")}); its label and variant change on the canvas`);
+    ok(`clicking the hero's button picks the hero, then the button (${crumbs.replace(/\s+/g, " ")}); its label and variant change on the canvas`);
 
     await page.locator(".bd-export").click();
     const part = await page.locator(".bd-code-pre code").textContent();
@@ -1293,6 +1308,60 @@ try {
     expect(Math.abs(order.indexOf("1:CtaBlock") - order.indexOf("1:HeroBlock")) === 1, `a row dropped on the middle of the hero's row lands beside it, since the hero only holds its slots, got ${order.join(" ")}`);
     ok("a layer dropped on the middle of the hero's row lands beside it rather than being refused");
     await page.close();
+  });
+
+  await step("Into a component: a second click picks its own part (lead, an item, its picture), set from the props it comes from; Escape goes back", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    await page.waitForFunction(() => { const d = window.__builder && window.__builder.doc(); return d && d.frames[0].root.children.some((c) => c.type === "HeroBlock"); });
+    await (await frameAt(page, 0)).waitForSelector('[data-bf-type="HeroBlock"] p');
+    const title = () => page.evaluate(() => (document.querySelector(".bd-inspect-title")?.textContent || "").trim());
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    const lead = await canvasPoint(page, '[data-bf-type="HeroBlock"] p', "left");
+    await page.mouse.click(lead.x, lead.y);
+    await page.waitForFunction(() => /HeroBlock/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await page.mouse.move(lead.x + 4, lead.y);
+    await page.waitForSelector(".bd-mark-part.is-hover");
+    await page.mouse.click(lead.x, lead.y);
+    await page.waitForFunction(() => /^Lead$/.test((document.querySelector(".bd-inspect-title")?.textContent || "").trim())).catch(async () => { throw new Error(`a second click on the hero's lead should pick its Lead, got "${await title()}"`); });
+    expect(/HeroBlock.*Lead/.test(await page.locator(".bd-crumbs").first().textContent()), "the path ends in the part");
+    expect(await page.locator(".bd-mark-part").count() === 1 && /HeroBlock › Lead/.test(await page.locator(".bd-mark-tag").first().textContent()), "the part picked is outlined on the canvas and named in the hero's tag");
+    await page.locator(".bd-inspect-part input.bd-input, .bd-inspect-part textarea").first().fill("Made by hand in small batches.");
+    const leadNow = await poll(async () => (await saved()).frames[0].root.children.find((c) => c.type === "HeroBlock").props.lead, (v) => v === "Made by hand in small batches.");
+    await (await frameAt(page, 0)).waitForFunction(() => /Made by hand/.test(document.querySelector('[data-bf-type="HeroBlock"] p').textContent));
+    expect(/^Lead$/.test(await title()), `the part stays picked as its words change, got "${await title()}"`);
+    ok(`the hero's lead: one click picks the hero, a second its Lead, outlined and named in the tag; its words change the lead prop (${JSON.stringify(leadNow)})`);
+
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => /HeroBlock/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    expect(await page.locator(".bd-mark-part").count() === 0, "Escape leaves the part for its component");
+    /* A layer in the hero's slot is held by the hero until it's open. */
+    await page.keyboard.press("Escape");
+    const img = await canvasPoint(page, '[data-bf-type="HeroBlock"] [data-bf-type="Slot"] img');
+    await page.mouse.click(img.x, img.y);
+    await page.waitForFunction(() => /HeroBlock/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await page.mouse.click(img.x, img.y);
+    await page.waitForFunction(() => /Image/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    ok("Escape goes back from the part to the hero; the hero's picture, in its slot, is picked on the second click");
+
+    await page.evaluate(() => window.__builder.tool({ name: "insert_jsx", input: { parent: "root", jsx: "<FaqBlock />" } }));
+    const fq = await frameAt(page, 0);
+    await fq.waitForSelector('[data-bf-type="FaqBlock"] button');
+    await page.evaluate(() => window.__builder.select([]));
+    await page.evaluate(() => { const f = document.querySelector("iframe.bd-frame.is-active"); f.contentDocument.querySelector('[data-bf-type="FaqBlock"]').firstElementChild.scrollIntoView(); });
+    await page.keyboard.press("Shift+Digit1");
+    await page.waitForTimeout(250);
+    const q = await canvasPoint(page, '[data-bf-type="FaqBlock"] button', "left");
+    const qText = await fq.evaluate(() => document.querySelector('[data-bf-type="FaqBlock"] button').textContent.trim());
+    await page.mouse.click(q.x, q.y);
+    await page.waitForFunction(() => /FaqBlock/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await page.mouse.click(q.x, q.y);
+    await page.waitForFunction(() => / 1$/.test((document.querySelector(".bd-inspect-title")?.textContent || "").trim())).catch(async () => { throw new Error(`a second click on a question should pick that item, got "${await title()}"`); });
+    const itemTitle = await title();
+    await page.locator(".bd-inspect-part input.bd-input, .bd-inspect-part textarea").first().fill("Do you ship abroad?");
+    const items = await poll(async () => (await saved()).frames[0].root.children.find((c) => c.type === "FaqBlock").props.items, (v) => Array.isArray(v) && JSON.stringify(v[0]).includes("Do you ship abroad?"));
+    expect(Array.isArray(items) && items.length > 1, "the rest of the list stays as it was");
+    ok(`a question in an FAQ ("${qText.slice(0, 30)}") is picked as ${itemTitle}, and its words change that one item`);
   });
 
   await step("Lists: a block's items edit one by one, add, move and go, and export as its prop", async () => {
@@ -1423,9 +1492,13 @@ try {
     await page.locator('.bd-layer-twisty[aria-label="Expand HeroBlock"]').first().click();
     await page.waitForFunction(() => document.querySelectorAll(".bd-layer.is-part").length >= 2);
     expect(await page.locator('.bd-layer:has(.bd-layer-name:text-is("Actions"))').count() > 0, "the hero's Actions slot is a row among its parts");
-    expect(await page.locator(".bd-layer.is-part[aria-disabled=true] button").count() === 0, "a component's own parts can't be picked");
-    expect(await page.locator(".bd-layer.is-part.is-pickable", { hasText: "Title" }).count() > 0, "the hero's title is a part that can be picked");
-    ok("Layers shows a component's own parts, its title pickable and the rest disabled, with its slots in place");
+    expect(await page.locator(".bd-layer.is-part:not(.is-pickable)").count() === 0, "every part of a component can be picked");
+    await page.locator(".bd-layer.is-part.is-pickable .bd-layer-main", { hasText: "Heading" }).first().click();
+    await page.waitForFunction(() => /^Title$/.test((document.querySelector(".bd-inspect-title")?.textContent || "").trim()));
+    expect(await page.locator(".bd-layer.is-part.is-current").count() === 1, "the part picked is the current row");
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => /HeroBlock/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    ok("Layers shows a component's own parts, each pickable (its heading opens its Title), with its slots in place; Escape goes back to the component");
 
     await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
     await category(page, "Actions");
@@ -1608,7 +1681,10 @@ try {
     ok(`Cmd-Shift-dragging the frame dropped ${after[1].name} at ${after[1].x}, ${after[1].y}`);
     /* The copy renders its own Badge; click that one once it's there. */
     await page.waitForFunction(() => { const fs = [...document.querySelectorAll("iframe.bd-frame")]; const last = fs[fs.length - 1]; try { return !!last.contentDocument.querySelector('[data-bf-type="Badge"]'); } catch (err) { return false; } });
-    { const at = await canvasPoint(page, '[data-bf-type="Badge"]', "center", await page.evaluate(() => { const fs = [...document.querySelectorAll("iframe.bd-frame")]; return fs.map((f, i) => (f.contentDocument.querySelector('[data-bf-type="Badge"]') ? i : -1)).filter((i) => i >= 0).pop(); })); await page.mouse.click(at.x, at.y); }
+    { const at = await canvasPoint(page, '[data-bf-type="Badge"]', "center", await page.evaluate(() => { const fs = [...document.querySelectorAll("iframe.bd-frame")]; return fs.map((f, i) => (f.contentDocument.querySelector('[data-bf-type="Badge"]') ? i : -1)).filter((i) => i >= 0).pop(); })); await page.mouse.click(at.x, at.y);
+      /* The Badge sits in the hero's slot: the first press picks the hero. */
+      await page.waitForFunction(() => /HeroBlock/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+      await page.mouse.click(at.x, at.y); }
     await page.waitForFunction(() => /Badge/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
 
     expect(await page.locator(".bd-toolbar .bd-start, .bd-toolbar [aria-label='New']").count() === 0, "the bar has no New button");
@@ -1685,13 +1761,15 @@ try {
     await page.waitForTimeout(250);
     const h1 = await canvasPoint(page, '[data-bf-type="HeroBlock"] h1', "left", 0);
     await page.mouse.click(h1.x, h1.y);
+    await page.waitForFunction(() => /HeroBlock/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await page.mouse.click(h1.x, h1.y);
     await page.waitForFunction(() => /^Title$/.test((document.querySelector(".bd-inspect-title")?.textContent || "").trim()));
     const sizeBefore = await frames(page)[0].evaluate(() => parseFloat(getComputedStyle(document.querySelector('[data-bf-type="HeroBlock"] h1')).fontSize));
     await release(page);
     await page.keyboard.press("Shift+ArrowUp");
     const titleSize = await poll(async () => (await saved()).frames[0].root.children.find((c) => c.type === "HeroBlock").props.titleSize, (v) => v === "display-md");
     await (await frameAt(page, 0)).waitForFunction((b) => parseFloat(getComputedStyle(document.querySelector('[data-bf-type="HeroBlock"] h1')).fontSize) > b, sizeBefore);
-    ok(`pressing the hero's heading picks its Title; Shift+Up makes it ${titleSize}, larger on the canvas`);
+    ok(`pressing the hero's heading picks the hero, again picks its Title; Shift+Up makes it ${titleSize}, larger on the canvas`);
 
     await page.locator(".bd-rail .bd-tab", { hasText: "Content" }).click();
     await page.locator('.bd-kind[data-kind="images"]').click();

@@ -9,6 +9,8 @@
      less those at their documented default;
    - detach(node): the same thing built from primitives, where a recipe exists;
    - textRect(id, text): where a node's text sits, for editing it in place;
+   - anatomy(id), partAt(id, el), partInfo(id, n) and partRect(id, n): a
+     component's own parts (its title, its picture), to pick and change;
    - height() and scrollBy(dx, dy): how tall the content is, and scrolling
      that hands back what it couldn't use, so the builder pans the rest.
 
@@ -868,13 +870,12 @@
       var w = layerOf(ev.target);
       var id = w ? w.getAttribute("data-bf-id") : "root";
       /* The text right under the pointer, so that piece of it is what's typed into. */
-      if (type === "dblclick") { host().edit(id, textAt(ev.clientX, ev.clientY, w)); return; }
+      /* The component's own part under the pointer (its title, a picture),
+         which the builder picks once the component is selected. */
+      var part = w && id !== "root" ? partAt(id, ev.target) : null;
+      if (type === "dblclick") { host().edit(id, textAt(ev.clientX, ev.clientY, w), part); return; }
       if (type !== "click") return;
       if (swallowClick) { swallowClick = false; return; }
-      /* A component's own heading, pressed: the component, with its title
-         as the part to change. */
-      var hd = w && ev.target.closest ? ev.target.closest("h1, h2, h3, h4, h5, h6") : null;
-      var part = hd && w.contains(hd) && hd.closest("[data-bf-id]") === w ? "title" : null;
       /* Shift adds to the selection; Cmd or Ctrl goes straight to the text. */
       host().pick(id, ev.shiftKey, ev.metaKey || ev.ctrlKey, part);
     }, true);
@@ -946,6 +947,8 @@
     var w = layerOf(ev.target);
     var id = w ? w.getAttribute("data-bf-id") : null;
     if (!id || id === "root" || !index[id]) return;
+    /* Inside a component that isn't open, the component is what moves. */
+    if (host().scope) id = host().scope(id) || id;
     var sel = host().selection();
     var dragId = sel && sel !== "root" && index[sel] && contains(sel, id) ? sel : id;
     press = { id: dragId, x: ev.clientX, y: ev.clientY, pointer: ev.pointerId, active: false, alt: !!ev.altKey };
@@ -964,7 +967,11 @@
       }
       if (press.active) { host().dragMove(ev.clientX, ev.clientY, ev.shiftKey); return; }
     }
-    if (ev.pointerType === "mouse") host().hover(pick(ev.clientX, ev.clientY));
+    if (ev.pointerType === "mouse") {
+      var hid = pick(ev.clientX, ev.clientY);
+      /* Over the selected component: the part under the pointer too. */
+      host().hover(hid, hid && hid === host().selection() ? partAt(hid, ev.target) : null);
+    }
   }, true);
   function release(commit) {
     return function (ev) {
@@ -1422,17 +1429,20 @@
     return { html: htmlOut.length > 400000 ? "" : htmlOut, width: r.width, height: r.height, left: r.left, top: r.top };
   }
 
-  /* What a component is made of, for the layers: its headings, copy,
-     pictures and controls in drawing order. They're its own parts, set
-     through its props, so they're for reading, not picking; a slot inside it
-     is marked where it sits, since that one holds real layers. */
+  /* What a component is made of: its headings, copy, pictures and controls
+     in drawing order. They're its own parts, set through its props: the
+     layers list them, and once the component is selected a click on one
+     picks it, so the inspector shows the props it comes from. A slot inside
+     it is marked where it sits, since that one holds real layers. The
+     component's own outer box isn't a part (a Button is its button). Each
+     part has n, its place in drawing order, which finds it again. */
   var PART = { H1: "Heading", H2: "Heading", H3: "Heading", H4: "Heading", H5: "Heading", H6: "Heading", P: "Text", IMG: "Image", PICTURE: "Image", VIDEO: "Video", svg: "Icon", SVG: "Icon",
     BUTTON: "Button", A: "Link", INPUT: "Field", SELECT: "Select", TEXTAREA: "Text area", LABEL: "Label", UL: "List", OL: "List", LI: "Item", TABLE: "Table", BLOCKQUOTE: "Quote", FIGURE: "Figure", NAV: "Navigation", FORM: "Form", HEADER: "Header", FOOTER: "Footer" };
-  function anatomy(id) {
+  function atomsOf(id) {
     var w = wrapper(id);
     if (!w) return null;
-    var count = 0;
-    var walk = function (el) {
+    var count = 0, flat = [];
+    var walk = function (el, top) {
       var out = [];
       Array.prototype.forEach.call(el.children, function (c) {
         if (count > 60) return;
@@ -1441,19 +1451,51 @@
           if (c.getAttribute("data-bf-type") === "Slot") { count++; out.push({ slot: bfId }); }
           return;
         }
-        var kind = PART[c.tagName];
-        if (c.getAttribute && c.getAttribute("aria-hidden") === "true" && kind !== "Icon") return;
+        var kind = top ? null : PART[c.tagName];
+        if (c.getAttribute && c.getAttribute("aria-hidden") === "true" && kind !== "Icon" && !top) return;
         var role = c.getAttribute && c.getAttribute("role");
-        if (!kind && role && /^(img|button|link|tab|tablist|list|listitem|radiogroup|group|heading|progressbar|status|separator)$/.test(role)) kind = role.charAt(0).toUpperCase() + role.slice(1);
-        var inner = kind === "Icon" || kind === "Image" ? [] : walk(c);
-        if (!kind) { out = out.concat(inner); return; }
+        if (!top && !kind && role && /^(img|button|link|tab|tablist|list|listitem|radiogroup|group|heading|progressbar|status|separator)$/.test(role)) kind = role.charAt(0).toUpperCase() + role.slice(1);
+        if (!kind) { out = out.concat(walk(c, top && getComputedStyle(c).display === "contents")); return; }
         count++;
-        var text = (c.getAttribute("aria-label") || c.getAttribute("alt") || (kind === "Icon" ? "" : c.textContent) || "").replace(/\s+/g, " ").trim().slice(0, 40);
-        out.push({ kind: kind, text: text, children: inner });
+        var whole = (c.getAttribute("aria-label") || c.getAttribute("alt") || (kind === "Icon" ? "" : c.textContent) || "").replace(/\s+/g, " ").trim();
+        var item = { kind: kind, text: whole.slice(0, 40), whole: whole.slice(0, 400), n: flat.length };
+        flat.push(c);
+        item.children = kind === "Icon" || kind === "Image" ? [] : walk(c, false);
+        out.push(item);
       });
       return out;
     };
-    return walk(w);
+    return { tree: walk(w, true), flat: flat, w: w };
+  }
+  function anatomy(id) { var a = atomsOf(id); return a ? a.tree : null; }
+  /* One part, as the builder holds it: its place, kind, words and picture. */
+  function describe(el, n) {
+    var kind = PART[el.tagName] || (el.getAttribute("role") || "").replace(/^./, function (c) { return c.toUpperCase(); });
+    var img = el.tagName === "IMG" ? el : el.querySelector ? el.querySelector("img") : null;
+    var vid = el.tagName === "VIDEO" ? el : null;
+    var text = (el.getAttribute("aria-label") || el.getAttribute("alt") || (kind === "Icon" ? "" : el.textContent) || "").replace(/\s+/g, " ").trim().slice(0, 400);
+    var icon = kind === "Icon" ? el.getAttribute("data-icon") || (el.closest("[data-icon]") || { getAttribute: function () { return null; } }).getAttribute("data-icon") : null;
+    return { n: n, kind: kind, text: text, src: img ? img.getAttribute("src") || "" : vid ? vid.getAttribute("src") || "" : "", icon: icon || "" };
+  }
+  /* The part under the pointer, in a node: the innermost of its own parts
+     the target sits in, never one in a layer nested inside it. */
+  function partAt(id, target) {
+    var a = atomsOf(id);
+    if (!a || !a.flat.length) return null;
+    for (var el = target; el && el !== a.w; el = el.parentElement) {
+      if (el.hasAttribute && el.hasAttribute("data-bf-id")) return null;
+      var i = a.flat.indexOf(el);
+      if (i >= 0) return describe(el, i);
+    }
+    return null;
+  }
+  function partInfo(id, n) { var a = atomsOf(id); var el = a && a.flat[n]; return el ? describe(el, n) : null; }
+  function partRect(id, n) {
+    var a = atomsOf(id);
+    var el = a && a.flat[n];
+    if (!el) return null;
+    var r = el.getBoundingClientRect();
+    return r.width || r.height ? { left: r.left, top: r.top, width: r.width, height: r.height, right: r.right, bottom: r.bottom } : null;
   }
 
   /* The canvas as a picture, PNG or JPEG, at twice its size unless asked
@@ -1670,6 +1712,9 @@
       if (w) Array.prototype.forEach.call(w.children, function (c) { c.style.visibility = on ? "hidden" : ""; });
     },
     anatomy: anatomy,
+    partAt: partAt,
+    partInfo: partInfo,
+    partRect: partRect,
     snapshot: snapshot,
     audit: audit,
     tokenPx: tokenPx,

@@ -3,14 +3,14 @@
    reorder and a filter. Memoized: it redraws when the document, selection or
    its own state change, not when the canvas pans or the inspector edits. */
 
-import { autoName, cx, e, frameSize, hasTitlePart, isComponentLayer, isContainer, isOwner, nameOf, nodeIsOpen, nodeLabel, typeIcon } from "../config.js";
+import { autoName, cx, e, frameSize, isComponentLayer, isContainer, isOwner, nameOf, nodeIsOpen, nodeLabel, typeIcon } from "../config.js";
 import { locate } from "../model/tree.js";
 import { Icon } from "../ui/icons.js";
 import { Renamable } from "../ui/parts.js";
 
 var PART_ICON = { Heading: "heading", Text: "type", Image: "image", Video: "video", Icon: "star", Button: "pointer", Link: "link", Field: "form", Select: "form", "Text area": "form", Label: "type", List: "listView", Item: "listView", Figure: "figure", Navigation: "compass" };
 
-/* { doc, selection, partId, listDrop, hover, frameOn, hasSel, query, collapsed,
+/* { doc, selection, part, listDrop, hover, frameOn, hasSel, query, collapsed,
      openFrames, renaming, boxes, scalars, layersRef, justDragged,
      setCollapsed, setHover, setRenaming, setOpenFrames,
      pick(id, additive, deep, from, fid, part), openMenu(x, y, id, fid),
@@ -73,23 +73,17 @@ var Layers = React.memo(function Layers(p) {
     walk(f.root, 1);
     return rows;
   };
+  /* A component's own part: pressed, it's picked, and the inspector shows
+     the props it comes from. */
   var partRow = function (r, f) {
     var it = r.part;
-    if (it.kind === "Heading" && hasTitlePart(r.owner.type) && f) {
-      var onPart = p.partId != null && p.partId === r.owner.id && f.id === doc.active;
-      return e("div", { key: r.key, className: cx("bd-layer is-part is-pickable", onPart && "is-current"), role: "treeitem", "aria-level": r.depth + 1, "aria-selected": String(!!onPart),
-        style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" } },
-        e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
-        e("button", { type: "button", className: "bd-layer-main", title: "The title of " + r.owner.type + ": its words and size", onClick: function () { p.pick(r.owner.id, false, false, "layers", f.id, "title"); } },
-          e(Icon, { name: "heading" }), e("span", { className: "bd-layer-name" }, "Title"), it.text ? e("span", { className: "bd-layer-text" }, it.text) : null));
-    }
-    return e("div", {
-      key: r.key, className: "bd-layer is-part", role: "treeitem", "aria-level": r.depth + 1, "aria-disabled": "true",
-      style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
-      title: it.kind + " in " + r.owner.type + ": part of the component, set through its props in the inspector",
-    },
+    var mine = !!f && f.id === doc.active;
+    var onPart = mine && !!p.part && p.part.id === r.owner.id && p.part.n === it.n;
+    return e("div", { key: r.key, className: cx("bd-layer is-part is-pickable", onPart && "is-current"), role: "treeitem", "aria-level": r.depth + 1, "aria-selected": String(onPart),
+      style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" } },
       e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
-      e("span", { className: "bd-layer-main is-static" },
+      e("button", { type: "button", className: "bd-layer-main", title: it.kind + " in " + r.owner.type + ": select it to change what it shows",
+        onClick: function () { if (f) p.pick(r.owner.id, false, false, "layers", f.id, { n: it.n, kind: it.kind, text: it.whole || it.text || "" }); } },
         e(Icon, { name: PART_ICON[it.kind] || "component" }),
         e("span", { className: "bd-layer-name" }, it.kind),
         it.text ? e("span", { className: "bd-layer-text" }, it.text) : null));
@@ -169,4 +163,4 @@ var Layers = React.memo(function Layers(p) {
       listDrop && listDrop.indicator ? e("div", { className: "bd-layers-line", style: { top: listDrop.indicator.top + "px", left: listDrop.indicator.left + "px" }, "aria-hidden": true }) : null));
 });
 
-export { Layers };
+export { Layers, PART_ICON };
