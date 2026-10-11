@@ -3471,7 +3471,9 @@ try {
     expect(chrome[0] && chrome[1] !== "rgb(255, 0, 0)", `the builder's panels should keep their own colours, got ${chrome[1]}`);
     ok("the canvas takes the configured surface; the panels keep theirs");
     await themed.page.close();
-  });
+    /* Alone, after the side-by-side steps: its first paint is a cold frame,
+       which a busy machine can hold past any fair wait. */
+  }, { alone: true });
 
   await step("Account: off without a cloud and fetching nothing; with one, sign in, a friendly error, sign up, a reset link, a new password, sign out", async () => {
     /* No cloud: nothing reaches Supabase or the CDN, and the dialog says why. */
