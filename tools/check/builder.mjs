@@ -716,6 +716,36 @@ try {
     await page.close();
   });
 
+  await step("Dovetail Icons: Content's Icons gallery adds a 24px Icon, the inspector swaps it for any icon, and Code names it", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    await startFrom(page, "Blank frame");
+    await emptyFrame(page);
+    await page.locator(".bd-rail .bd-tab", { hasText: "Content" }).click();
+    await page.locator(".bd-kinds button", { hasText: "Icons" }).first().click();
+    const cells = await page.locator(".bd-dticons .bd-iconlib-cell").count();
+    expect(cells === 320, `the gallery shows all 320 icons, got ${cells}`);
+    await page.locator(".bd-dticons .bd-iconlib-q").fill("bel");
+    expect(await page.locator(".bd-dticons .bd-iconlib-cell").count() < 10, "searching narrows the grid");
+    await page.locator('.bd-dticons .bd-iconlib-cell[data-icon-name="bell"]').click();
+    await frame().waitForSelector('svg[data-icon="bell"]');
+    const px = await frame().evaluate(() => Math.round(document.querySelector('svg[data-icon="bell"]').getBoundingClientRect().width));
+    expect(px === 24, `the icon lands at 24px, got ${px}`);
+    ok("the Icons gallery lists the 320 icons, searches them, and a press adds a 24px bell to the frame");
+    const id = await page.evaluate(() => { let hit = null; (function w(n) { (n.children || []).forEach((c) => { if (c.type === "Icon") hit = c.id; w(c); }); })(window.__builder.doc().frames[0].root); return hit; });
+    await page.evaluate((i) => window.__builder.select([i]), id);
+    await page.locator(".bd-iconpick-btn").click();
+    await page.locator(".bd-iconpick .bd-iconlib-q").fill("arrow");
+    await page.locator('.bd-iconpick .bd-iconlib-cell[data-icon-name="arrow-right"]').click();
+    await frame().waitForSelector('svg[data-icon="arrow-right"]');
+    expect(/arrow right/.test(await page.locator(".bd-iconpick-name").textContent()), "the picker names the icon it now shows");
+    await page.locator(".bd-export").click();
+    const code = await page.locator(".bd-code-pre code").textContent();
+    await page.keyboard.press("Escape");
+    expect(/import \{ Icon \} from "@dovetail-ds\/react"/.test(code) && /<Icon name="arrow-right" \/>/.test(code), `Code is the Icon by name, got ${code.slice(0, 160)}`);
+    ok("the inspector swaps it for arrow-right from the library, and Code writes <Icon name=\"arrow-right\" />");
+    await page.close();
+  });
+
   await step("Tools add primitives straight away, and land where they are dropped", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
@@ -730,9 +760,9 @@ try {
     }
     expect(trays.Layout.join() === "Group,Section,Frame,Tall frame", `the Layout tray, got ${trays.Layout}`);
     expect(trays.Text.join() === "Text,Heading", `the Text tray, got ${trays.Text}`);
-    expect(trays["Images and media"].join() === "Image,Video,Cover,Media,Figure,Icons*,Illustrations*", `the media tray, with icons and illustrations to come, got ${trays["Images and media"]}`);
+    expect(trays["Images and media"].join() === "Image,Video,Cover,Media,Figure,Icon,Illustrations*", `the media tray, with an Icon and illustrations to come, got ${trays["Images and media"]}`);
     expect(await page.locator(".bd-tray.is-open").count() === 0, "pressing a group again closes its tray");
-    ok("the bar's groups open trays: Group, Section, Frame, Page; Text, Heading; Image, Video, Cover, Media, Figure, with Icons and Illustrations marked coming soon");
+    ok("the bar's groups open trays: Group, Section, Frame, Page; Text, Heading; Image, Video, Cover, Media, Figure, Icon, with Illustrations marked coming soon");
     await page.keyboard.press("b");
     await frame().waitForSelector('[data-bf-type="Group"]');
     let d = await saved();

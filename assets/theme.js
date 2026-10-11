@@ -59,7 +59,7 @@
     texture: "none",
     baseUnit: 4,
     focusRing: 2,
-    iconLib: "lucide",
+    iconLib: "dovetail",
     iconStroke: "authored",
     iconSize: "default",
     mediaRadius: "auto",
@@ -1356,7 +1356,7 @@
     var lib = iconLibInfo(cfg.iconLib);
     lines.push("");
     lines.push("/* Iconography: " + lib.label + ", " + lib.licence + ".");
-    lines.push("   The system ships no icon set. Load one and size it from --dt-size-icon-*;");
+    lines.push(cfg.iconLib === "dovetail" ? "   The system's own set, drawn by the Icon component and sized from --dt-size-icon-*;" : "   Load it and size it from --dt-size-icon-*;");
     lines.push("   icons inherit text colour and are never given their own.");
     lines.push("     " + lib.include);
     if (cfg.iconStroke !== "authored") {

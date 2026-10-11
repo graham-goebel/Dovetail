@@ -83,7 +83,7 @@ META.Slot = { blurb: "A part of a component that holds other components", group:
 /* What a slot takes when the component's types don't say (@slot). */
 var SLOT_ACCEPTS = {
   actions: ["Button", "IconButton", "Link", "ButtonGroup", "Badge", "Tag", "Text", "Inline", "Stack", "Group"],
-  media: ["Image", "Video", "Figure", "AspectRatio", "Cover", "Shape", "Avatar", "Inline", "Stack", "Group"],
+  media: ["Image", "Video", "Icon", "Figure", "AspectRatio", "Cover", "Shape", "Avatar", "Inline", "Stack", "Group"],
 };
 function slotSpec(type, name) {
   var m = META[type];
@@ -167,7 +167,7 @@ var TOOLBAR = [
     { id: "comp:Cover", label: "Cover", icon: "cover", hint: "Text over an image" },
     { id: "comp:Media", label: "Media", icon: "media", hint: "An image beside text" },
     { id: "comp:Figure", label: "Figure", icon: "figure", hint: "An image with a caption" },
-    { id: "soon:icons", label: "Icons", icon: "star", soon: true },
+    { id: "comp:Icon", label: "Icon", icon: "star", hint: "One icon from the library, 24px" },
     { id: "soon:illustrations", label: "Illustrations", icon: "squiggle", soon: true },
   ] },
 ];
@@ -358,7 +358,7 @@ var TEXT_STYLES = [
 var TYPE_ICON = {
   Slot: "slot", Group: "group", Stack: "column", Inline: "row", Grid: "gridView", Section: "layout", Card: "card", Divider: "minus", Shape: "square",
   Heading: "heading", Text: "type", Quote: "quote", Code: "code", Prose: "file", Link: "link",
-  Image: "image", Video: "video", Cover: "cover", Media: "media", Figure: "figure", AspectRatio: "fit",
+  Image: "image", Video: "video", Cover: "cover", Media: "media", Figure: "figure", AspectRatio: "fit", Icon: "star",
   Button: "cursor", IconButton: "cursor", ButtonGroup: "cursor",
   Avatar: "user", AvatarGroup: "user", Badge: "tag", Tag: "tag", Stat: "chart", Table: "table", List: "list", Accordion: "accordion",
   Alert: "megaphone", Banner: "megaphone", Callout: "megaphone", Progress: "chart", Spinner: "rotate", Thinking: "wand", Carousel: "rotate",

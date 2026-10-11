@@ -6,6 +6,7 @@
 import { LIB_KINDS, cx, e } from "../config.js";
 import { Icon } from "../ui/icons.js";
 import { Dropdown } from "../ui/parts.js";
+import { IconGrid } from "../ui/IconLibrary.js";
 
 var LIB_TABS = [["images", "Images", "image"], ["illustrations", "Illustrations", "squiggle"], ["icons", "Icons", "star"], ["video", "Video", "video"]];
 var WORDMARK_TONE = { primary: "brand", secondary: "brand-secondary" };
@@ -20,6 +21,11 @@ function brandPieces(b) {
     : { kind: "new", type: "Heading", label: name, props: Object.assign({ children: name, size: "heading-md", balance: false }, tone ? { tone: tone } : {}), extra: { name: "Logo" } };
   var mark = b.mark ? { kind: "asset", src: b.mark, label: name + " mark", media: "image", props: { ratio: "square", fit: "contain", radius: "none" }, extra: { name: "Brand mark", style: { w: "x2" } } } : null;
   return { logo: logo, mark: mark };
+}
+
+/* An icon from the library, as a thing to drag or press onto a frame. */
+function iconPiece(n) {
+  return { kind: "new", type: "Icon", label: n.replace(/-/g, " "), props: { name: n }, extra: { name: n.replace(/-/g, " ") + " icon" } };
 }
 
 /* The Brand gallery: name, logo and mark, each uploaded, replaced or removed. */
@@ -121,6 +127,12 @@ var Content = React.memo(function Content(p) {
     e("div", { className: "bd-panel-head bd-gallery-head" },
       e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Content", title: "Back to Content", onClick: function () { p.setLibTab(null); } }, e(Icon, { name: "left" })),
       e("h2", { className: "bd-panel-title" }, LIB_TABS.filter(function (t) { return t[0] === kind; })[0][1])),
+    kind === "icons" ? e("section", { className: "bd-content-sec bd-dticons", "aria-labelledby": "bd-dticons-h" },
+      e("h3", { className: "bd-content-h", id: "bd-dticons-h" }, "Dovetail Icons"),
+      e("p", { className: "bd-content-note" }, "The system's own library, v1. Drag an icon onto a frame, or press it to add it at 24px; swap it later from the inspector."),
+      e(IconGrid, { title: function (n) { return n.replace(/-/g, " ") + ": drag onto a frame, or press to add"; },
+        onDrag: function (ev, n) { p.startDrag(ev, iconPiece(n)); },
+        onPick: function (n) { if (!p.justDragged.current) p.placeBrand(iconPiece(n)); } })) : null,
     kind === "icons" ? e("section", { className: "bd-content-sec", "aria-labelledby": "bd-iconlib" },
       e("h3", { className: "bd-content-h", id: "bd-iconlib" }, "Icon library"),
       e("p", { className: "bd-content-note" }, "The set every component draws its icons from, here and on every page."),

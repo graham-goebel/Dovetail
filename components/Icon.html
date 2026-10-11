@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Icon · Dovetail</title>
+<meta name="description" content="One glyph from Dovetail Icons, the system&#39;s own library of 320 icons, to mark an action, a status or a kind of thing.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css?v=310a015d7e">
+<link rel="stylesheet" href="../assets/site.css?v=155271ec65">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after.
+     An app page (data-theme-fixed) keeps its own chrome, dark unless this browser
+     chose light for it (dovetail-builder-dark); the theme reaches its frames instead. */
+  try {
+    var r = document.documentElement;
+    var fixed = r.hasAttribute("data-theme-fixed");
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = fixed ? "" : localStorage.getItem("dovetail-docs-context") || "";
+    var dark = fixed ? localStorage.getItem("dovetail-builder-dark") !== "0" : !!(cfg && cfg.dark);
+    if (cfg && cfg.vars && !fixed) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <img class="wordmark-logo" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><span>Search</span><kbd>/</kbd></button>
+    <button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  </div>
+</header>
+<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-title" aria-hidden="true">Icon</p></div>
+  <div class="head-r"><button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+    <li><a href="../builder.html">Builder</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li><li><a href="../tokens.html">Tokens</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Carousel.html">Carousel</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/MenuSheet.html">MenuSheet</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Sheet.html">Sheet</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Icon.html" aria-current="page">Icon</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li><li><a href="../components/SocialPost.html">SocialPost</a></li><li class="nav-group">Commerce</li><li><a href="../components/Price.html">Price</a></li><li><a href="../components/Rating.html">Rating</a></li><li><a href="../components/QuantityStepper.html">QuantityStepper</a></li><li><a href="../components/ProductCard.html">ProductCard</a></li><li><a href="../components/ProductGallery.html">ProductGallery</a></li><li><a href="../components/VariantPicker.html">VariantPicker</a></li><li><a href="../components/StoreHeader.html">StoreHeader</a></li><li><a href="../components/FulfilmentToggle.html">FulfilmentToggle</a></li><li><a href="../components/MenuSection.html">MenuSection</a></li><li><a href="../components/MenuItem.html">MenuItem</a></li><li><a href="../components/ModifierGroup.html">ModifierGroup</a></li><li><a href="../components/CartLine.html">CartLine</a></li><li><a href="../components/OrderSummary.html">OrderSummary</a></li><li><a href="../components/PromoCode.html">PromoCode</a></li><li><a href="../components/AddressFields.html">AddressFields</a></li><li><a href="../components/PaymentFields.html">PaymentFields</a></li><li><a href="../components/OrderStatus.html">OrderStatus</a></li><li><a href="../components/BasketBar.html">BasketBar</a></li><li class="nav-group">Chat</li><li><a href="../components/ChatHeader.html">ChatHeader</a></li><li><a href="../components/MessageList.html">MessageList</a></li><li><a href="../components/MessageDivider.html">MessageDivider</a></li><li><a href="../components/MessageBubble.html">MessageBubble</a></li><li><a href="../components/Composer.html">Composer</a></li><li><a href="../components/TypingIndicator.html">TypingIndicator</a></li><li><a href="../components/QuickReplies.html">QuickReplies</a></li><li><a href="../components/AmbientBorder.html">AmbientBorder</a></li><li><a href="../components/VoiceInput.html">VoiceInput</a></li><li><a href="../components/VoiceOverlay.html">VoiceOverlay</a></li></ul></details>
+  <details class="nav-section" open><summary>Blocks</summary><ul><li><a href="../components/index.html#blocks">All blocks</a></li><li><a href="../components/HeroBlock.html">HeroBlock</a></li><li><a href="../components/FeatureGridBlock.html">FeatureGridBlock</a></li><li><a href="../components/SplitBlock.html">SplitBlock</a></li><li><a href="../components/StatsBlock.html">StatsBlock</a></li><li><a href="../components/TestimonialBlock.html">TestimonialBlock</a></li><li><a href="../components/FaqBlock.html">FaqBlock</a></li><li><a href="../components/CtaBlock.html">CtaBlock</a></li><li><a href="../components/BlockHeader.html">BlockHeader</a></li><li><a href="../components/ChatBlock.html">ChatBlock</a></li><li><a href="../components/MenuBlock.html">MenuBlock</a></li><li><a href="../components/OrderTrackingBlock.html">OrderTrackingBlock</a></li><li><a href="../components/ProductGridBlock.html">ProductGridBlock</a></li><li><a href="../components/ProductDetailBlock.html">ProductDetailBlock</a></li><li><a href="../components/CartBlock.html">CartBlock</a></li><li><a href="../components/CheckoutBlock.html">CheckoutBlock</a></li></ul></details>
+  <details class="nav-section" open><summary>Templates</summary><ul><li><a href="../showcase/templates.html">All templates</a></li><li class="nav-group">Product</li><li><a href="../showcase/templates.html#chat">Chat</a></li><li><a href="../showcase/templates.html#dashboard-screen">Dashboard screen</a></li><li><a href="../showcase/templates.html#food-ordering">Food ordering</a></li><li><a href="../showcase/templates.html#settings-page">Settings page</a></li><li><a href="../showcase/templates.html#store">Store</a></li><li class="nav-group">Marketing</li><li><a href="../showcase/templates.html#landing-page-from-blocks">Landing page from blocks</a></li><li><a href="../showcase/templates.html#marketing-page">Marketing page</a></li><li class="nav-group">Social</li><li><a href="../showcase/templates.html#social-templates">Social templates</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/changelog.html">Changelog</a></li></ul></details>
+</nav>
+<main id="main" class="main has-toc">
+<div class="doc">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Icon</li></ol></nav>
+<h1>Icon</h1>
+<p class="lede">One glyph from Dovetail Icons, the system's own library of 320 icons, to mark an action, a status or a kind of thing.</p>
+<p class="meta">
+  <span class="pill">Content</span>
+  
+  <a href="../system/components/content/Icon.jsx">Icon.jsx</a>
+  <a href="../system/components/content/Icon.d.ts">Icon.d.ts</a>
+  <a href="../system/components/content/Icon.md">Icon.md</a>
+</p>
+
+<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="Icon" data-props="[{&quot;name&quot;:&quot;name&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;star&quot;,&quot;note&quot;:&quot;The icon&#39;s name in the library, such as \&quot;home\&quot;, \&quot;search\&quot; or \&quot;arrow-right\&quot;&quot;},{&quot;name&quot;:&quot;size&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;xs&quot;,&quot;sm&quot;,&quot;md&quot;,&quot;lg&quot;,&quot;xl&quot;],&quot;default&quot;:&quot;lg&quot;,&quot;note&quot;:&quot;Size from --dt-size-icon-*: xs 12, sm 16, md 20, lg 24, xl 32&quot;},{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Accessible name&quot;}]">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="Icon props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/Icon.html?v=df1ff3bc3b&amp;b=0d946a4ebe" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Icon — Dovetail Icons v1: 320 glyphs drawn for 16 and 24.</p>
+  <div class="frame" style="height:560px">
+    <iframe src="../previews/Icon.html?v=df1ff3bc3b&amp;b=0d946a4ebe" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="install">Install and import</h2>
+  <p>Icon is in <a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a>. Install it with React, if you haven't:</p>
+</section>
+<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react react react-dom</code></pre>
+<pre class="code" data-lang="jsx"><code>import { Icon } from &quot;@dovetail-ds/react&quot;;</code></pre>
+<p class="muted">Import <code>@dovetail-ds/react/styles.css</code> once at your app's root, then your theme after it. <a href="../downloads.html#npm">Setup</a> covers the stylesheets, fonts and dark mode.</p>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>One glyph from Dovetail Icons, the system's own library of 320 icons, to mark an action, a status or a kind of thing.</p>
+<p>Use it next to text, or on its own when its meaning is clear.</p>
+<h3 id="use-it-when">Use it when</h3>
+<ul><li>A label, list row or heading reads faster with a mark beside it.</li><li>A control needs a glyph: pass <code>&lt;Icon /&gt;</code> to a component's icon slot, such as Button's.</li><li>A feature row or empty state wants a picture smaller than an illustration.</li></ul>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
+<ul><li>The picture carries the message. Use Image or an illustration.</li><li>It would be the only way to tell two things apart. Pair it with text.</li><li>You need a brand mark. Upload it and place it as an Image.</li></ul>
+<h3 id="example">Example</h3>
+<pre class="code" data-lang="jsx"><code>&lt;Icon name=&quot;search&quot; /&gt;
+&lt;Icon name=&quot;bell&quot; size=&quot;sm&quot; /&gt;
+&lt;Icon name=&quot;success&quot; label=&quot;Saved&quot; /&gt;</code></pre>
+<h3 id="sizes">Sizes</h3>
+<div class="table-wrap"><table><thead><tr><th>size</th><th>px</th><th>drawing</th></tr></thead><tbody><tr><td><code>xs</code></td><td>12</td><td>16 grid, 1px strokes</td></tr><tr><td><code>sm</code></td><td>16</td><td>16 grid, 1px strokes</td></tr><tr><td><code>md</code></td><td>20</td><td>24 grid, 1.5px strokes</td></tr><tr><td><code>lg</code></td><td>24</td><td>24 grid, 1.5px strokes (the default)</td></tr><tr><td><code>xl</code></td><td>32</td><td>24 grid, 1.5px strokes</td></tr></tbody></table></div>
+<p>The size picks the drawing, so a 16px icon is its own drawing, not a shrunken 24px one. Sizes follow <code>--dt-size-icon-*</code>, so a context that re-points those tokens resizes icons too.</p>
+<h3 id="the-library">The library</h3>
+<p><code>Icon.names</code> lists every name and <code>Icon.groups</code> lists them by category. The SVGs, 16 and 24, and a sprite sheet for each size are in <code>system/assets/icons/dovetail/</code>. Sprite ids are <code>dt-NAME-16</code> and <code>dt-NAME-24</code>.</p>
+<h3 id="composition">Composition</h3>
+<p>Inline: it sits on the text baseline and doesn't stretch in a row. Put it inside Button, Inline, list rows, Badge or Card. It takes no children.</p>
+<h3 id="tokens">Tokens</h3>
+<p><code>--dt-size-icon-xs</code> to <code>--dt-size-icon-xl</code> for its box. Colour is <code>currentColor</code>, so it takes the text colour around it; set the colour on its container, never on the icon.</p>
+<h3 id="accessibility">Accessibility</h3>
+<p>Without <code>label</code> the icon is decorative: <code>aria-hidden</code>, and skipped by screen readers. With <code>label</code> it is <code>role=&quot;img&quot;</code> with that name. In an icon-only button, label the button and leave the icon unlabelled.</p>
+<h3 id="content">Content</h3>
+<p>Labels are short nouns or states in sentence case: &quot;Saved&quot;, &quot;Unread messages&quot;.</p>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>Icon.d.ts</code>.</p>
+  <pre class="code" data-lang="ts" data-source="system/components/content/Icon.d.ts"><code>import * as React from &quot;react&quot;;
+
+/** One glyph from Dovetail Icons v1, the system's own library of 320 icons. */
+export interface IconProps extends Omit&lt;React.SVGAttributes&lt;SVGSVGElement&gt;, &quot;name&quot;&gt; {
+  /** The icon's name in the library, such as &quot;home&quot;, &quot;search&quot; or &quot;arrow-right&quot;. Icon.names lists them all. Unknown names draw &quot;star&quot;. @default &quot;star&quot; */
+  name?: string;
+  /** Size from --dt-size-icon-*: xs 12, sm 16, md 20, lg 24, xl 32. xs and sm use the drawings made for the 16px grid. @default &quot;lg&quot; */
+  size?: &quot;xs&quot; | &quot;sm&quot; | &quot;md&quot; | &quot;lg&quot; | &quot;xl&quot;;
+  /** Accessible name. Give one when the icon means something on its own; leave it out when text beside it says the same, and the icon is hidden from screen readers. */
+  label?: string;
+}
+
+export declare function Icon(props: IconProps): React.JSX.Element;
+export declare namespace Icon {
+  /** Every icon name, in catalogue order. */
+  const names: string[];
+  /** The names by category, as [category, names] pairs. */
+  const groups: Array&lt;[string, string[]]&gt;;
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Icon.jsx</code> resolves, read from the source: 5 semantic. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:Icon">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-size-icon-lg"><th scope="row"><span class="token-cell"><code>--dt-size-icon-lg</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-lg" title="Show what --dt-size-icon-lg connects to" aria-label="Graph for --dt-size-icon-lg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-size-icon-md"><th scope="row"><span class="token-cell"><code>--dt-size-icon-md</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-md" title="Show what --dt-size-icon-md connects to" aria-label="Graph for --dt-size-icon-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-5)</code></td></tr><tr id="uses-dt-size-icon-sm"><th scope="row"><span class="token-cell"><code>--dt-size-icon-sm</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-sm" title="Show what --dt-size-icon-sm connects to" aria-label="Graph for --dt-size-icon-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-size-icon-xl"><th scope="row"><span class="token-cell"><code>--dt-size-icon-xl</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-xl" title="Show what --dt-size-icon-xl connects to" aria-label="Graph for --dt-size-icon-xl"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-8)</code></td></tr><tr id="uses-dt-size-icon-xs"><th scope="row"><span class="token-cell"><code>--dt-size-icon-xs</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-xs" title="Show what --dt-size-icon-xs connects to" aria-label="Graph for --dt-size-icon-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx" data-source="system/components/content/Icon.jsx"><code>import React from &quot;react&quot;;
+
+/* One glyph from Dovetail Icons, the system's own library (v1, 320 icons).
+   Each icon is drawn twice: on a 16-unit grid with 1px strokes, for 16px and
+   smaller, and on a 24-unit grid with 1.5px strokes for everything larger.
+   The size picks the drawing, so a small icon stays crisp instead of being a
+   shrunken large one. Colour is currentColor, so an icon takes its text's. */
+
+const SIZES = {
+  xs: &quot;var(--dt-size-icon-xs)&quot;,
+  sm: &quot;var(--dt-size-icon-sm)&quot;,
+  md: &quot;var(--dt-size-icon-md)&quot;,
+  lg: &quot;var(--dt-size-icon-lg)&quot;,
+  xl: &quot;var(--dt-size-icon-xl)&quot;,
+};
+const SMALL = { xs: true, sm: true };
+
+/* [16-unit drawing, 24-unit drawing or 0, stroke width of the 24 drawing].
+   A 0 means the 24 drawing is the 16 one scaled by 1.5. Generated from
+   system/assets/icons/dovetail/svg by tools/build-bundle.mjs; edit the SVGs. */
+/* @icons:start */
+const DRAWINGS = {
+  &quot;context&quot;: [&quot;&lt;path d=\&quot;M4.5 1.5h-3v3 M11.5 1.5h3v3 M14.5 11.5v3h-3 M4.5 14.5h-3v-3\&quot;/&gt;&lt;rect x=\&quot;5.5\&quot; y=\&quot;5.5\&quot; width=\&quot;5\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&lt;path d=\&quot;M7 8h2\&quot;/&gt;&quot;, &quot;&lt;path d=\&quot;M7 3H5q-2 0-2 2v2 M17 3h2q2 0 2 2v2 M21 17v2q0 2-2 2h-2 M7 21H5q-2 0-2-2v-2\&quot;/&gt;&lt;rect x=\&quot;7\&quot; y=\&quot;7\&quot; width=\&quot;10\&quot; height=\&quot;10\&quot; rx=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M10 10h4 M10 14h2\&quot;/&gt;&quot;, 1.5],
+  &quot;prompt&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;2.5\&quot; width=\&quot;13\&quot; height=\&quot;11\&quot; rx=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M4.5 5.5l3 2.5-3 2.5 M9.5 10.5h2\&quot;/&gt;&quot;, &quot;&lt;rect x=\&quot;3\&quot; y=\&quot;4\&quot; width=\&quot;18\&quot; height=\&quot;16\&quot; rx=\&quot;3\&quot;/&gt;&lt;path d=\&quot;M7 8l4 4-4 4 M14 16h3\&quot;/&gt;&quot;, 1.5],
+  &quot;refine&quot;: [&quot;&lt;path d=\&quot;M1.5 4.5h2 M7.5 4.5h7 M1.5 11.5h7 M12.5 11.5h2\&quot;/&gt;&lt;circle cx=\&quot;5.5\&quot; cy=\&quot;4.5\&quot; r=\&quot;2\&quot;/&gt;&lt;circle cx=\&quot;10.5\&quot; cy=\&quot;11.5\&quot; r=\&quot;2\&quot;/&gt;&quot;, &quot;&lt;path d=\&quot;M3 7h3 M11 7h10 M3 17h10 M18 17h3\&quot;/&gt;&lt;circle cx=\&quot;8.5\&quot; cy=\&quot;7\&quot; r=\&quot;2.5\&quot;/&gt;&lt;circle cx=\&quot;15.5\&quot; cy=\&quot;17\&quot; r=\&quot;2.5\&quot;/&gt;&quot;, 1.5],
+  &quot;workflow&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;4\&quot; height=\&quot;4\&quot; rx=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;10.5\&quot; y=\&quot;10.5\&quot; width=\&quot;4\&quot; height=\&quot;4\&quot; rx=\&quot;1\&quot;/&gt;&lt;path d=\&quot;M5.5 3.5h4q3 0 3 3v4\&quot;/&gt;&quot;, &quot;&lt;rect x=\&quot;3\&quot; y=\&quot;3\&quot; width=\&quot;6\&quot; height=\&quot;6\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;rect x=\&quot;15\&quot; y=\&quot;15\&quot; width=\&quot;6\&quot; height=\&quot;6\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M9 6h6a3 3 0 0 1 3 3v3 M15.5 9.5l2.5 2.5 2.5-2.5\&quot;/&gt;&quot;, 1.5],
+  &quot;check&quot;: [&quot;&lt;path d=\&quot;M2.5 8l3.5 3.5 7.5-8\&quot;/&gt;&quot;, 0, 1],
+  &quot;clipboard&quot;: [&quot;&lt;path d=\&quot;M5 2.5H4q-1.5 0-1.5 1.5v9q0 1.5 1.5 1.5h8q1.5 0 1.5-1.5V4q0-1.5-1.5-1.5h-1\&quot;/&gt;&lt;rect x=\&quot;5\&quot; y=\&quot;1.5\&quot; width=\&quot;6\&quot; height=\&quot;3\&quot; rx=\&quot;1\&quot;/&gt;&quot;, 0, 1],
+  &quot;close&quot;: [&quot;&lt;path d=\&quot;M3.5 3.5l9 9 M12.5 3.5l-9 9\&quot;/&gt;&quot;, 0, 1],
+  &quot;copy&quot;: [&quot;&lt;rect x=\&quot;5.5\&quot; y=\&quot;4.5\&quot; width=\&quot;8\&quot; height=\&quot;10\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M10.5 3q0-1.5-1.5-1.5H4q-1.5 0-1.5 1.5v7q0 1.5 1.5 1.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;download&quot;: [&quot;&lt;path d=\&quot;M8 1.5v9 M4.5 7 8 10.5 11.5 7 M2.5 11v2q0 1.5 1.5 1.5h8q1.5 0 1.5-1.5v-2\&quot;/&gt;&quot;, 0, 1],
+  &quot;duplicate&quot;: [&quot;&lt;rect x=\&quot;5.5\&quot; y=\&quot;5.5\&quot; width=\&quot;9\&quot; height=\&quot;9\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M10.5 3.5V3q0-1.5-1.5-1.5H3q-1.5 0-1.5 1.5v6q0 1.5 1.5 1.5h.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;edit&quot;: [&quot;&lt;path d=\&quot;M2 11.5 10.5 3l2.5 2.5L4.5 14H2Z M9 4.5 11.5 7\&quot;/&gt;&quot;, 0, 1],
+  &quot;external-link&quot;: [&quot;&lt;path d=\&quot;M9.5 1.5h5v5 M14 2 7 9 M6 3.5H4q-1.5 0-1.5 1.5v7q0 1.5 1.5 1.5h7q1.5 0 1.5-1.5v-2\&quot;/&gt;&quot;, 0, 1],
+  &quot;link&quot;: [&quot;&lt;path d=\&quot;M6.5 9.5 9.5 6.5 M6.5 5.5l2.75-2.75c2.5-2.5 6.5 1.5 4 4L10.5 9.5 M5.5 6.5 2.75 9.25c-2.5 2.5 1.5 6.5 4 4l2.75-2.75\&quot;/&gt;&quot;, 0, 1],
+  &quot;minus&quot;: [&quot;&lt;path d=\&quot;M2.5 8h11\&quot;/&gt;&quot;, 0, 1],
+  &quot;plus&quot;: [&quot;&lt;path d=\&quot;M8 2.5v11 M2.5 8h11\&quot;/&gt;&quot;, 0, 1],
+  &quot;redo&quot;: [&quot;&lt;path d=\&quot;M11 3l3 3-3 3 M14 6H7a4 4 0 0 0 0 8h2\&quot;/&gt;&quot;, 0, 1],
+  &quot;refresh&quot;: [&quot;&lt;path d=\&quot;M2.5 5.5C3.45 3.43 5.55 2 8 2C10.07 2 11.89 3.05 12.97 4.64 M2.5 2v3.5H6 M13.5 10.5C12.55 12.57 10.45 14 8 14C5.93 14 4.11 12.95 3.03 11.36 M13.5 14v-3.5H10\&quot;/&gt;&quot;, 0, 1],
+  &quot;save&quot;: [&quot;&lt;path d=\&quot;M3.5 1.5H11l3 3V13q0 1.5-1.5 1.5h-9Q2 14.5 2 13V3q0-1.5 1.5-1.5Z M5 1.5V5q0 1.5 1.5 1.5h3Q11 6.5 11 5V1.5 M5 14.5V11q0-1.5 1.5-1.5h3q1.5 0 1.5 1.5v3.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;search&quot;: [&quot;&lt;circle cx=\&quot;6.5\&quot; cy=\&quot;6.5\&quot; r=\&quot;4.5\&quot;/&gt;&lt;path d=\&quot;M10 10l4.5 4.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;share&quot;: [&quot;&lt;path d=\&quot;M8 10V1.5 M4.5 5 8 1.5 11.5 5 M4 7.5q-1.5 0-1.5 1.5v4q0 1.5 1.5 1.5h8q1.5 0 1.5-1.5V9q0-1.5-1.5-1.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;trash&quot;: [&quot;&lt;path d=\&quot;M2 4.5h12 M6 4.5v-3h4v3 M3.5 4.5l1 10h7l1-10 M6.5 7v5 M9.5 7v5\&quot;/&gt;&quot;, 0, 1],
+  &quot;undo&quot;: [&quot;&lt;path d=\&quot;M5 3 2 6l3 3 M2 6h7a4 4 0 0 1 0 8H7\&quot;/&gt;&quot;, 0, 1],
+  &quot;unlink&quot;: [&quot;&lt;path d=\&quot;M5 7.5 2.5 10a2.5 2.5 0 0 0 3.5 3.5L8.5 11 M7.5 5 10 2.5a2.5 2.5 0 0 1 3.5 3.5L11 8.5 M4.5 3.5v-2 M1.5 4.5h2 M11.5 12.5v2 M12.5 11.5h2\&quot;/&gt;&quot;, 0, 1],
+  &quot;upload&quot;: [&quot;&lt;path d=\&quot;M8 10.5v-9 M4.5 5 8 1.5 11.5 5 M2.5 11v2q0 1.5 1.5 1.5h8q1.5 0 1.5-1.5v-2\&quot;/&gt;&quot;, 0, 1],
+  &quot;award&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;6\&quot; r=\&quot;4\&quot;/&gt;&lt;path d=\&quot;M5 9 3.5 14l3-1 1.5 1 1.5-1 3 1L11 9\&quot;/&gt;&quot;, 0, 1],
+  &quot;bag&quot;: [&quot;&lt;path d=\&quot;M4 5.5h8q1 0 1.125 1L14 13q.125 1.5-1.5 1.5h-9Q1.875 14.5 2 13l.875-6.5Q3 5.5 4 5.5Z M5.5 6V4a2.5 2.5 0 0 1 5 0v2\&quot;/&gt;&quot;, 0, 1],
+  &quot;bell-add&quot;: [&quot;&lt;path d=\&quot;M2 11h6 M3 11l1-3V5a4 4 0 0 1 8 0v2 M5 14h2\&quot;/&gt;&lt;path d=\&quot;M12 9.5v5 M9.5 12h5\&quot;/&gt;&quot;, 0, 1],
+  &quot;briefcase&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;4.5\&quot; width=\&quot;13\&quot; height=\&quot;10\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M5 4.5V3q0-1.5 1.5-1.5h3Q11 1.5 11 3v1.5 M1.5 8h13 M8 7v2\&quot;/&gt;&quot;, 0, 1],
+  &quot;calendar-check&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;3.5\&quot; width=\&quot;13\&quot; height=\&quot;11\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M4.5 1.5v4 M11.5 1.5v4 M1.5 7h13\&quot;/&gt;&lt;path d=\&quot;M5 10.5 7 12.5 11 9\&quot;/&gt;&quot;, 0, 1],
+  &quot;calendar-clock&quot;: [&quot;&lt;path d=\&quot;M8 14.5H3q-1.5 0-1.5-1.5V5q0-1.5 1.5-1.5h10q1.5 0 1.5 1.5v2 M4.5 1.5v4 M11.5 1.5v4 M1.5 7h13\&quot;/&gt;&lt;circle cx=\&quot;11.5\&quot; cy=\&quot;11.5\&quot; r=\&quot;3\&quot;/&gt;&lt;path d=\&quot;M11.5 9.5v2l1 1\&quot;/&gt;&quot;, 0, 1],
+  &quot;calendar-range&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;3.5\&quot; width=\&quot;13\&quot; height=\&quot;11\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M4.5 1.5v4 M11.5 1.5v4 M1.5 7h13\&quot;/&gt;&lt;path d=\&quot;M4.5 10.5h7\&quot;/&gt;&quot;, 0, 1],
+  &quot;credit-card-add&quot;: [&quot;&lt;path d=\&quot;M7 12.5H3q-1.5 0-1.5-1.5V5q0-1.5 1.5-1.5h10q1.5 0 1.5 1.5v2 M1.5 6.5h13\&quot;/&gt;&lt;path d=\&quot;M12 9.5v5 M9.5 12h5\&quot;/&gt;&quot;, 0, 1],
+  &quot;gift&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;5.5\&quot; width=\&quot;13\&quot; height=\&quot;3\&quot; rx=\&quot;1\&quot;/&gt;&lt;path d=\&quot;M2.5 8.5v4q0 1.5 1.5 1.5h8q1.5 0 1.5-1.5v-4 M8 5.5v9 M8 5.5C0 5.5 3-2 8 5.5c5-7.5 8 0 0 0\&quot;/&gt;&quot;, 0, 1],
+  &quot;rocket&quot;: [&quot;&lt;path d=\&quot;M6 10C5 5 9 2 14 2c0 5-3 9-8 8Z M6 6H3l-1 5 4-1 M10 10v3l-5 1 1-4 M2 14l2-2\&quot;/&gt;&lt;circle cx=\&quot;10.5\&quot; cy=\&quot;5.5\&quot; r=\&quot;1\&quot;/&gt;&quot;, 0, 1],
+  &quot;sparkles&quot;: [&quot;&lt;path d=\&quot;M9 1.5 11 6l3.5 2L11 10l-2 4.5L7 10 3.5 8 7 6Z M2.5 1.5v3 M1 3h3\&quot;/&gt;&quot;, 0, 1],
+  &quot;wallet&quot;: [&quot;&lt;path d=\&quot;M13.5 6V4q0-1.5-1.5-1.5H3q-1.5 0-1.5 1.5v8q0 1.5 1.5 1.5h9q1.5 0 1.5-1.5v-1\&quot;/&gt;&lt;rect x=\&quot;9\&quot; y=\&quot;6\&quot; width=\&quot;5.5\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&lt;circle cx=\&quot;11\&quot; cy=\&quot;8.5\&quot; r=\&quot;0.4\&quot;/&gt;&quot;, 0, 1],
+  &quot;contrast&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;6.5\&quot;/&gt;&lt;path d=\&quot;M8 1.5a6.5 6.5 0 0 1 0 13Z\&quot; fill=\&quot;currentColor\&quot;/&gt;&quot;, 0, 1],
+  &quot;corner-radius&quot;: [&quot;&lt;path d=\&quot;M2.5 13.5V7a4.5 4.5 0 0 1 4.5-4.5h6.5 M2.5 1.5v1 M1.5 2.5h1\&quot;/&gt;&quot;, 0, 1],
+  &quot;fill&quot;: [&quot;&lt;path d=\&quot;M6 2 14 10l-6 5-7-7 5-6Z M3 10h11 M5 1l5 5\&quot;/&gt;&quot;, 0, 1],
+  &quot;moon&quot;: [&quot;&lt;path d=\&quot;M6 2C3.4 2.8 1.7 5.3 2 8C2.3 11.4 5.2 14 8.6 13.8C11.1 13.7 13.1 12.2 14 10C11.3 10.9 8.3 10 6.7 7.7C5.6 6.1 5.3 3.9 6 2Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;opacity&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;6.5\&quot;/&gt;&lt;path d=\&quot;M8 1.5v13 M8 4h4 M8 7h6 M8 10h6 M8 13h4\&quot;/&gt;&quot;, 0, 1],
+  &quot;stroke&quot;: [&quot;&lt;path d=\&quot;M2 12.5 12.5 2 M2 15h12\&quot;/&gt;&quot;, 0, 1],
+  &quot;sun&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;3\&quot;/&gt;&lt;path d=\&quot;M8 1v1 M8 14v1 M1 8h1 M14 8h1 M3 3l1 1 M12 12l1 1 M3 13l1-1 M12 4l1-1\&quot;/&gt;&quot;, 0, 1],
+  &quot;anchor&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;3.5\&quot; r=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M8 5.5V14 M2 9.5v1a6 3.5 0 0 0 12 0v-1 M1 10.5l1-1 1 1 M13 10.5l1-1 1 1\&quot;/&gt;&quot;, 0, 1],
+  &quot;crop&quot;: [&quot;&lt;path d=\&quot;M4 1.5V12h10.5 M1.5 4H12v10.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;cursor&quot;: [&quot;&lt;path d=\&quot;M3 1.5 13.5 8 8.5 9.5 6 14.5Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;cursor-direct&quot;: [&quot;&lt;path d=\&quot;M4 1.5v13l4-4h5Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;diamond&quot;: [&quot;&lt;path d=\&quot;M8 1.5 14.5 8 8 14.5 1.5 8Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;ellipse&quot;: [&quot;&lt;ellipse cx=\&quot;8\&quot; cy=\&quot;8\&quot; rx=\&quot;6.5\&quot; ry=\&quot;5\&quot;/&gt;&quot;, 0, 1],
+  &quot;fit-view&quot;: [&quot;&lt;path d=\&quot;M1.5 5V1.5H5 M11 1.5h3.5V5 M14.5 11v3.5H11 M5 14.5H1.5V11\&quot;/&gt;&quot;, 0, 1],
+  &quot;flip-horizontal&quot;: [&quot;&lt;path d=\&quot;M6 3 1.5 12H6Z M10 3l4.5 9H10Z M8 1v14\&quot;/&gt;&quot;, 0, 1],
+  &quot;flip-vertical&quot;: [&quot;&lt;path d=\&quot;M3 6 12 1.5V6Z M3 10l9 4.5V10Z M1 8h14\&quot;/&gt;&quot;, 0, 1],
+  &quot;frame&quot;: [&quot;&lt;path d=\&quot;M4.5 1v14 M11.5 1v14 M1 4.5h14 M1 11.5h14\&quot;/&gt;&quot;, 0, 1],
+  &quot;hand&quot;: [&quot;&lt;path d=\&quot;M5 8V4a1 1 0 0 1 2 0v3 M7 7V2.5a1 1 0 0 1 2 0V7 M9 7V3.5a1 1 0 0 1 2 0V8 M11 7a1 1 0 0 1 2 0v3.5a4 4 0 0 1-7.2 2.4L2.5 9a1 1 0 0 1 1.5-1.3L5 9\&quot;/&gt;&quot;, 0, 1],
+  &quot;image&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;circle cx=\&quot;5\&quot; cy=\&quot;5\&quot; r=\&quot;1\&quot;/&gt;&lt;path d=\&quot;m1.5 12 4-4 3 3 3-4 3 4\&quot;/&gt;&quot;, 0, 1],
+  &quot;line&quot;: [&quot;&lt;path d=\&quot;M2.5 13.5l11-11\&quot;/&gt;&quot;, 0, 1],
+  &quot;pen&quot;: [&quot;&lt;path d=\&quot;M3 13 2 6 8 2 14 8 10 14Z M3 13 7 9\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;1.25\&quot;/&gt;&quot;, 0, 1],
+  &quot;pencil&quot;: [&quot;&lt;path d=\&quot;M2 11.5 11 2.5l2.5 2.5-9 9H2Z M9.5 4 12 6.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;polygon&quot;: [&quot;&lt;path d=\&quot;M4.5 1.5h7l3.5 6.5-3.5 6.5h-7L1 8Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;rectangle&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;3.5\&quot; width=\&quot;13\&quot; height=\&quot;9\&quot; rx=\&quot;1.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;rotate&quot;: [&quot;&lt;path d=\&quot;M2.5 5.5C3.45 3.43 5.55 2 8 2C11.31 2 14 4.69 14 8C14 11.31 11.31 14 8 14C5.39 14 3.17 12.33 2.34 10 M2.5 2v3.5H6\&quot;/&gt;&quot;, 0, 1],
+  &quot;ruler&quot;: [&quot;&lt;path d=\&quot;M2 11 11 2l3 3-9 9Z M9 4l2 2 M6.5 6.5 8 8 M4 9l2 2\&quot;/&gt;&quot;, 0, 1],
+  &quot;star&quot;: [&quot;&lt;path d=\&quot;M8 1.5 10 6l4.5.5-3.5 3 1 5-4-2.5L4 14.5l1-5-3.5-3L6 6Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;text&quot;: [&quot;&lt;path d=\&quot;M2 2.5h12 M8 2.5v12 M5 14.5h6\&quot;/&gt;&quot;, 0, 1],
+  &quot;triangle&quot;: [&quot;&lt;path d=\&quot;M8 1.5 14.5 14h-13Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;zoom-in&quot;: [&quot;&lt;circle cx=\&quot;6.5\&quot; cy=\&quot;6.5\&quot; r=\&quot;4.5\&quot;/&gt;&lt;path d=\&quot;M10 10l4.5 4.5 M4 6.5h5 M6.5 4v5\&quot;/&gt;&quot;, 0, 1],
+  &quot;zoom-out&quot;: [&quot;&lt;circle cx=\&quot;6.5\&quot; cy=\&quot;6.5\&quot; r=\&quot;4.5\&quot;/&gt;&lt;path d=\&quot;M10 10l4.5 4.5 M4 6.5h5\&quot;/&gt;&quot;, 0, 1],
+  &quot;aspect-ratio&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;3\&quot; width=\&quot;13\&quot; height=\&quot;10\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M4 8V5.5h2.5 M12 8v2.5H9.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;bezier&quot;: [&quot;&lt;path d=\&quot;M2 12C2 3 14 3 14 12 M3 5h3.5 M9.5 5H13\&quot;/&gt;&lt;circle cx=\&quot;2\&quot; cy=\&quot;5\&quot; r=\&quot;1\&quot;/&gt;&lt;circle cx=\&quot;14\&quot; cy=\&quot;5\&quot; r=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;6.5\&quot; y=\&quot;3.5\&quot; width=\&quot;3\&quot; height=\&quot;3\&quot; rx=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;boolean-exclude&quot;: [&quot;&lt;path d=\&quot;M8 3a5 5 0 1 0 0 10Q2 8 8 3Z M8 3a5 5 0 1 1 0 10Q14 8 8 3Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;boolean-intersect&quot;: [&quot;&lt;path d=\&quot;M8 2.5Q1 8 8 13.5Q15 8 8 2.5Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;boolean-subtract&quot;: [&quot;&lt;path d=\&quot;M3 1.5h5.5V7q0 1.5 1.5 1.5h4.5V13q0 1.5-1.5 1.5H3q-1.5 0-1.5-1.5V3Q1.5 1.5 3 1.5Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;boolean-union&quot;: [&quot;&lt;path d=\&quot;M6 2a4 4 0 0 0-1 8 4 4 0 1 0 5-5 4 4 0 0 0-4-3Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;constraints&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;rect x=\&quot;5.5\&quot; y=\&quot;5.5\&quot; width=\&quot;5\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&lt;path d=\&quot;M8 1.5v2 M8 12.5v2 M1.5 8h2 M12.5 8h2\&quot;/&gt;&quot;, 0, 1],
+  &quot;eraser&quot;: [&quot;&lt;path d=\&quot;M2 8 8 2q1-1 2 0l4 4q1 1 0 2l-6 6H5l-3-3q-1-1 0-3Z M5 5l6 6 M8 14h6\&quot;/&gt;&quot;, 0, 1],
+  &quot;eyedropper&quot;: [&quot;&lt;path d=\&quot;M3 10 10 3l3 3-7 7-4 1Z M9 2l5 5 M10 3l2-2 3 3-2 2\&quot;/&gt;&quot;, 0, 1],
+  &quot;gradient&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M5 2v12 M8 2v12 M11 2v12\&quot;/&gt;&quot;, 0, 1],
+  &quot;guides&quot;: [&quot;&lt;path d=\&quot;M4 1.5v13 M12 1.5v13 M1.5 4h13 M1.5 12h13 M6.5 8h3\&quot;/&gt;&quot;, 0, 1],
+  &quot;height&quot;: [&quot;&lt;path d=\&quot;M3 1.5h10 M3 14.5h10 M8 4v8 M6 6l2-2 2 2 M6 10l2 2 2-2\&quot;/&gt;&quot;, 0, 1],
+  &quot;layout-board&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M6 1.5v13 M10 1.5v13 M3.5 4.5v3 M8 4.5v6 M12 4.5v2\&quot;/&gt;&quot;, 0, 1],
+  &quot;layout-footer&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M1.5 10.5h13 M5 3v4 M11 3v4\&quot;/&gt;&quot;, 0, 1],
+  &quot;layout-header&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M1.5 5.5h13\&quot;/&gt;&quot;, 0, 1],
+  &quot;layout-masonry&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;5\&quot; height=\&quot;8\&quot; rx=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;9.5\&quot; y=\&quot;1.5\&quot; width=\&quot;5\&quot; height=\&quot;4\&quot; rx=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;1.5\&quot; y=\&quot;12.5\&quot; width=\&quot;5\&quot; height=\&quot;2\&quot; rx=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;9.5\&quot; y=\&quot;8.5\&quot; width=\&quot;5\&quot; height=\&quot;6\&quot; rx=\&quot;1\&quot;/&gt;&quot;, 0, 1],
+  &quot;layout-split&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M8 1.5v13\&quot;/&gt;&quot;, 0, 1],
+  &quot;layout-three&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M6 1.5v13 M6 8h8.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;mask&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;3.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;node-add&quot;: [&quot;&lt;rect x=\&quot;5.5\&quot; y=\&quot;5.5\&quot; width=\&quot;5\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&lt;path d=\&quot;M1 8h4.5 M10.5 8H15 M8 1v3 M6.5 2.5h3\&quot;/&gt;&quot;, 0, 1],
+  &quot;node-remove&quot;: [&quot;&lt;rect x=\&quot;5.5\&quot; y=\&quot;5.5\&quot; width=\&quot;5\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&lt;path d=\&quot;M1 8h4.5 M10.5 8H15 M6.5 2.5h3\&quot;/&gt;&quot;, 0, 1],
+  &quot;paintbrush&quot;: [&quot;&lt;path d=\&quot;M6 9 11.5 2q1-1 2 0t0 2L8 11 M6 9q-3-1-3 2t-2 3q6 1 7-3Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;palette&quot;: [&quot;&lt;path d=\&quot;M14 8a6 6 0 1 0-6 6h2q2 0 1-2t1-2h1q1 0 1-2Z\&quot;/&gt;&lt;circle cx=\&quot;4\&quot; cy=\&quot;7\&quot; r=\&quot;0.7\&quot;/&gt;&lt;circle cx=\&quot;6\&quot; cy=\&quot;4\&quot; r=\&quot;0.7\&quot;/&gt;&lt;circle cx=\&quot;10\&quot; cy=\&quot;4.5\&quot; r=\&quot;0.7\&quot;/&gt;&quot;, 0, 1],
+  &quot;path&quot;: [&quot;&lt;path d=\&quot;M3 11C3 2 13 14 13 5\&quot;/&gt;&lt;rect x=\&quot;1.5\&quot; y=\&quot;11\&quot; width=\&quot;3\&quot; height=\&quot;3\&quot; rx=\&quot;0.5\&quot;/&gt;&lt;rect x=\&quot;11.5\&quot; y=\&quot;2\&quot; width=\&quot;3\&quot; height=\&quot;3\&quot; rx=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;position-absolute&quot;: [&quot;&lt;rect x=\&quot;4.5\&quot; y=\&quot;4.5\&quot; width=\&quot;7\&quot; height=\&quot;7\&quot; rx=\&quot;1\&quot;/&gt;&lt;path d=\&quot;M1.5 5V1.5H5 M11 1.5h3.5V5 M14.5 11v3.5H11 M5 14.5H1.5V11\&quot;/&gt;&quot;, 0, 1],
+  &quot;position-fixed&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;3\&quot;/&gt;&lt;path d=\&quot;M8 1v4 M8 11v4 M1 8h4 M11 8h4\&quot;/&gt;&quot;, 0, 1],
+  &quot;rotate-clockwise&quot;: [&quot;&lt;g transform=\&quot;translate(16 0) scale(-1 1)\&quot;&gt;&lt;path d=\&quot;M2.5 5.5C3.45 3.43 5.55 2 8 2C11.31 2 14 4.69 14 8C14 11.31 11.31 14 8 14C5.39 14 3.17 12.33 2.34 10 M2.5 2v3.5H6\&quot;/&gt;&lt;/g&gt;&quot;, 0, 1],
+  &quot;snap&quot;: [&quot;&lt;path d=\&quot;M2 3v5a6 6 0 0 0 12 0V3h-3v5a3 3 0 0 1-6 0V3Z M2 5h3 M11 5h3\&quot;/&gt;&quot;, 0, 1],
+  &quot;width&quot;: [&quot;&lt;path d=\&quot;M1.5 3v10 M14.5 3v10 M4 8h8 M6 6 4 8l2 2 M10 6l2 2-2 2\&quot;/&gt;&quot;, 0, 1],
+  &quot;cart&quot;: [&quot;&lt;path d=\&quot;M1.5 2.5h2l2 8h7l2-6h-10 M5.5 10.5l-1 2h8\&quot;/&gt;&lt;circle cx=\&quot;6\&quot; cy=\&quot;14.5\&quot; r=\&quot;0.5\&quot;/&gt;&lt;circle cx=\&quot;12\&quot; cy=\&quot;14.5\&quot; r=\&quot;0.5\&quot;/&gt;&quot;, &quot;&lt;path d=\&quot;M2 4h3l3 11h11l2-8H6 M8 15l-1 3h12\&quot;/&gt;&lt;circle cx=\&quot;9\&quot; cy=\&quot;21\&quot; r=\&quot;1\&quot;/&gt;&lt;circle cx=\&quot;18\&quot; cy=\&quot;21\&quot; r=\&quot;1\&quot;/&gt;&quot;, 1.5],
+  &quot;payment&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;3.5\&quot; width=\&quot;13\&quot; height=\&quot;9\&quot; rx=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M1.5 6.5h13 M4.5 9.5h3\&quot;/&gt;&quot;, &quot;&lt;rect x=\&quot;3\&quot; y=\&quot;5\&quot; width=\&quot;18\&quot; height=\&quot;14\&quot; rx=\&quot;3\&quot;/&gt;&lt;path d=\&quot;M3 10h18 M7 15h4\&quot;/&gt;&quot;, 1.5],
+  &quot;product&quot;: [&quot;&lt;path d=\&quot;m1.5 4.5 6.5-3 6.5 3v7L8 14.5l-6.5-3Z M1.5 4.5L8 7.5l6.5-3 M8 7.5v7\&quot;/&gt;&quot;, &quot;&lt;path d=\&quot;m3 7 9-4 9 4v10l-9 4-9-4Z M3 7l9 4 9-4 M12 11v10 M8 5l9 4v4\&quot;/&gt;&quot;, 1.5],
+  &quot;receipt&quot;: [&quot;&lt;path d=\&quot;M3.5 1.5h9v13l-2-1.5L8 14.5l-2.5-1.5-2 1.5Z M5.5 5.5h5 M5.5 8.5h5\&quot;/&gt;&quot;, &quot;&lt;path d=\&quot;M5 3h14v18l-3-2-4 2-4-2-3 2Z M8 7h8 M8 11h8 M8 15h4\&quot;/&gt;&quot;, 1.5],
+  &quot;at&quot;: [&quot;&lt;circle cx=\&quot;7\&quot; cy=\&quot;8\&quot; r=\&quot;3\&quot;/&gt;&lt;path d=\&quot;M10 5v5c0 3 5 1 4-3a6.5 6.5 0 1 0-2 6\&quot;/&gt;&quot;, 0, 1],
+  &quot;bell&quot;: [&quot;&lt;path d=\&quot;M2.5 11.5h11l-1.5-3v-3a4 4 0 0 0-8 0v3Z M6 14h4\&quot;/&gt;&quot;, 0, 1],
+  &quot;chat&quot;: [&quot;&lt;path d=\&quot;M3 1.5h7q1.5 0 1.5 1.5v5q0 1.5-1.5 1.5H5.5l-4 3V3q0-1.5 1.5-1.5Z M6 11.5h5l3.5 3v-8q0-1.5-1.5-1.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;comment&quot;: [&quot;&lt;path d=\&quot;M3 2.5h10q1.5 0 1.5 1.5v6q0 1.5-1.5 1.5H6l-4.5 3V4q0-1.5 1.5-1.5Z\&quot;/&gt;&quot;, &quot;&lt;g transform=\&quot;scale(1.5)\&quot;&gt;&lt;path d=\&quot;M3 2.5h10q1.5 0 1.5 1.5v6q0 1.5-1.5 1.5H6l-4.5 3V4q0-1.5 1.5-1.5Z\&quot;/&gt;&lt;path d=\&quot;M4.5 5.5h7 M4.5 8h4\&quot;/&gt;&lt;/g&gt;&quot;, 1],
+  &quot;mail&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;3\&quot; width=\&quot;13\&quot; height=\&quot;10\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M2 3.5 8 8l6-4.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;notification-off&quot;: [&quot;&lt;path d=\&quot;M1.5 1.5l13 13 M5.5 2a4 4 0 0 1 6.5 3v3 M4 5v3.5l-1.5 3h9 M6 14h4\&quot;/&gt;&quot;, 0, 1],
+  &quot;send&quot;: [&quot;&lt;path d=\&quot;M1.5 1.5 14.5 8 1.5 14.5 4 8Z M4 8h10.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;audio&quot;: [&quot;&lt;path d=\&quot;M2.5 6v4 M5.5 3v10 M8.5 1v14 M11.5 4v8 M14.5 6v4\&quot;/&gt;&quot;, &quot;&lt;path d=\&quot;M3 10v4 M7 6v12 M12 3v18 M17 7v10 M21 10v4\&quot;/&gt;&quot;, 1.5],
+  &quot;collection&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;6.5\&quot; width=\&quot;13\&quot; height=\&quot;8\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M3.5 3.5h9 M5.5 1.5h5\&quot;/&gt;&quot;, &quot;&lt;rect x=\&quot;3\&quot; y=\&quot;9\&quot; width=\&quot;18\&quot; height=\&quot;12\&quot; rx=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M6 6h12 M8 3h8\&quot;/&gt;&quot;, 1.5],
+  &quot;document&quot;: [&quot;&lt;rect x=\&quot;3.5\&quot; y=\&quot;1.5\&quot; width=\&quot;9\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M5.5 5.5h5 M5.5 8.5h5 M5.5 11.5h3\&quot;/&gt;&quot;, &quot;&lt;rect x=\&quot;5\&quot; y=\&quot;3\&quot; width=\&quot;14\&quot; height=\&quot;18\&quot; rx=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M8 8h8 M8 12h8 M8 16h5\&quot;/&gt;&quot;, 1.5],
+  &quot;video&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;3.5\&quot; width=\&quot;13\&quot; height=\&quot;9\&quot; rx=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M6.5 5.5l4 2.5-4 2.5Z\&quot;/&gt;&quot;, &quot;&lt;rect x=\&quot;3\&quot; y=\&quot;5\&quot; width=\&quot;18\&quot; height=\&quot;14\&quot; rx=\&quot;3\&quot;/&gt;&lt;path d=\&quot;M10 9l5 3-5 3Z\&quot;/&gt;&quot;, 1.5],
+  &quot;braces&quot;: [&quot;&lt;path d=\&quot;M6 2H5q-2 0-2 2v2q0 2-1.5 2Q3 8 3 10v2q0 2 2 2h1 M10 2h1q2 0 2 2v2q0 2 1.5 2Q13 8 13 10v2q0 2-2 2h-1\&quot;/&gt;&quot;, 0, 1],
+  &quot;brackets&quot;: [&quot;&lt;path d=\&quot;M6 2H3v12h3 M10 2h3v12h-3\&quot;/&gt;&quot;, 0, 1],
+  &quot;branch&quot;: [&quot;&lt;circle cx=\&quot;4\&quot; cy=\&quot;3\&quot; r=\&quot;1.5\&quot;/&gt;&lt;circle cx=\&quot;12\&quot; cy=\&quot;3\&quot; r=\&quot;1.5\&quot;/&gt;&lt;circle cx=\&quot;4\&quot; cy=\&quot;13\&quot; r=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M4 4.5v7 M12 4.5v1q0 3-4 3H4\&quot;/&gt;&quot;, 0, 1],
+  &quot;chart-area&quot;: [&quot;&lt;path d=\&quot;M2 2v12h12 M4 12V8l3-3 3 3 4-5v9Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;chart-bar&quot;: [&quot;&lt;path d=\&quot;M2 2v12h12\&quot;/&gt;&lt;rect x=\&quot;5\&quot; y=\&quot;8\&quot; width=\&quot;2\&quot; height=\&quot;4\&quot; rx=\&quot;0.5\&quot;/&gt;&lt;rect x=\&quot;10\&quot; y=\&quot;4\&quot; width=\&quot;2\&quot; height=\&quot;8\&quot; rx=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;chart-line&quot;: [&quot;&lt;path d=\&quot;M2 2v12h12 M4 10l3-4 3 2 4-5\&quot;/&gt;&quot;, 0, 1],
+  &quot;chart-pie&quot;: [&quot;&lt;path d=\&quot;M7 1.5a6.5 6.5 0 1 0 7.5 7.5H7Z M10 1.5V6h4.5A6 6 0 0 0 10 1.5Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;commit&quot;: [&quot;&lt;path d=\&quot;M1.5 8h3 M11.5 8h3\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;3.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;compass&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;6.5\&quot;/&gt;&lt;path d=\&quot;M10.5 5.5 9 9l-3.5 1.5L7 7Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;data-rows&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M1.5 6h13 M1.5 10h13 M4 3.5h1 M4 8h1 M4 12h1\&quot;/&gt;&quot;, 0, 1],
+  &quot;drag-handle&quot;: [&quot;&lt;circle cx=\&quot;5.5\&quot; cy=\&quot;3\&quot; r=\&quot;0.5\&quot;/&gt;&lt;circle cx=\&quot;5.5\&quot; cy=\&quot;8\&quot; r=\&quot;0.5\&quot;/&gt;&lt;circle cx=\&quot;5.5\&quot; cy=\&quot;13\&quot; r=\&quot;0.5\&quot;/&gt;&lt;circle cx=\&quot;10.5\&quot; cy=\&quot;3\&quot; r=\&quot;0.5\&quot;/&gt;&lt;circle cx=\&quot;10.5\&quot; cy=\&quot;8\&quot; r=\&quot;0.5\&quot;/&gt;&lt;circle cx=\&quot;10.5\&quot; cy=\&quot;13\&quot; r=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;flag&quot;: [&quot;&lt;path d=\&quot;M3 14.5v-13 M3 2h10l-2 3 2 3H3\&quot;/&gt;&quot;, 0, 1],
+  &quot;location-arrow&quot;: [&quot;&lt;path d=\&quot;M2 6 14 2 10 14 7.5 8.5Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;merge&quot;: [&quot;&lt;circle cx=\&quot;4\&quot; cy=\&quot;3\&quot; r=\&quot;1.5\&quot;/&gt;&lt;circle cx=\&quot;12\&quot; cy=\&quot;3\&quot; r=\&quot;1.5\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;13\&quot; r=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M4 4.5v1q0 2.5 4 3 M12 4.5v1q0 2.5-4 3v3\&quot;/&gt;&quot;, 0, 1],
+  &quot;pin-board&quot;: [&quot;&lt;path d=\&quot;M5 2h6 M5.5 2v4L3 9h10l-2.5-3V2 M8 9v5\&quot;/&gt;&quot;, 0, 1],
+  &quot;plug&quot;: [&quot;&lt;path d=\&quot;M5 1.5v4 M11 1.5v4 M3.5 5.5h9V8a4.5 4.5 0 0 1-9 0Z M8 12.5v2\&quot;/&gt;&quot;, 0, 1],
+  &quot;power&quot;: [&quot;&lt;path d=\&quot;M8 1.5v6 M4 3.5a6 6 0 1 0 8 0\&quot;/&gt;&quot;, 0, 1],
+  &quot;pull-request&quot;: [&quot;&lt;circle cx=\&quot;3\&quot; cy=\&quot;3\&quot; r=\&quot;1.5\&quot;/&gt;&lt;circle cx=\&quot;3\&quot; cy=\&quot;13\&quot; r=\&quot;1.5\&quot;/&gt;&lt;circle cx=\&quot;13\&quot; cy=\&quot;13\&quot; r=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M3 4.5v7 M13 11.5V6q0-3-3-3H8 M10 1 8 3l2 2\&quot;/&gt;&quot;, 0, 1],
+  &quot;server&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;5\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;rect x=\&quot;1.5\&quot; y=\&quot;9.5\&quot; width=\&quot;13\&quot; height=\&quot;5\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;circle cx=\&quot;4\&quot; cy=\&quot;4\&quot; r=\&quot;0.5\&quot;/&gt;&lt;circle cx=\&quot;4\&quot; cy=\&quot;12\&quot; r=\&quot;0.5\&quot;/&gt;&lt;path d=\&quot;M8 4h3 M8 12h3\&quot;/&gt;&quot;, 0, 1],
+  &quot;settings&quot;: [&quot;&lt;path d=\&quot;M12.830 6.706L14.437 7.095L14.437 8.905L12.830 9.294L12.330 10.500L13.191 11.912L11.912 13.191L10.500 12.330L9.294 12.830L8.905 14.437L7.095 14.437L6.706 12.830L5.500 12.330L4.088 13.191L2.809 11.912L3.670 10.500L3.170 9.294L1.563 8.905L1.563 7.095L3.170 6.706L3.670 5.500L2.809 4.088L4.088 2.809L5.500 3.670L6.706 3.170L7.095 1.563L8.905 1.563L9.294 3.170L10.500 3.670L11.912 2.809L13.191 4.088L12.330 5.500Z\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;2.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;table&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M1.5 6h13 M1.5 10h13 M6 6v8.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;trend-down&quot;: [&quot;&lt;path d=\&quot;M2 4l4 4 3-2 5 7 M9 13h5V8\&quot;/&gt;&quot;, 0, 1],
+  &quot;trend-up&quot;: [&quot;&lt;path d=\&quot;M2 12l4-4 3 2 5-7 M9 3h5v5\&quot;/&gt;&quot;, 0, 1],
+  &quot;wifi&quot;: [&quot;&lt;path d=\&quot;M1.5 5C5 1.5 11 1.5 14.5 5 M4 8c2-2 6-2 8 0 M6.5 11q1.5-1.5 3 0\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;13.5\&quot; r=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;code&quot;: [&quot;&lt;path d=\&quot;M5 3 1.5 8 5 13 M11 3l3.5 5-3.5 5 M9 1.5l-2 13\&quot;/&gt;&quot;, 0, 1],
+  &quot;desktop&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;9\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M8 10.5v4 M5 14.5h6\&quot;/&gt;&quot;, 0, 1],
+  &quot;laptop&quot;: [&quot;&lt;rect x=\&quot;3\&quot; y=\&quot;2\&quot; width=\&quot;10\&quot; height=\&quot;9\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M3 11 1.5 13q-.5 1 1 1h11q1.5 0 1-1L13 11\&quot;/&gt;&quot;, 0, 1],
+  &quot;phone&quot;: [&quot;&lt;rect x=\&quot;4\&quot; y=\&quot;1.5\&quot; width=\&quot;8\&quot; height=\&quot;13\&quot; rx=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M7 12.5h2\&quot;/&gt;&quot;, &quot;&lt;g transform=\&quot;scale(1.5)\&quot;&gt;&lt;rect x=\&quot;4\&quot; y=\&quot;1.5\&quot; width=\&quot;8\&quot; height=\&quot;13\&quot; rx=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M7 12.5h2\&quot;/&gt;&lt;path d=\&quot;M7 3.5h2\&quot;/&gt;&lt;/g&gt;&quot;, 1],
+  &quot;tablet&quot;: [&quot;&lt;rect x=\&quot;2.5\&quot; y=\&quot;1.5\&quot; width=\&quot;11\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M7 12.5h2\&quot;/&gt;&quot;, 0, 1],
+  &quot;terminal&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;2.5\&quot; width=\&quot;13\&quot; height=\&quot;11\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M4 5.5 7 8l-3 2.5 M9 10.5h3\&quot;/&gt;&quot;, 0, 1],
+  &quot;bookmark&quot;: [&quot;&lt;path d=\&quot;M5 1.5h6q1.5 0 1.5 1.5v11.5L8 11l-4.5 3.5V3Q3.5 1.5 5 1.5Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;coffee&quot;: [&quot;&lt;path d=\&quot;M2 5.5h9v5a4.5 4.5 0 0 1-9 0Z M11 6h1.5a2.5 2.5 0 0 1 0 5H11 M4 1.5v1.5 M8 1.5v1.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;filter&quot;: [&quot;&lt;path d=\&quot;M1.5 2.5h13l-5 6v5l-3 1v-6Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;globe&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;6.5\&quot;/&gt;&lt;ellipse cx=\&quot;8\&quot; cy=\&quot;8\&quot; rx=\&quot;2.5\&quot; ry=\&quot;6.5\&quot;/&gt;&lt;path d=\&quot;M1.5 8h13\&quot;/&gt;&quot;, 0, 1],
+  &quot;heart&quot;: [&quot;&lt;path d=\&quot;M8 14s-7-4.5-7-8.5C1 1 6 1 8 4c2-3 7-3 7 1.5C15 9.5 8 14 8 14Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;key&quot;: [&quot;&lt;circle cx=\&quot;5\&quot; cy=\&quot;5\&quot; r=\&quot;3.5\&quot;/&gt;&lt;path d=\&quot;M7.5 7.5l7 7 M10 10l2-2 M12 12l2-2\&quot;/&gt;&quot;, 0, 1],
+  &quot;pin&quot;: [&quot;&lt;path d=\&quot;M8 14.5s5-5 5-8a5 5 0 0 0-10 0c0 3 5 8 5 8Z\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;6.5\&quot; r=\&quot;1.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;shield&quot;: [&quot;&lt;path d=\&quot;M8 1.5 14 4v4c0 3-3 5-6 6.5C5 13 2 11 2 8V4Z\&quot;/&gt;&quot;, &quot;&lt;g transform=\&quot;scale(1.5)\&quot;&gt;&lt;path d=\&quot;M8 1.5 14 4v4c0 3-3 5-6 6.5C5 13 2 11 2 8V4Z\&quot;/&gt;&lt;path d=\&quot;M5 8 7 10l4-4\&quot;/&gt;&lt;/g&gt;&quot;, 1],
+  &quot;sort&quot;: [&quot;&lt;path d=\&quot;M5 1.5v13 M1.5 5 5 1.5 8.5 5 M11 14.5v-13 M7.5 11l3.5 3.5 3.5-3.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;tag&quot;: [&quot;&lt;path d=\&quot;M3 1.5h4.5q.5 0 1 .5l5.5 5.5q.5.5 0 1L8.5 14q-.5.5-1 0L2 8.5q-.5-.5-.5-1V3Q1.5 1.5 3 1.5Z\&quot;/&gt;&lt;circle cx=\&quot;5\&quot; cy=\&quot;5\&quot; r=\&quot;1\&quot;/&gt;&quot;, 0, 1],
+  &quot;archive&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;4\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M2.5 5.5V13q0 1.5 1.5 1.5h8q1.5 0 1.5-1.5V5.5 M6 8.5h4\&quot;/&gt;&quot;, 0, 1],
+  &quot;cloud&quot;: [&quot;&lt;path d=\&quot;M4.5 12.5H11.5C13.16 12.5 14.5 11.16 14.5 9.5C14.5 7.84 13.16 6.5 11.5 6.5C11.5 4.29 9.93 2.5 8 2.5C6.07 2.5 4.5 4.29 4.5 6.5C2.84 6.5 1.5 7.84 1.5 9.5C1.5 11.16 2.84 12.5 4.5 12.5Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;database&quot;: [&quot;&lt;ellipse cx=\&quot;8\&quot; cy=\&quot;3.5\&quot; rx=\&quot;6\&quot; ry=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M2 3.5v9c0 2.5 12 2.5 12 0v-9 M2 8c0 2.5 12 2.5 12 0\&quot;/&gt;&quot;, 0, 1],
+  &quot;file&quot;: [&quot;&lt;path d=\&quot;M4.5 1.5H9l4 4V13q0 1.5-1.5 1.5h-7Q3 14.5 3 13V3q0-1.5 1.5-1.5Z M9 1.5V4q0 1.5 1.5 1.5H13\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-add&quot;: [&quot;&lt;path d=\&quot;M8 14.5H3.5Q2 14.5 2 13V3q0-1.5 1.5-1.5H8l4 4V7 M8 1.5V4q0 1.5 1.5 1.5H12\&quot;/&gt;&lt;path d=\&quot;M12 9.5v5 M9.5 12h5\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-audio&quot;: [&quot;&lt;path d=\&quot;M3.5 1.5H9l4 4V13q0 1.5-1.5 1.5h-8Q2 14.5 2 13V3q0-1.5 1.5-1.5Z M9 1.5V4q0 1.5 1.5 1.5H13\&quot;/&gt;&lt;path d=\&quot;M6 8v3 M8.5 7v5 M11 8v3\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-chart&quot;: [&quot;&lt;path d=\&quot;M3.5 1.5H9l4 4V13q0 1.5-1.5 1.5h-8Q2 14.5 2 13V3q0-1.5 1.5-1.5Z M9 1.5V4q0 1.5 1.5 1.5H13\&quot;/&gt;&lt;path d=\&quot;M5 12v-2 M8 12V8 M11 12V7\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-check&quot;: [&quot;&lt;path d=\&quot;M8 14.5H3.5Q2 14.5 2 13V3q0-1.5 1.5-1.5H8l4 4V7 M8 1.5V4q0 1.5 1.5 1.5H12\&quot;/&gt;&lt;path d=\&quot;M9 12l2 2 3.5-4\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-close&quot;: [&quot;&lt;path d=\&quot;M8 14.5H3.5Q2 14.5 2 13V3q0-1.5 1.5-1.5H8l4 4V7 M8 1.5V4q0 1.5 1.5 1.5H12\&quot;/&gt;&lt;path d=\&quot;M10 10l4 4 M14 10l-4 4\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-code&quot;: [&quot;&lt;path d=\&quot;M4.5 1.5H9l4 4V13q0 1.5-1.5 1.5h-7Q3 14.5 3 13V3q0-1.5 1.5-1.5Z M9 1.5V4q0 1.5 1.5 1.5H13\&quot;/&gt;&lt;path d=\&quot;M6.5 8 5 9.5 6.5 11 M9.5 8 11 9.5 9.5 11\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-download&quot;: [&quot;&lt;path d=\&quot;M8 14.5H3.5Q2 14.5 2 13V3q0-1.5 1.5-1.5H8l4 4V7 M8 1.5V4q0 1.5 1.5 1.5H12\&quot;/&gt;&lt;path d=\&quot;M12 9v5.5 M9.5 12l2.5 2.5 2.5-2.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-image&quot;: [&quot;&lt;path d=\&quot;M3.5 1.5H9l4 4V13q0 1.5-1.5 1.5h-8Q2 14.5 2 13V3q0-1.5 1.5-1.5Z M9 1.5V4q0 1.5 1.5 1.5H13\&quot;/&gt;&lt;path d=\&quot;M4.5 12 7 9l2 2 2-2\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-lock&quot;: [&quot;&lt;path d=\&quot;M8 14.5H3.5Q2 14.5 2 13V3q0-1.5 1.5-1.5H8l4 4V7 M8 1.5V4q0 1.5 1.5 1.5H12\&quot;/&gt;&lt;rect x=\&quot;9.5\&quot; y=\&quot;11.5\&quot; width=\&quot;5\&quot; height=\&quot;3\&quot; rx=\&quot;1\&quot;/&gt;&lt;path d=\&quot;M10.5 11.5V10a1.5 1.5 0 0 1 3 0v1.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-remove&quot;: [&quot;&lt;path d=\&quot;M8 14.5H3.5Q2 14.5 2 13V3q0-1.5 1.5-1.5H8l4 4V7 M8 1.5V4q0 1.5 1.5 1.5H12\&quot;/&gt;&lt;path d=\&quot;M9.5 12h5\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-search&quot;: [&quot;&lt;path d=\&quot;M8 14.5H3.5Q2 14.5 2 13V3q0-1.5 1.5-1.5H8l4 4V7 M8 1.5V4q0 1.5 1.5 1.5H12\&quot;/&gt;&lt;circle cx=\&quot;11\&quot; cy=\&quot;11\&quot; r=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M12.5 12.5l2 2\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-settings&quot;: [&quot;&lt;path d=\&quot;M3.5 1.5H9l4 4V13q0 1.5-1.5 1.5h-8Q2 14.5 2 13V3q0-1.5 1.5-1.5Z M9 1.5V4q0 1.5 1.5 1.5H13\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;10\&quot; r=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M8 7v1 M8 12v1 M5 10h1 M10 10h1\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-table&quot;: [&quot;&lt;path d=\&quot;M3.5 1.5H9l4 4V13q0 1.5-1.5 1.5h-8Q2 14.5 2 13V3q0-1.5 1.5-1.5Z M9 1.5V4q0 1.5 1.5 1.5H13\&quot;/&gt;&lt;rect x=\&quot;4.5\&quot; y=\&quot;7.5\&quot; width=\&quot;7\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&lt;path d=\&quot;M4.5 10h7 M8 7.5v5\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-text&quot;: [&quot;&lt;path d=\&quot;M3.5 1.5H9l4 4V13q0 1.5-1.5 1.5h-8Q2 14.5 2 13V3q0-1.5 1.5-1.5Z M9 1.5V4q0 1.5 1.5 1.5H13\&quot;/&gt;&lt;path d=\&quot;M5 8h6 M5 11h4\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-upload&quot;: [&quot;&lt;path d=\&quot;M8 14.5H3.5Q2 14.5 2 13V3q0-1.5 1.5-1.5H8l4 4V7 M8 1.5V4q0 1.5 1.5 1.5H12\&quot;/&gt;&lt;path d=\&quot;M12 14.5V9 M9.5 11.5 12 9l2.5 2.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-video&quot;: [&quot;&lt;path d=\&quot;M3.5 1.5H9l4 4V13q0 1.5-1.5 1.5h-8Q2 14.5 2 13V3q0-1.5 1.5-1.5Z M9 1.5V4q0 1.5 1.5 1.5H13\&quot;/&gt;&lt;path d=\&quot;M6 8l4 2-4 2Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;file-zip&quot;: [&quot;&lt;path d=\&quot;M3.5 1.5H9l4 4V13q0 1.5-1.5 1.5h-8Q2 14.5 2 13V3q0-1.5 1.5-1.5Z M9 1.5V4q0 1.5 1.5 1.5H13\&quot;/&gt;&lt;path d=\&quot;M7 7h2 M7 9h2 M7 11h2\&quot;/&gt;&quot;, 0, 1],
+  &quot;folder&quot;: [&quot;&lt;path d=\&quot;M1.5 6V4q0-1.5 1.5-1.5h3.5l2 2H13q1.5 0 1.5 1.5v7q0 1.5-1.5 1.5H3q-1.5 0-1.5-1.5Z M1.5 6h7\&quot;/&gt;&quot;, 0, 1],
+  &quot;folder-add&quot;: [&quot;&lt;path d=\&quot;M8 13.5H3q-1.5 0-1.5-1.5V4q0-1.5 1.5-1.5h3l2 2h5q1.5 0 1.5 1.5V7 M1.5 6H8\&quot;/&gt;&lt;path d=\&quot;M12 9.5v5 M9.5 12h5\&quot;/&gt;&quot;, 0, 1],
+  &quot;folder-check&quot;: [&quot;&lt;path d=\&quot;M8 13.5H3q-1.5 0-1.5-1.5V4q0-1.5 1.5-1.5h3l2 2h5q1.5 0 1.5 1.5V7 M1.5 6H8\&quot;/&gt;&lt;path d=\&quot;M9 12l2 2 3.5-4\&quot;/&gt;&quot;, 0, 1],
+  &quot;folder-close&quot;: [&quot;&lt;path d=\&quot;M8 13.5H3q-1.5 0-1.5-1.5V4q0-1.5 1.5-1.5h3l2 2h5q1.5 0 1.5 1.5V7 M1.5 6H8\&quot;/&gt;&lt;path d=\&quot;M10 10l4 4 M14 10l-4 4\&quot;/&gt;&quot;, 0, 1],
+  &quot;folder-download&quot;: [&quot;&lt;path d=\&quot;M8 13.5H3q-1.5 0-1.5-1.5V4q0-1.5 1.5-1.5h3l2 2h5q1.5 0 1.5 1.5V7 M1.5 6H8\&quot;/&gt;&lt;path d=\&quot;M12 9v5.5 M9.5 12l2.5 2.5 2.5-2.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;folder-lock&quot;: [&quot;&lt;path d=\&quot;M8 13.5H3q-1.5 0-1.5-1.5V4q0-1.5 1.5-1.5h3l2 2h5q1.5 0 1.5 1.5V7 M1.5 6H8\&quot;/&gt;&lt;rect x=\&quot;9.5\&quot; y=\&quot;11.5\&quot; width=\&quot;5\&quot; height=\&quot;3\&quot; rx=\&quot;1\&quot;/&gt;&lt;path d=\&quot;M10.5 11.5V10a1.5 1.5 0 0 1 3 0v1.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;folder-open&quot;: [&quot;&lt;path d=\&quot;M1.5 12.5V4q0-1.5 1.5-1.5h3.5l2 2H13q1.5 0 1.5 1.5 M2 13.5l1.8-6.3q.2-.7 1-.7h9q1 0 .7 1L12.9 13q-.2.5-1 .5Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;folder-remove&quot;: [&quot;&lt;path d=\&quot;M8 13.5H3q-1.5 0-1.5-1.5V4q0-1.5 1.5-1.5h3l2 2h5q1.5 0 1.5 1.5V7 M1.5 6H8\&quot;/&gt;&lt;path d=\&quot;M9.5 12h5\&quot;/&gt;&quot;, 0, 1],
+  &quot;folder-search&quot;: [&quot;&lt;path d=\&quot;M8 13.5H3q-1.5 0-1.5-1.5V4q0-1.5 1.5-1.5h3l2 2h5q1.5 0 1.5 1.5V7 M1.5 6H8\&quot;/&gt;&lt;circle cx=\&quot;11\&quot; cy=\&quot;11\&quot; r=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M12.5 12.5l2 2\&quot;/&gt;&quot;, 0, 1],
+  &quot;folder-upload&quot;: [&quot;&lt;path d=\&quot;M8 13.5H3q-1.5 0-1.5-1.5V4q0-1.5 1.5-1.5h3l2 2h5q1.5 0 1.5 1.5V7 M1.5 6H8\&quot;/&gt;&lt;path d=\&quot;M12 14.5V9 M9.5 11.5 12 9l2.5 2.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;image-add&quot;: [&quot;&lt;path d=\&quot;M7 14.5H3Q1.5 14.5 1.5 13V3Q1.5 1.5 3 1.5h10q1.5 0 1.5 1.5v4 M1.5 11l4-4 3 3\&quot;/&gt;&lt;circle cx=\&quot;5\&quot; cy=\&quot;4.5\&quot; r=\&quot;1\&quot;/&gt;&lt;path d=\&quot;M12 9.5v5 M9.5 12h5\&quot;/&gt;&quot;, 0, 1],
+  &quot;checkbox&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M4 8 7 11l5-6\&quot;/&gt;&quot;, 0, 1],
+  &quot;checkbox-empty&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;checkbox-mixed&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M4.5 8h7\&quot;/&gt;&quot;, 0, 1],
+  &quot;cursor-text&quot;: [&quot;&lt;path d=\&quot;M5 1.5h6 M8 1.5v13 M5 14.5h6\&quot;/&gt;&quot;, 0, 1],
+  &quot;form&quot;: [&quot;&lt;rect x=\&quot;2\&quot; y=\&quot;1.5\&quot; width=\&quot;12\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M5 5h6 M5 8h6 M5 11h3\&quot;/&gt;&quot;, 0, 1],
+  &quot;input&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;3.5\&quot; width=\&quot;13\&quot; height=\&quot;9\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M5 5.5v5 M3.5 5.5h3 M3.5 10.5h3\&quot;/&gt;&quot;, 0, 1],
+  &quot;keyboard&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;3.5\&quot; width=\&quot;13\&quot; height=\&quot;9\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M4 6h1 M7.5 6h1 M11 6h1 M4 9.5h8\&quot;/&gt;&quot;, 0, 1],
+  &quot;number-input&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;3.5\&quot; width=\&quot;13\&quot; height=\&quot;9\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M5 6 6 5.5v5 M10 6.5l1-1 1 1 M10 9.5l1 1 1-1\&quot;/&gt;&quot;, 0, 1],
+  &quot;password&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;3.5\&quot; width=\&quot;13\&quot; height=\&quot;9\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;circle cx=\&quot;4.5\&quot; cy=\&quot;8\&quot; r=\&quot;0.5\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;0.5\&quot;/&gt;&lt;circle cx=\&quot;11.5\&quot; cy=\&quot;8\&quot; r=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;radio&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;6\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;2.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;radio-empty&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;6\&quot;/&gt;&quot;, 0, 1],
+  &quot;select&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;3.5\&quot; width=\&quot;13\&quot; height=\&quot;9\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M9 7l2 2 2-2 M4 8h2\&quot;/&gt;&quot;, 0, 1],
+  &quot;slider&quot;: [&quot;&lt;path d=\&quot;M1.5 8h4 M10.5 8h4\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;2.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;stepper&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;3.5\&quot; width=\&quot;13\&quot; height=\&quot;9\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M6 3.5v9 M10 3.5v9 M3 8h1.5 M11 8h2 M12 7v2\&quot;/&gt;&quot;, 0, 1],
+  &quot;toggle-off&quot;: [&quot;&lt;rect x=\&quot;1\&quot; y=\&quot;4\&quot; width=\&quot;14\&quot; height=\&quot;8\&quot; rx=\&quot;4\&quot;/&gt;&lt;circle cx=\&quot;5\&quot; cy=\&quot;8\&quot; r=\&quot;2\&quot;/&gt;&quot;, 0, 1],
+  &quot;toggle-on&quot;: [&quot;&lt;rect x=\&quot;1\&quot; y=\&quot;4\&quot; width=\&quot;14\&quot; height=\&quot;8\&quot; rx=\&quot;4\&quot;/&gt;&lt;circle cx=\&quot;11\&quot; cy=\&quot;8\&quot; r=\&quot;2\&quot;/&gt;&quot;, 0, 1],
+  &quot;bring-front&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;9\&quot; height=\&quot;9\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M12.5 5.5h.5q1.5 0 1.5 1.5v6q0 1.5-1.5 1.5H7q-1.5 0-1.5-1.5v-.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;component&quot;: [&quot;&lt;path d=\&quot;M8 1.5 14.5 8 8 14.5 1.5 8Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;component-set&quot;: [&quot;&lt;path d=\&quot;M8 1l2 2-2 2-2-2Z\&quot;/&gt;&lt;path d=\&quot;M3 6l2 2-2 2-2-2Z\&quot;/&gt;&lt;path d=\&quot;M13 6l2 2-2 2-2-2Z\&quot;/&gt;&lt;path d=\&quot;M8 11l2 2-2 2-2-2Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;eye&quot;: [&quot;&lt;path d=\&quot;M1 8c3-7 11-7 14 0-3 7-11 7-14 0Z\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;2\&quot;/&gt;&quot;, 0, 1],
+  &quot;eye-off&quot;: [&quot;&lt;path d=\&quot;M1.5 1.5l13 13 M5 3.5C9 2 13 4 15 8l-2 3 M10.5 12.5C6 14 3 12 1 8l2-3\&quot;/&gt;&quot;, 0, 1],
+  &quot;group&quot;: [&quot;&lt;path d=\&quot;M1.5 5V1.5H5 M11 1.5h3.5V5 M14.5 11v3.5H11 M5 14.5H1.5V11\&quot;/&gt;&lt;rect x=\&quot;5\&quot; y=\&quot;5\&quot; width=\&quot;6\&quot; height=\&quot;6\&quot; rx=\&quot;1\&quot;/&gt;&quot;, 0, 1],
+  &quot;layers&quot;: [&quot;&lt;path d=\&quot;M8 1.5 14.5 5 8 8.5 1.5 5Z M1.5 8 8 11.5 14.5 8 M1.5 11 8 14.5 14.5 11\&quot;/&gt;&quot;, 0, 1],
+  &quot;lock&quot;: [&quot;&lt;rect x=\&quot;3\&quot; y=\&quot;7\&quot; width=\&quot;10\&quot; height=\&quot;7\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M5 7V4a3 3 0 0 1 6 0v3\&quot;/&gt;&quot;, &quot;&lt;g transform=\&quot;scale(1.5)\&quot;&gt;&lt;rect x=\&quot;3\&quot; y=\&quot;7\&quot; width=\&quot;10\&quot; height=\&quot;7\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M5 7V4a3 3 0 0 1 6 0v3\&quot;/&gt;&lt;path d=\&quot;M8 10v2\&quot;/&gt;&lt;/g&gt;&quot;, 1],
+  &quot;send-back&quot;: [&quot;&lt;rect x=\&quot;5.5\&quot; y=\&quot;5.5\&quot; width=\&quot;9\&quot; height=\&quot;9\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M3.5 10.5H3q-1.5 0-1.5-1.5V3q0-1.5 1.5-1.5h6q1.5 0 1.5 1.5v.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;ungroup&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;5\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;9.5\&quot; y=\&quot;9.5\&quot; width=\&quot;5\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&lt;path d=\&quot;M10 2h4v4 M2 10v4h4\&quot;/&gt;&quot;, 0, 1],
+  &quot;unlock&quot;: [&quot;&lt;rect x=\&quot;3\&quot; y=\&quot;7\&quot; width=\&quot;10\&quot; height=\&quot;7\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M5 7V4a3 3 0 0 1 6 0\&quot;/&gt;&quot;, &quot;&lt;g transform=\&quot;scale(1.5)\&quot;&gt;&lt;rect x=\&quot;3\&quot; y=\&quot;7\&quot; width=\&quot;10\&quot; height=\&quot;7\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M5 7V4a3 3 0 0 1 6 0\&quot;/&gt;&lt;path d=\&quot;M8 10v2\&quot;/&gt;&lt;/g&gt;&quot;, 1],
+  &quot;align-bottom&quot;: [&quot;&lt;path d=\&quot;M1 14.5h14\&quot;/&gt;&lt;rect x=\&quot;3\&quot; y=\&quot;3.5\&quot; width=\&quot;3\&quot; height=\&quot;8\&quot; rx=\&quot;0.5\&quot;/&gt;&lt;rect x=\&quot;10\&quot; y=\&quot;7.5\&quot; width=\&quot;3\&quot; height=\&quot;4\&quot; rx=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;align-center&quot;: [&quot;&lt;path d=\&quot;M8 1v.5 M8 7.5v1 M8 14.5v.5\&quot;/&gt;&lt;rect x=\&quot;3.5\&quot; y=\&quot;3\&quot; width=\&quot;9\&quot; height=\&quot;3\&quot; rx=\&quot;0.5\&quot;/&gt;&lt;rect x=\&quot;5.5\&quot; y=\&quot;10\&quot; width=\&quot;5\&quot; height=\&quot;3\&quot; rx=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;align-left&quot;: [&quot;&lt;path d=\&quot;M1.5 1v14\&quot;/&gt;&lt;rect x=\&quot;4.5\&quot; y=\&quot;3\&quot; width=\&quot;8\&quot; height=\&quot;3\&quot; rx=\&quot;0.5\&quot;/&gt;&lt;rect x=\&quot;4.5\&quot; y=\&quot;10\&quot; width=\&quot;4\&quot; height=\&quot;3\&quot; rx=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;align-middle&quot;: [&quot;&lt;path d=\&quot;M1 8h.5 M7.5 8h1 M14.5 8h.5\&quot;/&gt;&lt;rect x=\&quot;3\&quot; y=\&quot;3.5\&quot; width=\&quot;3\&quot; height=\&quot;9\&quot; rx=\&quot;0.5\&quot;/&gt;&lt;rect x=\&quot;10\&quot; y=\&quot;5.5\&quot; width=\&quot;3\&quot; height=\&quot;5\&quot; rx=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;align-right&quot;: [&quot;&lt;path d=\&quot;M14.5 1v14\&quot;/&gt;&lt;rect x=\&quot;3.5\&quot; y=\&quot;3\&quot; width=\&quot;8\&quot; height=\&quot;3\&quot; rx=\&quot;0.5\&quot;/&gt;&lt;rect x=\&quot;7.5\&quot; y=\&quot;10\&quot; width=\&quot;4\&quot; height=\&quot;3\&quot; rx=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;align-top&quot;: [&quot;&lt;path d=\&quot;M1 1.5h14\&quot;/&gt;&lt;rect x=\&quot;3\&quot; y=\&quot;4.5\&quot; width=\&quot;3\&quot; height=\&quot;8\&quot; rx=\&quot;0.5\&quot;/&gt;&lt;rect x=\&quot;10\&quot; y=\&quot;4.5\&quot; width=\&quot;3\&quot; height=\&quot;4\&quot; rx=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;columns&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M6 1.5v13 M10 1.5v13\&quot;/&gt;&quot;, 0, 1],
+  &quot;distribute-horizontal&quot;: [&quot;&lt;path d=\&quot;M1.5 2v12 M14.5 2v12\&quot;/&gt;&lt;rect x=\&quot;4.5\&quot; y=\&quot;4.5\&quot; width=\&quot;2\&quot; height=\&quot;7\&quot; rx=\&quot;0.5\&quot;/&gt;&lt;rect x=\&quot;9.5\&quot; y=\&quot;4.5\&quot; width=\&quot;2\&quot; height=\&quot;7\&quot; rx=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;distribute-vertical&quot;: [&quot;&lt;path d=\&quot;M2 1.5h12 M2 14.5h12\&quot;/&gt;&lt;rect x=\&quot;4.5\&quot; y=\&quot;4.5\&quot; width=\&quot;7\&quot; height=\&quot;2\&quot; rx=\&quot;0.5\&quot;/&gt;&lt;rect x=\&quot;4.5\&quot; y=\&quot;9.5\&quot; width=\&quot;7\&quot; height=\&quot;2\&quot; rx=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;gap-horizontal&quot;: [&quot;&lt;path d=\&quot;M1.5 3v10 M14.5 3v10 M4 8h8 M6 6 4 8l2 2 M10 6l2 2-2 2\&quot;/&gt;&quot;, 0, 1],
+  &quot;gap-vertical&quot;: [&quot;&lt;path d=\&quot;M3 1.5h10 M3 14.5h10 M8 4v8 M6 6l2-2 2 2 M6 10l2 2 2-2\&quot;/&gt;&quot;, 0, 1],
+  &quot;padding&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;5\&quot; y=\&quot;5\&quot; width=\&quot;6\&quot; height=\&quot;6\&quot; rx=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;rows&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M1.5 6h13 M1.5 10h13\&quot;/&gt;&quot;, 0, 1],
+  &quot;stack-horizontal&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;3\&quot; width=\&quot;5\&quot; height=\&quot;10\&quot; rx=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;9.5\&quot; y=\&quot;3\&quot; width=\&quot;5\&quot; height=\&quot;10\&quot; rx=\&quot;1\&quot;/&gt;&quot;, 0, 1],
+  &quot;stack-vertical&quot;: [&quot;&lt;rect x=\&quot;3\&quot; y=\&quot;1.5\&quot; width=\&quot;10\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;3\&quot; y=\&quot;9.5\&quot; width=\&quot;10\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&quot;, 0, 1],
+  &quot;wrap&quot;: [&quot;&lt;path d=\&quot;M2 3h8a4 4 0 0 1 0 8H5 M8 8l-3 3 3 3 M2 7h3\&quot;/&gt;&quot;, 0, 1],
+  &quot;camera&quot;: [&quot;&lt;path d=\&quot;M3 4.5h1.5q.5 0 .75-.5l.5-1q.25-.5.75-.5h3q.5 0 .75.5l.5 1q.25.5.75.5H13q1.5 0 1.5 1.5v7q0 1.5-1.5 1.5H3q-1.5 0-1.5-1.5V6q0-1.5 1.5-1.5Z\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;9\&quot; r=\&quot;3\&quot;/&gt;&quot;, 0, 1],
+  &quot;headphones&quot;: [&quot;&lt;path d=\&quot;M3 8V6.5a5 5 0 0 1 10 0V8\&quot;/&gt;&lt;rect x=\&quot;1.5\&quot; y=\&quot;8\&quot; width=\&quot;3\&quot; height=\&quot;6\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;rect x=\&quot;11.5\&quot; y=\&quot;8\&quot; width=\&quot;3\&quot; height=\&quot;6\&quot; rx=\&quot;1.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;microphone&quot;: [&quot;&lt;rect x=\&quot;5\&quot; y=\&quot;1.5\&quot; width=\&quot;6\&quot; height=\&quot;9\&quot; rx=\&quot;3\&quot;/&gt;&lt;path d=\&quot;M2.5 7v1a5.5 5.5 0 0 0 11 0V7 M8 13.5v1 M5 14.5h6\&quot;/&gt;&quot;, 0, 1],
+  &quot;microphone-off&quot;: [&quot;&lt;path d=\&quot;M1.5 1.5l13 13 M5 5v3a3 3 0 0 0 3 3 M5.5 2.5A3 3 0 0 1 11 4v3 M2.5 7v1A5.5 5.5 0 0 0 10 13 M13.5 7v1 M8 13.5v1 M5 14.5h6\&quot;/&gt;&quot;, 0, 1],
+  &quot;mute&quot;: [&quot;&lt;path d=\&quot;M1.5 5.5H5l4-4v13l-4-4H1.5Z M11 6l4 4 M15 6l-4 4\&quot;/&gt;&quot;, 0, 1],
+  &quot;pause&quot;: [&quot;&lt;path d=\&quot;M4.5 2v12 M11.5 2v12\&quot;/&gt;&quot;, 0, 1],
+  &quot;play&quot;: [&quot;&lt;path d=\&quot;M4 1.5 14 8 4 14.5Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;repeat&quot;: [&quot;&lt;path d=\&quot;M3 6V4.5Q3 3 4.5 3H14 M11 1l3 2-3 2 M13 10v1.5q0 1.5-1.5 1.5H2 M5 11l-3 2 3 2\&quot;/&gt;&quot;, 0, 1],
+  &quot;shuffle&quot;: [&quot;&lt;path d=\&quot;M2 4h3c3 0 3 8 6 8h3 M12 10l2 2-2 2 M2 12h3q1.5 0 2.5-2.5 M8.5 6.5Q9.5 4 11 4h3 M12 2l2 2-2 2\&quot;/&gt;&quot;, 0, 1],
+  &quot;skip-next&quot;: [&quot;&lt;path d=\&quot;M2 2 11 8 2 14Z M14 2v12\&quot;/&gt;&quot;, 0, 1],
+  &quot;skip-previous&quot;: [&quot;&lt;path d=\&quot;M14 2 5 8l9 6Z M2 2v12\&quot;/&gt;&quot;, 0, 1],
+  &quot;stop&quot;: [&quot;&lt;rect x=\&quot;3\&quot; y=\&quot;3\&quot; width=\&quot;10\&quot; height=\&quot;10\&quot; rx=\&quot;1.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;volume&quot;: [&quot;&lt;path d=\&quot;M1.5 5.5H5l4-4v13l-4-4H1.5Z M12 4a6 6 0 0 1 0 8\&quot;/&gt;&quot;, 0, 1],
+  &quot;volume-low&quot;: [&quot;&lt;path d=\&quot;M1.5 5.5H5l4-4v13l-4-4H1.5Z M12 6a3 3 0 0 1 0 4\&quot;/&gt;&quot;, 0, 1],
+  &quot;arrow-circle-down&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;6.5\&quot;/&gt;&lt;path d=\&quot;M8 5v6 M5 8l3 3 3-3\&quot;/&gt;&quot;, 0, 1],
+  &quot;arrow-circle-left&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;6.5\&quot;/&gt;&lt;path d=\&quot;M11 8H5 M8 5 5 8l3 3\&quot;/&gt;&quot;, 0, 1],
+  &quot;arrow-circle-right&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;6.5\&quot;/&gt;&lt;path d=\&quot;M5 8h6 M8 5l3 3-3 3\&quot;/&gt;&quot;, 0, 1],
+  &quot;arrow-circle-up&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;6.5\&quot;/&gt;&lt;path d=\&quot;M8 11V5 M5 8l3-3 3 3\&quot;/&gt;&quot;, 0, 1],
+  &quot;arrow-down&quot;: [&quot;&lt;path d=\&quot;M8 2.5v11 M3.5 9 8 13.5 12.5 9\&quot;/&gt;&quot;, 0, 1],
+  &quot;arrow-down-left&quot;: [&quot;&lt;path d=\&quot;M13 3 3 13 M3 5v8h8\&quot;/&gt;&quot;, 0, 1],
+  &quot;arrow-down-right&quot;: [&quot;&lt;path d=\&quot;M3 3l10 10 M5 13h8V5\&quot;/&gt;&quot;, 0, 1],
+  &quot;arrow-left&quot;: [&quot;&lt;path d=\&quot;M13.5 8h-11 M7 3.5 2.5 8 7 12.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;arrow-left-right&quot;: [&quot;&lt;path d=\&quot;M2 8h12 M5 5 2 8l3 3 M11 5l3 3-3 3\&quot;/&gt;&quot;, 0, 1],
+  &quot;arrow-right&quot;: [&quot;&lt;path d=\&quot;M2.5 8h11 M9 3.5 13.5 8 9 12.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;arrow-up&quot;: [&quot;&lt;path d=\&quot;M8 13.5v-11 M3.5 7 8 2.5 12.5 7\&quot;/&gt;&quot;, 0, 1],
+  &quot;arrow-up-down&quot;: [&quot;&lt;path d=\&quot;M8 2v12 M5 5l3-3 3 3 M5 11l3 3 3-3\&quot;/&gt;&quot;, 0, 1],
+  &quot;arrow-up-left&quot;: [&quot;&lt;path d=\&quot;M13 13 3 3 M3 11V3h8\&quot;/&gt;&quot;, 0, 1],
+  &quot;arrow-up-right&quot;: [&quot;&lt;path d=\&quot;M3 13 13 3 M5 3h8v8\&quot;/&gt;&quot;, 0, 1],
+  &quot;chevron-down&quot;: [&quot;&lt;path d=\&quot;M3 6l5 5 5-5\&quot;/&gt;&quot;, 0, 1],
+  &quot;chevron-left&quot;: [&quot;&lt;path d=\&quot;M10 3 5 8l5 5\&quot;/&gt;&quot;, 0, 1],
+  &quot;chevron-right&quot;: [&quot;&lt;path d=\&quot;M6 3l5 5-5 5\&quot;/&gt;&quot;, 0, 1],
+  &quot;chevron-up&quot;: [&quot;&lt;path d=\&quot;M3 10l5-5 5 5\&quot;/&gt;&quot;, 0, 1],
+  &quot;chevrons-down&quot;: [&quot;&lt;path d=\&quot;M3 3l5 5 5-5 M3 8l5 5 5-5\&quot;/&gt;&quot;, 0, 1],
+  &quot;chevrons-left&quot;: [&quot;&lt;path d=\&quot;M8 3 3 8l5 5 M13 3 8 8l5 5\&quot;/&gt;&quot;, 0, 1],
+  &quot;chevrons-right&quot;: [&quot;&lt;path d=\&quot;M3 3l5 5-5 5 M8 3l5 5-5 5\&quot;/&gt;&quot;, 0, 1],
+  &quot;chevrons-up&quot;: [&quot;&lt;path d=\&quot;M3 8l5-5 5 5 M3 13l5-5 5 5\&quot;/&gt;&quot;, 0, 1],
+  &quot;collapse&quot;: [&quot;&lt;path d=\&quot;M2 2l4 4 M6 2v4H2 M14 2l-4 4 M10 2v4h4 M2 14l4-4 M2 10h4v4 M14 14l-4-4 M10 14v-4h4\&quot;/&gt;&quot;, 0, 1],
+  &quot;dashboard&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;5\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;9.5\&quot; y=\&quot;1.5\&quot; width=\&quot;5\&quot; height=\&quot;8\&quot; rx=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;1.5\&quot; y=\&quot;9.5\&quot; width=\&quot;5\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;9.5\&quot; y=\&quot;12.5\&quot; width=\&quot;5\&quot; height=\&quot;2\&quot; rx=\&quot;1\&quot;/&gt;&quot;, 0, 1],
+  &quot;enter&quot;: [&quot;&lt;path d=\&quot;M13 2.5V8q0 2-2 2H2 M5 7l-3 3 3 3\&quot;/&gt;&quot;, 0, 1],
+  &quot;exit&quot;: [&quot;&lt;path d=\&quot;M6 2H3.5Q2 2 2 3.5v9Q2 14 3.5 14H6 M6 8h8 M11 5l3 3-3 3\&quot;/&gt;&quot;, 0, 1],
+  &quot;expand&quot;: [&quot;&lt;path d=\&quot;M2 6V2h4 M10 2h4v4 M14 10v4h-4 M6 14H2v-4 M2 2l4 4 M14 2l-4 4 M2 14l4-4 M14 14l-4-4\&quot;/&gt;&quot;, 0, 1],
+  &quot;grid&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;5\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;1.5\&quot; y=\&quot;9.5\&quot; width=\&quot;5\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;9.5\&quot; y=\&quot;1.5\&quot; width=\&quot;5\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;9.5\&quot; y=\&quot;9.5\&quot; width=\&quot;5\&quot; height=\&quot;5\&quot; rx=\&quot;1\&quot;/&gt;&quot;, 0, 1],
+  &quot;home&quot;: [&quot;&lt;path d=\&quot;M1.5 7 8 1.5 14.5 7 M3 6v7q0 1.5 1.5 1.5h7q1.5 0 1.5-1.5V6 M6 14.5V11q0-1.5 1.5-1.5h1q1.5 0 1.5 1.5v3.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;list&quot;: [&quot;&lt;path d=\&quot;M5.5 3h9 M5.5 8h9 M5.5 13h9\&quot;/&gt;&lt;circle cx=\&quot;2\&quot; cy=\&quot;3\&quot; r=\&quot;0.5\&quot;/&gt;&lt;circle cx=\&quot;2\&quot; cy=\&quot;8\&quot; r=\&quot;0.5\&quot;/&gt;&lt;circle cx=\&quot;2\&quot; cy=\&quot;13\&quot; r=\&quot;0.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;log-in&quot;: [&quot;&lt;path d=\&quot;M10 2h2.5Q14 2 14 3.5v9q0 1.5-1.5 1.5H10 M2 8h8 M7 5l3 3-3 3\&quot;/&gt;&quot;, 0, 1],
+  &quot;menu&quot;: [&quot;&lt;path d=\&quot;M2 3.5h12 M2 8h12 M2 12.5h12\&quot;/&gt;&quot;, 0, 1],
+  &quot;more-horizontal&quot;: [&quot;&lt;circle cx=\&quot;3\&quot; cy=\&quot;8\&quot; r=\&quot;0.6\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;0.6\&quot;/&gt;&lt;circle cx=\&quot;13\&quot; cy=\&quot;8\&quot; r=\&quot;0.6\&quot;/&gt;&quot;, 0, 1],
+  &quot;more-vertical&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;3\&quot; r=\&quot;0.6\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;0.6\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;13\&quot; r=\&quot;0.6\&quot;/&gt;&quot;, 0, 1],
+  &quot;move&quot;: [&quot;&lt;path d=\&quot;M8 1.5v13 M1.5 8h13 M6 3.5l2-2 2 2 M6 12.5l2 2 2-2 M3.5 6l-2 2 2 2 M12.5 6l2 2-2 2\&quot;/&gt;&quot;, 0, 1],
+  &quot;panel-bottom&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M1.5 10.5h13\&quot;/&gt;&quot;, 0, 1],
+  &quot;sidebar-left&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M5.5 1.5v13\&quot;/&gt;&quot;, 0, 1],
+  &quot;sidebar-right&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M10.5 1.5v13\&quot;/&gt;&quot;, 0, 1],
+  &quot;book&quot;: [&quot;&lt;path d=\&quot;M8 4C6 2 3 2 1.5 3v10C4 12 6 12 8 14c2-2 4-2 6.5-1V3C13 2 10 2 8 4Z M8 4v10\&quot;/&gt;&quot;, &quot;&lt;path d=\&quot;M12 6C9 3 6 3 3 4v15c3-1 6-1 9 2 3-3 6-3 9-2V4c-3-1-6-1-9 2Z M12 6v15\&quot;/&gt;&quot;, 1.5],
+  &quot;building&quot;: [&quot;&lt;path d=\&quot;M2.5 14.5v-13h8v13 M10.5 6.5h3v8 M1.5 14.5h13 M5.5 4.5h2 M5.5 7.5h2 M5.5 10.5h2\&quot;/&gt;&quot;, &quot;&lt;path d=\&quot;M4 21V3h11v18 M15 9h5v12 M2 21h20 M8 7h3 M8 11h3 M8 15h3 M8 21v-3h3v3 M17 13h1 M17 17h1\&quot;/&gt;&quot;, 1.5],
+  &quot;light&quot;: [&quot;&lt;path d=\&quot;M5.5 11.5c0-2-2-2-2-5a4.5 4.5 0 0 1 9 0c0 3-2 3-2 5Z M6 14.5h4 M6.5 6.5 8 8l1.5-1.5 M8 8v3.5\&quot;/&gt;&quot;, &quot;&lt;path d=\&quot;M8 16c0-3-3-3-3-7a7 7 0 0 1 14 0c0 4-3 4-3 7Z M8 19h8 M10 22h4 M10 9l2 2 2-2 M12 11v5\&quot;/&gt;&quot;, 1.5],
+  &quot;plant&quot;: [&quot;&lt;path d=\&quot;M8 11.5v-6 M8 7.5c-4 0-6-2-6-5 4 0 6 2 6 5Z M8 9.5c0-3 2-5 6-5 0 3-2 5-6 5Z M4.5 11.5h7l-1 3h-5Z\&quot;/&gt;&quot;, &quot;&lt;path d=\&quot;M12 17V8 M12 11C7 11 4 8 4 4c5 0 8 2 8 7Z M12 14c0-5 3-8 8-8 0 5-3 8-8 8Z M7 17h10l-1 5H8Z\&quot;/&gt;&quot;, 1.5],
+  &quot;handoff&quot;: [&quot;&lt;path d=\&quot;M1.5 4.5h12 M10.5 1.5l3 3-3 3 M14.5 11.5h-12 M5.5 8.5l-3 3 3 3\&quot;/&gt;&quot;, &quot;&lt;path d=\&quot;M3 7h16 M15 3l4 4-4 4 M21 17H5 M9 13l-4 4 4 4\&quot;/&gt;&quot;, 1.5],
+  &quot;invite&quot;: [&quot;&lt;circle cx=\&quot;5.5\&quot; cy=\&quot;4.5\&quot; r=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M1.5 14.5v-2a4 4 0 0 1 6.5-3 M12 9v5 M9.5 11.5h5\&quot;/&gt;&quot;, &quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;7\&quot; r=\&quot;3\&quot;/&gt;&lt;path d=\&quot;M2 21v-2a6 6 0 0 1 10-4 M18 13v8 M14 17h8\&quot;/&gt;&quot;, 1.5],
+  &quot;person&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;4.5\&quot; r=\&quot;2.5\&quot;/&gt;&lt;path d=\&quot;M3.5 14.5v-1a4.5 4.5 0 0 1 9 0v1\&quot;/&gt;&quot;, &quot;&lt;circle cx=\&quot;12\&quot; cy=\&quot;7\&quot; r=\&quot;3.5\&quot;/&gt;&lt;path d=\&quot;M5 21v-2a7 7 0 0 1 14 0v2\&quot;/&gt;&quot;, 1.5],
+  &quot;person-add&quot;: [&quot;&lt;circle cx=\&quot;6\&quot; cy=\&quot;4.5\&quot; r=\&quot;2.5\&quot;/&gt;&lt;path d=\&quot;M1.5 14v-1a4.5 4.5 0 0 1 7-3.75\&quot;/&gt;&lt;path d=\&quot;M12 9.5v5 M9.5 12h5\&quot;/&gt;&quot;, 0, 1],
+  &quot;person-check&quot;: [&quot;&lt;circle cx=\&quot;6\&quot; cy=\&quot;4.5\&quot; r=\&quot;2.5\&quot;/&gt;&lt;path d=\&quot;M1.5 14v-1a4.5 4.5 0 0 1 7-3.75\&quot;/&gt;&lt;path d=\&quot;M9 12l2 2 3.5-4\&quot;/&gt;&quot;, 0, 1],
+  &quot;person-close&quot;: [&quot;&lt;circle cx=\&quot;6\&quot; cy=\&quot;4.5\&quot; r=\&quot;2.5\&quot;/&gt;&lt;path d=\&quot;M1.5 14v-1a4.5 4.5 0 0 1 7-3.75\&quot;/&gt;&lt;path d=\&quot;M10 10l4 4 M14 10l-4 4\&quot;/&gt;&quot;, 0, 1],
+  &quot;person-lock&quot;: [&quot;&lt;circle cx=\&quot;6\&quot; cy=\&quot;4.5\&quot; r=\&quot;2.5\&quot;/&gt;&lt;path d=\&quot;M1.5 14v-1a4.5 4.5 0 0 1 7-3.75\&quot;/&gt;&lt;rect x=\&quot;9.5\&quot; y=\&quot;11.5\&quot; width=\&quot;5\&quot; height=\&quot;3\&quot; rx=\&quot;1\&quot;/&gt;&lt;path d=\&quot;M10.5 11.5V10a1.5 1.5 0 0 1 3 0v1.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;person-remove&quot;: [&quot;&lt;circle cx=\&quot;6\&quot; cy=\&quot;4.5\&quot; r=\&quot;2.5\&quot;/&gt;&lt;path d=\&quot;M1.5 14v-1a4.5 4.5 0 0 1 7-3.75\&quot;/&gt;&lt;path d=\&quot;M9.5 12h5\&quot;/&gt;&quot;, 0, 1],
+  &quot;person-search&quot;: [&quot;&lt;circle cx=\&quot;6\&quot; cy=\&quot;4.5\&quot; r=\&quot;2.5\&quot;/&gt;&lt;path d=\&quot;M1.5 14v-1a4.5 4.5 0 0 1 7-3.75\&quot;/&gt;&lt;circle cx=\&quot;11\&quot; cy=\&quot;11\&quot; r=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M12.5 12.5l2 2\&quot;/&gt;&quot;, 0, 1],
+  &quot;team&quot;: [&quot;&lt;circle cx=\&quot;5.5\&quot; cy=\&quot;4.5\&quot; r=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M1.5 14.5v-2a4 4 0 0 1 8 0v2 M11 3a2 2 0 0 1 0 4 M11.5 9.5a3 3 0 0 1 3 3v2\&quot;/&gt;&quot;, &quot;&lt;circle cx=\&quot;9\&quot; cy=\&quot;7\&quot; r=\&quot;3\&quot;/&gt;&lt;path d=\&quot;M3 21v-3a6 6 0 0 1 12 0v3 M16 4a3 3 0 0 1 0 6 M18 14a5 5 0 0 1 3 4v3\&quot;/&gt;&quot;, 1.5],
+  &quot;calendar&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;3.5\&quot; width=\&quot;13\&quot; height=\&quot;11\&quot; rx=\&quot;1.5\&quot;/&gt;&lt;path d=\&quot;M4.5 1.5v4 M11.5 1.5v4 M1.5 7.5h13\&quot;/&gt;&lt;rect x=\&quot;4.5\&quot; y=\&quot;10.5\&quot; width=\&quot;2\&quot; height=\&quot;2\&quot; rx=\&quot;0.5\&quot;/&gt;&quot;, &quot;&lt;rect x=\&quot;3\&quot; y=\&quot;5\&quot; width=\&quot;18\&quot; height=\&quot;16\&quot; rx=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M7 3v4 M17 3v4 M3 10h18\&quot;/&gt;&lt;rect x=\&quot;7\&quot; y=\&quot;14\&quot; width=\&quot;3\&quot; height=\&quot;3\&quot; rx=\&quot;0.5\&quot;/&gt;&quot;, 1.5],
+  &quot;milestone&quot;: [&quot;&lt;path d=\&quot;M4.5 14.5v-13 M4.5 2.5h9l-2 3 2 3h-9 M2.5 14.5h4\&quot;/&gt;&quot;, &quot;&lt;path d=\&quot;M6 21V3 M6 4h13l-3 4 3 4H6 M3 21h6\&quot;/&gt;&quot;, 1.5],
+  &quot;project&quot;: [&quot;&lt;path d=\&quot;M1.5 5.5v-2q0-1 1-1h4l2 3h5q1 0 1 1v7q0 1-1 1h-11q-1 0-1-1Z M1.5 5.5h7\&quot;/&gt;&quot;, &quot;&lt;path d=\&quot;M3 8V6q0-2 2-2h5l3 4h6q2 0 2 2v9q0 2-2 2H5q-2 0-2-2Z M3 8h10\&quot;/&gt;&quot;, 1.5],
+  &quot;workspace&quot;: [&quot;&lt;rect x=\&quot;1.5\&quot; y=\&quot;1.5\&quot; width=\&quot;13\&quot; height=\&quot;13\&quot; rx=\&quot;2\&quot;/&gt;&lt;path d=\&quot;M1.5 5.5h13 M5.5 5.5v9\&quot;/&gt;&quot;, &quot;&lt;rect x=\&quot;3\&quot; y=\&quot;3\&quot; width=\&quot;18\&quot; height=\&quot;18\&quot; rx=\&quot;3\&quot;/&gt;&lt;path d=\&quot;M3 9h18 M9 9v12 M6 6h.01\&quot;/&gt;&quot;, 1.5],
+  &quot;clock&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;6.5\&quot;/&gt;&lt;path d=\&quot;M8 4v4l3 2\&quot;/&gt;&quot;, 0, 1],
+  &quot;error&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;6\&quot;/&gt;&lt;path d=\&quot;M5.75 5.75l4.5 4.5 M10.25 5.75l-4.5 4.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;help&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;6\&quot;/&gt;&lt;path d=\&quot;M5.75 5.75C5.75 3 10.25 3 10.25 5.75C10.25 7.5 8 7.5 8 9\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;11.25\&quot; r=\&quot;.65\&quot; fill=\&quot;currentColor\&quot; stroke=\&quot;none\&quot;/&gt;&quot;, 0, 1],
+  &quot;history&quot;: [&quot;&lt;path d=\&quot;M2.5 5.5C3.45 3.43 5.55 2 8 2C11.31 2 14 4.69 14 8C14 11.31 11.31 14 8 14C5.39 14 3.17 12.33 2.34 10 M2.5 2v3.5H6 M8 4.5V8l2.5 1.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;info&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;6\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;5\&quot; r=\&quot;.65\&quot; fill=\&quot;currentColor\&quot; stroke=\&quot;none\&quot;/&gt;&lt;path d=\&quot;M8 7.5v3.5\&quot;/&gt;&quot;, 0, 1],
+  &quot;loading&quot;: [&quot;&lt;path d=\&quot;M8 2a6 6 0 1 1-6 6\&quot;/&gt;&quot;, 0, 1],
+  &quot;success&quot;: [&quot;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;6\&quot;/&gt;&lt;path d=\&quot;M4.75 8 7 10.25 11.25 5.75\&quot;/&gt;&quot;, 0, 1],
+  &quot;warning&quot;: [&quot;&lt;path d=\&quot;M7.1 2.5q.9-1.5 1.8 0l5.4 9.5q.9 1.5-.9 1.5H2.6q-1.8 0-.9-1.5Z M8 5.75v3.5\&quot;/&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;11.25\&quot; r=\&quot;.65\&quot; fill=\&quot;currentColor\&quot; stroke=\&quot;none\&quot;/&gt;&quot;, 0, 1],
+  &quot;bold&quot;: [&quot;&lt;path d=\&quot;M4 2h5a3 3 0 0 1 0 6H4V2 M4 8h5.5a3 3 0 0 1 0 6H4Z\&quot;/&gt;&quot;, 0, 1],
+  &quot;heading&quot;: [&quot;&lt;path d=\&quot;M3 2v12 M13 2v12 M3 8h10\&quot;/&gt;&quot;, 0, 1],
+  &quot;indent-decrease&quot;: [&quot;&lt;path d=\&quot;M7 3h7 M7 8h7 M7 13h7 M4.5 5 1.5 8l3 3\&quot;/&gt;&quot;, 0, 1],
+  &quot;indent-increase&quot;: [&quot;&lt;path d=\&quot;M7 3h7 M7 8h7 M7 13h7 M1.5 5 4.5 8l-3 3\&quot;/&gt;&quot;, 0, 1],
+  &quot;italic&quot;: [&quot;&lt;path d=\&quot;M7 2h6 M3 14h6 M10 2 6 14\&quot;/&gt;&quot;, 0, 1],
+  &quot;letter-spacing&quot;: [&quot;&lt;path d=\&quot;M3 10 6.5 2 10 10 M4.5 7h4 M1.5 14h13 M3 12.5 1.5 14 M13 12.5 14.5 14\&quot;/&gt;&quot;, 0, 1],
+  &quot;line-height&quot;: [&quot;&lt;path d=\&quot;M2.5 2v12 M1 3.5 2.5 2 4 3.5 M1 12.5 2.5 14 4 12.5 M7 3h7 M7 8h7 M7 13h7\&quot;/&gt;&quot;, 0, 1],
+  &quot;paragraph&quot;: [&quot;&lt;path d=\&quot;M9 14V2H6a3.5 3.5 0 0 0 0 7h3 M9 2h5 M12.5 2v12\&quot;/&gt;&quot;, 0, 1],
+  &quot;quote&quot;: [&quot;&lt;rect x=\&quot;2\&quot; y=\&quot;3\&quot; width=\&quot;4\&quot; height=\&quot;6\&quot; rx=\&quot;1\&quot;/&gt;&lt;rect x=\&quot;10\&quot; y=\&quot;3\&quot; width=\&quot;4\&quot; height=\&quot;6\&quot; rx=\&quot;1\&quot;/&gt;&lt;path d=\&quot;M6 9q0 4-4 4 M14 9q0 4-4 4\&quot;/&gt;&quot;, 0, 1],
+  &quot;strikethrough&quot;: [&quot;&lt;path d=\&quot;M12 4C11 1 5 1 4 4c-.5 2 2 3 4 3 M1.5 8h13 M5 11c1 4 8 3 7-1\&quot;/&gt;&quot;, 0, 1],
+  &quot;text-align-center&quot;: [&quot;&lt;path d=\&quot;M2 3h12 M4 6.5h8 M2 10h12 M4 13.5h8\&quot;/&gt;&quot;, 0, 1],
+  &quot;text-align-left&quot;: [&quot;&lt;path d=\&quot;M2 3h12 M2 6.5h8 M2 10h12 M2 13.5h8\&quot;/&gt;&quot;, 0, 1],
+  &quot;text-align-right&quot;: [&quot;&lt;path d=\&quot;M2 3h12 M6 6.5h8 M2 10h12 M6 13.5h8\&quot;/&gt;&quot;, 0, 1],
+  &quot;text-justify&quot;: [&quot;&lt;path d=\&quot;M2 3h12 M2 6.5h12 M2 10h12 M2 13.5h12\&quot;/&gt;&quot;, 0, 1],
+  &quot;text-size&quot;: [&quot;&lt;path d=\&quot;M1.5 3h8 M5.5 3v10 M3.5 13h4 M10 7h5 M12.5 7v6\&quot;/&gt;&quot;, 0, 1],
+  &quot;underline&quot;: [&quot;&lt;path d=\&quot;M3.5 2v6a4.5 4.5 0 0 0 9 0V2 M2 14h12\&quot;/&gt;&quot;, 0, 1],
+};
+const GROUPS = [[&quot;AI &amp; automation&quot;,[&quot;context&quot;,&quot;prompt&quot;,&quot;refine&quot;,&quot;workflow&quot;]],[&quot;Actions&quot;,[&quot;check&quot;,&quot;clipboard&quot;,&quot;close&quot;,&quot;copy&quot;,&quot;download&quot;,&quot;duplicate&quot;,&quot;edit&quot;,&quot;external-link&quot;,&quot;link&quot;,&quot;minus&quot;,&quot;plus&quot;,&quot;redo&quot;,&quot;refresh&quot;,&quot;save&quot;,&quot;search&quot;,&quot;share&quot;,&quot;trash&quot;,&quot;undo&quot;,&quot;unlink&quot;,&quot;upload&quot;]],[&quot;App essentials&quot;,[&quot;award&quot;,&quot;bag&quot;,&quot;bell-add&quot;,&quot;briefcase&quot;,&quot;calendar-check&quot;,&quot;calendar-clock&quot;,&quot;calendar-range&quot;,&quot;credit-card-add&quot;,&quot;gift&quot;,&quot;rocket&quot;,&quot;sparkles&quot;,&quot;wallet&quot;]],[&quot;Appearance&quot;,[&quot;contrast&quot;,&quot;corner-radius&quot;,&quot;fill&quot;,&quot;moon&quot;,&quot;opacity&quot;,&quot;stroke&quot;,&quot;sun&quot;]],[&quot;Canvas&quot;,[&quot;anchor&quot;,&quot;crop&quot;,&quot;cursor&quot;,&quot;cursor-direct&quot;,&quot;diamond&quot;,&quot;ellipse&quot;,&quot;fit-view&quot;,&quot;flip-horizontal&quot;,&quot;flip-vertical&quot;,&quot;frame&quot;,&quot;hand&quot;,&quot;image&quot;,&quot;line&quot;,&quot;pen&quot;,&quot;pencil&quot;,&quot;polygon&quot;,&quot;rectangle&quot;,&quot;rotate&quot;,&quot;ruler&quot;,&quot;star&quot;,&quot;text&quot;,&quot;triangle&quot;,&quot;zoom-in&quot;,&quot;zoom-out&quot;]],[&quot;Canvas &amp; layout&quot;,[&quot;aspect-ratio&quot;,&quot;bezier&quot;,&quot;boolean-exclude&quot;,&quot;boolean-intersect&quot;,&quot;boolean-subtract&quot;,&quot;boolean-union&quot;,&quot;constraints&quot;,&quot;eraser&quot;,&quot;eyedropper&quot;,&quot;gradient&quot;,&quot;guides&quot;,&quot;height&quot;,&quot;layout-board&quot;,&quot;layout-footer&quot;,&quot;layout-header&quot;,&quot;layout-masonry&quot;,&quot;layout-split&quot;,&quot;layout-three&quot;,&quot;mask&quot;,&quot;node-add&quot;,&quot;node-remove&quot;,&quot;paintbrush&quot;,&quot;palette&quot;,&quot;path&quot;,&quot;position-absolute&quot;,&quot;position-fixed&quot;,&quot;rotate-clockwise&quot;,&quot;snap&quot;,&quot;width&quot;]],[&quot;Commerce&quot;,[&quot;cart&quot;,&quot;payment&quot;,&quot;product&quot;,&quot;receipt&quot;]],[&quot;Communication&quot;,[&quot;at&quot;,&quot;bell&quot;,&quot;chat&quot;,&quot;comment&quot;,&quot;mail&quot;,&quot;notification-off&quot;,&quot;send&quot;]],[&quot;Content&quot;,[&quot;audio&quot;,&quot;collection&quot;,&quot;document&quot;,&quot;video&quot;]],[&quot;Data &amp; tools&quot;,[&quot;braces&quot;,&quot;brackets&quot;,&quot;branch&quot;,&quot;chart-area&quot;,&quot;chart-bar&quot;,&quot;chart-line&quot;,&quot;chart-pie&quot;,&quot;commit&quot;,&quot;compass&quot;,&quot;data-rows&quot;,&quot;drag-handle&quot;,&quot;flag&quot;,&quot;location-arrow&quot;,&quot;merge&quot;,&quot;pin-board&quot;,&quot;plug&quot;,&quot;power&quot;,&quot;pull-request&quot;,&quot;server&quot;,&quot;settings&quot;,&quot;table&quot;,&quot;trend-down&quot;,&quot;trend-up&quot;,&quot;wifi&quot;]],[&quot;Devices&quot;,[&quot;code&quot;,&quot;desktop&quot;,&quot;laptop&quot;,&quot;phone&quot;,&quot;tablet&quot;,&quot;terminal&quot;]],[&quot;Everyday&quot;,[&quot;bookmark&quot;,&quot;coffee&quot;,&quot;filter&quot;,&quot;globe&quot;,&quot;heart&quot;,&quot;key&quot;,&quot;pin&quot;,&quot;shield&quot;,&quot;sort&quot;,&quot;tag&quot;]],[&quot;Files&quot;,[&quot;archive&quot;,&quot;cloud&quot;,&quot;database&quot;,&quot;file&quot;,&quot;file-add&quot;,&quot;file-audio&quot;,&quot;file-chart&quot;,&quot;file-check&quot;,&quot;file-close&quot;,&quot;file-code&quot;,&quot;file-download&quot;,&quot;file-image&quot;,&quot;file-lock&quot;,&quot;file-remove&quot;,&quot;file-search&quot;,&quot;file-settings&quot;,&quot;file-table&quot;,&quot;file-text&quot;,&quot;file-upload&quot;,&quot;file-video&quot;,&quot;file-zip&quot;,&quot;folder&quot;,&quot;folder-add&quot;,&quot;folder-check&quot;,&quot;folder-close&quot;,&quot;folder-download&quot;,&quot;folder-lock&quot;,&quot;folder-open&quot;,&quot;folder-remove&quot;,&quot;folder-search&quot;,&quot;folder-upload&quot;,&quot;image-add&quot;]],[&quot;Forms&quot;,[&quot;checkbox&quot;,&quot;checkbox-empty&quot;,&quot;checkbox-mixed&quot;,&quot;cursor-text&quot;,&quot;form&quot;,&quot;input&quot;,&quot;keyboard&quot;,&quot;number-input&quot;,&quot;password&quot;,&quot;radio&quot;,&quot;radio-empty&quot;,&quot;select&quot;,&quot;slider&quot;,&quot;stepper&quot;,&quot;toggle-off&quot;,&quot;toggle-on&quot;]],[&quot;Layers&quot;,[&quot;bring-front&quot;,&quot;component&quot;,&quot;component-set&quot;,&quot;eye&quot;,&quot;eye-off&quot;,&quot;group&quot;,&quot;layers&quot;,&quot;lock&quot;,&quot;send-back&quot;,&quot;ungroup&quot;,&quot;unlock&quot;]],[&quot;Layout&quot;,[&quot;align-bottom&quot;,&quot;align-center&quot;,&quot;align-left&quot;,&quot;align-middle&quot;,&quot;align-right&quot;,&quot;align-top&quot;,&quot;columns&quot;,&quot;distribute-horizontal&quot;,&quot;distribute-vertical&quot;,&quot;gap-horizontal&quot;,&quot;gap-vertical&quot;,&quot;padding&quot;,&quot;rows&quot;,&quot;stack-horizontal&quot;,&quot;stack-vertical&quot;,&quot;wrap&quot;]],[&quot;Media&quot;,[&quot;camera&quot;,&quot;headphones&quot;,&quot;microphone&quot;,&quot;microphone-off&quot;,&quot;mute&quot;,&quot;pause&quot;,&quot;play&quot;,&quot;repeat&quot;,&quot;shuffle&quot;,&quot;skip-next&quot;,&quot;skip-previous&quot;,&quot;stop&quot;,&quot;volume&quot;,&quot;volume-low&quot;]],[&quot;Navigation&quot;,[&quot;arrow-circle-down&quot;,&quot;arrow-circle-left&quot;,&quot;arrow-circle-right&quot;,&quot;arrow-circle-up&quot;,&quot;arrow-down&quot;,&quot;arrow-down-left&quot;,&quot;arrow-down-right&quot;,&quot;arrow-left&quot;,&quot;arrow-left-right&quot;,&quot;arrow-right&quot;,&quot;arrow-up&quot;,&quot;arrow-up-down&quot;,&quot;arrow-up-left&quot;,&quot;arrow-up-right&quot;,&quot;chevron-down&quot;,&quot;chevron-left&quot;,&quot;chevron-right&quot;,&quot;chevron-up&quot;,&quot;chevrons-down&quot;,&quot;chevrons-left&quot;,&quot;chevrons-right&quot;,&quot;chevrons-up&quot;,&quot;collapse&quot;,&quot;dashboard&quot;,&quot;enter&quot;,&quot;exit&quot;,&quot;expand&quot;,&quot;grid&quot;,&quot;home&quot;,&quot;list&quot;,&quot;log-in&quot;,&quot;menu&quot;,&quot;more-horizontal&quot;,&quot;more-vertical&quot;,&quot;move&quot;,&quot;panel-bottom&quot;,&quot;sidebar-left&quot;,&quot;sidebar-right&quot;]],[&quot;Objects&quot;,[&quot;book&quot;,&quot;building&quot;,&quot;light&quot;,&quot;plant&quot;]],[&quot;People&quot;,[&quot;handoff&quot;,&quot;invite&quot;,&quot;person&quot;,&quot;person-add&quot;,&quot;person-check&quot;,&quot;person-close&quot;,&quot;person-lock&quot;,&quot;person-remove&quot;,&quot;person-search&quot;,&quot;team&quot;]],[&quot;Projects&quot;,[&quot;calendar&quot;,&quot;milestone&quot;,&quot;project&quot;,&quot;workspace&quot;]],[&quot;Status&quot;,[&quot;clock&quot;,&quot;error&quot;,&quot;help&quot;,&quot;history&quot;,&quot;info&quot;,&quot;loading&quot;,&quot;success&quot;,&quot;warning&quot;]],[&quot;Typography&quot;,[&quot;bold&quot;,&quot;heading&quot;,&quot;indent-decrease&quot;,&quot;indent-increase&quot;,&quot;italic&quot;,&quot;letter-spacing&quot;,&quot;line-height&quot;,&quot;paragraph&quot;,&quot;quote&quot;,&quot;strikethrough&quot;,&quot;text-align-center&quot;,&quot;text-align-left&quot;,&quot;text-align-right&quot;,&quot;text-justify&quot;,&quot;text-size&quot;,&quot;underline&quot;]]];
+/* @icons:end */
+
+export function Icon({ name = &quot;star&quot;, size = &quot;lg&quot;, label, style, ...rest }) {
+  const drawing = DRAWINGS[name] || DRAWINGS.star;
+  const small = SMALL[size];
+  const grid = small ? 16 : 24;
+  const body = !drawing ? &quot;&quot; : small ? drawing[0] : drawing[1] || `&lt;g transform=&quot;scale(1.5)&quot;&gt;${drawing[0]}&lt;/g&gt;`;
+  const stroke = small || !drawing ? 1 : drawing[1] ? drawing[2] : 1;
+  const box = SIZES[size] || SIZES.lg;
+  return (
+    &lt;svg
+      xmlns=&quot;http://www.w3.org/2000/svg&quot;
+      viewBox={`0 0 ${grid} ${grid}`}
+      fill=&quot;none&quot;
+      stroke=&quot;currentColor&quot;
+      strokeWidth={stroke}
+      strokeLinecap=&quot;round&quot;
+      strokeLinejoin=&quot;round&quot;
+      focusable=&quot;false&quot;
+      role={label ? &quot;img&quot; : undefined}
+      aria-label={label || undefined}
+      aria-hidden={label ? undefined : true}
+      data-icon={name}
+      style={{ width: box, height: box, flex: &quot;none&quot;, display: &quot;inline-block&quot;, verticalAlign: &quot;middle&quot;, ...style }}
+      dangerouslySetInnerHTML={{ __html: body }}
+      {...rest}
+    /&gt;
+  );
+}
+
+/* Every name in the library, in catalogue order, and the names by category
+   ([category, names] pairs), for pickers. */
+Icon.names = Object.keys(DRAWINGS);
+Icon.groups = GROUPS;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>Icon also appears on the content reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#contentdetail">ContentDetail</a></li></ul>
+</section>
+
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#playground">Playground</a></li>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#install">Install and import</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#sizes">Sizes</a></li>
+    <li class="nested"><a href="#the-library">The library</a></li>
+    <li class="nested"><a href="#composition">Composition</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li class="nested"><a href="#accessibility">Accessibility</a></li>
+    <li class="nested"><a href="#content">Content</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+    <li><a href="#in-context">In context</a></li>
+  </ol>
+</aside>
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<div class="fab" id="fab">
+  <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
+</div>
+<div class="asheet-bg" id="page-sheet" hidden>
+  <div class="asheet" role="dialog" aria-modal="true" aria-labelledby="page-sheet-title">
+    <div class="asheet-head">
+      <div class="asheet-titles"><h2 class="asheet-title" id="page-sheet-title">Icon</h2></div>
+      <button type="button" class="asheet-x" data-sheet-close aria-label="Close"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></button>
+    </div>
+    <ul class="page-menu" id="page-menu">
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="Icon.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+      <li><a class="page-menu-item" href="Icon.md" download="Icon.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+      <li><a class="page-menu-item" href="Icon.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-text" data-text="import { Icon } from &quot;@dovetail-ds/react&quot;;" data-done="Import copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy import</span></button></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/content/Icon.jsx" data-done="JSX copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy Icon.jsx</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/content/Icon.jsx" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View Icon.jsx</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/content/Icon.d.ts" data-done="Types copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy Icon.d.ts</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/content/Icon.d.ts" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View Icon.d.ts</span></a></li>
+      <li><a class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20building%20with%20Dovetail%2C%20a%20white-label%20React%20design%20system%3A%20primitive%20tokens%2C%20semantic%20roles%20and%20components%2C%20rebranded%20by%20a%20theme%20file%20of%20token%20overrides.%0A%0ARead%20these%20first%2C%20in%20order%3A%0A1.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fllms.txt%3A%20the%20map%20of%20the%20docs%2C%20with%20raw%20Markdown%20links%20to%20every%20guide%2C%20token%20file%20and%20component%20(its%20.md%20guide%2C%20.d.ts%20props%20and%20.jsx%20source).%0A2.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FIcon.md%3A%20the%20%22Icon%22%20page%20I&#39;m%20looking%20at.%0A3.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fsystem%2Fassets%2Fnotes%2FCLAUDE.from-standalone.md%3A%20the%20authoring%20rules.%20Follow%20them.%0A%0AWhen%20you%20write%20code%3A%0A-%20Use%20Dovetail&#39;s%20components%20and%20--dt-*%20tokens.%20No%20literal%20colours%2C%20sizes%2C%20radii%2C%20shadows%20or%20durations.%0A-%20Product%20code%20reads%20semantic%20(--dt-surface-*%2C%20--dt-text-*)%20or%20component%20tokens%2C%20never%20primitives%20(--dt-color-*).%0A-%20Check%20every%20prop%20against%20the%20component&#39;s%20.d.ts%2C%20and%20follow%20the%20rules%20in%20its%20.md.%0A-%20Rebrand%20by%20overriding%20tokens%20in%20a%20theme%20file%2C%20not%20by%20editing%20components.%0A-%20Make%20it%20work%20at%20390px%2C%20in%20dark%20mode%20(.dark)%20and%20with%20reduced%20motion.%0A-%20If%20the%20docs%20don&#39;t%20cover%20something%2C%20say%20so%20rather%20than%20inventing%20an%20API%20or%20a%20token.%0A%0AMy%20task%3A%20" target="_blank" rel="noopener" data-page-action="claude" data-title="Icon" data-md="Icon.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+    </ul>
+    <p class="page-actions-status" role="status" aria-live="polite"></p>
+  </div>
+</div>
+<script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
+<script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
+<script src="../system/components/bundle.js?v=0d946a4ebe" defer></script>
+<script src="../assets/specimens.js?v=2d197fdb1a" defer></script>
+<script src="../assets/playground.js?v=b4c6d06582" defer></script>
+<script src="../assets/configure-data.js?v=a242a62f95" defer></script>
+<script src="../assets/search-data.js?v=a0806432b7" defer></script>
+<script src="../assets/search.js?v=df026e6d45" defer></script>
+<script src="../assets/menu.js?v=105c15bc1c" defer></script>
+<script src="../assets/theme.js?v=3eb1490d04" defer></script>
+<script src="../assets/site.js?v=94c1c9b8f0" defer></script>
+<script src="../assets/graph.js?v=3907d13676" defer></script>
+</body>
+</html>
