@@ -6556,7 +6556,7 @@ try {
     await page.close();
   });
 
-  await step("At 390px: panels behind tabs, the toolbar inline, nothing wider than the screen", async () => {
+  await step("At 390px: panels behind tabs, the toolbar inline, the Agent as a sheet from the tool bar, nothing wider than the screen", async () => {
     const phone = await open({ width: 390, height: 844 });
     expect(await phone.page.locator(".bd-tabs [role=tab]").count() === 3, "three panel tabs");
     expect(await phone.page.locator(".bd-center .bd-toolbar").count() === 1, "the toolbar is in the canvas pane on a phone");
@@ -6578,6 +6578,24 @@ try {
     const pane = await phone.page.evaluate(() => { const s = document.querySelector(".bd-shell"); const before = s.scrollHeight - s.clientHeight; s.scrollTop = 200; return { room: before, top: s.scrollTop, overflow: getComputedStyle(s).overflowY }; });
     expect(pane.overflow === "auto" && pane.room > 0 && pane.top > 0, `the Edit pane runs past the screen and scrolls, got ${JSON.stringify(pane)}`);
     ok(`tabs, inline toolbar, no overflow, a phone canvas, tap to add, and an Edit pane that scrolls (${pane.room}px more than the screen)`);
+
+    /* The Agent opens from the tool bar as a sheet, the canvas in view above. */
+    await phone.page.locator(".bd-tabs [role=tab]", { hasText: "Canvas" }).click();
+    await phone.page.locator(".bd-tools .bd-tool-agent").click();
+    await phone.page.waitForSelector(".bd-shell.is-agent-sheet .bd-left .bd-composer, .bd-shell.is-agent-sheet .bd-left textarea");
+    const sheet = await phone.page.evaluate(() => {
+      const sh = document.querySelector(".bd-shell.is-agent-sheet > .bd-left").getBoundingClientRect();
+      const st = document.querySelector(".bd-stage").getBoundingClientRect();
+      const tools = document.querySelector(".bd-tools").getBoundingClientRect();
+      return { sheetTop: Math.round(sh.top), stageTop: Math.round(st.top), shown: Math.round(Math.min(st.bottom, sh.top) - Math.max(st.top, 0)), toolsBottom: Math.round(tools.bottom), wide: document.documentElement.scrollWidth };
+    });
+    expect(sheet.shown > 200 && sheet.toolsBottom <= sheet.sheetTop && sheet.wide <= 390, `the Agent sheet leaves the canvas in view, with the tool bar on its edge, got ${JSON.stringify(sheet)}`);
+    await phone.page.locator(".bd-tools .bd-tool-agent").click();
+    await phone.page.waitForFunction(() => !document.querySelector(".bd-shell.is-agent-sheet"));
+    await phone.page.locator(".bd-tools .bd-tool-agent").click();
+    await phone.page.locator(".bd-sheet-close").click();
+    await phone.page.waitForFunction(() => !document.querySelector(".bd-shell.is-agent-sheet"));
+    ok(`the tool bar's Agent button opens the Agent as a sheet with ${sheet.shown}px of canvas above it; the button or the sheet's grip closes it`);
     await phone.page.close();
   });
 
