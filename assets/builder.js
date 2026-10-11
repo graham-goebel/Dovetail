@@ -16610,6 +16610,8 @@
       return mql("(min-width: 901px)");
     });
     var wide = wideState[0], setWide = wideState[1];
+    var agentSheetState = useState(false);
+    var agentSheet = agentSheetState[0] && !wide, setAgentSheet = agentSheetState[1];
     var sidesState = useState({});
     var sidesOpen = sidesState[0], setSidesOpen = sidesState[1];
     var renameState = useState(null);
@@ -27106,7 +27108,19 @@
               if (!justDragged.current) setTray(tray === t.group ? null : t.group);
             }
           }, e(Icon, { name: face.icon }), e("span", { className: "bd-tool-caret", "aria-hidden": true }));
-        })
+        }),
+        wide ? null : e("span", { key: "sep-agent", className: "bd-tools-sep", "aria-hidden": true }),
+        wide ? null : e("button", {
+          key: "agent",
+          type: "button",
+          className: "bd-tool bd-tool-agent",
+          "aria-pressed": String(agentSheet),
+          "aria-label": agentSheet ? "Close the Agent" : "Agent",
+          title: agentSheet ? "Close the Agent" : "Ask the Agent for changes, with the canvas still in view",
+          onClick: function() {
+            toggleAgentSheet(!agentSheet);
+          }
+        }, e(Icon, { name: agentSheet ? "close" : "wand" }))
       )
     );
     var startNodeResize = function(ev, id, dir) {
@@ -27552,7 +27566,7 @@
       !preview && tool === "hand" ? e("div", Object.assign({ className: "bd-draw is-hand" }, handHandlers)) : null,
       !preview ? e(Resizers, resizersProps) : null,
       e(Rulers, rulersProps),
-      !preview ? tools : null,
+      !preview && !(agentSheet && left === "assistant") ? tools : null,
       e(EditorAt, editorProps),
       preview ? e("button", { type: "button", className: "bd-float bd-float-center", onClick: actions2.preview, title: "Back to editing (Esc)" }, e(Icon, { name: "eye" }), "Previewing", e("span", { className: "bd-float-sep", "aria-hidden": true }), "Edit") : null,
       anyReady ? null : e("p", { className: "bd-stage-loading" }, "Loading the canvas…")
@@ -27910,7 +27924,21 @@
       setBrandErr,
       setThemeStamp
     };
+    useEffect(function() {
+      if (left !== "assistant") setAgentSheet(false);
+    }, [left]);
     var slot2 = wide ? document.getElementById("app-toolbar") : null;
+    function toggleAgentSheet(on) {
+      if (on) {
+        setLeft("assistant");
+        setPane("canvas");
+        setAgentSheet(true);
+        setTimeout(function() {
+          var st = mountEl.querySelector(".bd-stage");
+          if (st && st.scrollIntoView) st.scrollIntoView({ block: "start" });
+        }, 0);
+      } else setAgentSheet(false);
+    }
     return e(
       React.Fragment,
       null,
@@ -27921,7 +27949,8 @@
         [["add", "Add"], ["canvas", "Canvas"], ["edit", "Edit"]].map(function(t) {
           return e(
             "button",
-            { key: t[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(pane === t[0]), onClick: function() {
+            { key: t[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(pane === t[0] && !agentSheet), onClick: function() {
+              setAgentSheet(false);
               setPane(t[0]);
             } },
             t[1],
@@ -27932,7 +27961,7 @@
       e(
         "div",
         {
-          className: cx("bd-shell", hidePanels && "is-bare", arriving && "is-arriving", leftClosed && "is-left-closed"),
+          className: cx("bd-shell", hidePanels && "is-bare", arriving && "is-arriving", leftClosed && "is-left-closed", agentSheet && left === "assistant" && "is-agent-sheet"),
           "data-pane": pane,
           inert: home ? "" : void 0,
           "aria-hidden": home ? "true" : void 0,
@@ -27940,7 +27969,16 @@
         },
         e(
           "aside",
-          { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content, configure, agent and context", hidden: hidePanels || void 0 },
+          { className: "bd-left", ref: leftPanelRef, "aria-label": agentSheet && left === "assistant" ? "Agent" : "Assets, pages, layers, content, configure, agent and context", hidden: hidePanels || void 0 },
+          agentSheet && left === "assistant" ? e(
+            "div",
+            { className: "bd-sheet-bar" },
+            e("button", { type: "button", className: "bd-sheet-close", "aria-label": "Close the Agent", title: "Back to the canvas", onClick: function() {
+              toggleAgentSheet(false);
+            } }, e("span", { className: "bd-sheet-grip", "aria-hidden": true })),
+            /* The tool bar rides on the sheet's top edge while it's up. */
+            !preview ? tools : null
+          ) : null,
           e(
             "div",
             { className: "bd-left-tabs bd-rail" },

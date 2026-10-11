@@ -3452,6 +3452,83 @@ span.bd-layer-twisty.is-open .bd-ic {
     display: flex;
   }
 
+  /* The Agent as a sheet over the lower half, the canvas above it, and the
+     tool bar (with the Agent's button) riding on its top edge. */
+  .bd-shell.is-agent-sheet > .bd-left {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    height: 55dvh;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    border-top: var(--dt-border-width-default) solid var(--dt-border-default);
+    border-radius: var(--dt-radius-container) var(--dt-radius-container) 0 0;
+    background: var(--dt-surface-subtle);
+    box-shadow: var(--dt-shadow-md);
+    overflow: visible;
+  }
+
+  .bd-shell.is-agent-sheet > .bd-left > .bd-left-tabs {
+    display: none;
+  }
+
+  .bd-shell.is-agent-sheet .bd-left-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* Room below for the sheet, so the shell scrolls the stage up to the
+     tabs and the canvas fills what the sheet leaves. */
+  .bd-shell.is-agent-sheet {
+    padding-bottom: 55dvh;
+  }
+
+  .bd-shell.is-agent-sheet .bd-stage {
+    height: calc(45dvh - var(--dt-dim-12));
+    min-height: 0;
+  }
+
+  /* The site's own header steps aside while the sheet is up; the panel
+     tabs stay, under the canvas's top edge. */
+  .page-app:has(.bd-shell.is-agent-sheet) .app-head {
+    display: none;
+  }
+
+  /* The sheet's top bar: its grip, and the tool bar sitting on its edge. */
+  .bd-sheet-bar {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    flex: none;
+  }
+
+  .bd-sheet-bar .bd-tools {
+    bottom: calc(100% + var(--dt-space-inset-xs));
+  }
+
+  .bd-sheet-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: var(--dt-size-control-sm);
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+
+  .bd-sheet-grip {
+    width: var(--dt-dim-10);
+    height: 4px;
+    border-radius: var(--dt-radius-pill);
+    background: var(--dt-border-strong);
+  }
+
   .bd-stage {
     flex: none;
     height: calc(100dvh - 200px);

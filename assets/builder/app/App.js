@@ -243,6 +243,10 @@ function App(props) {
   var edit = editState[0], setEdit = editState[1];
   var wideState = useState(function () { return mql("(min-width: 901px)"); });
   var wide = wideState[0], setWide = wideState[1];
+  /* On a phone the Agent opens from the tool bar as a sheet over the lower
+     half, so the canvas it changes stays in view above it. */
+  var agentSheetState = useState(false);
+  var agentSheet = agentSheetState[0] && !wide, setAgentSheet = agentSheetState[1];
   var sidesState = useState({});
   var sidesOpen = sidesState[0], setSidesOpen = sidesState[1];
   /* What is being renamed, and where: { id, where }. */
@@ -7352,7 +7356,13 @@ function App(props) {
           onPointerDown: toolDrag(face),
           onClick: function () { if (!justDragged.current) setTray(tray === t.group ? null : t.group); },
         }, e(Icon, { name: face.icon }), e("span", { className: "bd-tool-caret", "aria-hidden": true }));
-      })));
+      }),
+      wide ? null : e("span", { key: "sep-agent", className: "bd-tools-sep", "aria-hidden": true }),
+      wide ? null : e("button", {
+        key: "agent", type: "button", className: "bd-tool bd-tool-agent", "aria-pressed": String(agentSheet), "aria-label": agentSheet ? "Close the Agent" : "Agent",
+        title: agentSheet ? "Close the Agent" : "Ask the Agent for changes, with the canvas still in view",
+        onClick: function () { toggleAgentSheet(!agentSheet); },
+      }, e(Icon, { name: agentSheet ? "close" : "wand" }))));
 
   /* A frame's right and bottom edges, and its corner, drag to resize it. A
      page lands on a standard viewport size; a frame snaps to one nearby. */
@@ -7705,7 +7715,7 @@ function App(props) {
     !preview && tool === "hand" ? e("div", Object.assign({ className: "bd-draw is-hand" }, handHandlers)) : null,
     !preview ? e(Resizers, resizersProps) : null,
     e(Rulers, rulersProps),
-    !preview ? tools : null,
+    !preview && !(agentSheet && left === "assistant") ? tools : null,
     e(EditorAt, editorProps),
     preview ? e("button", { type: "button", className: "bd-float bd-float-center", onClick: actions.preview, title: "Back to editing (Esc)" }, e(Icon, { name: "eye" }), "Previewing", e("span", { className: "bd-float-sep", "aria-hidden": true }), "Edit") : null,
     anyReady ? null : e("p", { className: "bd-stage-loading" }, "Loading the canvas…"));
@@ -7866,18 +7876,33 @@ function App(props) {
   var contentProps = { query: contentQuery, tab: libTab, library: library, busy: libBusy, brandErr: brandErr, brand: brandNow(), scopeNote: contentScopeNote(), frameName: frame.name, justDragged: justDragged,
     startDrag: onStartDrag, insertAsset: onInsertAsset, addToLibrary: onAddToLibrary, cutBackground: onCutBackground, libUpdate: onLibUpdate, readBrandFile: onReadBrandFile, placeBrand: onPlaceBrand, setBrandPart: onSetBrandPart, announce: announce, setLibTab: setLibTab, setBrandErr: setBrandErr, setThemeStamp: setThemeStamp };
 
+  useEffect(function () { if (left !== "assistant") setAgentSheet(false); }, [left]);
   var slot = wide ? document.getElementById("app-toolbar") : null;
+  /* The phone's Agent sheet: opening it shows the canvas with the Agent
+     below; any other panel or tab closes it. */
+  function toggleAgentSheet(on) {
+    if (on) {
+      setLeft("assistant");
+      setPane("canvas");
+      setAgentSheet(true);
+      setTimeout(function () { var st = mountEl.querySelector(".bd-stage"); if (st && st.scrollIntoView) st.scrollIntoView({ block: "start" }); }, 0);
+    } else setAgentSheet(false);
+  }
 
   return e(React.Fragment, null,
     slot ? ReactDOM.createPortal(toolbar, slot) : null,
     home ? null : e("div", { className: "bd-tabs", role: "tablist", "aria-label": "Builder panels" },
       [["add", "Add"], ["canvas", "Canvas"], ["edit", "Edit"]].map(function (t) {
-        return e("button", { key: t[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(pane === t[0]), onClick: function () { setPane(t[0]); } },
+        return e("button", { key: t[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(pane === t[0] && !agentSheet), onClick: function () { setAgentSheet(false); setPane(t[0]); } },
           t[1], t[0] === "edit" && selectedNodes.length ? e("span", { className: "bd-tab-note" }, " · " + (selectedNodes.length > 1 ? selectedNodes.length : selectedNodes[0].type)) : null);
       })),
-    e("div", { className: cx("bd-shell", hidePanels && "is-bare", arriving && "is-arriving", leftClosed && "is-left-closed"), "data-pane": pane, inert: home ? "" : undefined, "aria-hidden": home ? "true" : undefined,
+    e("div", { className: cx("bd-shell", hidePanels && "is-bare", arriving && "is-arriving", leftClosed && "is-left-closed", agentSheet && left === "assistant" && "is-agent-sheet"), "data-pane": pane, inert: home ? "" : undefined, "aria-hidden": home ? "true" : undefined,
       style: wide ? { "--bd-left-w": (leftClosed ? railW || 88 : panels.left) + "px", "--bd-right-w": (rightClosed ? 0 : panels.right) + "px" } : undefined },
-      e("aside", { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content, configure, agent and context", hidden: hidePanels || undefined },
+      e("aside", { className: "bd-left", ref: leftPanelRef, "aria-label": agentSheet && left === "assistant" ? "Agent" : "Assets, pages, layers, content, configure, agent and context", hidden: hidePanels || undefined },
+        agentSheet && left === "assistant" ? e("div", { className: "bd-sheet-bar" },
+          e("button", { type: "button", className: "bd-sheet-close", "aria-label": "Close the Agent", title: "Back to the canvas", onClick: function () { toggleAgentSheet(false); } }, e("span", { className: "bd-sheet-grip", "aria-hidden": true })),
+          /* The tool bar rides on the sheet's top edge while it's up. */
+          !preview ? tools : null) : null,
         e("div", { className: "bd-left-tabs bd-rail" },
           e("div", { className: "bd-rail-tabs", role: "tablist", "aria-label": "Left panel", "aria-orientation": wide ? "vertical" : "horizontal" },
             RAIL.map(function (r) {
