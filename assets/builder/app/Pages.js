@@ -7,6 +7,7 @@ import { cx, e, useRef, useState } from "../config.js";
 import { foldersOf, itemsOf, pagesOf } from "../model/store.js";
 import { Icon } from "../ui/icons.js";
 import { Dropdown, Renamable } from "../ui/parts.js";
+import { IconChooser, ItemGlyph } from "../ui/IconLibrary.js";
 
 /* The rows as the list shows them: loose pages, then each folder with its
    pages when open. */
@@ -53,10 +54,21 @@ function endOfFolder(project, fid, except) {
      renameFolder(fid, name), moveFolder(fid, dir), deleteFolder(fid),
      renamePage(id, name), openPage(id), deletePage(id), duplicatePage(id),
      movePage(id, dir), placePage(id, index, folder) (a promise), addFolder,
-     addPage, announce(text) } */
+     addPage, setIcon(kind, id, icon), announce(text) } */
 var Pages = React.memo(function Pages(p) {
   var project = p.project;
   var projectRef = useRef(project); projectRef.current = project;
+  /* The row whose icon is being chosen: { kind: "page" | "folder", id }. */
+  var chooseState = useState(null), choosing = chooseState[0], setChoosing = chooseState[1];
+  var iconButton = function (kind, item, fallback) {
+    var open = !!choosing && choosing.kind === kind && choosing.id === item.id;
+    return e("span", { className: "bd-item-ico-wrap" },
+      e("button", { type: "button", className: "bd-item-ico", "aria-haspopup": "dialog", "aria-expanded": String(open), "aria-label": "Icon for " + item.name, title: "Change the icon",
+        onClick: function () { setChoosing(open ? null : { kind: kind, id: item.id }); } },
+        e(ItemGlyph, { icon: item.icon, fallback: function () { return e(Icon, { name: fallback }); } })),
+      open ? e(IconChooser, { value: item.icon || null, label: "Icon for " + item.name, onClose: function () { setChoosing(null); },
+        onPick: function (icon) { setChoosing(null); p.setIcon(kind, item.id, icon); } }) : null);
+  };
   var dragState = useState(null);
   var pageDrag = dragState[0], setPageDrag = dragState[1];
   var pageDragRef = useRef(null), pageDragEnded = useRef(false), pagesListRef = useRef(null);
@@ -168,8 +180,9 @@ var Pages = React.memo(function Pages(p) {
       e("button", { type: "button", className: "bd-folder-twisty", "aria-expanded": String(r.open), "aria-label": (r.open ? "Close " : "Open ") + f.name, disabled: r.found || undefined, onClick: function () { p.foldFolder(f.id, !r.open); } }, e(Icon, { name: r.open ? "down" : "right" })),
       p.renamingFolder === f.id
         ? e(Renamable, { className: "bd-folder-name", value: f.name, label: "Folder name", startEditing: true, onChange: function (v) { p.renameFolder(f.id, v); } })
-        : e("button", { type: "button", className: "bd-folder-open", title: "Double-click to rename", onClick: function () { p.foldFolder(f.id, !r.open); }, onDoubleClick: function () { p.setRenamingFolder(f.id); } },
-          e(Icon, { name: "folder" }), e("span", { className: "bd-folder-name" }, f.name), e("span", { className: "bd-folder-count" }, r.count || "")),
+        : e(React.Fragment, null, iconButton("folder", f, "folder"),
+          e("button", { type: "button", className: "bd-folder-open", title: "Double-click to rename", onClick: function () { p.foldFolder(f.id, !r.open); }, onDoubleClick: function () { p.setRenamingFolder(f.id); } },
+            e("span", { className: "bd-folder-name" }, f.name), e("span", { className: "bd-folder-count" }, r.count || ""))),
       e(Dropdown, { menu: true, label: "Actions for " + f.name, placeholder: "Folder", icon: "more", iconOnly: true, compact: true, narrow: true, className: "bd-dd-icon bd-page-menu",
         options: [{ value: "rename", label: "Rename", icon: "pencil" }]
           .concat(itemAt > 0 ? [{ value: "up", label: "Move up", icon: "up" }] : [])
@@ -188,9 +201,10 @@ var Pages = React.memo(function Pages(p) {
     return e("li", { key: pg.id, className: cx("bd-page", on && "is-current", r.folder && "is-nested", pageDrag && pageDrag.id === pg.id && "is-moving"), "data-row": i },
       p.renamingPage === pg.id
         ? e(Renamable, { className: "bd-page-name", value: pg.name, label: "Page name", startEditing: true, onChange: function (v) { p.renamePage(pg.id, v); } })
-        : e("button", { type: "button", className: "bd-page-open", "aria-current": on ? "page" : undefined, title: "Drag to move, double-click to rename",
-          onPointerDown: rowDown(pg), onClick: function () { if (!pageDragEnded.current) p.openPage(pg.id); }, onDoubleClick: function () { p.setRenamingPage(pg.id); } },
-          e(Icon, { name: "file" }), e("span", { className: "bd-page-name" }, pg.name)),
+        : e(React.Fragment, null, iconButton("page", pg, "file"),
+          e("button", { type: "button", className: "bd-page-open", "aria-current": on ? "page" : undefined, title: "Drag to move, double-click to rename",
+            onPointerDown: rowDown(pg), onClick: function () { if (!pageDragEnded.current) p.openPage(pg.id); }, onDoubleClick: function () { p.setRenamingPage(pg.id); } },
+            e("span", { className: "bd-page-name" }, pg.name))),
       p.confirmPage === pg.id
         ? e("span", { className: "bd-page-confirm", role: "group", "aria-label": "Delete " + pg.name },
           e("button", { type: "button", className: "bd-btn bd-btn-sm bd-btn-danger", onClick: function () { p.deletePage(pg.id); } }, "Delete"),

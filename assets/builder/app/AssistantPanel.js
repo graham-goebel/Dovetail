@@ -5,9 +5,9 @@
    message as chips (the selection, the docs, the skills), each removable.
    The App runs the conversation; this draws it. */
 
-import { cx, e, useEffect, useRef, useState } from "../config.js";
+import { AGENT_MODELS, cx, e, useEffect, useRef, useState } from "../config.js";
 import { Icon } from "../ui/icons.js";
-import { Switch } from "../ui/parts.js";
+import { Dropdown, Switch } from "../ui/parts.js";
 import { senderOf } from "../model/threads.js";
 import { mdBlocks, mdInline } from "../model/markdown.js";
 import { shortCount, threadUsage, totalOf, usageDetail, usageLabel } from "../model/tokens.js";
@@ -369,6 +369,10 @@ function AssistantPanel(p) {
         e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-toggle bd-as-effort", "aria-label": "Think it through", "aria-pressed": String(p.effort !== "low"),
           title: p.effort !== "low" ? "Careful: thinks it through, for pages and redesigns. Press for quick" : "Quick: for small edits. Press to think it through",
           onClick: function () { p.setEffort(p.effort !== "low" ? "low" : "high"); } }, e(Icon, { name: p.effort !== "low" ? "bulb" : "bolt" })),
+        e(Dropdown, { menu: true, label: "Model: " + (AGENT_MODELS.filter(function (m) { return m[0] === p.model; })[0] || AGENT_MODELS[0])[1], placeholder: (AGENT_MODELS.filter(function (m) { return m[0] === p.model; })[0] || AGENT_MODELS[0])[1],
+          compact: true, narrow: true, className: "bd-as-model", value: p.model,
+          options: AGENT_MODELS.map(function (m) { return { value: m[0], label: m[1], hint: m[2], checked: m[0] === p.model }; }),
+          onChange: function (v) { p.setModel(v); } }),
         e("span", { className: "bd-as-sp" }),
         e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-attach", "aria-label": "Attach a picture", title: "Attach a picture to build from (or paste or drop one)", disabled: (p.pics || []).length >= 3, onClick: function () { if (fileRef.current) fileRef.current.click(); } }, e(Icon, { name: "image" })),
         p.busy && p.draft.trim() ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Add the note", onClick: send }, e(Icon, { name: "send" }))

@@ -4,7 +4,7 @@
    The glyphs come from the system bundle the page already loads, so the
    builder draws exactly what a page will. */
 
-import { cx, e, useMemo, useState } from "../config.js";
+import { cx, e, useEffect, useMemo, useRef, useState } from "../config.js";
 
 function ds() { return window.BeamMobileDesignSystem_e33121 || {}; }
 function libGroups() { var I = ds().Icon; return (I && I.groups) || []; }
@@ -60,4 +60,48 @@ function IconPicker(p) {
     open[0] ? e(IconGrid, { current: p.mixed ? null : name, autoFocus: true, onPick: function (n) { p.onChange(n); } }) : null);
 }
 
-export { Glyph, IconGrid, IconPicker, libGroups, libHas };
+/* A page's or folder's own icon, as the list shows it: a library icon, an
+   emoji, or the plain icon it falls back to (drawn by fallback()). */
+function ItemGlyph(p) {
+  var icon = p.icon || "";
+  if (/^lib:/.test(icon)) return e("span", { className: "bd-item-glyph" }, e(Glyph, { name: icon.slice(4), size: "sm" }));
+  if (icon) return e("span", { className: "bd-item-glyph is-emoji", "aria-hidden": "true" }, icon);
+  return p.fallback();
+}
+
+var EMOJI = ["📄", "📁", "🏠", "⭐", "❤️", "🔥", "✨", "🎨", "🖼️", "📷", "🎬", "🎵", "📚", "📝", "📌", "📎", "🗂️", "📊", "📈", "💡",
+  "🔍", "⚙️", "🔒", "🔔", "💬", "✉️", "📅", "⏰", "🛒", "💳", "🎁", "🏷️", "🚀", "🌍", "🌱", "☀️", "🌙", "⚡", "✅", "❌",
+  "⚠️", "❓", "👋", "👤", "👥", "🤝", "🧪", "🧩", "🛠️", "📦", "🏁", "🎯", "🍕", "☕", "🐾", "🌈"];
+
+/* Pick a page's or folder's icon: one from the library, or an emoji (from
+   the set, or typed or pasted). onPick(icon or null); onClose(). */
+function IconChooser(p) {
+  var tab = useState(/^lib:/.test(p.value || "") || !p.value ? "icons" : "emoji");
+  var typed = useState("");
+  var box = useRef(null);
+  useEffect(function () {
+    var away = function (ev) { if (box.current && !box.current.contains(ev.target)) p.onClose(); };
+    var esc = function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); p.onClose(); } };
+    document.addEventListener("pointerdown", away, true);
+    document.addEventListener("keydown", esc, true);
+    return function () { document.removeEventListener("pointerdown", away, true); document.removeEventListener("keydown", esc, true); };
+  }, []);
+  return e("div", { className: "bd-chooser", ref: box, role: "dialog", "aria-label": p.label },
+    e("div", { className: "bd-chooser-head" },
+      e("div", { className: "bd-chooser-tabs", role: "tablist" },
+        [["icons", "Icons"], ["emoji", "Emoji"]].map(function (t) {
+          return e("button", { key: t[0], type: "button", role: "tab", className: "bd-chooser-tab", "aria-selected": String(tab[0] === t[0]), onClick: function () { tab[1](t[0]); } }, t[1]);
+        })),
+      p.value ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { p.onPick(null); } }, "Reset") : null),
+    tab[0] === "icons"
+      ? e(IconGrid, { current: /^lib:/.test(p.value || "") ? p.value.slice(4) : null, autoFocus: true, onPick: function (n) { p.onPick("lib:" + n); } })
+      : e("div", { className: "bd-chooser-emoji" },
+        e("div", { className: "bd-emoji-cells", role: "list" }, EMOJI.map(function (em) {
+          return e("button", { key: em, type: "button", role: "listitem", className: cx("bd-emoji-cell", p.value === em && "is-on"), "aria-label": em, onClick: function () { p.onPick(em); } }, em);
+        })),
+        e("form", { className: "bd-emoji-own", onSubmit: function (ev) { ev.preventDefault(); if (typed[0].trim()) p.onPick(typed[0].trim()); } },
+          e("input", { className: "bd-input", type: "text", maxLength: 16, placeholder: "Or type or paste an emoji", "aria-label": "Your own emoji", value: typed[0], onChange: function (ev) { typed[1](ev.target.value); } }),
+          e("button", { type: "submit", className: "bd-btn bd-btn-sm", disabled: !typed[0].trim() }, "Use"))));
+}
+
+export { Glyph, IconChooser, IconGrid, IconPicker, ItemGlyph, libGroups, libHas };

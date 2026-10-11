@@ -344,6 +344,19 @@ const emptyFrame = (page) => page.waitForFunction(() => {
   try { return !!(i && i.contentWindow.BuilderFrame && i.contentDocument.querySelector('[data-bf-slot="root"]')); } catch (err) { return false; }
 });
 /* Hands the keyboard back to the canvas, as a press on it does. */
+/* A component tile's press opens its page in Assets (a live preview and its
+   properties); Insert adds it as set, and Back returns to the list. A
+   primitive's icon tile has no page: its press adds it. */
+const addTile = async (page, type) => {
+  const tile = page.locator(`.bd-tile[data-type="${type}"]`).first();
+  const plain = /\bis-icon\b/.test((await tile.getAttribute("class")) || "");
+  await tile.click();
+  if (plain) return;
+  await page.locator(".bd-cd-insert").click();
+  /* On a phone the canvas takes over once it's placed; the page stays open behind. */
+  const back = page.locator('.bd-cd button[aria-label="Back to the components"]');
+  if (await back.isVisible()) await back.click();
+};
 const release = (page) => page.evaluate(() => document.activeElement && document.activeElement.blur());
 /* Every frame in view. */
 async function fitAll(page) {
@@ -422,8 +435,8 @@ try {
     await frame().waitForSelector('[data-bf-type="Stack"]');
     ok("Stack dropped on the frame, with a target shown during the drag");
     await category(page, "Typography");
-    await page.locator('.bd-tile[data-type="Heading"]').click();
-    await page.locator('.bd-tile[data-type="Text"]').click();
+    await addTile(page, "Heading");
+    await addTile(page, "Text");
     await frame().waitForSelector('[data-bf-type="Stack"] [data-bf-type="Text"]');
     ok("with the Stack selected, Heading and then Text are added into it");
     /* Toward its right end: the selected Text's tag, with its ⋯, sits over
@@ -511,8 +524,8 @@ try {
     await row(page, "Text").click();
     await page.locator(".bd-left-tabs .bd-tab", { hasText: "Assets" }).click();
     await category(page, "Actions");
-    await page.locator('.bd-tile[data-type="Button"]').click();
-    await page.locator('.bd-tile[data-type="Button"]').click();
+    await addTile(page, "Button");
+    await addTile(page, "Button");
     await page.locator(".bd-left-tabs .bd-tab", { hasText: "Layers" }).click();
     await row(page, "Button").nth(0).click();
     await row(page, "Button").nth(1).click({ modifiers: ["Shift"] });
@@ -688,7 +701,7 @@ try {
 
     await page.locator(".bd-left-tabs .bd-tab", { hasText: "Assets" }).click();
     await category(page, "Content");
-    await page.locator('.bd-tile[data-type="Image"]').click();
+    await addTile(page, "Image");
     await tab(page, "Content");
     await page.locator(".bd-right input[type=url]").fill("https://example.com/pic.png");
     await frame().waitForFunction(() => [...document.querySelectorAll('[data-bf-type="Image"] img')].some((i) => i.getAttribute("src") === "https://example.com/pic.png"));
@@ -713,6 +726,98 @@ try {
     await frame(1).waitForSelector('[data-bf-type="Group"] [data-bf-type="StatsBlock"]');
     expect(await page.locator(".bd-flabel.is-current .bd-flabel-name").textContent() === "Frame 2", "the frame it landed in becomes active");
     ok("a node drags from one frame into another, and that frame becomes active");
+    await page.close();
+  });
+
+  await step("A component's page in Assets: a live preview and its properties before it's placed, then Insert; its own properties in its colour, with a book for its docs", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    await startFrom(page, "Blank frame");
+    await emptyFrame(page);
+    await category(page, "Display");
+    await page.locator('.bd-tile[data-type="Badge"]').first().click();
+    await page.locator(".bd-cd .bd-cd-preview").waitFor();
+    expect(await frame().locator('[data-bf-type="Badge"]').count() === 0, "pressing the tile opens its page and adds nothing yet");
+    const text = page.locator(".bd-cd input[type=text]").first();
+    await text.fill("Limited run");
+    await page.waitForFunction(() => /Limited run/.test(document.querySelector(".bd-cd-preview")?.textContent || ""));
+    ok("pressing Badge opens its page; typed words show in the live preview, and nothing is placed yet");
+    await page.locator(".bd-cd-insert").click();
+    await frame().waitForFunction(() => /Limited run/.test(document.querySelector('[data-bf-type="Badge"]')?.textContent || ""));
+    ok("Insert places it as set");
+    await page.waitForSelector(".bd-inspect.is-comp .bd-props-box");
+    const book = await page.locator(".bd-inspect-head .bd-about [data-ic], .bd-inspect-head a.bd-about").count();
+    expect(book >= 1, "the docs link sits in the inspector head");
+    ok("the inspector opens its own properties in a box in the component colour, under its name");
+    await page.close();
+  });
+
+  await step("Shift+A wraps a layer in an auto layout Group; two selected free shapes drag together; nothing selected shows the canvas's switches", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    /* A freeform frame with two shapes placed freely, made as the auto layout step makes its own. */
+    await page.waitForFunction(() => window.__builder.saved().ok);
+    await page.waitForTimeout(400);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      const box = (id, x) => ({ id, type: "Shape", props: { shape: "rectangle" }, style: { x, y: 4, fw: 12, fh: 12 } });
+      d.frames.unshift({ id: "mf", name: "Moves", width: 800, height: 600, mode: "free", root: { id: "root", type: "Root", children: [box("m1", 4), box("m2", 30)] } });
+      d.active = "mf";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+      await window.__builder.flush();
+    });
+    await page.reload();
+    await page.waitForFunction(() => window.__builder && window.__builder.doc().frames[0].id === "mf");
+    await (await frameAt(page, 0)).waitForFunction(() => !!document.querySelector('[data-bf-id="m2"]'));
+    const shapes = () => page.evaluate(() => { const out = []; (function w(n) { (n.children || []).forEach((c) => { if (c.type === "Shape") out.push({ id: c.id, x: c.style.x, y: c.style.y }); w(c); }); })(window.__builder.doc().frames[0].root); return out; });
+    const two = await shapes();
+    expect(two.length === 2 && two.every((x) => typeof x.x === "number"), `two free shapes, got ${JSON.stringify(two)}`);
+    await page.evaluate((ids) => window.__builder.select(ids), two.map((x) => x.id));
+    const from = await canvasPoint(page, `[data-bf-id="${two[1].id}"]`);
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(from.x + 40, from.y + 30, { steps: 6 });
+    await page.mouse.move(from.x + 80, from.y + 60, { steps: 6 });
+    await page.mouse.up();
+    await page.waitForTimeout(300);
+    const moved = await shapes();
+    const d0 = [moved[0].x - two[0].x, moved[0].y - two[0].y], d1 = [moved[1].x - two[1].x, moved[1].y - two[1].y];
+    expect((d1[0] || d1[1]) && d0[0] === d1[0] && d0[1] === d1[1], `both moved by the same steps, got ${JSON.stringify([d0, d1])}`);
+    ok(`dragging one of two selected shapes moves both by ${d1}`);
+    await page.evaluate((id) => window.__builder.select([id]), two[0].id);
+    await page.keyboard.press("Shift+A");
+    /* Its parent is a Group now, and nothing in that Group is placed freely. */
+    await page.waitForFunction((id) => { let parent = null; (function w(n) { (n.children || []).forEach((c) => { if (c.id === id) parent = n; w(c); }); })(window.__builder.doc().frames[0].root); return parent && parent.type === "Group" && !(parent.children || []).some((c) => typeof c.style.x === "number"); }, two[0].id);
+    ok("Shift+A on a shape wraps it in a Group that lays out what it holds");
+    await release(page);
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("Escape");
+    await page.locator('.bd-inspect [data-sec="builder-show"]').waitFor();
+    const before = await page.locator(".bd-ruler, .bd-rulers").count();
+    await page.locator('.bd-inspect [data-sec="builder-show"] [role=switch]').first().click();
+    await page.waitForFunction((n) => document.querySelectorAll(".bd-ruler, .bd-rulers").length !== n, before);
+    ok("with nothing selected, the inspector's Show switches turn the rulers on");
+    await page.close();
+  });
+
+  await step("Pages and folders take an icon from the library or an emoji; the Agent remembers its model; an Icon shows its colour up top", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    await page.locator(".bd-rail .bd-tab", { hasText: "Pages" }).click();
+    const ico = page.locator(".bd-page .bd-item-ico").first();
+    await ico.click();
+    await page.locator(".bd-chooser .bd-chooser-tab", { hasText: "Emoji" }).click();
+    await page.locator('.bd-chooser .bd-emoji-cell[aria-label="🚀"]').click();
+    await page.waitForFunction(() => /🚀/.test(document.querySelector(".bd-page .bd-item-ico")?.textContent || ""));
+    await ico.click();
+    await page.locator(".bd-chooser .bd-chooser-tab", { hasText: "Icons" }).click();
+    await page.locator(".bd-chooser .bd-iconlib-q").fill("rocket");
+    await page.locator('.bd-chooser .bd-iconlib-cell[data-icon-name="rocket"]').click();
+    await page.waitForSelector('.bd-page .bd-item-ico svg[data-icon="rocket"]');
+    ok("a page's icon is an emoji, then the rocket from the icon library");
+    await page.locator(".bd-rail .bd-tab", { hasText: "Agent" }).click();
+    await page.locator(".bd-as-model").click();
+    await page.locator(".bd-dd-opt", { has: page.locator(".bd-dd-opt-label", { hasText: /^Sonnet$/ }) }).click();
+    expect((await page.evaluate(() => localStorage.getItem("dovetail-assistant-model"))) === "sonnet", "the model is remembered");
+    ok("the Agent's model menu picks Sonnet and remembers it");
     await page.close();
   });
 
@@ -812,7 +917,7 @@ try {
     ok("Page, from the Layout tray, adds a frame that hugs its content with a Section to fill");
     await page.locator(".bd-left-tabs .bd-tab", { hasText: "Assets" }).click();
     await category(page, "Layout");
-    await page.locator('.bd-tile[data-type="Inline"]').click();
+    await addTile(page, "Inline");
     d = await saved();
     const inl = d.frames[d.frames.length - 1].root.children.find((c) => c.type === "Inline");
     expect(inl && inl.props.wrap === false, "an Inline added from the panel starts on one line");
@@ -823,7 +928,8 @@ try {
   await step("The bar's nav button, trays that drag and close, smart tabs, context sizes, pinning, tooltips and brand buttons", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
-    const current = () => page.locator(".bd-ipanel > .bd-sec").first().getAttribute("data-sec");
+    /* A component's own sections sit in its box, ahead of the rest. */
+    const current = () => page.locator(".bd-ipanel .bd-sec").first().getAttribute("data-sec");
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
 
@@ -865,14 +971,14 @@ try {
     ok("an Image dragged from its tray lands on the frame, selected, with its content and then its position in the inspector");
 
     await category(page, "Layout");
-    await page.locator('.bd-tile[data-type="Shape"]').click();
+    await addTile(page, "Shape");
     await page.waitForFunction(() => /Shape/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     expect(await page.locator('.bd-ipanel .bd-sec[data-sec="fill"]:not(.is-closed)').count() === 1, "a Shape's Fill is in the same panel, open");
     ok("a Shape from the assets panel shows its Fill in the one panel");
 
     await page.mouse.click(stage.x + 30, stage.y + 30);
     await category(page, "Layout");
-    await page.locator('.bd-tile[data-type="Section"]').click();
+    await addTile(page, "Section");
     await page.waitForFunction(() => /Section/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     await tab(page, "Layout");
     await page.locator(".bd-box-p > .bd-box-all").click();
@@ -886,7 +992,7 @@ try {
     await tab(page, "Appearance");
     await choose(page, "Tone", "brand-muted");
     await category(page, "Actions");
-    await page.locator('.bd-tile[data-type="Button"]').click();
+    await addTile(page, "Button");
     await frame().waitForSelector('[data-bf-type="Section"] [data-bf-type="Button"]');
     await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     expect(await current() !== "position" && await page.locator('.bd-ipanel > .bd-sec[data-sec="position"]').count() === 1, `a Button's inspector starts with its own properties, then where it is, got ${await current()}`);
@@ -1009,10 +1115,10 @@ try {
 
     await rail("Assets").click();
     await category(page, "Layout");
-    await page.locator('.bd-tile[data-type="Stack"]').click();
+    await addTile(page, "Stack");
     await category(page, "Typography");
-    await page.locator('.bd-tile[data-type="Heading"]').click();
-    await page.locator('.bd-tile[data-type="Text"]').click();
+    await addTile(page, "Heading");
+    await addTile(page, "Text");
     await frame().waitForSelector('[data-bf-type="Stack"] [data-bf-type="Text"]');
     await rail("Layers").click();
     await row(page, "Heading").click();
@@ -1138,7 +1244,7 @@ try {
 
     await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
     await category(page, "Typography");
-    await page.locator('.bd-tile[data-type="Heading"]').click();
+    await addTile(page, "Heading");
     hero = heroOf(await saved());
     const kids = (await saved()).frames[0].root.children.map((c) => c.type);
     const slot = hero.children.find((c) => c.props.name === "actions");
@@ -1196,7 +1302,7 @@ try {
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
     await category(page, "Blocks");
-    await page.locator('.bd-tile[data-type="FaqBlock"]').click();
+    await addTile(page, "FaqBlock");
     await frame().waitForSelector('[data-bf-type="FaqBlock"]');
     await tab(page, "Content");
     expect(await page.locator(".bd-right .bd-list").count() === 1, "FaqBlock's items show as a list, and defaultOpen, which is state, doesn't");
@@ -1225,7 +1331,7 @@ try {
     ok("Code writes items={[{ id: \"ship\", … }, { id: \"dish\", question: \"Do the mugs survive a dishwasher?\", … }]}");
 
     await page.locator(".bd-search-dock input").fill("Navbar");
-    await page.locator('.bd-tile[data-type="Navbar"]').click();
+    await addTile(page, "Navbar");
     await frame().waitForSelector('[data-bf-type="Navbar"]');
     await tab(page, "Content");
     const hrefField = page.locator(".bd-list-item.is-open .bd-list-field", { hasText: "Href" });
@@ -1274,7 +1380,7 @@ try {
     await pickFrame(f.name);
     await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
     await category(page, "Typography");
-    await page.locator('.bd-tile[data-type="Heading"]').click();
+    await addTile(page, "Heading");
     f = await lastFrame();
     expect(!f.root.children.some((c) => c.type === "Heading") && findIn(f.root, "Heading"), `on a structured page a Heading put on the page comes in a Group, got ${f.root.children.map((c) => c.type)}`);
     ok("New opens freeform, structured and template; a structured page puts what lands on its page in a Group");
@@ -1384,7 +1490,7 @@ try {
     await pickFrame(first);
     await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
     await page.locator(".bd-search-dock input").fill("Badge");
-    await page.locator('.bd-tile[data-type="Badge"]').click();
+    await addTile(page, "Badge");
     await page.locator(".bd-search-dock .bd-search-clear").click();
     await tab(page, "Properties");
     await page.locator(".bd-right .bd-field", { hasText: "Tone" }).locator(".bd-dd").first().click();
@@ -1562,7 +1668,7 @@ try {
     await page.waitForFunction(() => !document.querySelector(".bd-ring") && !document.querySelector(".bd-mark-sel"), null, { timeout: 5000 }).catch(() => {});
     expect(await page.locator(".bd-ring").count() === 0 && await page.locator(".bd-mark-sel").count() === 0, "a press on the canvas lets go of the layer and the frame");
     const secs = await page.$$eval(".bd-right .bd-sec-h", (h) => h.map((x) => x.textContent.trim()));
-    expect(secs.join() === "Canvas", `with nothing selected the inspector shows only the canvas's own settings, no Primitives, Styles or Variables, got ${secs.join(", ")}`);
+    expect(secs.join() === "Canvas,Show", `with nothing selected the inspector shows the canvas settings and what it shows, no Primitives, Styles or Variables, got ${secs.join(", ")}`);
     ok(`a press on the canvas lets go of everything; the inspector then shows only the canvas's settings (sections: ${secs.join(", ")})`);
 
     await assetKind(page, "templates");
@@ -1730,7 +1836,7 @@ try {
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
     await page.locator(".bd-search-dock input").fill("Carousel");
-    await page.locator('.bd-tile[data-type="Carousel"]').click();
+    await addTile(page, "Carousel");
     await page.locator(".bd-search-dock .bd-search-clear").click();
     await frame().waitForSelector(".bf-carousel-board");
     let c = await carousel();
@@ -1761,7 +1867,7 @@ try {
 
     await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
     await category(page, "Typography");
-    await page.locator('.bd-tile[data-type="Heading"]').click();
+    await addTile(page, "Heading");
     await frame().waitForFunction(() => document.querySelectorAll(".bf-carousel-item").length === 6);
     c = await carousel();
     expect(c.children[5].type === "Heading", `with the Carousel selected, a Heading goes in as a sixth item, got ${c.children.map((k) => k.type)}`);
@@ -2328,7 +2434,7 @@ try {
     await ready();
     expect(await page.locator(".bd-project-name").textContent() === "Untitled" && types(await doc()) === "", "New file opens a blank canvas of its own");
     await category(page, "Typography");
-    await page.locator('.bd-tile[data-type="Heading"]').click();
+    await addTile(page, "Heading");
     await frame().waitForSelector('[data-bf-type="Heading"]');
     expect(await history(page).undo.isEnabled(), "an edit can be undone");
     ok("New, then New file, opens a blank canvas, and a Heading goes onto it");
@@ -2362,7 +2468,7 @@ try {
     await page.waitForFunction(() => document.querySelectorAll(".bd-versions .bd-version").length === 1);
     await page.keyboard.press("Escape");
     await category(page, "Typography");
-    await page.locator('.bd-tile[data-type="Text"]').click();
+    await addTile(page, "Text");
     await page.waitForFunction(() => JSON.stringify(window.__builder.doc()).includes('"type":"Text"'));
     await page.locator(".bd-project-menu").click();
     await option(page, "Versions").click();
@@ -2628,7 +2734,7 @@ try {
     expect(!/HeroBlock/.test(await types()), `a new page is a canvas of its own, got ${await types()}`);
     await rail("Assets").click();
     await category(page, "Typography");
-    await page.locator('.bd-tile[data-type="Heading"]').click();
+    await addTile(page, "Heading");
     await frame().waitForSelector('[data-bf-type="Heading"]');
     ok("the Variables card has an icon; Pages lists Page 1, and Add a page makes Page 2, a canvas of its own, where a Heading goes");
 
@@ -2727,7 +2833,7 @@ try {
 
     /* A Button in the frame, dragged off it, keeps the width it had there. */
     await category(page, "Actions");
-    await page.locator('.bd-tile[data-type="Button"]').click();
+    await addTile(page, "Button");
     await frame().waitForSelector('[data-bf-type="Button"]');
     const bw = await frame().evaluate(() => { const w = document.querySelector('[data-bf-type="Button"]'); const el = w.style.display === "contents" ? w.firstElementChild : w; return el.getBoundingClientRect().width; });
     const grip = await canvasPoint(page, '[data-bf-type="Button"]');
@@ -2781,45 +2887,22 @@ try {
     await page.close();
   });
 
-  await step("Groups and frames: a Section turns into a Group and back, a layer into a frame, a frame into a loose Group, and that into a frame again", async () => {
+  await step("No Turn into in the inspector's menus: not for a Section, not for a frame", async () => {
     const { page } = await open({ width: 1440, height: 900 });
-    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
-    const find = (d, id) => { let out = null; d.frames.forEach((f) => (function w(n) { (n.children || []).forEach((c) => { if (c.id === id) out = { node: c, frame: f }; w(c); }); })(f.root)); return out; };
-    const turn = async (label) => { await page.locator(".bd-inspect-head .bd-layer-menu").click(); await option(page, label).click(); };
     await category(page, "Layout");
-    await page.locator('.bd-tile[data-type="Section"]').click();
+    await addTile(page, "Section");
     await page.waitForFunction(() => /Section/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    const sid = await page.evaluate(() => { let id = null; (function w(n) { (n.children || []).forEach((c) => { if (c.type === "Section") id = c.id; w(c); }); })(window.__builder.doc().frames[0].root); return id; });
-    await turn("Turn into Group");
-    await page.waitForFunction((id) => { let t = null; (function w(n) { (n.children || []).forEach((c) => { if (c.id === id) t = c.type; w(c); }); })(window.__builder.doc().frames[0].root); return t === "Group"; }, sid);
-    const g = find(await saved(), sid).node;
-    expect(g.props.direction === "column" && g.style.padding === "lg", `the Group comes laid out, with the Section's padding, got ${JSON.stringify([g.props, g.style])}`);
-    await turn("Turn into Section");
-    await page.waitForFunction((id) => JSON.stringify(window.__builder.doc()).includes('"id":"' + id + '","type":"Section"'), sid);
-    ok("a Section turns into a laid-out Group, still selected, and back into a Section");
-
-    const framesBefore = (await saved()).frames.length;
-    await turn("Turn into a frame");
-    await page.waitForFunction((n) => window.__builder.doc().frames.length === n + 1, framesBefore);
-    const d1 = await saved();
-    const own = find(d1, sid);
-    expect(own && own.frame.root.children.length === 1 && own.frame.id === d1.active && !find({ frames: [d1.frames[0]] }, sid), "the Section is a frame of its own now, and gone from the first");
-    ok("Turn into a frame puts the Section in a frame of its own beside the first");
-
-    /* With nothing in it selected, the inspector is the frame's. */
+    await page.locator(".bd-inspect-head .bd-layer-menu").click();
+    const layerItems = await page.locator(".bd-dd-opt-label").allTextContents();
+    await page.keyboard.press("Escape");
+    expect(layerItems.length > 3 && !layerItems.some((t) => /Turn into/.test(t)), `the Section's menu has no Turn into, got ${layerItems.join("|")}`);
     await release(page);
     await page.keyboard.press("Escape");
     await page.locator(".bd-right .bd-frame-menu").click();
-    await option(page, "Turn into a group").click();
-    await page.waitForFunction((fid) => { const f = window.__builder.doc().frames.find((x) => x.id === fid); return f && f.bare; }, own.frame.id);
-    const loose = (await saved()).frames.find((x) => x.id === own.frame.id);
-    expect(loose.root.children.length === 1 && loose.root.children[0].type === "Group" && loose.root.children[0].children[0].id === sid, `the frame is a loose Group holding the Section, got ${JSON.stringify(loose.root.children.map((c) => c.type))}`);
-    await release(page);
+    const frameItems = await page.locator(".bd-dd-opt-label").allTextContents();
     await page.keyboard.press("Escape");
-    await page.locator(".bd-right .bd-frame-menu").click();
-    await option(page, "Turn into a frame").click();
-    await page.waitForFunction((fid) => { const f = window.__builder.doc().frames.find((x) => x.id === fid); return f && !f.bare; }, own.frame.id);
-    ok("its frame turns into a Group, loose on the canvas where the frame was, and that turns back into a frame");
+    expect(frameItems.length > 3 && !frameItems.some((t) => /Turn into/.test(t)), `the frame's menu has no Turn into, got ${frameItems.join("|")}`);
+    ok("neither the layer menu nor the frame menu offers Turn into");
     await page.close();
   });
 
@@ -2828,7 +2911,7 @@ try {
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
     await category(page, "Typography");
-    await page.locator('.bd-tile[data-type="Heading"]').click();
+    await addTile(page, "Heading");
     await frame().waitForSelector('[data-bf-type="Heading"]');
     await page.locator(".bd-flabel-btn").first().click();
     await page.waitForSelector('.bd-right .bd-sec[data-sec="frame-auto"]');
@@ -2855,7 +2938,7 @@ try {
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
     await category(page, "Typography");
-    await page.locator('.bd-tile[data-type="Heading"]').click();
+    await addTile(page, "Heading");
     await frame().waitForSelector('[data-bf-type="Heading"]');
     /* Where the thumb sits against the pressed choice. */
     const under = (row, on) => page.evaluate(({ row, on }) => {
@@ -2946,7 +3029,7 @@ try {
     expect(n.style.rw === undefined && n.style.fw === Math.round(f0.w / 2 / 4), `back to px keeps the width, in 4px steps, got ${JSON.stringify(n.style)}`);
     ok(`back to px: ${n.style.fw * 4}px, in 4px steps`);
     /* In the flow: the size token, or a share of the parent. */
-    await page.locator('.bd-tile[data-type="Shape"]').click();
+    await addTile(page, "Shape");
     await page.waitForFunction(() => window.__builder.doc().frames[0].root.children.length === 2);
     n = await last();
     expect(n.style.x === undefined, `a clicked Shape goes in the flow, got ${JSON.stringify(n.style)}`);
@@ -3027,7 +3110,7 @@ try {
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
     await category(page, "Content");
-    await page.locator('.bd-tile[data-type="Image"]').click();
+    await addTile(page, "Image");
     await frame().waitForSelector('[data-bf-type="Image"]');
     await tab(page, "Properties");
     const field = (name) => page.locator(".bd-right .bd-field").filter({ has: page.locator(".bd-field-label", { hasText: new RegExp("^" + name + "$") }) });
@@ -6405,7 +6488,7 @@ try {
     expect(await phone.frame().evaluate(() => innerWidth) === 390, "the default canvas on a phone is the phone frame");
     await phone.page.locator(".bd-tabs [role=tab]", { hasText: "Add" }).click();
     await category(phone.page, "Actions");
-    await phone.page.locator('.bd-tile[data-type="Button"]').click();
+    await addTile(phone.page, "Button");
     expect(await phone.page.locator(".bd-tabs [role=tab][aria-selected=true]").textContent() === "Canvas", "adding returns to the canvas");
     await phone.frame().waitForSelector('[data-bf-type="Button"]');
     expect(await phone.page.evaluate(() => document.documentElement.scrollWidth) <= 390, "still no sideways scroll");

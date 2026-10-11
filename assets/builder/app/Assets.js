@@ -8,6 +8,7 @@ import { STARTERS } from "../model/starters.js";
 import { usesToken } from "../model/usage.js";
 import { Icon } from "../ui/icons.js";
 import { BUILDER_ICON, Dropdown, Segmented, Thumb } from "../ui/parts.js";
+import { ComponentDetail } from "./ComponentDetail.js";
 
 /* Assets open on five kinds: primitives to build with, the system's
    variables, components, blocks and templates. A kind opens its own
@@ -31,18 +32,22 @@ function usableIn(p, g) { return g.items.filter(function (n) { return !p.placeab
 /* Primitives show as their icon and name; components draw a preview. */
 var PLAIN = {};
 groupsOf("primitives").forEach(function (g) { g.items.forEach(function (n) { PLAIN[n] = true; }); });
-function tileList(p, items) {
+/* A press opens the component's page (a preview and its properties, to set
+   before it's placed); a builder primitive with no preview is added at once,
+   and Cmd or Ctrl swaps the selection for it. */
+function tileList(p, items, open) {
   return e("ul", { className: cx("bd-tiles", p.view === "list" ? "is-list" : "is-grid") }, items.map(function (n) {
     var meta = META[n];
     var plain = PLAIN[n];
     return e("li", { key: n },
       e("button", {
-        type: "button", className: cx("bd-tile", plain && "is-icon"), "data-type": n, "aria-label": "Add " + n,
-        title: (meta.blurb ? n + ": " + meta.blurb : n) + ". Cmd-drag onto a component to swap it.",
+        type: "button", className: cx("bd-tile", plain && "is-icon"), "data-type": n, "aria-label": plain ? "Add " + n : n,
+        title: (meta.blurb ? n + ": " + meta.blurb : n) + (plain ? ". Press to add, or drag onto a frame." : ". Press to see it and set it up before adding; drag onto a frame to add it now. Cmd-drag onto a component to swap it."),
         onPointerDown: function (ev) { p.startDrag(ev, { kind: "new", type: n, label: n, thumb: ev.currentTarget.querySelector(".bd-thumb") }); },
         onClick: function (ev) {
           if (p.justDragged.current) return;
-          p.addOrSwap(n, ev.metaKey || ev.ctrlKey);
+          if (plain || ev.metaKey || ev.ctrlKey || !open) p.addOrSwap(n, ev.metaKey || ev.ctrlKey);
+          else open(n);
         },
       },
         plain ? e("span", { className: "bd-thumb is-icon", "aria-hidden": true }, e(Icon, { name: TYPE_ICON[n] || BUILDER_ICON[n] || "box", className: "bd-thumb-ic" }))
@@ -185,6 +190,12 @@ var Assets = React.memo(function Assets(p) {
   var varScope = scopeState[0], setVarScope = scopeState[1];
   var q = p.query.trim().toLowerCase();
   var head = null;
+  /* The component whose page is open, over whatever list opened it. */
+  var detailState = useState(null), detail = detailState[0], openDetail = detailState[1];
+  if (detail && META[detail]) {
+    return e("div", { className: "bd-assets" }, e(ComponentDetail, { key: detail, type: detail, frameName: p.frameName, justDragged: p.justDragged, startDrag: p.startDrag,
+      back: function () { openDetail(null); }, insert: function (type, props) { p.insertWith(type, props); } }));
+  }
   if (q) {
     var found = [];
     DATA.groups.forEach(function (g) {
@@ -198,7 +209,7 @@ var Assets = React.memo(function Assets(p) {
       foundMine.length ? mineList(p, foundMine) : null,
       e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Results", e("span", { className: "bd-count" }, found.length)), viewToggle(p)),
       found.length || foundMine.length ? null : e("p", { className: "bd-empty-note" }, "Nothing matches."),
-      tileList(p, found));
+      tileList(p, found, openDetail));
   }
   if (!p.kind) {
     return e("div", { className: "bd-assets is-cards" }, e("div", { className: "bd-panel-head bd-panel-top" }, e("h2", { className: "bd-panel-title" }, "Assets")), head,
@@ -249,7 +260,7 @@ var Assets = React.memo(function Assets(p) {
       e("h3", { className: "bd-assets-title" }, current.label, e("span", { className: "bd-count" }, items.length)),
       viewToggle(p)),
     items.length ? null : e("p", { className: "bd-empty-note" }, "Nothing here yet."),
-    tileList(p, items));
+    tileList(p, items, openDetail));
 });
 
 export { Assets };

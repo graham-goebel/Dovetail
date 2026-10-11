@@ -341,7 +341,7 @@
       ["Turn in 15° steps, while turning", "Shift"],
       ["Move without snapping, held", "Ctrl"],
       ["Flip across, down", "Shift+H, Shift+V"],
-      ["Add or remove auto layout on a group, or the frame with nothing selected", "Shift+A"]
+      ["Add or remove auto layout on a group, or the frame with nothing selected; wrap anything else in an auto layout group", "Shift+A"]
     ]],
     ["Components", [["Swap for another", "Cmd-drag"], ["Step a heading's size", "Shift+Up, Shift+Down"]]]
   ];
@@ -572,6 +572,11 @@
     });
     return removerLoading;
   }
+  var AGENT_MODELS = [
+    ["opus", "Opus", "The most capable: pages, redesigns and long changes"],
+    ["sonnet", "Sonnet", "Fast and capable, for most edits"],
+    ["haiku", "Haiku", "The quickest and lightest, for small edits"]
+  ];
   var RAIL = [
     ["home", "Home", "All your projects", "home"],
     ["assets", "Assets", "Primitives, variables, components, blocks and templates", "plus"],
@@ -2670,10 +2675,19 @@
   function foldersOf(meta) {
     return meta && Array.isArray(meta.folders) ? meta.folders : [];
   }
+  function cleanIcon(icon) {
+    var s = typeof icon === "string" ? icon.trim() : "";
+    if (/^lib:[a-z0-9-]{1,40}$/.test(s)) return s;
+    if (s && s.length <= 16 && !/[\w<>&"'\s]/.test(s)) return s;
+    return null;
+  }
   function cleanFolder(f) {
     if (!f || typeof f !== "object" || typeof f.id !== "string" || !/^[\w-]{1,40}$/.test(f.id)) return null;
     var name = String(f.name || "").trim().slice(0, 60) || "Folder";
-    return f.open === false ? { id: f.id, name, open: false } : { id: f.id, name };
+    var out = f.open === false ? { id: f.id, name, open: false } : { id: f.id, name };
+    var icon = cleanIcon(f.icon);
+    if (icon) out.icon = icon;
+    return out;
   }
   function itemsOf(pages) {
     var items = [];
@@ -3073,6 +3087,25 @@
           meta.folders = folders;
           return b.put("projects", meta).then(function() {
             return { meta, folder };
+          });
+        });
+      },
+      /* A page's or a folder's icon; null puts the plain one back. */
+      setIcon: function(id, kind, itemId, icon) {
+        return b.get("projects", id).then(function(meta) {
+          if (!meta) return null;
+          var clean2 = cleanIcon(icon);
+          var set2 = function(x) {
+            if (x.id !== itemId) return x;
+            var n = Object.assign({}, x);
+            if (clean2) n.icon = clean2;
+            else delete n.icon;
+            return n;
+          };
+          if (kind === "folder") meta.folders = foldersOf(meta).map(set2);
+          else meta.pages = pagesOf(meta).map(set2);
+          return b.put("projects", meta).then(function() {
+            return meta;
           });
         });
       },
@@ -8497,25 +8530,25 @@
         else o[f.name] = v;
         setAt(i, o);
       };
-      var control;
+      var control2;
       if (f.kind === "boolean") return e("div", { key: f.name, className: "bd-list-field is-inline" }, e("span", { className: "bd-field-label", id }, words(f.name)), e(Switch2, { labelledBy: id, value: !!val, onChange: set2 }));
-      if (f.kind === "enum") control = e(Dropdown, { labelledBy: id, value: val, placeholder: f.optional ? "None" : "Choose", onChange: function(v) {
+      if (f.kind === "enum") control2 = e(Dropdown, { labelledBy: id, value: val, placeholder: f.optional ? "None" : "Choose", onChange: function(v) {
         set2(v || void 0);
       }, options: (f.optional ? [{ value: "", label: "None" }] : []).concat(f.options.map(function(o) {
         return { value: o, label: String(o) };
       })) });
-      else if (f.kind === "number") control = e("input", { className: "bd-input", type: "number", "aria-labelledby": id, value: val == null ? "" : String(val), onChange: function(ev) {
+      else if (f.kind === "number") control2 = e("input", { className: "bd-input", type: "number", "aria-labelledby": id, value: val == null ? "" : String(val), onChange: function(ev) {
         set2(ev.target.value === "" ? void 0 : Number(ev.target.value));
       } });
-      else if (LONG_FIELD.test(f.name)) control = e("textarea", { className: "bd-input bd-list-text", rows: 3, "aria-labelledby": id, value: val == null ? "" : String(val), onChange: function(ev) {
+      else if (LONG_FIELD.test(f.name)) control2 = e("textarea", { className: "bd-input bd-list-text", rows: 3, "aria-labelledby": id, value: val == null ? "" : String(val), onChange: function(ev) {
         set2(ev.target.value);
       } });
-      else if (f.kind === "url" && props.pages) control = e(LinkTo, { labelledBy: id, value: val, pages: props.pages, pageNow: props.pageNow, onChange: set2 });
-      else if (f.kind === "url" || f.kind === "media") control = e(UrlInput, { labelledBy: id, value: val, placeholder: f.kind === "media" ? "https://" : f.optional ? "Optional" : "", ok: f.kind === "media" ? MEDIA_URL : SAFE_HREF, onChange: set2 });
-      else control = e("input", { className: "bd-input", type: "text", "aria-labelledby": id, value: val == null ? "" : String(val), placeholder: f.optional ? "Optional" : "", onChange: function(ev) {
+      else if (f.kind === "url" && props.pages) control2 = e(LinkTo, { labelledBy: id, value: val, pages: props.pages, pageNow: props.pageNow, onChange: set2 });
+      else if (f.kind === "url" || f.kind === "media") control2 = e(UrlInput, { labelledBy: id, value: val, placeholder: f.kind === "media" ? "https://" : f.optional ? "Optional" : "", ok: f.kind === "media" ? MEDIA_URL : SAFE_HREF, onChange: set2 });
+      else control2 = e("input", { className: "bd-input", type: "text", "aria-labelledby": id, value: val == null ? "" : String(val), placeholder: f.optional ? "Optional" : "", onChange: function(ev) {
         set2(ev.target.value);
       } });
-      return e("div", { key: f.name, className: "bd-list-field" }, e("span", { className: "bd-field-label", id }, words(f.name)), control);
+      return e("div", { key: f.name, className: "bd-list-field" }, e("span", { className: "bd-field-label", id }, words(f.name)), control2);
     };
     return e(
       "div",
@@ -11135,6 +11168,233 @@
     );
   });
 
+  // assets/builder/ui/IconLibrary.js
+  function ds() {
+    return window.BeamMobileDesignSystem_e33121 || {};
+  }
+  function libGroups() {
+    var I = ds().Icon;
+    return I && I.groups || [];
+  }
+  function Glyph(p) {
+    var I = ds().Icon;
+    return I ? e(I, { name: p.name, size: p.size || "lg" }) : null;
+  }
+  function words2(n) {
+    return n.replace(/-/g, " ");
+  }
+  function IconGrid(p) {
+    var qState = useState("");
+    var q = qState[0].trim().toLowerCase();
+    var groups = useMemo(function() {
+      var all = libGroups();
+      if (!q) return all;
+      return all.map(function(g) {
+        var hit = g[0].toLowerCase().indexOf(q) >= 0;
+        return [g[0], hit ? g[1] : g[1].filter(function(n) {
+          return words2(n).indexOf(q) >= 0;
+        })];
+      }).filter(function(g) {
+        return g[1].length;
+      });
+    }, [q]);
+    return e(
+      "div",
+      { className: cx("bd-iconlib-grid", p.className) },
+      e("input", {
+        className: "bd-input bd-iconlib-q",
+        type: "search",
+        placeholder: "Search 320 icons",
+        "aria-label": "Search icons",
+        value: qState[0],
+        autoFocus: !!p.autoFocus,
+        onChange: function(ev) {
+          qState[1](ev.target.value);
+        }
+      }),
+      groups.length ? groups.map(function(g) {
+        return e(
+          "section",
+          { key: g[0], className: "bd-iconlib-group", "aria-label": g[0] },
+          e("h4", { className: "bd-iconlib-cat" }, g[0]),
+          e("div", { className: "bd-iconlib-cells", role: "list" }, g[1].map(function(n) {
+            return e("button", {
+              key: n,
+              type: "button",
+              role: "listitem",
+              className: cx("bd-iconlib-cell", p.current === n && "is-on"),
+              "data-icon-name": n,
+              "aria-label": words2(n),
+              "aria-pressed": p.current != null ? String(p.current === n) : void 0,
+              title: p.title ? p.title(n) : words2(n),
+              onPointerDown: p.onDrag ? function(ev) {
+                if (ev.pointerType !== "touch") p.onDrag(ev, n);
+              } : void 0,
+              onClick: function() {
+                p.onPick(n);
+              }
+            }, e(Glyph, { name: n }));
+          }))
+        );
+      }) : e("p", { className: "bd-empty-note" }, "No icons match.")
+    );
+  }
+  function IconPicker(p) {
+    var open = useState(false);
+    var name = p.value;
+    return e(
+      "div",
+      { className: "bd-iconpick" },
+      e(
+        "button",
+        {
+          type: "button",
+          className: "bd-iconpick-btn",
+          id: p.id,
+          "aria-expanded": String(open[0]),
+          title: "Swap for another icon from the library",
+          onClick: function() {
+            open[1](!open[0]);
+          }
+        },
+        e("span", { className: "bd-iconpick-glyph" }, p.mixed ? null : e(Glyph, { name: name || "star" })),
+        e("span", { className: "bd-iconpick-name" }, p.mixed ? "Mixed" : words2(name || "star")),
+        e("span", { className: "bd-iconpick-act" }, open[0] ? "Done" : "Swap")
+      ),
+      open[0] ? e(IconGrid, { current: p.mixed ? null : name, autoFocus: true, onPick: function(n) {
+        p.onChange(n);
+      } }) : null
+    );
+  }
+  function ItemGlyph(p) {
+    var icon = p.icon || "";
+    if (/^lib:/.test(icon)) return e("span", { className: "bd-item-glyph" }, e(Glyph, { name: icon.slice(4), size: "sm" }));
+    if (icon) return e("span", { className: "bd-item-glyph is-emoji", "aria-hidden": "true" }, icon);
+    return p.fallback();
+  }
+  var EMOJI = [
+    "📄",
+    "📁",
+    "🏠",
+    "⭐",
+    "❤️",
+    "🔥",
+    "✨",
+    "🎨",
+    "🖼️",
+    "📷",
+    "🎬",
+    "🎵",
+    "📚",
+    "📝",
+    "📌",
+    "📎",
+    "🗂️",
+    "📊",
+    "📈",
+    "💡",
+    "🔍",
+    "⚙️",
+    "🔒",
+    "🔔",
+    "💬",
+    "✉️",
+    "📅",
+    "⏰",
+    "🛒",
+    "💳",
+    "🎁",
+    "🏷️",
+    "🚀",
+    "🌍",
+    "🌱",
+    "☀️",
+    "🌙",
+    "⚡",
+    "✅",
+    "❌",
+    "⚠️",
+    "❓",
+    "👋",
+    "👤",
+    "👥",
+    "🤝",
+    "🧪",
+    "🧩",
+    "🛠️",
+    "📦",
+    "🏁",
+    "🎯",
+    "🍕",
+    "☕",
+    "🐾",
+    "🌈"
+  ];
+  function IconChooser(p) {
+    var tab = useState(/^lib:/.test(p.value || "") || !p.value ? "icons" : "emoji");
+    var typed = useState("");
+    var box = useRef(null);
+    useEffect(function() {
+      var away = function(ev) {
+        if (box.current && !box.current.contains(ev.target)) p.onClose();
+      };
+      var esc = function(ev) {
+        if (ev.key === "Escape") {
+          ev.stopPropagation();
+          p.onClose();
+        }
+      };
+      document.addEventListener("pointerdown", away, true);
+      document.addEventListener("keydown", esc, true);
+      return function() {
+        document.removeEventListener("pointerdown", away, true);
+        document.removeEventListener("keydown", esc, true);
+      };
+    }, []);
+    return e(
+      "div",
+      { className: "bd-chooser", ref: box, role: "dialog", "aria-label": p.label },
+      e(
+        "div",
+        { className: "bd-chooser-head" },
+        e(
+          "div",
+          { className: "bd-chooser-tabs", role: "tablist" },
+          [["icons", "Icons"], ["emoji", "Emoji"]].map(function(t) {
+            return e("button", { key: t[0], type: "button", role: "tab", className: "bd-chooser-tab", "aria-selected": String(tab[0] === t[0]), onClick: function() {
+              tab[1](t[0]);
+            } }, t[1]);
+          })
+        ),
+        p.value ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+          p.onPick(null);
+        } }, "Reset") : null
+      ),
+      tab[0] === "icons" ? e(IconGrid, { current: /^lib:/.test(p.value || "") ? p.value.slice(4) : null, autoFocus: true, onPick: function(n) {
+        p.onPick("lib:" + n);
+      } }) : e(
+        "div",
+        { className: "bd-chooser-emoji" },
+        e("div", { className: "bd-emoji-cells", role: "list" }, EMOJI.map(function(em) {
+          return e("button", { key: em, type: "button", role: "listitem", className: cx("bd-emoji-cell", p.value === em && "is-on"), "aria-label": em, onClick: function() {
+            p.onPick(em);
+          } }, em);
+        })),
+        e(
+          "form",
+          { className: "bd-emoji-own", onSubmit: function(ev) {
+            ev.preventDefault();
+            if (typed[0].trim()) p.onPick(typed[0].trim());
+          } },
+          e("input", { className: "bd-input", type: "text", maxLength: 16, placeholder: "Or type or paste an emoji", "aria-label": "Your own emoji", value: typed[0], onChange: function(ev) {
+            typed[1](ev.target.value);
+          } }),
+          e("button", { type: "submit", className: "bd-btn bd-btn-sm", disabled: !typed[0].trim() }, "Use")
+        )
+      )
+    );
+  }
+
   // assets/builder/app/Pages.js
   function pageRows(project) {
     var byId2 = {};
@@ -11200,6 +11460,42 @@
     var project = p.project;
     var projectRef = useRef(project);
     projectRef.current = project;
+    var chooseState = useState(null), choosing = chooseState[0], setChoosing = chooseState[1];
+    var iconButton = function(kind, item, fallback) {
+      var open = !!choosing && choosing.kind === kind && choosing.id === item.id;
+      return e(
+        "span",
+        { className: "bd-item-ico-wrap" },
+        e(
+          "button",
+          {
+            type: "button",
+            className: "bd-item-ico",
+            "aria-haspopup": "dialog",
+            "aria-expanded": String(open),
+            "aria-label": "Icon for " + item.name,
+            title: "Change the icon",
+            onClick: function() {
+              setChoosing(open ? null : { kind, id: item.id });
+            }
+          },
+          e(ItemGlyph, { icon: item.icon, fallback: function() {
+            return e(Icon, { name: fallback });
+          } })
+        ),
+        open ? e(IconChooser, {
+          value: item.icon || null,
+          label: "Icon for " + item.name,
+          onClose: function() {
+            setChoosing(null);
+          },
+          onPick: function(icon) {
+            setChoosing(null);
+            p.setIcon(kind, item.id, icon);
+          }
+        }) : null
+      );
+    };
     var dragState = useState(null);
     var pageDrag = dragState[0], setPageDrag = dragState[1];
     var pageDragRef = useRef(null), pageDragEnded = useRef(false), pagesListRef = useRef(null);
@@ -11349,15 +11645,19 @@
         p.renamingFolder === f.id ? e(Renamable, { className: "bd-folder-name", value: f.name, label: "Folder name", startEditing: true, onChange: function(v) {
           p.renameFolder(f.id, v);
         } }) : e(
-          "button",
-          { type: "button", className: "bd-folder-open", title: "Double-click to rename", onClick: function() {
-            p.foldFolder(f.id, !r.open);
-          }, onDoubleClick: function() {
-            p.setRenamingFolder(f.id);
-          } },
-          e(Icon, { name: "folder" }),
-          e("span", { className: "bd-folder-name" }, f.name),
-          e("span", { className: "bd-folder-count" }, r.count || "")
+          React.Fragment,
+          null,
+          iconButton("folder", f, "folder"),
+          e(
+            "button",
+            { type: "button", className: "bd-folder-open", title: "Double-click to rename", onClick: function() {
+              p.foldFolder(f.id, !r.open);
+            }, onDoubleClick: function() {
+              p.setRenamingFolder(f.id);
+            } },
+            e("span", { className: "bd-folder-name" }, f.name),
+            e("span", { className: "bd-folder-count" }, r.count || "")
+          )
         ),
         e(Dropdown, {
           menu: true,
@@ -11389,22 +11689,26 @@
         p.renamingPage === pg.id ? e(Renamable, { className: "bd-page-name", value: pg.name, label: "Page name", startEditing: true, onChange: function(v) {
           p.renamePage(pg.id, v);
         } }) : e(
-          "button",
-          {
-            type: "button",
-            className: "bd-page-open",
-            "aria-current": on ? "page" : void 0,
-            title: "Drag to move, double-click to rename",
-            onPointerDown: rowDown(pg),
-            onClick: function() {
-              if (!pageDragEnded.current) p.openPage(pg.id);
+          React.Fragment,
+          null,
+          iconButton("page", pg, "file"),
+          e(
+            "button",
+            {
+              type: "button",
+              className: "bd-page-open",
+              "aria-current": on ? "page" : void 0,
+              title: "Drag to move, double-click to rename",
+              onPointerDown: rowDown(pg),
+              onClick: function() {
+                if (!pageDragEnded.current) p.openPage(pg.id);
+              },
+              onDoubleClick: function() {
+                p.setRenamingPage(pg.id);
+              }
             },
-            onDoubleClick: function() {
-              p.setRenamingPage(pg.id);
-            }
-          },
-          e(Icon, { name: "file" }),
-          e("span", { className: "bd-page-name" }, pg.name)
+            e("span", { className: "bd-page-name" }, pg.name)
+          )
         ),
         p.confirmPage === pg.id ? e(
           "span",
@@ -11471,6 +11775,196 @@
     );
   });
 
+  // assets/builder/app/ComponentDetail.js
+  function ds2() {
+    return window.BeamMobileDesignSystem_e33121 || {};
+  }
+  function findElement(node, type) {
+    if (!node || typeof node !== "object") return null;
+    if (Array.isArray(node)) {
+      for (var i = 0; i < node.length; i++) {
+        var hit = findElement(node[i], type);
+        if (hit) return hit;
+      }
+      return null;
+    }
+    if (node.type === type) return node;
+    return node.props ? findElement(node.props.children, type) : null;
+  }
+  function baseProps(type) {
+    var Comp = ds2()[type], specs = window.DovetailSpecimens;
+    var props = {};
+    var build2 = specs && (specs.samples && specs.samples[type] || specs.build && specs.build[type]);
+    if (Comp && build2) {
+      try {
+        var el = findElement(build2(), Comp);
+        if (el) props = Object.assign({}, el.props);
+      } catch (err) {
+        props = {};
+      }
+    }
+    var own = specs && specs.defaults && specs.defaults[type];
+    if (own) Object.keys(own).forEach(function(k) {
+      if (own[k] === null) delete props[k];
+      else props[k] = own[k];
+    });
+    return props;
+  }
+  function Preview2(p) {
+    var box = useRef(null), stage = useRef(null);
+    var scaleState = useState(1);
+    useEffect(function() {
+      var fit = function() {
+        if (!box.current || !stage.current) return;
+        var W = box.current.clientWidth - 24, w = stage.current.scrollWidth;
+        scaleState[1](w > 0 && W > 0 ? Math.min(1, W / w) : 1);
+      };
+      fit();
+      var ro = window.ResizeObserver ? new ResizeObserver(fit) : null;
+      if (ro) {
+        ro.observe(box.current);
+        ro.observe(stage.current);
+      }
+      return function() {
+        if (ro) ro.disconnect();
+      };
+    }, [p.wide]);
+    var Comp = ds2()[p.type];
+    var s = scaleState[0];
+    return e(
+      "div",
+      {
+        className: "bd-cd-preview",
+        ref: box,
+        title: "Drag onto a frame to place it as set",
+        onPointerDown: function(ev) {
+          if (ev.pointerType !== "touch") p.onDrag(ev, box.current);
+        }
+      },
+      e(
+        "div",
+        { className: "bd-cd-stage", ref: stage, inert: "", "aria-hidden": "true", style: { width: p.wide ? 1280 : void 0, transform: s < 1 ? "scale(" + s + ")" : void 0 } },
+        Comp ? e(ThumbGuard, { key: JSON.stringify(p.props) }, e(Comp, p.props)) : null
+      )
+    );
+  }
+  function control(spec, value2, set2) {
+    var id = "bd-cd-" + spec.name;
+    var label2 = spec.name === "children" ? "Text" : PROP_LABEL[spec.name] || words(spec.name);
+    var row = function(inline2, body) {
+      return e(
+        "div",
+        { key: spec.name, className: cx("bd-field", inline2 && "is-inline") },
+        e("span", { className: "bd-field-label", id }, label2),
+        body
+      );
+    };
+    if (spec.kind === "boolean") return row(true, e(Switch2, { labelledBy: id, value: !!value2, onChange: function(v) {
+      set2(v || void 0);
+    } }));
+    if (spec.kind === "enum") {
+      var opts = spec.options || [];
+      var short7 = opts.length <= 4 && opts.every(function(o) {
+        return String(o).length <= 9;
+      });
+      return row(false, short7 ? e(Segmented, { labelledBy: id, value: value2 == null ? spec.default : value2, onChange: function(v) {
+        set2(v);
+      }, options: opts.map(function(o) {
+        return { value: o, label: String(o) };
+      }) }) : e(Dropdown, { labelledBy: id, value: value2 == null ? spec.default : value2, className: "bd-dd-field", onChange: function(v) {
+        set2(v);
+      }, options: opts.map(function(o) {
+        return { value: o, label: String(o) };
+      }) }));
+    }
+    if (spec.kind === "icon") return row(false, e(IconPicker, { id, value: value2 || spec.default, onChange: set2 }));
+    if (spec.kind === "number") return row(false, e("input", {
+      className: "bd-input",
+      type: "number",
+      "aria-labelledby": id,
+      value: value2 == null ? "" : value2,
+      placeholder: spec.default == null ? "" : String(spec.default),
+      onChange: function(ev) {
+        var n = ev.target.value === "" ? void 0 : Number(ev.target.value);
+        set2(isNaN(n) ? void 0 : n);
+      }
+    }));
+    if ((spec.kind === "text" || spec.kind === "node") && (value2 == null || typeof value2 === "string")) return row(false, e("input", {
+      className: "bd-input",
+      type: "text",
+      "aria-labelledby": id,
+      value: value2 || "",
+      onChange: function(ev) {
+        set2(ev.target.value);
+      }
+    }));
+    return null;
+  }
+  function ComponentDetail(p) {
+    var meta = META[p.type] || { props: [] };
+    var base = useMemo(function() {
+      return baseProps(p.type);
+    }, [p.type]);
+    var chosenState = useState({}), chosen = chosenState[0], setChosen = chosenState[1];
+    var set2 = function(k) {
+      return function(v) {
+        setChosen(function(c) {
+          var n = Object.assign({}, c);
+          if (v === void 0) delete n[k];
+          else n[k] = v;
+          return n;
+        });
+      };
+    };
+    var live = Object.assign({}, base, chosen);
+    var hasText = typeof base.children === "string";
+    var specs = meta.props.filter(function(sp) {
+      return sp.kind !== "media" && sp.kind !== "list" && sp.kind !== "url" && !(sp.kind === "node" && typeof live[sp.name] !== "string");
+    });
+    var rows = (hasText ? [control({ name: "children", kind: "text" }, live.children, set2("children"))] : []).concat(specs.map(function(sp) {
+      return control(sp, live[sp.name], set2(sp.name));
+    })).filter(Boolean);
+    var payload = function(thumb) {
+      return { kind: "new", type: p.type, label: p.type, props: Object.assign({}, chosen), thumb };
+    };
+    var changed = Object.keys(chosen).length;
+    return e(
+      "div",
+      { className: "bd-cd" },
+      e(
+        "div",
+        { className: "bd-panel-head bd-gallery-head" },
+        e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to the components", title: "Back", onClick: p.back }, e(Icon, { name: "left" })),
+        e("h2", { className: "bd-panel-title" }, p.type),
+        meta.href ? e("a", { className: "bd-act bd-act-ghost", href: meta.href, target: "_blank", rel: "noopener", "aria-label": p.type + " docs", title: "Open the docs" }, e(Icon, { name: "book" })) : null
+      ),
+      meta.blurb ? e("p", { className: "bd-cd-blurb" }, meta.blurb + ".") : null,
+      e(Preview2, { type: p.type, props: live, wide: meta.group === "blocks", onDrag: function(ev, el) {
+        p.startDrag(ev, payload(el));
+      } }),
+      e(
+        "div",
+        { className: "bd-cd-props" },
+        rows.length ? rows : e("p", { className: "bd-empty-note" }, "Nothing to set before it's placed. Change it from the inspector once it's on a frame.")
+      ),
+      e(
+        "div",
+        { className: "bd-cd-foot" },
+        changed ? e("button", { type: "button", className: "bd-btn", onClick: function() {
+          setChosen({});
+        } }, "Reset") : null,
+        e(
+          "button",
+          { type: "button", className: "bd-btn bd-btn-primary bd-cd-insert", title: "Add it to " + p.frameName + " as set", onClick: function() {
+            if (!p.justDragged.current) p.insert(p.type, Object.assign({}, chosen));
+          } },
+          e(Icon, { name: "plus" }),
+          "Insert"
+        )
+      )
+    );
+  }
+
   // assets/builder/app/Assets.js
   var ASSET_KINDS = [
     ["containers", "Containers", "frame", "Empty frames to build in: freeform, structured, tall, and every screen size"],
@@ -11501,7 +11995,7 @@
       PLAIN2[n] = true;
     });
   });
-  function tileList(p, items) {
+  function tileList(p, items, open) {
     return e("ul", { className: cx("bd-tiles", p.view === "list" ? "is-list" : "is-grid") }, items.map(function(n) {
       var meta = META[n];
       var plain = PLAIN2[n];
@@ -11514,14 +12008,15 @@
             type: "button",
             className: cx("bd-tile", plain && "is-icon"),
             "data-type": n,
-            "aria-label": "Add " + n,
-            title: (meta.blurb ? n + ": " + meta.blurb : n) + ". Cmd-drag onto a component to swap it.",
+            "aria-label": plain ? "Add " + n : n,
+            title: (meta.blurb ? n + ": " + meta.blurb : n) + (plain ? ". Press to add, or drag onto a frame." : ". Press to see it and set it up before adding; drag onto a frame to add it now. Cmd-drag onto a component to swap it."),
             onPointerDown: function(ev) {
               p.startDrag(ev, { kind: "new", type: n, label: n, thumb: ev.currentTarget.querySelector(".bd-thumb") });
             },
             onClick: function(ev) {
               if (p.justDragged.current) return;
-              p.addOrSwap(n, ev.metaKey || ev.ctrlKey);
+              if (plain || ev.metaKey || ev.ctrlKey || !open) p.addOrSwap(n, ev.metaKey || ev.ctrlKey);
+              else open(n);
             }
           },
           plain ? e("span", { className: "bd-thumb is-icon", "aria-hidden": true }, e(Icon, { name: TYPE_ICON[n] || BUILDER_ICON[n] || "box", className: "bd-thumb-ic" })) : e(Thumb, { type: n, wide: meta.group === "blocks" }),
@@ -11768,6 +12263,22 @@
     var varScope = scopeState[0], setVarScope = scopeState[1];
     var q = p.query.trim().toLowerCase();
     var head3 = null;
+    var detailState = useState(null), detail = detailState[0], openDetail = detailState[1];
+    if (detail && META[detail]) {
+      return e("div", { className: "bd-assets" }, e(ComponentDetail, {
+        key: detail,
+        type: detail,
+        frameName: p.frameName,
+        justDragged: p.justDragged,
+        startDrag: p.startDrag,
+        back: function() {
+          openDetail(null);
+        },
+        insert: function(type, props) {
+          p.insertWith(type, props);
+        }
+      }));
+    }
     if (q) {
       var found = [];
       DATA.groups.forEach(function(g) {
@@ -11786,7 +12297,7 @@
         foundMine.length ? mineList(p, foundMine) : null,
         e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Results", e("span", { className: "bd-count" }, found.length)), viewToggle(p)),
         found.length || foundMine.length ? null : e("p", { className: "bd-empty-note" }, "Nothing matches."),
-        tileList(p, found)
+        tileList(p, found, openDetail)
       );
     }
     if (!p.kind) {
@@ -11886,108 +12397,9 @@
         viewToggle(p)
       ),
       items.length ? null : e("p", { className: "bd-empty-note" }, "Nothing here yet."),
-      tileList(p, items)
+      tileList(p, items, openDetail)
     );
   });
-
-  // assets/builder/ui/IconLibrary.js
-  function ds() {
-    return window.BeamMobileDesignSystem_e33121 || {};
-  }
-  function libGroups() {
-    var I = ds().Icon;
-    return I && I.groups || [];
-  }
-  function Glyph(p) {
-    var I = ds().Icon;
-    return I ? e(I, { name: p.name, size: p.size || "lg" }) : null;
-  }
-  function words2(n) {
-    return n.replace(/-/g, " ");
-  }
-  function IconGrid(p) {
-    var qState = useState("");
-    var q = qState[0].trim().toLowerCase();
-    var groups = useMemo(function() {
-      var all = libGroups();
-      if (!q) return all;
-      return all.map(function(g) {
-        var hit = g[0].toLowerCase().indexOf(q) >= 0;
-        return [g[0], hit ? g[1] : g[1].filter(function(n) {
-          return words2(n).indexOf(q) >= 0;
-        })];
-      }).filter(function(g) {
-        return g[1].length;
-      });
-    }, [q]);
-    return e(
-      "div",
-      { className: cx("bd-iconlib-grid", p.className) },
-      e("input", {
-        className: "bd-input bd-iconlib-q",
-        type: "search",
-        placeholder: "Search 320 icons",
-        "aria-label": "Search icons",
-        value: qState[0],
-        autoFocus: !!p.autoFocus,
-        onChange: function(ev) {
-          qState[1](ev.target.value);
-        }
-      }),
-      groups.length ? groups.map(function(g) {
-        return e(
-          "section",
-          { key: g[0], className: "bd-iconlib-group", "aria-label": g[0] },
-          e("h4", { className: "bd-iconlib-cat" }, g[0]),
-          e("div", { className: "bd-iconlib-cells", role: "list" }, g[1].map(function(n) {
-            return e("button", {
-              key: n,
-              type: "button",
-              role: "listitem",
-              className: cx("bd-iconlib-cell", p.current === n && "is-on"),
-              "data-icon-name": n,
-              "aria-label": words2(n),
-              "aria-pressed": p.current != null ? String(p.current === n) : void 0,
-              title: p.title ? p.title(n) : words2(n),
-              onPointerDown: p.onDrag ? function(ev) {
-                if (ev.pointerType !== "touch") p.onDrag(ev, n);
-              } : void 0,
-              onClick: function() {
-                p.onPick(n);
-              }
-            }, e(Glyph, { name: n }));
-          }))
-        );
-      }) : e("p", { className: "bd-empty-note" }, "No icons match.")
-    );
-  }
-  function IconPicker(p) {
-    var open = useState(false);
-    var name = p.value;
-    return e(
-      "div",
-      { className: "bd-iconpick" },
-      e(
-        "button",
-        {
-          type: "button",
-          className: "bd-iconpick-btn",
-          id: p.id,
-          "aria-expanded": String(open[0]),
-          title: "Swap for another icon from the library",
-          onClick: function() {
-            open[1](!open[0]);
-          }
-        },
-        e("span", { className: "bd-iconpick-glyph" }, p.mixed ? null : e(Glyph, { name: name || "star" })),
-        e("span", { className: "bd-iconpick-name" }, p.mixed ? "Mixed" : words2(name || "star")),
-        e("span", { className: "bd-iconpick-act" }, open[0] ? "Done" : "Swap")
-      ),
-      open[0] ? e(IconGrid, { current: p.mixed ? null : name, autoFocus: true, onPick: function(n) {
-        p.onChange(n);
-      } }) : null
-    );
-  }
 
   // assets/builder/app/Content.js
   var LIB_TABS = [["images", "Images", "image"], ["illustrations", "Illustrations", "squiggle"], ["icons", "Icons", "star"], ["video", "Video", "video"]];
@@ -14019,6 +14431,25 @@
               p.setEffort(p.effort !== "low" ? "low" : "high");
             }
           }, e(Icon, { name: p.effort !== "low" ? "bulb" : "bolt" })),
+          e(Dropdown, {
+            menu: true,
+            label: "Model: " + (AGENT_MODELS.filter(function(m) {
+              return m[0] === p.model;
+            })[0] || AGENT_MODELS[0])[1],
+            placeholder: (AGENT_MODELS.filter(function(m) {
+              return m[0] === p.model;
+            })[0] || AGENT_MODELS[0])[1],
+            compact: true,
+            narrow: true,
+            className: "bd-as-model",
+            value: p.model,
+            options: AGENT_MODELS.map(function(m) {
+              return { value: m[0], label: m[1], hint: m[2], checked: m[0] === p.model };
+            }),
+            onChange: function(v) {
+              p.setModel(v);
+            }
+          }),
           e("span", { className: "bd-as-sp" }),
           e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-attach", "aria-label": "Attach a picture", title: "Attach a picture to build from (or paste or drop one)", disabled: (p.pics || []).length >= 3, onClick: function() {
             if (fileRef.current) fileRef.current.click();
@@ -16510,7 +16941,7 @@
     var asReachState = useState("selection");
     var asDropState = useState([]);
     var asMsgs = useRef([]);
-    var AS_PLAN_KEY = "dovetail-assistant-plan", AS_EFFORT_KEY = "dovetail-assistant-effort";
+    var AS_PLAN_KEY = "dovetail-assistant-plan", AS_EFFORT_KEY = "dovetail-assistant-effort", AS_MODEL_KEY = "dovetail-assistant-model";
     var readPref = function(k, dflt) {
       try {
         return window.localStorage.getItem(k) || dflt;
@@ -16526,6 +16957,12 @@
     };
     var asPlanState = useState(readPref(AS_PLAN_KEY, "on") !== "off");
     var asEffortState = useState(readPref(AS_EFFORT_KEY, "high") === "low" ? "low" : "high");
+    var asModelState = useState(function() {
+      var m = readPref(AS_MODEL_KEY, "opus");
+      return AGENT_MODELS.some(function(x) {
+        return x[0] === m;
+      }) ? m : "opus";
+    });
     var asLookTick = useState(0);
     var asNotes = useRef([]);
     var planWait = useRef(null);
@@ -17369,7 +17806,7 @@
       var round = function(n) {
         var c = collector();
         var shown3 = "";
-        var reqNow = { stable: systemPrompt(), messages: asMsgs.current, tools: tools2, effort: asEffortState[0] };
+        var reqNow = { stable: systemPrompt(), messages: asMsgs.current, tools: tools2, effort: asEffortState[0], model: asModelState[0] };
         patchTurn(turn.id, { live: estimateRequest(reqNow) });
         return sendAssistant(reqNow, function(ev) {
           c.add(ev);
@@ -17796,6 +18233,10 @@
       setEffort: function(v) {
         asEffortState[1](v);
         writePref(AS_EFFORT_KEY, v);
+      },
+      setModel: function(v) {
+        asModelState[1](v);
+        writePref(AS_MODEL_KEY, v);
       },
       setLook: function(on) {
         try {
@@ -19234,9 +19675,17 @@
             }
             la.lift(dr.payload.id, Math.round(dx), Math.round(dy));
             la.hide(dr.payload.id, false);
+            (dr.payload.others || []).forEach(function(o) {
+              la.lift(o, Math.round(dx), Math.round(dy));
+              la.hide(o, false);
+            });
           } else {
             la.lift(dr.payload.id, null);
             la.hide(dr.payload.id, !overList);
+            (dr.payload.others || []).forEach(function(o) {
+              la.lift(o, null);
+              la.hide(o, !overList);
+            });
           }
           remeasure();
         }
@@ -19254,8 +19703,10 @@
       if (dr && dr.ghost && dr.ghost.live) {
         var ga = api(dr.ghost.fid);
         if (ga && ga.lift) {
-          ga.lift(dr.payload.id, null);
-          ga.hide(dr.payload.id, false);
+          [dr.payload.id].concat(dr.payload.others || []).forEach(function(o) {
+            ga.lift(o, null);
+            ga.hide(o, false);
+          });
         }
       }
       if (!dr || !dr.active) return;
@@ -19336,13 +19787,22 @@
             from.parent.children.splice(from.index, 1);
             dest2.root.children.push(from.node);
           }
+          var wasFree = isFree(from.node.style), ox = from.node.style.x, oy = from.node.style.y;
           from.node.style.x = pos.x;
           from.node.style.y = pos.y;
           delete from.node.style.position;
           delete from.node.style.anchor;
           delete from.node.style.offset;
+          var moved = [mid];
+          if (stays && wasFree) (dr.payload.others || []).forEach(function(o) {
+            var oa = locate(d, o);
+            if (!oa || fixedSpot(oa) || !isFree(oa.node.style)) return;
+            oa.node.style.x = (oa.node.style.x || 0) + (pos.x - ox);
+            oa.node.style.y = (oa.node.style.y || 0) + (pos.y - oy);
+            moved.push(o);
+          });
           d.active = fid;
-          return mid;
+          return moved;
         }, "Placed " + dr.payload.label + " on the canvas");
         return;
       }
@@ -19378,6 +19838,21 @@
           d.active = fid;
           return moving;
         }, "Moved " + dr.payload.label + " to " + (dest ? dest.name : "another frame"));
+        return;
+      }
+      if ((dr.payload.others || []).length && fid === docRef.current.active) {
+        var group2 = selRef.current.filter(function(o) {
+          return o === dr.payload.id || dr.payload.others.indexOf(o) >= 0;
+        });
+        if (change(function(d) {
+          return ops.moveMany(d, group2, hit.parent, hit.index);
+        }, "Moved " + group2.length + " layers")) {
+          if (hit.parent !== "root") setCollapsed(function(c) {
+            var n = Object.assign({}, c);
+            delete n[hit.parent];
+            return n;
+          });
+        }
         return;
       }
       if (change(function(d) {
@@ -19597,8 +20072,18 @@
       }, (moving ? "Moved " : "Added ") + payload.label + " onto the canvas");
       return made;
     };
+    var withOthers = function(pl) {
+      var sel0 = selRef.current, fid = docRef.current.active;
+      if (pl.kind !== "move" || !pl.id || sel0.length < 2 || sel0.indexOf(pl.id) < 0) return pl;
+      var others2 = sel0.filter(function(o) {
+        var oa = o !== pl.id && locate(docRef.current, o, fid);
+        return oa && !oa.node.lock && oa.node.type !== "Slot";
+      });
+      return others2.length ? Object.assign({}, pl, { others: others2, label: others2.length + 1 + " layers" }) : pl;
+    };
     var startDrag = function(ev, payload) {
       if (ev.button !== void 0 && ev.button !== 0) return;
+      if (payload.kind === "move") payload = withOthers(payload);
       var swaps = payload.kind === "new";
       if (ev.shiftKey || (ev.metaKey || ev.ctrlKey) && !swaps) return;
       var target3 = ev.currentTarget;
@@ -19732,7 +20217,7 @@
                 at2 = locate(docRef.current, id);
                 if (!at2) return;
               }
-              var pl = { kind: "move", id, label: nameOf(at2.node) };
+              var pl = alt ? { kind: "move", id, label: nameOf(at2.node) } : withOthers({ kind: "move", id, label: nameOf(at2.node) });
               dragRef.current = { payload: pl, active: true, ghost: null };
               dragRef.current.ghost = ghostFor(pl);
               if (selRef.current.indexOf(id) < 0) select([id]);
@@ -20802,19 +21287,6 @@
           return ops.wrap(d, id, type);
         }, "Wrapped in " + type);
       },
-      /* One container into another (a Section into a Group, say), or onto
-         the canvas as a frame of its own. */
-      convert: function(type) {
-        var id = selRef.current[selRef.current.length - 1];
-        if (!id || !type) return;
-        if (type === "frame") {
-          layerToFrame(id);
-          return;
-        }
-        if (!change(function(d) {
-          return ops.convert(d, id, type);
-        }, "Now a " + type)) announce("That can't be a " + type + " where it is");
-      },
       group: function() {
         var ids = selRef.current.slice();
         if (!ids.length) return;
@@ -20826,6 +21298,31 @@
         if (!change(function(d) {
           return ops.group(d, ids, boxes2);
         }, "Grouped " + ids.length + (ids.length === 1 ? " layer" : " layers"))) announce("Those can't be grouped here: a frame's fixed parts stay where they are");
+      },
+      /* Shift+A on anything but a lone Group: the selection goes into a new
+         Group, and that Group lays out what it holds in a row or a column. A
+         Group made in a flow lays out already; one made on a freeform canvas
+         is laid out once the canvas has drawn it, from where its layers sit. */
+      wrapAuto: function() {
+        var ids = selRef.current.slice();
+        if (!ids.length) return;
+        actions2.group();
+        var gid = selRef.current.length === 1 ? selRef.current[0] : null;
+        if (!gid || ids.indexOf(gid) >= 0) return;
+        var tries = 0;
+        (function lay() {
+          var at2 = locate(docRef.current, gid);
+          if (!at2 || at2.node.type !== "Group" || groupFlows(at2.node)) {
+            if (at2) announce("Wrapped in an auto layout Group");
+            return;
+          }
+          var a = api();
+          if (a && a.rect && a.rect(gid) && actions2.autoLayout(gid)) {
+            announce("Wrapped in an auto layout Group");
+            return;
+          }
+          if (++tries < 20) window.setTimeout(lay, 30);
+        })();
       },
       /* Auto layout on: what a Group holds, or what's on a freeform frame's
          page, laid out in a row or a column in the order it stands. The
@@ -21154,7 +21651,13 @@
         return true;
       }
       if (ev.shiftKey && !mod && !ev.altKey && (ev.code === "KeyH" || ev.code === "KeyV") && flip(ev.code === "KeyH" ? "flipH" : "flipV")) return true;
-      if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyA" && (actions2.autoLayout() || actions2.freeLayout())) return true;
+      if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyA") {
+        if (actions2.autoLayout() || actions2.freeLayout()) return true;
+        if (selRef.current.length) {
+          actions2.wrapAuto();
+          return true;
+        }
+      }
       if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyR") {
         toggleView("rulers");
         return true;
@@ -21500,77 +22003,6 @@
           fr.y = Math.round(boxesNow[fr.id].y);
         }
       });
-    };
-    var layerToFrame = function(id) {
-      var fid = docRef.current.active;
-      var src = frameById(docRef.current, fid);
-      var at0 = locate(docRef.current, id, fid);
-      if (!src || fixedSpot(at0)) return;
-      var a = api(fid), r = a && a.rect ? a.rect(id) : null;
-      var b = layoutRef.current.boxes[fid];
-      var label2 = nameOf(at0.node);
-      change(function(d) {
-        var at2 = locate(d, id, fid);
-        if (fixedSpot(at2)) return null;
-        pinFrames(d);
-        at2.parent.children.splice(at2.index, 1);
-        var n = at2.node;
-        ["x", "y", "position", "anchor", "offset"].forEach(function(k) {
-          delete n.style[k];
-        });
-        var f = makeFrame(label2, "desktop", true);
-        f.width = Math.max(minSide(src), Math.min(MAX_WIDTH, Math.round(r && r.width ? r.width : src.width)));
-        f.mode = src.mode;
-        if (b) {
-          f.x = Math.round(b.x + b.w + FRAME_GAP);
-          f.y = Math.round(b.y);
-        }
-        f.root.children = [n];
-        d.frames.push(f);
-        d.active = f.id;
-        return n.id;
-      }, label2 + " is a frame of its own now");
-    };
-    var frameToGroup = function(fid) {
-      var b = layoutRef.current.boxes[fid];
-      change(function(d) {
-        var f = frameById(d, fid);
-        if (!f || f.bare) return null;
-        pinFrames(d);
-        var kids = f.root.children.slice().sort(function(p, q) {
-          return (p.style.y || 0) - (q.style.y || 0) || (p.style.x || 0) - (q.style.x || 0);
-        });
-        kids.forEach(function(k) {
-          delete k.style.x;
-          delete k.style.y;
-          delete k.style.ch;
-          delete k.style.cv;
-        });
-        var g = make("Group", { direction: "column", gap: "md" }, kids, { padding: "lg" });
-        g.name = f.name;
-        f.root.children = [g];
-        f.bare = true;
-        f.hug = true;
-        f.sized = true;
-        f.width = Math.round(b ? b.w : f.width);
-        f.mode = "free";
-        d.active = f.id;
-        return g.id;
-      }, "Now a Group, loose on the canvas: drag it into a frame");
-    };
-    var looseToFrame = function(fid) {
-      var b = layoutRef.current.boxes[fid];
-      change(function(d) {
-        var f = frameById(d, fid);
-        if (!f || !f.bare) return null;
-        pinFrames(d);
-        f.bare = false;
-        delete f.sized;
-        f.hug = true;
-        f.width = Math.max(MIN_SIDE, Math.min(MAX_WIDTH, Math.round(b ? b.w : f.width)));
-        d.active = f.id;
-        return [];
-      }, "Now a frame");
     };
     var frameOps = {
       /* page: a frame that hugs its content, started with a Section to fill.
@@ -22487,6 +22919,12 @@
         takeMeta(got.meta);
         setRenamingFolder(got.folder.id);
         announce("Added " + name + ". Drag pages into it, or use a page's menu.");
+      });
+    };
+    var setItemIcon = function(kind, itemId, icon) {
+      store.setIcon(projectRef.current.id, kind, itemId, icon).then(function(m) {
+        takeMeta(m);
+        announce(icon ? "Icon changed" : "Icon reset");
       });
     };
     var renameFolder = function(fid, name) {
@@ -23552,7 +23990,6 @@
         options: [
           { value: "duplicate", label: f.bare ? "Duplicate" : "Duplicate frame", icon: "copy" },
           { value: "rename", label: "Rename", icon: "pencil" },
-          f.bare ? { value: "to-frame", label: "Turn into a frame", icon: "frame" } : { value: "to-group", label: "Turn into a group", icon: "group" },
           { value: "fit", label: "Zoom to frame", icon: "fit" },
           { value: "link", label: "Copy link to frame", icon: "link" },
           { value: "png", label: "Export as PNG", icon: "image" },
@@ -23561,8 +23998,6 @@
         ],
         onChange: function(v) {
           if (v === "duplicate") frameOps.duplicate(f.id);
-          if (v === "to-group") frameToGroup(f.id);
-          if (v === "to-frame") looseToFrame(f.id);
           if (v === "rename") setRenaming({ id: "frame:" + f.id, where });
           if (v === "fit") {
             activate(f.id);
@@ -24326,23 +24761,25 @@
       if (pad && align.options.indexOf("stretch") >= 0) side2.push(e("button", {
         key: "stretch",
         type: "button",
-        className: "bd-btn bd-btn-sm",
+        className: "bd-act bd-flex-tog",
         "aria-pressed": String(a === "stretch"),
-        title: "Children fill the cross axis",
+        "aria-label": "Stretch",
+        title: "Stretch: children fill the cross axis",
         onClick: function() {
           setProp(ids, "align", a === "stretch" ? "flex-start" : "stretch");
         }
-      }, e(Icon, { name: "alignStretch" }), "Stretch"));
+      }, e(Icon, { name: "alignStretch" })));
       if (pad && justify.options.indexOf("space-between") >= 0) side2.push(e("button", {
         key: "between",
         type: "button",
-        className: "bd-btn bd-btn-sm",
+        className: "bd-act bd-flex-tog",
         "aria-pressed": String(j === "space-between"),
-        title: "Spread children along the main axis",
+        "aria-label": "Space between",
+        title: "Space between: spread children along the main axis",
         onClick: function() {
           setProp(ids, "justify", j === "space-between" ? "flex-start" : "space-between");
         }
-      }, e(Icon, { name: "justifyBetween" }), "Between"));
+      }, e(Icon, { name: "justifyBetween" })));
       var rest = meta.props.filter(function(p) {
         return (p.tab || "content") === "layout" && ["direction", "wrap", "gap"].indexOf(p.name) < 0 && !(pad && (p.name === "align" || p.name === "justify"));
       }).map(function(p) {
@@ -24406,8 +24843,8 @@
       var set2 = function(v) {
         setProp(ids, p.name, v);
       };
-      var label2 = PROP_LABEL[p.name] || words(p.name);
-      var control;
+      var label2 = p.label || PROP_LABEL[p.name] || words(p.name);
+      var control2;
       if (p.kind === "list") {
         var fa = api(docRef.current.active);
         var own = first.props[p.name];
@@ -24437,7 +24874,7 @@
         var src = typeof current2 === "string" ? current2 : "";
         var fileId = id + "-file";
         var isVideo = /^data:video|\.(mp4|webm|mov)(\?|$)/i.test(src);
-        control = e(
+        control2 = e(
           "div",
           { className: "bd-media" },
           src ? e("span", { className: "bd-media-thumb", style: isVideo ? void 0 : { backgroundImage: "url(" + JSON.stringify(src) + ")" }, "aria-hidden": true }, isVideo ? e(Icon, { name: "file" }) : null) : null,
@@ -24512,11 +24949,11 @@
             }
           })
         );
-        return e(Field, { key: p.name, id, label: label2, note: p.note, hint: /^data:/.test(src) ? "Uploaded file" : null }, control);
+        return e(Field, { key: p.name, id, label: label2, note: p.note, hint: /^data:/.test(src) ? "Uploaded file" : null }, control2);
       }
       if (p.kind === "enum" && p.name === "tone") {
-        var toneMap = TEXT_TYPES[first.type] ? TONE_TEXT : TONE_FILL;
-        control = e(Dropdown, {
+        var toneMap = TEXT_TYPES[first.type] || first.type === "Icon" ? TONE_TEXT : TONE_FILL;
+        control2 = e(Dropdown, {
           labelledBy: id,
           value: current2,
           mixed,
@@ -24547,7 +24984,7 @@
           return n.props.shape === "line";
         })) return null;
         var pics = ENUM_MENU[p.name];
-        control = e(Dropdown, {
+        control2 = e(Dropdown, {
           labelledBy: id,
           value: current2 === void 0 && !mixed ? p.default : current2,
           mixed,
@@ -24565,17 +25002,17 @@
         if (icons && p.options.every(function(o) {
           return icons[o];
         })) {
-          control = e(Segmented, { labelledBy: id, value: current2, onChange: set2, options: p.options.map(function(o) {
+          control2 = e(Segmented, { labelledBy: id, value: current2, onChange: set2, options: p.options.map(function(o) {
             return { value: o, label: ENUM_LABEL[o] || words(o), icon: icons[o] };
           }) });
         } else if (p.options.length <= 3 && p.options.every(function(o) {
           return String(o).length <= 9;
         })) {
-          control = e(Segmented, { labelledBy: id, value: current2, onChange: set2, wide: true, options: p.options.map(function(o) {
+          control2 = e(Segmented, { labelledBy: id, value: current2, onChange: set2, wide: true, options: p.options.map(function(o) {
             return { value: o, label: String(o) };
           }) });
         } else {
-          control = e(Dropdown, {
+          control2 = e(Dropdown, {
             labelledBy: id,
             value: current2,
             mixed,
@@ -24589,7 +25026,7 @@
       } else if (p.kind === "boolean") {
         return e(Field, { key: p.name, id, label: label2, note: p.note, inline: true }, e(Switch2, { labelledBy: id, value: !!current2, mixed, onChange: set2 }));
       } else if (p.kind === "number" && first.type === "Grid" && p.name === "columns") {
-        control = e(Dropdown, { labelledBy: id, value: current2, mixed, onChange: set2, options: [1, 2, 3, 4, 5, 6].map(function(n) {
+        control2 = e(Dropdown, { labelledBy: id, value: current2, mixed, onChange: set2, options: [1, 2, 3, 4, 5, 6].map(function(n) {
           return { value: n, label: n + (n === 1 ? " column" : " columns") };
         }) });
       } else if (p.kind === "number" && first.type === "Carousel" && p.name === "defaultIndex") {
@@ -24598,11 +25035,11 @@
             return c.type !== "Slot";
           }).length || 1;
         })));
-        control = e(Dropdown, { labelledBy: id, value: current2, mixed, onChange: set2, options: Array.from({ length: count0 }, function(_, i) {
+        control2 = e(Dropdown, { labelledBy: id, value: current2, mixed, onChange: set2, options: Array.from({ length: count0 }, function(_, i) {
           return { value: i, label: "Item " + (i + 1) };
         }) });
       } else if (p.kind === "number" && first.type === "Carousel" && CAROUSEL_STEPS[p.name]) {
-        control = e(Dropdown, {
+        control2 = e(Dropdown, {
           labelledBy: id,
           value: current2,
           mixed,
@@ -24613,17 +25050,17 @@
           })
         });
       } else if (p.kind === "number") {
-        control = e("input", { className: "bd-input", type: "number", "aria-labelledby": id, placeholder: mixed ? "Mixed" : "", value: current2 == null ? "" : String(current2), onChange: function(ev) {
+        control2 = e("input", { className: "bd-input", type: "number", "aria-labelledby": id, placeholder: mixed ? "Mixed" : "", value: current2 == null ? "" : String(current2), onChange: function(ev) {
           set2(ev.target.value === "" ? void 0 : Number(ev.target.value));
         } });
       } else if (p.kind === "text" || p.kind === "node" && typeof base[p.name] === "string") {
-        control = e("input", { className: "bd-input", type: "text", "aria-labelledby": id, placeholder: mixed ? "Mixed" : "", value: current2 == null ? "" : String(current2), onChange: function(ev) {
+        control2 = e("input", { className: "bd-input", type: "text", "aria-labelledby": id, placeholder: mixed ? "Mixed" : "", value: current2 == null ? "" : String(current2), onChange: function(ev) {
           set2(ev.target.value === "" ? void 0 : ev.target.value);
         } });
       } else if (p.kind === "url") {
-        control = e(LinkTo, { labelledBy: id, value: current2, mixed, pages: pagesOf(projectRef.current), pageNow: pageRef.current, onChange: set2 });
+        control2 = e(LinkTo, { labelledBy: id, value: current2, mixed, pages: pagesOf(projectRef.current), pageNow: pageRef.current, onChange: set2 });
       } else return null;
-      return e(Field, { key: p.name, id, label: label2, note: p.note }, control);
+      return e(Field, { key: p.name, id, label: label2, note: p.note }, control2);
     };
     var addToLibrary = function(kind, files) {
       var list2 = Array.prototype.slice.call(files || []);
@@ -25405,23 +25842,25 @@
           e("button", {
             key: "stretch",
             type: "button",
-            className: "bd-btn bd-btn-sm",
+            className: "bd-act bd-flex-tog",
             "aria-pressed": String(a === "stretch"),
-            title: "Children fill the cross axis",
+            "aria-label": "Stretch",
+            title: "Stretch: children fill the cross axis",
             onClick: function() {
               setFlow({ align: a === "stretch" ? "flex-start" : "stretch" });
             }
-          }, e(Icon, { name: "alignStretch" }), "Stretch"),
+          }, e(Icon, { name: "alignStretch" })),
           e("button", {
             key: "between",
             type: "button",
-            className: "bd-btn bd-btn-sm",
+            className: "bd-act bd-flex-tog",
             "aria-pressed": String(j === "space-between"),
-            title: "Spread children along the main axis",
+            "aria-label": "Space between",
+            title: "Space between: spread children along the main axis",
             onClick: function() {
               setFlow({ justify: j === "space-between" ? "flex-start" : "space-between" });
             }
-          }, e(Icon, { name: "justifyBetween" }), "Between")
+          }, e(Icon, { name: "justifyBetween" }))
         ]
       ), toggle);
     };
@@ -25920,6 +26359,9 @@
       var textValues = nodes.map(function(n) {
         return n.props.children != null ? String(n.props.children) : String(base.children || "");
       });
+      var colourProp = sameType && (TEXT_TYPES[first.type] || first.type === "Icon") ? meta.props.filter(function(p) {
+        return p.name === "tone";
+      })[0] : null;
       var contentRows = (hasText ? [e(
         Field,
         { key: "text", id: textId, label: "Text", hint: many ? null : "Double-click it on the canvas to type in place" },
@@ -25933,7 +26375,7 @@
             setProp(ids, "children", ev.target.value);
           }
         })
-      )] : []).concat(byTab("content").map(function(p) {
+      )] : []).concat(colourProp ? [propControl(Object.assign({}, colourProp, { label: "Colour" }), nodes)] : []).concat(byTab("content").map(function(p) {
         return propControl(p, nodes);
       }).filter(Boolean));
       var flex = sameType ? flexSection(nodes, meta) : null;
@@ -25952,14 +26394,18 @@
           }))
         })
       )]);
-      var styleRows = byTab("appearance").map(function(p) {
+      var styleRows = byTab("appearance").filter(function(p) {
+        return p !== colourProp;
+      }).map(function(p) {
         return propControl(p, nodes);
       }).filter(Boolean);
       var arrange2 = !meta.container && flex && flex.filter(Boolean).length ? flex : null;
       var propNames = function(t) {
-        return byTab(t).map(function(p) {
+        return byTab(t).filter(function(p) {
+          return p !== colourProp;
+        }).map(function(p) {
           return p.name;
-        }).concat(t === "content" && hasText ? ["children"] : []).concat(t === "layout" && first.type === "Grid" ? ["minColumnWidth"] : []);
+        }).concat(t === "content" && hasText ? ["children"] : []).concat(t === "content" && colourProp ? ["tone"] : []).concat(t === "layout" && first.type === "Grid" ? ["minColumnWidth"] : []);
       };
       var placedFree = frame2.mode !== "structured" && nodes.every(function(n) {
         return isFree(n.style);
@@ -25982,7 +26428,8 @@
         sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS))
       ].concat(lookSections(nodes, null));
       var folds = own.length > 0 && !placeOpen;
-      var body = own.concat(
+      var compSel = nodes.every(isComponentLayer) && own.length > 0;
+      var body = (compSel ? [e("div", { key: "props-box", className: "bd-props-box" }, own)] : own).concat(
         own.length ? [e("div", { key: "divider", className: "bd-insp-divider", role: "separator" })] : [],
         folds ? [e(
           "button",
@@ -26009,7 +26456,7 @@
       var arrangeTools = arrangeRow(nodes);
       return e(
         "div",
-        { className: "bd-inspect" },
+        { className: cx("bd-inspect", compSel && "is-comp") },
         e(
           "div",
           { className: "bd-inspect-head" },
@@ -26035,7 +26482,7 @@
                 var about = many ? sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them." : meta.blurb ? meta.blurb + "." : "";
                 if (!about) return null;
                 var href = !many && meta.href;
-                return e(href ? "a" : "span", { className: "bd-act bd-act-ghost bd-about", href: href || void 0, title: about + (href ? " Open the docs." : ""), "aria-label": href ? about + " Docs" : about, role: href ? void 0 : "img" }, e(Icon, { name: "info" }));
+                return e(href ? "a" : "span", { className: "bd-act bd-act-ghost bd-about", href: href || void 0, title: about + (href ? " Open the docs." : ""), "aria-label": href ? about + " Docs" : about, role: href ? void 0 : "img" }, e(Icon, { name: href ? "book" : "info" }));
               })(),
               e(Dropdown, {
                 menu: true,
@@ -26047,15 +26494,11 @@
                 narrow: true,
                 alignEnd: true,
                 className: "bd-dd-icon bd-layer-menu",
-                options: [!many && first.type === "Group" ? { value: "ungroup", label: "Ungroup", hint: "Ctrl+Shift+G", icon: "group" } : { value: "group", label: "Group", hint: "Ctrl+G", icon: "group" }].concat(WRAPS.filter(function(w) {
+                options: [!many && first.type === "Group" ? { value: "ungroup", label: "Ungroup", hint: "Ctrl+Shift+G", icon: "group" } : { value: "group", label: "Group", hint: "Ctrl+G", icon: "group" }].concat([{ value: "wrapAuto", label: "Wrap in auto layout", hint: "Shift+A", icon: "row" }]).concat(WRAPS.filter(function(w) {
                   return placeable == null || placeable[w];
                 }).map(function(w) {
                   return { value: "wrap:" + w, label: "Wrap in " + w, icon: typeIcon(w) };
-                })).concat(!many && CONVERTS.indexOf(first.type) >= 0 ? CONVERTS.filter(function(t) {
-                  return t !== first.type && (placeable == null || placeable[t] || t === "Group");
-                }).map(function(t) {
-                  return { value: "turn:" + t, label: "Turn into " + t, icon: typeIcon(t) };
-                }).concat([{ value: "turn:frame", label: "Turn into a frame", icon: "frame" }]) : []).concat(!many && detachable[first.type] ? [{ value: "detach", label: "Detach into primitives", icon: "detach" }] : []).concat(!many ? [{ value: "link", label: "Copy link to this layer", icon: "link" }, { value: "same", label: "Select all " + first.type + (first.type.endsWith("s") ? "" : "s"), icon: "layers2" }] : []).concat([{ value: "copyStyle", label: "Copy style", hint: "Ctrl+Alt+C", icon: "swatch" }, { value: "pasteStyle", label: "Paste style", hint: "Ctrl+Alt+V", icon: "swatch", disabled: !styleClip.current }]).concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component" }]).concat([
+                })).concat(!many && detachable[first.type] ? [{ value: "detach", label: "Detach into primitives", icon: "detach" }] : []).concat(!many ? [{ value: "link", label: "Copy link to this layer", icon: "link" }, { value: "same", label: "Select all " + first.type + (first.type.endsWith("s") ? "" : "s"), icon: "layers2" }] : []).concat([{ value: "copyStyle", label: "Copy style", hint: "Ctrl+Alt+C", icon: "swatch" }, { value: "pasteStyle", label: "Paste style", hint: "Ctrl+Alt+V", icon: "swatch", disabled: !styleClip.current }]).concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component" }]).concat([
                   { value: "hide", label: nodes.every(function(n) {
                     return n.hide;
                   }) ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: nodes.every(function(n) {
@@ -26069,9 +26512,9 @@
                 ]),
                 onChange: function(v) {
                   if (v === "group") actions2.group();
+                  else if (v === "wrapAuto") actions2.wrapAuto();
                   else if (v === "ungroup") actions2.ungroup();
                   else if (v.indexOf("wrap:") === 0) actions2.wrap(v.slice(5));
-                  else if (v.indexOf("turn:") === 0) actions2.convert(v.slice(5));
                   else if (v === "detach") actions2.detach();
                   else if (v === "link") share(first.id);
                   else if (v === "component") openComponent();
@@ -27002,7 +27445,25 @@
                 }), label: "Custom background colour", fallback: stageColor || "#e7e7ea", onChange: setStageColor })
               )
             )
-          ])
+          ]),
+          /* What the canvas shows and snaps to, the View menu's switches, here
+             too while nothing is selected. */
+          sec("builder-show", "Show", [
+            ["rulers", "Rulers", "Shift+R", !!canvasView.rulers],
+            ["guides", "Guides", "Drag one out of a ruler", !!canvasView.guides],
+            ["columns", "Layout columns", "Shift+G", !!canvasView.columns],
+            ["snapObjects", "Snap to objects", "Hold Ctrl to skip", canvasView.snapObjects !== false],
+            ["snapGuides", "Snap to guides", null, canvasView.snapGuides !== false]
+          ].map(function(r) {
+            var vid = "bd-show-" + r[0];
+            return e(
+              Field,
+              { key: r[0], id: vid, label: r[1], inline: true, note: r[2] || void 0 },
+              e(Switch2, { labelledBy: vid, value: r[3], onChange: function() {
+                toggleView(r[0]);
+              } })
+            );
+          }))
         )
       );
     };
@@ -27106,6 +27567,7 @@
       anatomyOf: onAnatomy
     };
     var onFoldFolder = useEvent(foldFolder), onRenameFolder = useEvent(renameFolder), onMoveFolder = useEvent(moveFolder), onDeleteFolder = useEvent(deleteFolder);
+    var onSetItemIcon = useEvent(setItemIcon);
     var onRenamePage = useEvent(renamePage), onOpenPage = useEvent(openPage), onDeletePage = useEvent(deletePage2), onDuplicatePage = useEvent(duplicatePage), onMovePage = useEvent(movePage), onPlacePage = useEvent(placePage);
     var onAddFolder = useEvent(addFolder), onAddPage = useEvent(addPage);
     var pagesProps = {
@@ -27130,8 +27592,12 @@
       placePage: onPlacePage,
       addFolder: onAddFolder,
       addPage: onAddPage,
+      setIcon: onSetItemIcon,
       announce
     };
+    var onInsertWith = useEvent(function(type, props2) {
+      add(type, null, props2);
+    });
     var onAddOrSwap = useEvent(function(type, swap) {
       var s0 = selRef.current;
       if (swap && s0.length) {
@@ -27170,6 +27636,7 @@
       setCategory,
       startDrag: onStartDrag,
       addOrSwap: onAddOrSwap,
+      insertWith: onInsertWith,
       addLocal: onAddLocal,
       renameComponent: onRenameComponent,
       removeComponent: onRemoveComponent,
@@ -27352,6 +27819,8 @@
                 setPlans: asApi.setPlans,
                 effort: asEffortState[0],
                 setEffort: asApi.setEffort,
+                model: asModelState[0],
+                setModel: asApi.setModel,
                 look: canLook(),
                 setLook: asApi.setLook
               }) : left === "context" ? e(ContextPanel, {
@@ -28145,6 +28614,19 @@
   }
 
   // assets/builder/main.js
+  (function fitViewport() {
+    var vv = window.visualViewport;
+    if (!vv) return;
+    var root = document.documentElement;
+    var set2 = function() {
+      root.style.setProperty("--bd-vh", Math.round(vv.height) + "px");
+    };
+    set2();
+    vv.addEventListener("resize", set2);
+    window.addEventListener("orientationchange", function() {
+      setTimeout(set2, 300);
+    });
+  })();
   if (mountEl && window.DovetailBuilderData && window.React && window.ReactDOM) {
     installTips();
     openStore().then(function(local) {

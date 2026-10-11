@@ -18,7 +18,7 @@ Use it next to text, or on its own when its meaning is clear.
 ```jsx
 <Icon name="search" />
 <Icon name="bell" size="sm" />
-<Icon name="success" label="Saved" />
+<Icon name="success" tone="success" label="Saved" />
 ```
 
 ## Sizes
@@ -43,8 +43,9 @@ Inline: it sits on the text baseline and doesn't stretch in a row. Put it inside
 Inline, list rows, Badge or Card. It takes no children.
 
 ## Tokens
-`--dt-size-icon-xs` to `--dt-size-icon-xl` for its box. Colour is `currentColor`, so it takes
-the text colour around it; set the colour on its container, never on the icon.
+`--dt-size-icon-xs` to `--dt-size-icon-xl` for its box. Colour is `currentColor` by default, so it
+takes the text colour around it. `tone` sets one of the text roles instead (`--dt-text-brand`,
+`--dt-text-success` and so on); never give an icon a raw colour.
 
 ## Accessibility
 Without `label` the icon is decorative: `aria-hidden`, and skipped by screen readers. With

@@ -137,7 +137,7 @@ var SHORTCUTS = [
     ["Spread across, down", "Shift+Alt+H, Shift+Alt+V"], ["Tidy up", "Shift+Alt+T"]]],
   ["On a freeform canvas", [["Nudge, four steps", "Arrows, Shift+Arrows"], ["Opacity 10% to 90%, opaque", "1 to 9, 0"], ["Keep proportions while resizing", "Shift-drag"],
     ["Resize from the centre", "Alt-drag"], ["Keep to one axis, once moving", "Shift"], ["Drag a copy", "Alt-drag"], ["Turn in 15° steps, while turning", "Shift"],
-    ["Move without snapping, held", "Ctrl"], ["Flip across, down", "Shift+H, Shift+V"], ["Add or remove auto layout on a group, or the frame with nothing selected", "Shift+A"]]],
+    ["Move without snapping, held", "Ctrl"], ["Flip across, down", "Shift+H, Shift+V"], ["Add or remove auto layout on a group, or the frame with nothing selected; wrap anything else in an auto layout group", "Shift+A"]]],
   ["Components", [["Swap for another", "Cmd-drag"], ["Step a heading's size", "Shift+Up, Shift+Down"]]],
 ];
 var STYLE_KEYS = Object.keys(DATA.tokens);
@@ -335,6 +335,13 @@ function remover() {
 }
 
 /* The left panel's rail: what it shows, its short name, its tip, its icon. */
+/* The models the live agent can run on: [key the cloud function takes,
+   label, what it's for]. Opus is the default. */
+var AGENT_MODELS = [
+  ["opus", "Opus", "The most capable: pages, redesigns and long changes"],
+  ["sonnet", "Sonnet", "Fast and capable, for most edits"],
+  ["haiku", "Haiku", "The quickest and lightest, for small edits"],
+];
 var RAIL = [
   ["home", "Home", "All your projects", "home"],
   ["assets", "Assets", "Primitives, variables, components, blocks and templates", "plus"],
@@ -386,4 +393,4 @@ function isContainer(type) { return type === "Root" || !!(META[type] && META[typ
 function mql(q) { return !!(window.matchMedia && window.matchMedia(q).matches); }
 function cx() { return Array.prototype.filter.call(arguments, Boolean).join(" "); }
 
-export { autoName, isComponentLayer, IS_MAC, PANELS, SHORTCUTS, VIRTUAL_AFTER, LIVE_MAX, useEvent, allSame, nodeLabel, typeIcon, isOwner, hasTitlePart, nodeIsOpen, frameSize, kbd, HEIGHT_KEYS, ROLE_FAMILIES, SIDE_KEYS, optionAllowed, roleOf, scopeOf, BACKUP_KEY, BAND_ROOT, BAND_TYPES, BUILDER_SRC, CAROUSEL_ITEMS, CAROUSEL_STEPS, CONTROL_TYPES, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KEY, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MAX_ZOOM, MEDIA_LIMIT, MEDIA_TYPES, MEDIA_URL, META, MIN_FREE, MIN_SIDE, MIN_ZOOM, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SLOT_ACCEPTS, SPACINGS, STAGE_PAD, STORE_KEY, STYLE_KEYS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, removerLoading, slotAccepts, slotSpec, slotTakes, storage, useCallback, useEffect, useMemo, useRef, useState, words };
+export { AGENT_MODELS, autoName, isComponentLayer, IS_MAC, PANELS, SHORTCUTS, VIRTUAL_AFTER, LIVE_MAX, useEvent, allSame, nodeLabel, typeIcon, isOwner, hasTitlePart, nodeIsOpen, frameSize, kbd, HEIGHT_KEYS, ROLE_FAMILIES, SIDE_KEYS, optionAllowed, roleOf, scopeOf, BACKUP_KEY, BAND_ROOT, BAND_TYPES, BUILDER_SRC, CAROUSEL_ITEMS, CAROUSEL_STEPS, CONTROL_TYPES, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KEY, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MAX_ZOOM, MEDIA_LIMIT, MEDIA_TYPES, MEDIA_URL, META, MIN_FREE, MIN_SIDE, MIN_ZOOM, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SLOT_ACCEPTS, SPACINGS, STAGE_PAD, STORE_KEY, STYLE_KEYS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, removerLoading, slotAccepts, slotSpec, slotTakes, storage, useCallback, useEffect, useMemo, useRef, useState, words };
