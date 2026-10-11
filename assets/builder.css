@@ -718,14 +718,6 @@ html.bd-configure-docked .configure-open-btn {
   justify-content: flex-start;
 }
 
-/* A frame's size, under its name. */
-.bd-frame-size-head {
-  display: flex;
-  flex-direction: column;
-  gap: var(--dt-space-stack-xs);
-  margin-top: var(--dt-space-stack-sm);
-}
-
 /* Token previews, drawn with the token. Colour swatches are rounded
    squares, with corners in proportion to the controls around them. */
 .bd-sw {

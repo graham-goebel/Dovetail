@@ -21072,6 +21072,17 @@
         return r ? { width: r.width, height: r.height } : null;
       });
     };
+    var setFramePos = function(x, y, first) {
+      var apply2 = function(d) {
+        pinFrames(d);
+        var f = active(d);
+        if (x !== void 0 && isFinite(x)) f.x = Math.round(x);
+        if (y !== void 0 && isFinite(y)) f.y = Math.round(y);
+        return void 0;
+      };
+      if (first === false) quiet(apply2);
+      else change(apply2, frame2.name + " moved");
+    };
     var setSize = function(w, h) {
       change(function(d) {
         sizeOn(active(d), w, h);
@@ -25205,7 +25216,93 @@
           )
         )
       ])];
-      var body = [
+      var at2 = { x: typeof frame2.x === "number" ? frame2.x : Math.round(b.x || 0), y: typeof frame2.y === "number" ? frame2.y : Math.round(b.y || 0) };
+      var place2 = [
+        sec("frame-position", "Position", e(
+          "div",
+          { key: "xy", className: "bd-size-row" },
+          e(NumberField, { short: "X", label: "Frame X", value: at2.x, step: 1, bigStep: 10, signed: true, onChange: function(v) {
+            setFramePos(v, void 0);
+          }, onScrub: function(v, first) {
+            setFramePos(v, void 0, first);
+          } }),
+          e(NumberField, { short: "Y", label: "Frame Y", value: at2.y, step: 1, bigStep: 10, signed: true, onChange: function(v) {
+            setFramePos(void 0, v);
+          }, onScrub: function(v, first) {
+            setFramePos(void 0, v, first);
+          } })
+        )),
+        sec("frame-size", "Size", [
+          e(Dropdown, {
+            key: "device",
+            label: "Device",
+            prefix: "Device",
+            value: preset,
+            placeholder: "Custom",
+            iconValue: true,
+            className: "bd-dd-field",
+            onChange: setPreset,
+            options: PRESETS.map(function(p) {
+              return { value: p.id, label: p.label, hint: p.width + " × " + p.height, icon: PRESET_ICON[p.id] || "desktop" };
+            })
+          }),
+          e(
+            "div",
+            { key: "wh", className: "bd-size-row" },
+            e(NumberField, { short: "W", label: "Frame width", value: frame2.width, onChange: function(v) {
+              setSize(v, void 0);
+            }, onScrub: function(v, first) {
+              setSizeLive(v, void 0, first);
+            } }),
+            e(NumberField, { short: "H", label: "Frame height", value: frame2.hug ? Math.round(b.h) : frame2.height, muted: frame2.hug, title: frame2.hug ? "Follows the content. Type a height to fix it." : void 0, onChange: function(v) {
+              setSize(void 0, v);
+            }, onScrub: function(v, first) {
+              setSizeLive(void 0, v, first);
+            } }),
+            e("button", {
+              type: "button",
+              className: "bd-act bd-act-sm",
+              "aria-pressed": String(!!frame2.lock),
+              title: frame2.lock ? "Proportions kept: width and height change together" : "Constrain proportions",
+              "aria-label": "Constrain proportions",
+              onClick: function() {
+                change(function(d) {
+                  var f = active(d);
+                  if (f.lock) delete f.lock;
+                  else {
+                    f.lock = true;
+                    if (f.hug) {
+                      f.height = side(Math.round(b.h), MAX_HEIGHT, f.height);
+                      f.hug = false;
+                    }
+                  }
+                  return void 0;
+                }, frame2.lock ? "Width and height change on their own" : "Width and height keep their proportions");
+              }
+            }, e(Icon, { name: "chain" })),
+            e("button", { type: "button", className: "bd-act bd-act-sm", title: "Swap width and height", "aria-label": "Swap width and height", onClick: function() {
+              setSize(frame2.height, frame2.width);
+            } }, e(Icon, { name: "rotate" }))
+          ),
+          e(Dropdown, {
+            key: "resize",
+            label: "Resizing",
+            prefix: "Resizing",
+            value: frame2.hug ? "hug" : "fixed",
+            className: "bd-dd-field",
+            onChange: function(v) {
+              change(function(d) {
+                var f = active(d);
+                f.hug = v === "hug";
+                if (!f.hug) f.height = side(Math.round(b.h), MAX_HEIGHT, f.height);
+                return void 0;
+              }, v === "hug" ? frame2.name + " hugs its contents" : frame2.name + " has a fixed height");
+            },
+            options: [{ value: "fixed", label: "Fixed width and height", short: "Fixed", hint: "Stays the size you set, like a device screen", icon: "fit" }, { value: "hug", label: "Hug contents", short: "Hug contents", hint: "Fixed width; the height grows with what's in it", icon: "column" }]
+          })
+        ])
+      ];
+      var body = place2.concat([
         sec("frame-mode", "Kind", e(
           Field,
           { key: "mode", id: "bd-fr-kind", label: "Frame kind", hint: frame2.mode === "structured" ? "Everything sits in auto-layout Groups, in the flow, with tokens only." : "Place things anywhere, in any colour." },
@@ -25299,7 +25396,7 @@
           )
         ]),
         frameOverflow()
-      ]);
+      ]));
       return e(
         "div",
         { className: "bd-inspect" },
@@ -25337,77 +25434,7 @@
               frameMenu(frame2, "title")
             )
           ),
-          e("p", { className: "bd-inspect-sub" }, (frame2.hug ? "Hugs its content" : "A fixed screen") + ". Select something in it to change that instead."),
-          /* A frame's size is always in view: the first thing a frame or page needs. */
-          e(
-            "div",
-            { className: "bd-frame-size-head" },
-            e(Dropdown, {
-              label: "Device",
-              prefix: "Device",
-              value: preset,
-              placeholder: "Custom",
-              iconValue: true,
-              className: "bd-dd-field",
-              onChange: setPreset,
-              options: PRESETS.map(function(p) {
-                return { value: p.id, label: p.label, hint: p.width + " × " + p.height, icon: PRESET_ICON[p.id] || "desktop" };
-              })
-            }),
-            e(
-              "div",
-              { className: "bd-size-row" },
-              e(NumberField, { short: "W", label: "Frame width", value: frame2.width, onChange: function(v) {
-                setSize(v, void 0);
-              }, onScrub: function(v, first) {
-                setSizeLive(v, void 0, first);
-              } }),
-              e(NumberField, { short: "H", label: "Frame height", value: frame2.hug ? Math.round(b.h) : frame2.height, muted: frame2.hug, title: frame2.hug ? "Follows the content. Type a height to fix it." : void 0, onChange: function(v) {
-                setSize(void 0, v);
-              }, onScrub: function(v, first) {
-                setSizeLive(void 0, v, first);
-              } }),
-              e("button", {
-                type: "button",
-                className: "bd-act bd-act-sm",
-                "aria-pressed": String(!!frame2.lock),
-                title: frame2.lock ? "Proportions kept: width and height change together" : "Constrain proportions",
-                "aria-label": "Constrain proportions",
-                onClick: function() {
-                  change(function(d) {
-                    var f = active(d);
-                    if (f.lock) delete f.lock;
-                    else {
-                      f.lock = true;
-                      if (f.hug) {
-                        f.height = side(Math.round(b.h), MAX_HEIGHT, f.height);
-                        f.hug = false;
-                      }
-                    }
-                    return void 0;
-                  }, frame2.lock ? "Width and height change on their own" : "Width and height keep their proportions");
-                }
-              }, e(Icon, { name: "chain" })),
-              e("button", { type: "button", className: "bd-act bd-act-sm", title: "Swap width and height", "aria-label": "Swap width and height", onClick: function() {
-                setSize(frame2.height, frame2.width);
-              } }, e(Icon, { name: "rotate" }))
-            ),
-            e(Dropdown, {
-              label: "Resizing",
-              prefix: "Resizing",
-              value: frame2.hug ? "hug" : "fixed",
-              className: "bd-dd-field",
-              onChange: function(v) {
-                change(function(d) {
-                  var f = active(d);
-                  f.hug = v === "hug";
-                  if (!f.hug) f.height = side(Math.round(b.h), MAX_HEIGHT, f.height);
-                  return void 0;
-                }, v === "hug" ? frame2.name + " hugs its contents" : frame2.name + " has a fixed height");
-              },
-              options: [{ value: "fixed", label: "Fixed width and height", short: "Fixed", hint: "Stays the size you set, like a device screen", icon: "fit" }, { value: "hug", label: "Hug contents", short: "Hug contents", hint: "Fixed width; the height grows with what's in it", icon: "column" }]
-            })
-          )
+          e("p", { className: "bd-inspect-sub" }, (frame2.hug ? "Hugs its content" : "A fixed screen") + ". Select something in it to change that instead.")
         ),
         e("div", { className: "bd-ipanel" }, body)
       );
@@ -26568,14 +26595,6 @@
     }, [doc2, otherUse]);
     var builderInspector = function() {
       var bid = "bd-stage-bg";
-      var onlyUsed = false;
-      var prims = DATA.groups.filter(function(g) {
-        return g.id === "layout" || g.id === "typography";
-      }).reduce(function(a, g) {
-        return a.concat(g.items);
-      }, []).filter(function(n) {
-        return (!placeable || placeable[n]) && (!onlyUsed || used.types[n]);
-      });
       return e(
         "div",
         { className: "bd-inspect" },
@@ -26615,67 +26634,11 @@
                 }), label: "Custom background colour", fallback: stageColor || "#e7e7ea", onChange: setStageColor })
               )
             )
-          ]),
-          /* Nothing selected: the primitives and styles the system offers.
-             Variables live in the left panel's Assets, with the choice of this
-             project's or all of them. */
-          sec("builder-prims", "Primitives", [
-            e("p", { key: "n", className: "bd-sec-empty" }, prims.length ? "Press one to add it to " + frame2.name + ", or drag it onto the canvas." : "None in this project yet. Show Everything to add one."),
-            e("ul", { key: "list", className: "bd-sys-list", role: "list" }, prims.map(function(n) {
-              return e("li", { key: n }, e(
-                "button",
-                {
-                  type: "button",
-                  className: "bd-sys-item bd-sys-prim",
-                  "data-type": n,
-                  title: META[n].blurb ? n + ": " + META[n].blurb : n,
-                  onPointerDown: function(ev) {
-                    startDrag(ev, { kind: "new", type: n, label: n });
-                  },
-                  onClick: function() {
-                    if (!justDragged.current) add(n);
-                  }
-                },
-                e("span", { className: "bd-sys-lead" }, e(Icon, { name: typeIcon(n) })),
-                e("span", { className: "bd-sys-name" }, n),
-                e("span", { className: "bd-sys-meta" }, META[n].blurb || "")
-              ));
-            }))
-          ]),
-          sec("builder-styles", "Styles", [
-            sysGroup("text", "Text", TEXT_STYLES.filter(function(t) {
-              return !onlyUsed || used.text[t[0]];
-            }).map(function(t) {
-              var px = pxMap["text|" + t[0]];
-              return sysRow(t[0], e("span", { className: "bd-sys-ag", style: { fontFamily: "var(--dt-text-" + t[0] + "-family)", fontWeight: "var(--dt-text-" + t[0] + "-weight)" } }, "Ag"), t[1], px != null ? Math.round(px) + "px" : "", "--dt-text-" + t[0] + "-size");
-            })),
-            sysGroup("fx", "Shadow", DATA.tokens.elevation.options.filter(function(o) {
-              return !onlyUsed || usesToken(used, "elevation", o.value);
-            }).map(function(o) {
-              return sysRow(o.value, e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + o.tokens[0] + ")" } }), "Elevation " + o.value, o.tokens[0]);
-            }))
           ])
         )
       );
     };
-    var sysRow = function(key, lead, name, meta, title) {
-      return e(
-        "li",
-        { key, className: "bd-sys-item", title: title || meta },
-        e("span", { className: "bd-sys-lead", "aria-hidden": true }, lead),
-        e("span", { className: "bd-sys-name" }, name),
-        e("span", { className: "bd-sys-meta" }, meta)
-      );
-    };
     var PADDING_KEYS = ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft"];
-    var sysGroup = function(key, label2, rows) {
-      return e(
-        "div",
-        { key, className: "bd-sys-row" },
-        e("span", { className: "bd-sys-label" }, label2),
-        rows.length ? e("ul", { className: "bd-sys-list", role: "list" }, rows) : e("p", { className: "bd-sec-empty bd-sys-none" }, "None in this project yet")
-      );
-    };
     var inspector = selectedNodes.length === 1 && selectedNodes[0].type === "Slot" ? slotInspector(selectedNodes[0]) || frameInspector() : selectedNodes.length ? nodeInspector(selectedNodes.filter(function(n) {
       return n.type !== "Slot";
     }).length ? selectedNodes.filter(function(n) {

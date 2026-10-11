@@ -1523,11 +1523,8 @@ try {
     await page.waitForFunction(() => !document.querySelector(".bd-ring") && !document.querySelector(".bd-mark-sel"), null, { timeout: 5000 }).catch(() => {});
     expect(await page.locator(".bd-ring").count() === 0 && await page.locator(".bd-mark-sel").count() === 0, "a press on the canvas lets go of the layer and the frame");
     const secs = await page.$$eval(".bd-right .bd-sec-h", (h) => h.map((x) => x.textContent.trim()));
-    expect(["Primitives", "Styles"].every((x) => secs.includes(x)) && !secs.includes("Variables") && !secs.includes("Frames"), `with nothing selected the inspector shows Primitives and Styles, and Variables only on the left, got ${secs.join(", ")}`);
-    const before = (await saved()).frames[0].root.children.length;
-    await page.locator('.bd-sys-prim[data-type="Stack"]').click();
-    await poll(async () => (await saved()).frames[0].root.children.length, (n) => n === before + 1);
-    ok(`a press on the canvas lets go of everything; the inspector then shows Primitives and Styles (sections: ${secs.join(", ")}), and a primitive adds itself`);
+    expect(secs.join() === "Canvas", `with nothing selected the inspector shows only the canvas's own settings, no Primitives, Styles or Variables, got ${secs.join(", ")}`);
+    ok(`a press on the canvas lets go of everything; the inspector then shows only the canvas's settings (sections: ${secs.join(", ")})`);
 
     await assetKind(page, "templates");
     await page.locator('.bd-tpl-card[data-template="store"] .bd-tpl-into').click();
@@ -1580,7 +1577,7 @@ try {
     await page.close();
   });
 
-  await step("v11: rows for the system, no component list on a frame, social type, any freeform size, structured auto layout, corners and shadow on demand, local components, a theater", async () => {
+  await step("v11: the system in Assets, no component list on a frame, social type, any freeform size, structured auto layout, corners and shadow on demand, local components, a theater", async () => {
     const { page } = await open({ width: 1440, height: 900 });
     const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     const findIn = (n, type) => { let hit = null; (function w(x) { (x.children || []).forEach((c) => { if (!hit && c.type === type) hit = c; w(c); }); })(n); return hit; };
@@ -1590,14 +1587,14 @@ try {
     { const sb = await stageBox(page); await page.mouse.click(sb.x + sb.width / 2, sb.y + 8); }
     await page.waitForFunction(() => /^Canvas$/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     const rows = await page.$$eval(".bd-right .bd-sys-list .bd-sys-item", (r) => r.map((x) => { const b = x.getBoundingClientRect(); return [Math.round(b.width), Math.round(b.height)]; }));
-    expect(rows.length > 10 && rows.every(([w, h]) => w > 200 && h < 56), `primitives and styles list as full-width rows, got ${rows.length} rows, first ${JSON.stringify(rows[0])}`);
+    expect(rows.length === 0, `with nothing selected the inspector lists no primitives or styles; they're in Assets, got ${rows.length} rows`);
     const kinds = await page.$$eval(".bd-asset-kinds .bd-kind", (k) => k.map((x) => Math.round(x.getBoundingClientRect().width)));
     expect(kinds.length === 6 && Math.abs(kinds[0] - kinds[1]) < 2 && await page.locator(".bd-asset-kinds .bd-kind-note").count() === 0, `the Assets kinds are two columns of icon and name, got widths ${kinds.join(", ")}`);
     await page.locator('.bd-assets [data-asset-kind="primitives"]').click();
     const prim = await page.locator('.bd-tile[data-type="Stack"]').evaluate((t) => ({ icon: !!t.querySelector(".bd-thumb.is-icon .bd-ic"), stage: !!t.querySelector(".bd-thumb-stage"), h: Math.round(t.getBoundingClientRect().height) }));
     expect(prim.icon && !prim.stage && prim.h < 120, `a primitive's tile is its icon and name, got ${JSON.stringify(prim)}`);
     await page.locator('.bd-assets [aria-label="Back to Assets"]').click();
-    ok(`the system lists as ${rows.length} rows; Assets kinds and primitives are icon-and-name tiles in two columns`);
+    ok("the Canvas panel lists no primitives or styles; Assets kinds and primitives are icon-and-name tiles in two columns");
 
     await page.locator(".bd-flabel.is-current .bd-flabel-btn").click();
     await page.waitForFunction(() => /Landing/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
@@ -3240,23 +3237,22 @@ try {
     await page.close();
   });
 
-  await step("Variables: Assets lists this project's or every variable; with nothing selected, the Canvas panel offers primitives and styles, and no Variables", async () => {
+  await step("Variables: Assets lists this project's or every variable; with nothing selected, the Canvas panel has no primitives, styles or variables", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     const clickStage = async () => {
       for (let tries = 0; tries < 4; tries++) {
         const pt = await page.evaluate(() => { const st = document.querySelector(".bd-stage").getBoundingClientRect(); for (let y = st.bottom - 20; y > st.top; y -= 30) for (let x = st.left + st.width / 2; x < st.right - 10; x += 30) { const el = document.elementFromPoint(x, y); if (el && (el.classList.contains("bd-stage") || el.classList.contains("bd-world"))) return { x, y }; } return null; });
         expect(pt, "there's empty canvas to click");
         await page.mouse.click(pt.x, pt.y);
-        if (await page.locator(".bd-sys-prim").first().waitFor({ timeout: 1500 }).then(() => true, () => false)) return;
+        if (await page.waitForFunction(() => /^Canvas$/.test(document.querySelector(".bd-inspect-title")?.textContent || ""), null, { timeout: 1500 }).then(() => true, () => false)) return;
       }
       throw new Error("a click on empty canvas should show the canvas settings");
     };
     await frame().waitForSelector('[data-bf-type="HeroBlock"]');
     await clickStage();
     expect(await page.locator('.bd-right .bd-sec[data-sec="builder-vars"]').count() === 0 && await page.locator(".bd-right .bd-seg-btn", { hasText: "In this project" }).count() === 0, "the Canvas panel has no Variables and no scope switch");
-    const prims = await page.locator(".bd-right .bd-sys-prim").count();
-    expect(prims > 3 && await page.locator('.bd-right .bd-sys-row:has(.bd-sys-label:text-is("Text")) .bd-sys-item').count() > 3, `it offers every primitive and text style, got ${prims} primitives`);
-    ok(`with nothing selected the Canvas panel offers ${prims} primitives and the text styles, with no Variables section`);
+    expect(await page.locator(".bd-right .bd-sys-prim").count() === 0 && await page.locator('.bd-right .bd-sec[data-sec="builder-styles"]').count() === 0, "and no primitives or styles: those are in Assets");
+    ok("with nothing selected the Canvas panel has its background and nothing else: no Primitives, Styles or Variables");
 
     await assetKind(page, "variables");
     const swatches = () => page.locator(".bd-vars-sec").filter({ has: page.locator('.bd-content-h:text-is("Fill")') }).locator(".bd-var").count();
@@ -5530,6 +5526,23 @@ try {
     const after = (await saved()).frames[0];
     expect(after.width > before.frames[0].width && typeof after.x === "number" && after.x < 0, `the left edge widens the frame and moves its left side, got ${after.width} at x ${after.x}`);
     ok(`a picked frame shows its four corner dots, and its left edge takes it from ${before.frames[0].width} to ${after.width} wide`);
+
+    /* A frame has Position and Size sections, as a layer does: X and Y
+       move it on the canvas, W and H size it. */
+    const x0 = await sec("frame-position").locator("input[aria-label='Frame X']").inputValue(), y0 = await sec("frame-position").locator("input[aria-label='Frame Y']").inputValue();
+    await sec("frame-position").locator("input[aria-label='Frame X']").fill("-240");
+    await sec("frame-position").locator("input[aria-label='Frame X']").press("Enter");
+    await sec("frame-position").locator("input[aria-label='Frame Y']").fill("96");
+    await sec("frame-position").locator("input[aria-label='Frame Y']").press("Enter");
+    await page.waitForFunction(() => { const f = window.__builder.doc().frames[0]; return f.x === -240 && f.y === 96; });
+    expect(await sec("frame-size").locator("input[aria-label='Frame width']").count() === 1 && await sec("frame-size").locator(".bd-dd", { hasText: "Resizing" }).count() + await sec("frame-size").locator("[aria-label*='Resizing']").count() > 0, "Size holds the device, width, height and resizing");
+    ok("a frame's Position section moves it to x -240, y 96 on the canvas; its Size section holds the device, width, height and resizing");
+    /* Back where it was, so the rest of the step finds it in view. */
+    await sec("frame-position").locator("input[aria-label='Frame X']").fill(x0);
+    await sec("frame-position").locator("input[aria-label='Frame X']").press("Enter");
+    await sec("frame-position").locator("input[aria-label='Frame Y']").fill(y0);
+    await sec("frame-position").locator("input[aria-label='Frame Y']").press("Enter");
+    await page.waitForFunction(([x, y]) => { const f = window.__builder.doc().frames[0]; return f.x === Number(x) && f.y === Number(y); }, [x0, y0]);
 
     await tab(page, "Layout");
     /* A freeform frame's auto layout is off until its Add button. */
