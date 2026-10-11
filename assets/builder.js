@@ -236,7 +236,7 @@
   META.Slot = { blurb: "A part of a component that holds other components", group: null, container: true, builder: true, href: null, props: [] };
   var SLOT_ACCEPTS = {
     actions: ["Button", "IconButton", "Link", "ButtonGroup", "Badge", "Tag", "Text", "Inline", "Stack", "Group"],
-    media: ["Image", "Video", "Figure", "AspectRatio", "Cover", "Shape", "Avatar", "Inline", "Stack", "Group"]
+    media: ["Image", "Video", "Icon", "Figure", "AspectRatio", "Cover", "Shape", "Avatar", "Inline", "Stack", "Group"]
   };
   function slotSpec(type, name) {
     var m = META[type];
@@ -365,7 +365,7 @@
       { id: "comp:Cover", label: "Cover", icon: "cover", hint: "Text over an image" },
       { id: "comp:Media", label: "Media", icon: "media", hint: "An image beside text" },
       { id: "comp:Figure", label: "Figure", icon: "figure", hint: "An image with a caption" },
-      { id: "soon:icons", label: "Icons", icon: "star", soon: true },
+      { id: "comp:Icon", label: "Icon", icon: "star", hint: "One icon from the library, 24px" },
       { id: "soon:illustrations", label: "Illustrations", icon: "squiggle", soon: true }
     ] }
   ];
@@ -620,6 +620,7 @@
     Media: "media",
     Figure: "figure",
     AspectRatio: "fit",
+    Icon: "star",
     Button: "cursor",
     IconButton: "cursor",
     ButtonGroup: "cursor",
@@ -4879,7 +4880,7 @@
         }
         parts.push(c);
       });
-      var words3 = parts.filter(function(p) {
+      var words4 = parts.filter(function(p) {
         return p.text !== void 0;
       }).map(function(p) {
         return p.text;
@@ -4897,7 +4898,7 @@
         });
         node.children = slots.concat(kids);
       } else {
-        if (words3 && node.props.children === void 0) node.props.children = words3;
+        if (words4 && node.props.children === void 0) node.props.children = words4;
         if (tags.length) {
           note(report, type + ": the elements inside it (" + tags.map(function(t) {
             return "<" + (t.made ? t.made[0].type : t.tag || "") + ">";
@@ -5244,9 +5245,9 @@
         return m;
       }).filter(Boolean);
       if (!nodes.length) return { error: "Nothing in it is a component the system has." };
-      var firstNode = nodes[0], words3 = ownText2(firstNode);
+      var firstNode = nodes[0], words4 = ownText2(firstNode);
       var where = it.at === 0 ? "first in " : it.at == null ? "last in " : "at " + (it.at + 1) + " in ";
-      return { kind: "add", title: words3 ? "“" + words3.slice(0, 40) + "”" : firstNode.type, detail: "New " + firstNode.type + (nodes.length > 1 ? " and " + (nodes.length - 1) + " more" : "") + ", " + where + what(n), ops: [{ op: "insert", parent: n.id, index: it.at, nodes }] };
+      return { kind: "add", title: words4 ? "“" + words4.slice(0, 40) + "”" : firstNode.type, detail: "New " + firstNode.type + (nodes.length > 1 ? " and " + (nodes.length - 1) + " more" : "") + ", " + where + what(n), ops: [{ op: "insert", parent: n.id, index: it.at, nodes }] };
     }
     var keys2 = Object.keys(it.set);
     var changes = [];
@@ -5333,8 +5334,8 @@
       if (it.remove) lines.push("- remove " + who);
       else if (it.add) {
         var a = it.add[0] || {};
-        var words3 = it.json ? ownText2(a) : a.text;
-        lines.push("- add " + (a.type || "Group") + (words3 ? " " + JSON.stringify(words3) : "") + " to " + who + (it.at === 0 ? ", first" : it.at == null ? "" : ", at " + it.at));
+        var words4 = it.json ? ownText2(a) : a.text;
+        lines.push("- add " + (a.type || "Group") + (words4 ? " " + JSON.stringify(words4) : "") + " to " + who + (it.at === 0 ? ", first" : it.at == null ? "" : ", at " + it.at));
       } else lines.push("- " + who + ": " + Object.keys(it.set).map(function(k) {
         return k + " " + md(unquote(String(it.set[k])).text);
       }).join(", "));
@@ -5682,12 +5683,12 @@
     })[0] || null;
   }
   function findLayouts(query, kind) {
-    var words3 = String(query || "").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+    var words4 = String(query || "").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
     return LAYOUTS.filter(function(l) {
       if (kind && l.kind !== kind) return false;
-      if (!words3.length) return true;
+      if (!words4.length) return true;
       var hay = (l.id + " " + l.kind + " " + l.name + " " + l.mood + " " + l.when).toLowerCase();
-      return words3.some(function(w) {
+      return words4.some(function(w) {
         return hay.indexOf(w) >= 0;
       });
     });
@@ -6428,11 +6429,11 @@
       }
       case "search_components": {
         var q = String(input.query || "").toLowerCase().trim();
-        var words3 = q.split(/[^a-z0-9]+/).filter(Boolean);
+        var words4 = q.split(/[^a-z0-9]+/).filter(Boolean);
         var all = Object.keys(META).filter(function(t) {
           return !META[t].builder;
         });
-        if (!words3.length) {
+        if (!words4.length) {
           var byGroup = (DATA.groups || []).map(function(g2) {
             return g2.label + ": " + g2.items.filter(function(t) {
               return META[t];
@@ -6442,7 +6443,7 @@
         }
         var scored = all.map(function(t) {
           var hay = (t + " " + (META[t].blurb || "") + " " + (META[t].group || "")).toLowerCase();
-          var sc = words3.reduce(function(a, w) {
+          var sc = words4.reduce(function(a, w) {
             return a + (t.toLowerCase() === w ? 5 : t.toLowerCase().indexOf(w) >= 0 ? 3 : hay.indexOf(w) >= 0 ? 1 : 0);
           }, 0);
           return { t, sc };
@@ -11889,6 +11890,105 @@
     );
   });
 
+  // assets/builder/ui/IconLibrary.js
+  function ds() {
+    return window.BeamMobileDesignSystem_e33121 || {};
+  }
+  function libGroups() {
+    var I = ds().Icon;
+    return I && I.groups || [];
+  }
+  function Glyph(p) {
+    var I = ds().Icon;
+    return I ? e(I, { name: p.name, size: p.size || "lg" }) : null;
+  }
+  function words2(n) {
+    return n.replace(/-/g, " ");
+  }
+  function IconGrid(p) {
+    var qState = useState("");
+    var q = qState[0].trim().toLowerCase();
+    var groups = useMemo(function() {
+      var all = libGroups();
+      if (!q) return all;
+      return all.map(function(g) {
+        var hit = g[0].toLowerCase().indexOf(q) >= 0;
+        return [g[0], hit ? g[1] : g[1].filter(function(n) {
+          return words2(n).indexOf(q) >= 0;
+        })];
+      }).filter(function(g) {
+        return g[1].length;
+      });
+    }, [q]);
+    return e(
+      "div",
+      { className: cx("bd-iconlib-grid", p.className) },
+      e("input", {
+        className: "bd-input bd-iconlib-q",
+        type: "search",
+        placeholder: "Search 320 icons",
+        "aria-label": "Search icons",
+        value: qState[0],
+        autoFocus: !!p.autoFocus,
+        onChange: function(ev) {
+          qState[1](ev.target.value);
+        }
+      }),
+      groups.length ? groups.map(function(g) {
+        return e(
+          "section",
+          { key: g[0], className: "bd-iconlib-group", "aria-label": g[0] },
+          e("h4", { className: "bd-iconlib-cat" }, g[0]),
+          e("div", { className: "bd-iconlib-cells", role: "list" }, g[1].map(function(n) {
+            return e("button", {
+              key: n,
+              type: "button",
+              role: "listitem",
+              className: cx("bd-iconlib-cell", p.current === n && "is-on"),
+              "data-icon-name": n,
+              "aria-label": words2(n),
+              "aria-pressed": p.current != null ? String(p.current === n) : void 0,
+              title: p.title ? p.title(n) : words2(n),
+              onPointerDown: p.onDrag ? function(ev) {
+                if (ev.pointerType !== "touch") p.onDrag(ev, n);
+              } : void 0,
+              onClick: function() {
+                p.onPick(n);
+              }
+            }, e(Glyph, { name: n }));
+          }))
+        );
+      }) : e("p", { className: "bd-empty-note" }, "No icons match.")
+    );
+  }
+  function IconPicker(p) {
+    var open = useState(false);
+    var name = p.value;
+    return e(
+      "div",
+      { className: "bd-iconpick" },
+      e(
+        "button",
+        {
+          type: "button",
+          className: "bd-iconpick-btn",
+          id: p.id,
+          "aria-expanded": String(open[0]),
+          title: "Swap for another icon from the library",
+          onClick: function() {
+            open[1](!open[0]);
+          }
+        },
+        e("span", { className: "bd-iconpick-glyph" }, p.mixed ? null : e(Glyph, { name: name || "star" })),
+        e("span", { className: "bd-iconpick-name" }, p.mixed ? "Mixed" : words2(name || "star")),
+        e("span", { className: "bd-iconpick-act" }, open[0] ? "Done" : "Swap")
+      ),
+      open[0] ? e(IconGrid, { current: p.mixed ? null : name, autoFocus: true, onPick: function(n) {
+        p.onChange(n);
+      } }) : null
+    );
+  }
+
   // assets/builder/app/Content.js
   var LIB_TABS = [["images", "Images", "image"], ["illustrations", "Illustrations", "squiggle"], ["icons", "Icons", "star"], ["video", "Video", "video"]];
   var WORDMARK_TONE = { primary: "brand", secondary: "brand-secondary" };
@@ -11899,6 +11999,9 @@
     var logo = b.wordmark ? { kind: "asset", src: b.wordmark, label: name, media: "image", props: { ratio: "21:9", fit: "contain", radius: "none" }, extra: { name: "Logo", style: { w: "x4" } } } : { kind: "new", type: "Heading", label: name, props: Object.assign({ children: name, size: "heading-md", balance: false }, tone ? { tone } : {}), extra: { name: "Logo" } };
     var mark = b.mark ? { kind: "asset", src: b.mark, label: name + " mark", media: "image", props: { ratio: "square", fit: "contain", radius: "none" }, extra: { name: "Brand mark", style: { w: "x2" } } } : null;
     return { logo, mark };
+  }
+  function iconPiece(n) {
+    return { kind: "new", type: "Icon", label: n.replace(/-/g, " "), props: { name: n }, extra: { name: n.replace(/-/g, " ") + " icon" } };
   }
   function brandPanel(p) {
     var b = p.brand;
@@ -12112,6 +12215,23 @@
       ),
       kind === "icons" ? e(
         "section",
+        { className: "bd-content-sec bd-dticons", "aria-labelledby": "bd-dticons-h" },
+        e("h3", { className: "bd-content-h", id: "bd-dticons-h" }, "Dovetail Icons"),
+        e("p", { className: "bd-content-note" }, "The system's own library, v1. Drag an icon onto a frame, or press it to add it at 24px; swap it later from the inspector."),
+        e(IconGrid, {
+          title: function(n) {
+            return n.replace(/-/g, " ") + ": drag onto a frame, or press to add";
+          },
+          onDrag: function(ev, n) {
+            p.startDrag(ev, iconPiece(n));
+          },
+          onPick: function(n) {
+            if (!p.justDragged.current) p.placeBrand(iconPiece(n));
+          }
+        })
+      ) : null,
+      kind === "icons" ? e(
+        "section",
         { className: "bd-content-sec", "aria-labelledby": "bd-iconlib" },
         e("h3", { className: "bd-content-h", id: "bd-iconlib" }, "Icon library"),
         e("p", { className: "bd-content-note" }, "The set every component draws its icons from, here and on every page."),
@@ -12220,7 +12340,7 @@
   var SCOPES = ["file", "project", "team"];
   var DOC_USES = ["always", "attach", "off"];
   var LIMIT = { body: 2e5, title: 120, files: 60, description: 1024 };
-  function words2(text2) {
+  function words3(text2) {
     var m = String(text2 || "").match(/\S+/g);
     return m ? m.length : 0;
   }
@@ -12672,7 +12792,7 @@
   function itemRow(p, scope, it, open) {
     var isDoc = it.kind === "doc";
     var on = isDoc ? it.use !== "off" : it.enabled;
-    var sub = isDoc ? (it.source === "uploaded" ? "Uploaded" : it.source === "generated" ? "Drafted" : "Written here") + " · " + words2(it.body) + " words" + (it.use === "attach" ? " · when attached" : "") : (it.source === "uploaded" ? "Uploaded" : "Written here") + " · " + it.files.length + (it.files.length === 1 ? " file" : " files");
+    var sub = isDoc ? (it.source === "uploaded" ? "Uploaded" : it.source === "generated" ? "Drafted" : "Written here") + " · " + words3(it.body) + " words" + (it.use === "attach" ? " · when attached" : "") : (it.source === "uploaded" ? "Uploaded" : "Written here") + " · " + it.files.length + (it.files.length === 1 ? " file" : " files");
     return e(
       "div",
       { key: it.id, className: cx("bd-cx-item", !on && "is-off"), "data-ctx": it.id },
@@ -12837,7 +12957,7 @@
       e(
         "div",
         { className: "bd-cx-foot" },
-        e("span", { className: "bd-cx-sub" }, isDoc ? words2(it.body) + " words · about " + tokens(it.body) + " tokens" : it.files.length + (it.files.length === 1 ? " file" : " files") + " · about " + tokens(it.files.map(function(f) {
+        e("span", { className: "bd-cx-sub" }, isDoc ? words3(it.body) + " words · about " + tokens(it.body) + " tokens" : it.files.length + (it.files.length === 1 ? " file" : " files") + " · about " + tokens(it.files.map(function(f) {
           return f.body;
         }).join("")) + " tokens"),
         e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
@@ -15687,7 +15807,7 @@
     };
     roots.forEach(collect);
     Object.keys(found).forEach(function(id) {
-      var f = found[id], master = f.comp.node, params = [], keys2 = {}, words3 = {};
+      var f = found[id], master = f.comp.node, params = [], keys2 = {}, words4 = {};
       f.instances.forEach(function(inst) {
         overrides(inst, master).forEach(function(o) {
           if (!o.props) return;
@@ -15697,8 +15817,8 @@
             var key = o.path + "\0" + k;
             if (keys2[key]) return;
             var w = propWord(node, k), name = w, i = 2;
-            while (words3[name] || name === "style") name = w + i++;
-            words3[name] = true;
+            while (words4[name] || name === "style") name = w + i++;
+            words4[name] = true;
             keys2[key] = name;
             params.push({ name, path: o.path, key: k, def: typeof (node.props || {})[k] === "string" ? node.props[k] : void 0 });
           });
@@ -24300,6 +24420,16 @@
           { key: p.name, id, label: label2 + (count3 ? " (" + count3 + ")" : ""), note: p.note },
           e(ListEditor, { key: first.id + p.name, id, label: label2, spec: p, value: sample, pages: pagesOf(projectRef.current), pageNow: pageRef.current, onChange: function(v) {
             setProp([first.id], p.name, v);
+          } })
+        );
+      }
+      if (p.kind === "icon") {
+        return e(
+          Field,
+          { key: p.name, id, label: "Icon", note: p.note },
+          e(IconPicker, { id, value: current2, mixed, onChange: function(v) {
+            set2(v);
+            announce("Swapped in the " + v.replace(/-/g, " ") + " icon");
           } })
         );
       }

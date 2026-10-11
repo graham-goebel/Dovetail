@@ -550,6 +550,13 @@ window.DovetailConfigure = {
     }
   },
   "icons": {
+    "dovetail": {
+      "label": "Dovetail Icons",
+      "note": "The system's own set: 320 icons, drawn for 16px and 24px, used through the Icon component.",
+      "licence": "v1 · MIT",
+      "stroke": 1.5,
+      "include": "import { Icon } from \"@dovetail-ds/react\"; // <Icon name=\"search\" />"
+    },
     "lucide": {
       "label": "Lucide",
       "note": "Dovetail's default. 24px grid, 2px stroke, round caps.",

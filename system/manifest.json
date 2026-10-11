@@ -71,6 +71,9 @@
     "components/content/Figure.d.ts",
     "components/content/Figure.jsx",
     "components/content/Figure.md",
+    "components/content/Icon.d.ts",
+    "components/content/Icon.jsx",
+    "components/content/Icon.md",
     "components/content/Image.d.ts",
     "components/content/Image.jsx",
     "components/content/Image.md",
@@ -511,6 +514,9 @@
     },
     {
       "name": "Video"
+    },
+    {
+      "name": "Icon"
     },
     {
       "name": "Media"

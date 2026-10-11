@@ -1,0 +1,68 @@
+<!-- @dsCard group="Content" height=560 name="Icon" subtitle="Icon — Dovetail Icons v1: 320 glyphs drawn for 16 and 24." -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>
+  body { margin: 0; padding: var(--dt-space-inset-lg); background: var(--dt-surface-subtle); }
+  #root { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--dt-space-inline-lg); max-width: 1000px; margin: 0 auto; align-items: start; }
+  .spec { display: flex; flex-direction: column; gap: var(--dt-space-stack-xs); }
+  .spec > h3 { margin: 0; font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-2xs); letter-spacing: var(--dt-tracking-wider); text-transform: uppercase; color: var(--dt-text-tertiary); }
+  .readout { font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-xs); color: var(--dt-text-secondary); }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--dt-space-inline-md); color: var(--dt-text-primary); }
+  .lib { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--dt-size-control-md), 1fr)); gap: var(--dt-space-inline-xs); color: var(--dt-text-secondary); }
+</style>
+<script src="../system/templates/_support/card-theme-sync.js"></script>
+
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css"><link rel="stylesheet" href="../system/tokens/contexts/type-scale.css">
+</head><body><div id="root"></div>
+<script>
+(function () {
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var e = React.createElement;
+
+  function Spec(props) {
+    return e("div", { className: "spec" }, e("h3", null, props.name), props.children);
+  }
+
+  function Page() {
+    var Icon = NS.Icon;
+    var groups = Icon.groups || [];
+    return e(
+      React.Fragment,
+      null,
+      e(Spec, { name: "Default, 24px" },
+        e("div", { className: "row" }, e(Icon, { name: "star" }), e(Icon, { name: "home" }), e(Icon, { name: "search" }), e(Icon, { name: "settings" }))
+      ),
+      e(Spec, { name: "Sizes: xs and sm draw on the 16 grid" },
+        e("div", { className: "row" }, ["xs", "sm", "md", "lg", "xl"].map(function (s) { return e(Icon, { key: s, name: "bell", size: s }); }))
+      ),
+      e(Spec, { name: "Takes its text colour" },
+        e("div", { className: "row" },
+          e("span", { style: { color: "var(--dt-text-brand)" } }, e(Icon, { name: "heart", label: "Liked" })),
+          e("span", { style: { color: "var(--dt-text-success)" } }, e(Icon, { name: "success", label: "Done" })),
+          e("span", { style: { color: "var(--dt-text-danger)" } }, e(Icon, { name: "error", label: "Failed" })))
+      ),
+      groups.slice(0, 6).map(function (g) {
+        return e(Spec, { key: g[0], name: g[0] + " (" + g[1].length + ")" },
+          e("div", { className: "lib" }, g[1].map(function (n) { return e("span", { key: n, title: n }, e(Icon, { name: n })); })));
+      })
+    );
+  }
+
+  function start() {
+    if (!NS.Icon || !window.ReactDOM) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

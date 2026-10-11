@@ -19,6 +19,7 @@ import { Pages } from "./Pages.js";
 import { Assets } from "./Assets.js";
 import { Content } from "./Content.js";
 import { ContextPanel } from "./ContextPanel.js";
+import { IconPicker } from "../ui/IconLibrary.js";
 import { addLesson, cleanItem, contextFor, contextText } from "../model/context.js";
 import { addUsage, estimateRequest, requestUsage } from "../model/tokens.js";
 import { AssistantPanel } from "./AssistantPanel.js";
@@ -6190,6 +6191,10 @@ function App(props) {
       if (!Array.isArray(sample)) return e(Field, { key: p.name, id: id, label: label, note: p.note, hint: "Its sample has parts the builder can't edit here (pictures or elements), so it keeps them." }, null);
       return e(Field, { key: p.name, id: id, label: label + (count ? " (" + count + ")" : ""), note: p.note },
         e(ListEditor, { key: first.id + p.name, id: id, label: label, spec: p, value: sample, pages: pagesOf(projectRef.current), pageNow: pageRef.current, onChange: function (v) { setProp([first.id], p.name, v); } }));
+    }
+    if (p.kind === "icon") {
+      return e(Field, { key: p.name, id: id, label: "Icon", note: p.note },
+        e(IconPicker, { id: id, value: current, mixed: mixed, onChange: function (v) { set(v); announce("Swapped in the " + v.replace(/-/g, " ") + " icon"); } }));
     }
     if (p.kind === "media") {
       var src = typeof current === "string" ? current : "";

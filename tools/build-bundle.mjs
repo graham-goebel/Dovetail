@@ -174,8 +174,38 @@ function buildTemplate(srcRel, outRel) {
   );
 }
 
+/* Dovetail Icons: the SVGs in system/assets/icons/dovetail are the source;
+   Icon.jsx carries them as data between its @icons markers, so the component
+   draws any icon without a request. Written before the bundle reads it. */
+const ICON_DIR = path.join(SYS, "assets", "icons", "dovetail");
+const ICON_SRC = path.join(SYS, "components", "content", "Icon.jsx");
+function buildIcons() {
+  const list = JSON.parse(fs.readFileSync(path.join(ICON_DIR, "manifest.json"), "utf8"));
+  const inner = (svg) => svg.slice(svg.indexOf(">", svg.indexOf("<svg")) + 1, svg.lastIndexOf("</svg>")).trim();
+  const width = (svg) => Number((svg.match(/<svg[^>]*stroke-width="([\d.]+)"/) || [])[1] || 1);
+  const rows = [];
+  const groups = [];
+  for (const { name, category } of list) {
+    const s16 = fs.readFileSync(path.join(ICON_DIR, "svg", "16", name + ".svg"), "utf8");
+    const s24 = fs.readFileSync(path.join(ICON_DIR, "svg", "24", name + ".svg"), "utf8");
+    const a = inner(s16), b = inner(s24);
+    const scaled = b === `<g transform="scale(1.5)">${a}</g>` && width(s24) === 1;
+    rows.push(`  ${JSON.stringify(name)}: [${JSON.stringify(a)}, ${scaled ? 0 : JSON.stringify(b)}, ${scaled ? 1 : width(s24)}],`);
+    const g = groups.find((x) => x[0] === category);
+    if (g) g[1].push(name); else groups.push([category, [name]]);
+  }
+  const block = `/* @icons:start */\nconst DRAWINGS = {\n${rows.join("\n")}\n};\nconst GROUPS = ${JSON.stringify(groups)};\n/* @icons:end */`;
+  const src = fs.readFileSync(ICON_SRC, "utf8");
+  const at = src.indexOf("/* @icons:start */"), end = src.indexOf("/* @icons:end */");
+  if (at < 0 || end < 0) throw new Error("Icon.jsx is missing its @icons markers");
+  return src.slice(0, at) + block + src.slice(end + "/* @icons:end */".length);
+}
+const iconText = buildIcons();
+if (!CHECK && fs.readFileSync(ICON_SRC, "utf8") !== iconText) fs.writeFileSync(ICON_SRC, iconText);
+
 const bundle = buildBundle();
 const outputs = [
+  [ICON_SRC, iconText],
   [BUNDLE, bundle.text],
   [LEGACY, bundle.text],
   [KIT_OUT, buildKit()],

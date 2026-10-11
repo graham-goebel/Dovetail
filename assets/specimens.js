@@ -289,6 +289,9 @@
     Image: function () {
       return e(NS.Image, { alt: "Ridge line above a cloud inversion", ratio: "16:9" });
     },
+    Icon: function () {
+      return e(NS.Inline, { gap: "sm", align: "center" }, ["star", "heart", "bell", "search", "settings"].map(function (n) { return e(NS.Icon, { key: n, name: n }); }));
+    },
     Video: function () {
       return e(NS.Video, { label: "Ridge line above a cloud inversion", ratio: "16:9" });
     },

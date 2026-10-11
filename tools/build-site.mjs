@@ -411,6 +411,15 @@ function iconLibraries() {
   const src = read(path.join(PREVIEWS, "MediaLab.html"));
   const libs = new Function(`return ${literal(src, "LIBS")}`)();
   return {
+    /* The system's own library, first and the default: system/assets/icons/dovetail,
+       drawn by the Icon component. */
+    dovetail: {
+      label: "Dovetail Icons",
+      note: "The system's own set: 320 icons, drawn for 16px and 24px, used through the Icon component.",
+      licence: "v1 · MIT",
+      stroke: 1.5,
+      include: `import { Icon } from "@dovetail-ds/react"; // <Icon name="search" />`,
+    },
     lucide: {
       label: libs.lucide.label,
       note: libs.lucide.note,
@@ -2942,6 +2951,8 @@ function buildBuilder() {
     /* An image or video source takes an upload or a URL, never typed CSS. */
     const media = ["Image", "Cover", "Video"].includes(c.name) ? ["src"].concat(c.name === "Video" ? ["poster"] : []) : [];
     media.forEach((name) => props.push({ name, kind: "media", options: null, default: null, note: name === "poster" ? "Shown before the video plays" : "The picture or clip", tab: "content" }));
+    /* An Icon's name is any icon in the library, picked from its grid. */
+    if (c.name === "Icon") props = props.map((p) => (p.name === "name" ? { ...p, kind: "icon", options: null, note: "Any icon in Dovetail Icons" } : p));
     /* An image's focal point, as a CSS position keyword: kept in view when
        the frame crops the picture. Never a typed length. */
     if (c.name === "Image" && /\n\s*position\?:\s*string/.test(src)) props.push({ name: "position", kind: "enum", options: IMAGE_FOCUS, default: "center", note: "Its focal point, kept in view when the frame crops it", tab: "appearance" });

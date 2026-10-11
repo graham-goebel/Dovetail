@@ -1,0 +1,1282 @@
+[
+ {
+  "name": "context",
+  "category": "AI & automation"
+ },
+ {
+  "name": "prompt",
+  "category": "AI & automation"
+ },
+ {
+  "name": "refine",
+  "category": "AI & automation"
+ },
+ {
+  "name": "workflow",
+  "category": "AI & automation"
+ },
+ {
+  "name": "check",
+  "category": "Actions"
+ },
+ {
+  "name": "clipboard",
+  "category": "Actions"
+ },
+ {
+  "name": "close",
+  "category": "Actions"
+ },
+ {
+  "name": "copy",
+  "category": "Actions"
+ },
+ {
+  "name": "download",
+  "category": "Actions"
+ },
+ {
+  "name": "duplicate",
+  "category": "Actions"
+ },
+ {
+  "name": "edit",
+  "category": "Actions"
+ },
+ {
+  "name": "external-link",
+  "category": "Actions"
+ },
+ {
+  "name": "link",
+  "category": "Actions"
+ },
+ {
+  "name": "minus",
+  "category": "Actions"
+ },
+ {
+  "name": "plus",
+  "category": "Actions"
+ },
+ {
+  "name": "redo",
+  "category": "Actions"
+ },
+ {
+  "name": "refresh",
+  "category": "Actions"
+ },
+ {
+  "name": "save",
+  "category": "Actions"
+ },
+ {
+  "name": "search",
+  "category": "Actions"
+ },
+ {
+  "name": "share",
+  "category": "Actions"
+ },
+ {
+  "name": "trash",
+  "category": "Actions"
+ },
+ {
+  "name": "undo",
+  "category": "Actions"
+ },
+ {
+  "name": "unlink",
+  "category": "Actions"
+ },
+ {
+  "name": "upload",
+  "category": "Actions"
+ },
+ {
+  "name": "award",
+  "category": "App essentials"
+ },
+ {
+  "name": "bag",
+  "category": "App essentials"
+ },
+ {
+  "name": "bell-add",
+  "category": "App essentials"
+ },
+ {
+  "name": "briefcase",
+  "category": "App essentials"
+ },
+ {
+  "name": "calendar-check",
+  "category": "App essentials"
+ },
+ {
+  "name": "calendar-clock",
+  "category": "App essentials"
+ },
+ {
+  "name": "calendar-range",
+  "category": "App essentials"
+ },
+ {
+  "name": "credit-card-add",
+  "category": "App essentials"
+ },
+ {
+  "name": "gift",
+  "category": "App essentials"
+ },
+ {
+  "name": "rocket",
+  "category": "App essentials"
+ },
+ {
+  "name": "sparkles",
+  "category": "App essentials"
+ },
+ {
+  "name": "wallet",
+  "category": "App essentials"
+ },
+ {
+  "name": "contrast",
+  "category": "Appearance"
+ },
+ {
+  "name": "corner-radius",
+  "category": "Appearance"
+ },
+ {
+  "name": "fill",
+  "category": "Appearance"
+ },
+ {
+  "name": "moon",
+  "category": "Appearance"
+ },
+ {
+  "name": "opacity",
+  "category": "Appearance"
+ },
+ {
+  "name": "stroke",
+  "category": "Appearance"
+ },
+ {
+  "name": "sun",
+  "category": "Appearance"
+ },
+ {
+  "name": "anchor",
+  "category": "Canvas"
+ },
+ {
+  "name": "crop",
+  "category": "Canvas"
+ },
+ {
+  "name": "cursor",
+  "category": "Canvas"
+ },
+ {
+  "name": "cursor-direct",
+  "category": "Canvas"
+ },
+ {
+  "name": "diamond",
+  "category": "Canvas"
+ },
+ {
+  "name": "ellipse",
+  "category": "Canvas"
+ },
+ {
+  "name": "fit-view",
+  "category": "Canvas"
+ },
+ {
+  "name": "flip-horizontal",
+  "category": "Canvas"
+ },
+ {
+  "name": "flip-vertical",
+  "category": "Canvas"
+ },
+ {
+  "name": "frame",
+  "category": "Canvas"
+ },
+ {
+  "name": "hand",
+  "category": "Canvas"
+ },
+ {
+  "name": "image",
+  "category": "Canvas"
+ },
+ {
+  "name": "line",
+  "category": "Canvas"
+ },
+ {
+  "name": "pen",
+  "category": "Canvas"
+ },
+ {
+  "name": "pencil",
+  "category": "Canvas"
+ },
+ {
+  "name": "polygon",
+  "category": "Canvas"
+ },
+ {
+  "name": "rectangle",
+  "category": "Canvas"
+ },
+ {
+  "name": "rotate",
+  "category": "Canvas"
+ },
+ {
+  "name": "ruler",
+  "category": "Canvas"
+ },
+ {
+  "name": "star",
+  "category": "Canvas"
+ },
+ {
+  "name": "text",
+  "category": "Canvas"
+ },
+ {
+  "name": "triangle",
+  "category": "Canvas"
+ },
+ {
+  "name": "zoom-in",
+  "category": "Canvas"
+ },
+ {
+  "name": "zoom-out",
+  "category": "Canvas"
+ },
+ {
+  "name": "aspect-ratio",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "bezier",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "boolean-exclude",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "boolean-intersect",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "boolean-subtract",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "boolean-union",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "constraints",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "eraser",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "eyedropper",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "gradient",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "guides",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "height",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "layout-board",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "layout-footer",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "layout-header",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "layout-masonry",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "layout-split",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "layout-three",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "mask",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "node-add",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "node-remove",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "paintbrush",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "palette",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "path",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "position-absolute",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "position-fixed",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "rotate-clockwise",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "snap",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "width",
+  "category": "Canvas & layout"
+ },
+ {
+  "name": "cart",
+  "category": "Commerce"
+ },
+ {
+  "name": "payment",
+  "category": "Commerce"
+ },
+ {
+  "name": "product",
+  "category": "Commerce"
+ },
+ {
+  "name": "receipt",
+  "category": "Commerce"
+ },
+ {
+  "name": "at",
+  "category": "Communication"
+ },
+ {
+  "name": "bell",
+  "category": "Communication"
+ },
+ {
+  "name": "chat",
+  "category": "Communication"
+ },
+ {
+  "name": "comment",
+  "category": "Communication"
+ },
+ {
+  "name": "mail",
+  "category": "Communication"
+ },
+ {
+  "name": "notification-off",
+  "category": "Communication"
+ },
+ {
+  "name": "send",
+  "category": "Communication"
+ },
+ {
+  "name": "audio",
+  "category": "Content"
+ },
+ {
+  "name": "collection",
+  "category": "Content"
+ },
+ {
+  "name": "document",
+  "category": "Content"
+ },
+ {
+  "name": "video",
+  "category": "Content"
+ },
+ {
+  "name": "braces",
+  "category": "Data & tools"
+ },
+ {
+  "name": "brackets",
+  "category": "Data & tools"
+ },
+ {
+  "name": "branch",
+  "category": "Data & tools"
+ },
+ {
+  "name": "chart-area",
+  "category": "Data & tools"
+ },
+ {
+  "name": "chart-bar",
+  "category": "Data & tools"
+ },
+ {
+  "name": "chart-line",
+  "category": "Data & tools"
+ },
+ {
+  "name": "chart-pie",
+  "category": "Data & tools"
+ },
+ {
+  "name": "commit",
+  "category": "Data & tools"
+ },
+ {
+  "name": "compass",
+  "category": "Data & tools"
+ },
+ {
+  "name": "data-rows",
+  "category": "Data & tools"
+ },
+ {
+  "name": "drag-handle",
+  "category": "Data & tools"
+ },
+ {
+  "name": "flag",
+  "category": "Data & tools"
+ },
+ {
+  "name": "location-arrow",
+  "category": "Data & tools"
+ },
+ {
+  "name": "merge",
+  "category": "Data & tools"
+ },
+ {
+  "name": "pin-board",
+  "category": "Data & tools"
+ },
+ {
+  "name": "plug",
+  "category": "Data & tools"
+ },
+ {
+  "name": "power",
+  "category": "Data & tools"
+ },
+ {
+  "name": "pull-request",
+  "category": "Data & tools"
+ },
+ {
+  "name": "server",
+  "category": "Data & tools"
+ },
+ {
+  "name": "settings",
+  "category": "Data & tools"
+ },
+ {
+  "name": "table",
+  "category": "Data & tools"
+ },
+ {
+  "name": "trend-down",
+  "category": "Data & tools"
+ },
+ {
+  "name": "trend-up",
+  "category": "Data & tools"
+ },
+ {
+  "name": "wifi",
+  "category": "Data & tools"
+ },
+ {
+  "name": "code",
+  "category": "Devices"
+ },
+ {
+  "name": "desktop",
+  "category": "Devices"
+ },
+ {
+  "name": "laptop",
+  "category": "Devices"
+ },
+ {
+  "name": "phone",
+  "category": "Devices"
+ },
+ {
+  "name": "tablet",
+  "category": "Devices"
+ },
+ {
+  "name": "terminal",
+  "category": "Devices"
+ },
+ {
+  "name": "bookmark",
+  "category": "Everyday"
+ },
+ {
+  "name": "coffee",
+  "category": "Everyday"
+ },
+ {
+  "name": "filter",
+  "category": "Everyday"
+ },
+ {
+  "name": "globe",
+  "category": "Everyday"
+ },
+ {
+  "name": "heart",
+  "category": "Everyday"
+ },
+ {
+  "name": "key",
+  "category": "Everyday"
+ },
+ {
+  "name": "pin",
+  "category": "Everyday"
+ },
+ {
+  "name": "shield",
+  "category": "Everyday"
+ },
+ {
+  "name": "sort",
+  "category": "Everyday"
+ },
+ {
+  "name": "tag",
+  "category": "Everyday"
+ },
+ {
+  "name": "archive",
+  "category": "Files"
+ },
+ {
+  "name": "cloud",
+  "category": "Files"
+ },
+ {
+  "name": "database",
+  "category": "Files"
+ },
+ {
+  "name": "file",
+  "category": "Files"
+ },
+ {
+  "name": "file-add",
+  "category": "Files"
+ },
+ {
+  "name": "file-audio",
+  "category": "Files"
+ },
+ {
+  "name": "file-chart",
+  "category": "Files"
+ },
+ {
+  "name": "file-check",
+  "category": "Files"
+ },
+ {
+  "name": "file-close",
+  "category": "Files"
+ },
+ {
+  "name": "file-code",
+  "category": "Files"
+ },
+ {
+  "name": "file-download",
+  "category": "Files"
+ },
+ {
+  "name": "file-image",
+  "category": "Files"
+ },
+ {
+  "name": "file-lock",
+  "category": "Files"
+ },
+ {
+  "name": "file-remove",
+  "category": "Files"
+ },
+ {
+  "name": "file-search",
+  "category": "Files"
+ },
+ {
+  "name": "file-settings",
+  "category": "Files"
+ },
+ {
+  "name": "file-table",
+  "category": "Files"
+ },
+ {
+  "name": "file-text",
+  "category": "Files"
+ },
+ {
+  "name": "file-upload",
+  "category": "Files"
+ },
+ {
+  "name": "file-video",
+  "category": "Files"
+ },
+ {
+  "name": "file-zip",
+  "category": "Files"
+ },
+ {
+  "name": "folder",
+  "category": "Files"
+ },
+ {
+  "name": "folder-add",
+  "category": "Files"
+ },
+ {
+  "name": "folder-check",
+  "category": "Files"
+ },
+ {
+  "name": "folder-close",
+  "category": "Files"
+ },
+ {
+  "name": "folder-download",
+  "category": "Files"
+ },
+ {
+  "name": "folder-lock",
+  "category": "Files"
+ },
+ {
+  "name": "folder-open",
+  "category": "Files"
+ },
+ {
+  "name": "folder-remove",
+  "category": "Files"
+ },
+ {
+  "name": "folder-search",
+  "category": "Files"
+ },
+ {
+  "name": "folder-upload",
+  "category": "Files"
+ },
+ {
+  "name": "image-add",
+  "category": "Files"
+ },
+ {
+  "name": "checkbox",
+  "category": "Forms"
+ },
+ {
+  "name": "checkbox-empty",
+  "category": "Forms"
+ },
+ {
+  "name": "checkbox-mixed",
+  "category": "Forms"
+ },
+ {
+  "name": "cursor-text",
+  "category": "Forms"
+ },
+ {
+  "name": "form",
+  "category": "Forms"
+ },
+ {
+  "name": "input",
+  "category": "Forms"
+ },
+ {
+  "name": "keyboard",
+  "category": "Forms"
+ },
+ {
+  "name": "number-input",
+  "category": "Forms"
+ },
+ {
+  "name": "password",
+  "category": "Forms"
+ },
+ {
+  "name": "radio",
+  "category": "Forms"
+ },
+ {
+  "name": "radio-empty",
+  "category": "Forms"
+ },
+ {
+  "name": "select",
+  "category": "Forms"
+ },
+ {
+  "name": "slider",
+  "category": "Forms"
+ },
+ {
+  "name": "stepper",
+  "category": "Forms"
+ },
+ {
+  "name": "toggle-off",
+  "category": "Forms"
+ },
+ {
+  "name": "toggle-on",
+  "category": "Forms"
+ },
+ {
+  "name": "bring-front",
+  "category": "Layers"
+ },
+ {
+  "name": "component",
+  "category": "Layers"
+ },
+ {
+  "name": "component-set",
+  "category": "Layers"
+ },
+ {
+  "name": "eye",
+  "category": "Layers"
+ },
+ {
+  "name": "eye-off",
+  "category": "Layers"
+ },
+ {
+  "name": "group",
+  "category": "Layers"
+ },
+ {
+  "name": "layers",
+  "category": "Layers"
+ },
+ {
+  "name": "lock",
+  "category": "Layers"
+ },
+ {
+  "name": "send-back",
+  "category": "Layers"
+ },
+ {
+  "name": "ungroup",
+  "category": "Layers"
+ },
+ {
+  "name": "unlock",
+  "category": "Layers"
+ },
+ {
+  "name": "align-bottom",
+  "category": "Layout"
+ },
+ {
+  "name": "align-center",
+  "category": "Layout"
+ },
+ {
+  "name": "align-left",
+  "category": "Layout"
+ },
+ {
+  "name": "align-middle",
+  "category": "Layout"
+ },
+ {
+  "name": "align-right",
+  "category": "Layout"
+ },
+ {
+  "name": "align-top",
+  "category": "Layout"
+ },
+ {
+  "name": "columns",
+  "category": "Layout"
+ },
+ {
+  "name": "distribute-horizontal",
+  "category": "Layout"
+ },
+ {
+  "name": "distribute-vertical",
+  "category": "Layout"
+ },
+ {
+  "name": "gap-horizontal",
+  "category": "Layout"
+ },
+ {
+  "name": "gap-vertical",
+  "category": "Layout"
+ },
+ {
+  "name": "padding",
+  "category": "Layout"
+ },
+ {
+  "name": "rows",
+  "category": "Layout"
+ },
+ {
+  "name": "stack-horizontal",
+  "category": "Layout"
+ },
+ {
+  "name": "stack-vertical",
+  "category": "Layout"
+ },
+ {
+  "name": "wrap",
+  "category": "Layout"
+ },
+ {
+  "name": "camera",
+  "category": "Media"
+ },
+ {
+  "name": "headphones",
+  "category": "Media"
+ },
+ {
+  "name": "microphone",
+  "category": "Media"
+ },
+ {
+  "name": "microphone-off",
+  "category": "Media"
+ },
+ {
+  "name": "mute",
+  "category": "Media"
+ },
+ {
+  "name": "pause",
+  "category": "Media"
+ },
+ {
+  "name": "play",
+  "category": "Media"
+ },
+ {
+  "name": "repeat",
+  "category": "Media"
+ },
+ {
+  "name": "shuffle",
+  "category": "Media"
+ },
+ {
+  "name": "skip-next",
+  "category": "Media"
+ },
+ {
+  "name": "skip-previous",
+  "category": "Media"
+ },
+ {
+  "name": "stop",
+  "category": "Media"
+ },
+ {
+  "name": "volume",
+  "category": "Media"
+ },
+ {
+  "name": "volume-low",
+  "category": "Media"
+ },
+ {
+  "name": "arrow-circle-down",
+  "category": "Navigation"
+ },
+ {
+  "name": "arrow-circle-left",
+  "category": "Navigation"
+ },
+ {
+  "name": "arrow-circle-right",
+  "category": "Navigation"
+ },
+ {
+  "name": "arrow-circle-up",
+  "category": "Navigation"
+ },
+ {
+  "name": "arrow-down",
+  "category": "Navigation"
+ },
+ {
+  "name": "arrow-down-left",
+  "category": "Navigation"
+ },
+ {
+  "name": "arrow-down-right",
+  "category": "Navigation"
+ },
+ {
+  "name": "arrow-left",
+  "category": "Navigation"
+ },
+ {
+  "name": "arrow-left-right",
+  "category": "Navigation"
+ },
+ {
+  "name": "arrow-right",
+  "category": "Navigation"
+ },
+ {
+  "name": "arrow-up",
+  "category": "Navigation"
+ },
+ {
+  "name": "arrow-up-down",
+  "category": "Navigation"
+ },
+ {
+  "name": "arrow-up-left",
+  "category": "Navigation"
+ },
+ {
+  "name": "arrow-up-right",
+  "category": "Navigation"
+ },
+ {
+  "name": "chevron-down",
+  "category": "Navigation"
+ },
+ {
+  "name": "chevron-left",
+  "category": "Navigation"
+ },
+ {
+  "name": "chevron-right",
+  "category": "Navigation"
+ },
+ {
+  "name": "chevron-up",
+  "category": "Navigation"
+ },
+ {
+  "name": "chevrons-down",
+  "category": "Navigation"
+ },
+ {
+  "name": "chevrons-left",
+  "category": "Navigation"
+ },
+ {
+  "name": "chevrons-right",
+  "category": "Navigation"
+ },
+ {
+  "name": "chevrons-up",
+  "category": "Navigation"
+ },
+ {
+  "name": "collapse",
+  "category": "Navigation"
+ },
+ {
+  "name": "dashboard",
+  "category": "Navigation"
+ },
+ {
+  "name": "enter",
+  "category": "Navigation"
+ },
+ {
+  "name": "exit",
+  "category": "Navigation"
+ },
+ {
+  "name": "expand",
+  "category": "Navigation"
+ },
+ {
+  "name": "grid",
+  "category": "Navigation"
+ },
+ {
+  "name": "home",
+  "category": "Navigation"
+ },
+ {
+  "name": "list",
+  "category": "Navigation"
+ },
+ {
+  "name": "log-in",
+  "category": "Navigation"
+ },
+ {
+  "name": "menu",
+  "category": "Navigation"
+ },
+ {
+  "name": "more-horizontal",
+  "category": "Navigation"
+ },
+ {
+  "name": "more-vertical",
+  "category": "Navigation"
+ },
+ {
+  "name": "move",
+  "category": "Navigation"
+ },
+ {
+  "name": "panel-bottom",
+  "category": "Navigation"
+ },
+ {
+  "name": "sidebar-left",
+  "category": "Navigation"
+ },
+ {
+  "name": "sidebar-right",
+  "category": "Navigation"
+ },
+ {
+  "name": "book",
+  "category": "Objects"
+ },
+ {
+  "name": "building",
+  "category": "Objects"
+ },
+ {
+  "name": "light",
+  "category": "Objects"
+ },
+ {
+  "name": "plant",
+  "category": "Objects"
+ },
+ {
+  "name": "handoff",
+  "category": "People"
+ },
+ {
+  "name": "invite",
+  "category": "People"
+ },
+ {
+  "name": "person",
+  "category": "People"
+ },
+ {
+  "name": "person-add",
+  "category": "People"
+ },
+ {
+  "name": "person-check",
+  "category": "People"
+ },
+ {
+  "name": "person-close",
+  "category": "People"
+ },
+ {
+  "name": "person-lock",
+  "category": "People"
+ },
+ {
+  "name": "person-remove",
+  "category": "People"
+ },
+ {
+  "name": "person-search",
+  "category": "People"
+ },
+ {
+  "name": "team",
+  "category": "People"
+ },
+ {
+  "name": "calendar",
+  "category": "Projects"
+ },
+ {
+  "name": "milestone",
+  "category": "Projects"
+ },
+ {
+  "name": "project",
+  "category": "Projects"
+ },
+ {
+  "name": "workspace",
+  "category": "Projects"
+ },
+ {
+  "name": "clock",
+  "category": "Status"
+ },
+ {
+  "name": "error",
+  "category": "Status"
+ },
+ {
+  "name": "help",
+  "category": "Status"
+ },
+ {
+  "name": "history",
+  "category": "Status"
+ },
+ {
+  "name": "info",
+  "category": "Status"
+ },
+ {
+  "name": "loading",
+  "category": "Status"
+ },
+ {
+  "name": "success",
+  "category": "Status"
+ },
+ {
+  "name": "warning",
+  "category": "Status"
+ },
+ {
+  "name": "bold",
+  "category": "Typography"
+ },
+ {
+  "name": "heading",
+  "category": "Typography"
+ },
+ {
+  "name": "indent-decrease",
+  "category": "Typography"
+ },
+ {
+  "name": "indent-increase",
+  "category": "Typography"
+ },
+ {
+  "name": "italic",
+  "category": "Typography"
+ },
+ {
+  "name": "letter-spacing",
+  "category": "Typography"
+ },
+ {
+  "name": "line-height",
+  "category": "Typography"
+ },
+ {
+  "name": "paragraph",
+  "category": "Typography"
+ },
+ {
+  "name": "quote",
+  "category": "Typography"
+ },
+ {
+  "name": "strikethrough",
+  "category": "Typography"
+ },
+ {
+  "name": "text-align-center",
+  "category": "Typography"
+ },
+ {
+  "name": "text-align-left",
+  "category": "Typography"
+ },
+ {
+  "name": "text-align-right",
+  "category": "Typography"
+ },
+ {
+  "name": "text-justify",
+  "category": "Typography"
+ },
+ {
+  "name": "text-size",
+  "category": "Typography"
+ },
+ {
+  "name": "underline",
+  "category": "Typography"
+ }
+]
