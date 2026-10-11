@@ -7,7 +7,7 @@
 
 import { cx, e, useEffect, useRef, useState } from "../config.js";
 import { Icon } from "../ui/icons.js";
-import { Segmented, Switch } from "../ui/parts.js";
+import { Switch } from "../ui/parts.js";
 import { senderOf } from "../model/threads.js";
 import { mdBlocks, mdInline } from "../model/markdown.js";
 import { shortCount, threadUsage, totalOf, usageDetail, usageLabel } from "../model/tokens.js";
@@ -221,12 +221,12 @@ function AsMenu(p) {
       e(Switch, { value: value, onChange: onChange, labelledBy: id }));
   };
   return e("div", { className: "bd-as-menu", ref: ref },
-    e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-menu-btn", "aria-label": "Assistant settings", "aria-expanded": open, "aria-haspopup": "true", onClick: function () { setOpen(!open); } }, e(Icon, { name: "more" })),
-    open ? e("div", { className: "bd-as-pop", role: "group", "aria-label": "Assistant settings" },
+    e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-menu-btn", "aria-label": "Agent settings", "aria-expanded": open, "aria-haspopup": "true", onClick: function () { setOpen(!open); } }, e(Icon, { name: "more" })),
+    open ? e("div", { className: "bd-as-pop", role: "group", "aria-label": "Agent settings" },
       /* Live or practice: live sends requests to the model through the cloud
          and needs a signed-in person; practice answers from a script here. */
       e("div", { className: cx("bd-as-mrow", !p.canLive && "is-off") },
-        e("span", { className: "bd-as-mrow-t" }, e("b", { id: "bd-as-m-live" }, "Live assistant"),
+        e("span", { className: "bd-as-mrow-t" }, e("b", { id: "bd-as-m-live" }, "Live agent"),
           e("span", null, p.canLive ? "On once you're signed in: each request goes to the model through the cloud, on the account's usage. Off, a script in this browser answers, free." : p.cloudOn ? "Sign in to send requests to the model. Until then a script in this browser answers." : "Needs the cloud connected. A script in this browser answers.")),
         p.cloudOn && !p.canLive ? e("button", { type: "button", className: "bd-as-mbtn bd-as-msign", onClick: function () { setOpen(false); p.signIn(); } }, e(Icon, { name: "user" }), "Sign in")
           : e(Switch, { value: p.mode === "live", onChange: function (v) { p.setMode(v ? "live" : "practice"); }, labelledBy: "bd-as-m-live", disabled: !p.canLive })),
@@ -298,7 +298,7 @@ function AssistantPanel(p) {
   var hasFiles = function (ev) { var ty = ev.dataTransfer && ev.dataTransfer.types; return !!ty && Array.prototype.indexOf.call(ty, "Files") >= 0; };
   return e("div", { className: "bd-as" },
     e("div", { className: "bd-as-head" },
-      e("span", { className: "bd-as-title" }, "Assistant"),
+      e("span", { className: "bd-as-title" }, "Agent"),
       p.mode === "practice" ? e("span", { className: "bd-as-badge", title: "Answers come from a script in this browser; nothing is sent or charged" }, "Practice")
         : e("span", { className: "bd-as-badge is-live", title: "Requests go to the model through the cloud, on the account's usage" }, "Live"),
       e("button", { type: "button", className: cx("bd-act bd-act-ghost", p.view === "list" && "is-on"), title: p.view === "list" ? "Back to the conversation" : "Conversations", "aria-label": "Conversations", "aria-pressed": p.view === "list", onClick: function () { p.showList(p.view !== "list"); } }, e(Icon, { name: "list" })),
@@ -356,22 +356,24 @@ function AssistantPanel(p) {
             e("button", { type: "button", "aria-label": "Leave out " + d.title, onClick: function () { p.dropDoc(d.id); } }, "×"));
         }),
         p.skills.map(function (s) { return e("span", { key: s.id, className: "bd-as-chip is-skill", title: s.description }, e(Icon, { name: "bolt" }), s.name); })),
-      e("textarea", { className: "bd-as-input", rows: 2, value: p.draft, placeholder: p.waiting ? "Answer the question, or pick an option…" : p.busy ? "Add a note while it works…" : (p.pics || []).length ? "Say what to build from the picture, or send it as it is…" : "Ask for a change, describe a new page, or paste a picture…", "aria-label": p.busy ? "Add a note for the assistant" : "Message the assistant",
+      e("textarea", { className: "bd-as-input", rows: 2, value: p.draft, placeholder: p.waiting ? "Answer the question, or pick an option…" : p.busy ? "Add a note while it works…" : (p.pics || []).length ? "Say what to build from the picture, or send it as it is…" : "Ask for a change, describe a new page, or paste a picture…", "aria-label": p.busy ? "Add a note for the agent" : "Message the agent",
         onChange: function (ev) { p.setDraft(ev.target.value); },
         onKeyDown: function (ev) { if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); send(); } },
         onPaste: function (ev) { var cd = ev.clipboardData; if (cd && cd.files && cd.files.length && p.addPictures(cd.files)) ev.preventDefault(); } }),
       e("input", { ref: fileRef, type: "file", accept: "image/png,image/jpeg,image/webp,image/gif", multiple: true, hidden: true, tabIndex: -1, "aria-hidden": "true",
         onChange: function (ev) { p.addPictures(ev.target.files); ev.target.value = ""; } }),
       e("div", { className: "bd-as-bar" },
-        e(Segmented, { label: "What it may change", value: p.reach, onChange: function (v) { if (v) p.setReach(v); },
-          options: [{ value: "selection", label: "Selection" }, { value: "page", label: "Page" }] }),
-        e(Segmented, { label: "How hard it thinks", value: p.effort, onChange: function (v) { if (v) p.setEffort(v); },
-          options: [{ value: "low", label: "Quick", title: "Quicker, for small edits" }, { value: "high", label: "Careful", title: "Thinks it through, for pages and redesigns" }] }),
+        e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-toggle bd-as-reach", "aria-label": "Whole page", "aria-pressed": String(p.reach === "page"),
+          title: p.reach === "page" ? "May change the whole page: press to keep it to the selection" : "Changes the selection only: press to let it change the whole page",
+          onClick: function () { p.setReach(p.reach === "page" ? "selection" : "page"); } }, e(Icon, { name: p.reach === "page" ? "file" : "cursor" })),
+        e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-toggle bd-as-effort", "aria-label": "Think it through", "aria-pressed": String(p.effort !== "low"),
+          title: p.effort !== "low" ? "Careful: thinks it through, for pages and redesigns. Press for quick" : "Quick: for small edits. Press to think it through",
+          onClick: function () { p.setEffort(p.effort !== "low" ? "low" : "high"); } }, e(Icon, { name: p.effort !== "low" ? "bulb" : "bolt" })),
         e("span", { className: "bd-as-sp" }),
         e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-attach", "aria-label": "Attach a picture", title: "Attach a picture to build from (or paste or drop one)", disabled: (p.pics || []).length >= 3, onClick: function () { if (fileRef.current) fileRef.current.click(); } }, e(Icon, { name: "image" })),
-        p.busy && p.draft.trim() ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Add the note", onClick: send }, e(Icon, { name: "up" }))
+        p.busy && p.draft.trim() ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Add the note", onClick: send }, e(Icon, { name: "send" }))
           : p.busy ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Stop", onClick: p.stop }, e(Icon, { name: "close" }))
-          : e("button", { type: "button", className: "bd-as-send", "aria-label": "Send", disabled: !p.draft.trim() && !(p.pics || []).length, onClick: send }, e(Icon, { name: "up" })))));
+          : e("button", { type: "button", className: "bd-as-send", "aria-label": "Send", disabled: !p.draft.trim() && !(p.pics || []).length, onClick: send }, e(Icon, { name: "send" })))));
 }
 
 export { AssistantPanel };

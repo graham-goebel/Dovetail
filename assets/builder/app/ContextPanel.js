@@ -149,6 +149,7 @@ function ContextPanel(p) {
   var shown = function (it) { return (filter === "all" || (filter === "docs" ? it.kind === "doc" : it.kind === "skill")) && (!p.query || (it.title || it.name || "").toLowerCase().indexOf(p.query.toLowerCase()) >= 0); };
   return e("div", { className: "bd-cx", onDragOver: function (ev) { if (ev.dataTransfer && Array.prototype.indexOf.call(ev.dataTransfer.types || [], "Files") >= 0) ev.preventDefault(); },
     onDrop: function (ev) { if (ev.dataTransfer && ev.dataTransfer.files.length) { ev.preventDefault(); take(ev.dataTransfer.files); } } },
+    e("div", { className: "bd-panel-head bd-panel-top" }, e("h2", { className: "bd-panel-title" }, "Context")),
     e("div", { className: "bd-cx-top" },
       e(Segmented, { label: "Show", wide: true, value: filter, onChange: function (v) { if (v) setFilter(v); },
         options: [{ value: "all", label: "All" }, { value: "docs", label: "Docs" }, { value: "skills", label: "Skills" }] })),

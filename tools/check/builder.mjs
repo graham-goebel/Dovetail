@@ -196,6 +196,9 @@ async function open(viewport, { hash = "", store = null, before = null, playgrou
      makes has a step of its own. The script runs before every load, so it
      outlasts the clear below. */
   if (!playground) await page.context().addInitScript(() => { try { if (!localStorage.getItem("dovetail-builder-playground")) localStorage.setItem("dovetail-builder-playground", "1"); } catch (err) { /* no storage */ } });
+  /* Placement starts open, so steps find Position, Size and the looks
+     where they were; the folding has a step of its own. */
+  await page.context().addInitScript(() => { try { if (!localStorage.getItem("dovetail-builder-place")) localStorage.setItem("dovetail-builder-place", "open"); } catch (err) { /* no storage */ } });
   /* The checks test the Builder, not the cloud it ships pointed at: the
      cloud is off unless a step's `before` points it at a stand-in (a later
      init script wins). */
@@ -429,9 +432,15 @@ try {
     await page.mouse.click(at.x, at.y);
     await page.waitForFunction(() => /Heading/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     const secs = await page.locator(".bd-ipanel > .bd-sec").evaluateAll((els) => els.map((el) => el.dataset.sec));
-    expect(!(await page.locator('.bd-right [role="tablist"]').count()) && secs[0] === "position" && secs[1] === "size" && ["content", "fill", "border", "spacing"].every((k) => secs.includes(k)), `the inspector is one panel, position and size first, then content and looks, got ${secs.join(",")}`);
+    expect(!(await page.locator('.bd-right [role="tablist"]').count()) && secs.indexOf("content") < secs.indexOf("position") && secs.indexOf("size") === secs.indexOf("position") + 1 && ["content", "fill", "border", "spacing"].every((k) => secs.includes(k)), `the inspector is one panel, its own properties first, then position, size and looks, got ${secs.join(",")}`);
+    await page.locator(".bd-place-sum.is-open").click();
+    const folded = await page.locator(".bd-ipanel > .bd-sec").evaluateAll((els) => els.map((el) => el.dataset.sec));
+    expect(folded.includes("content") && !folded.includes("position") && !folded.includes("fill") && /\S/.test(await page.locator(".bd-place-sum .bd-place-sum-t").textContent()), `folded, placement is one summary line under the Heading's own properties, got ${folded.join(",")}`);
+    expect((await page.evaluate(() => localStorage.getItem("dovetail-builder-place"))) === "folded", "the fold is remembered");
+    await page.locator(".bd-place-sum").click();
+    await page.locator('.bd-ipanel > .bd-sec[data-sec="position"]').waitFor();
     expect(await page.locator(".bd-ipanel .bd-field-label", { hasText: /^Text$/ }).count() === 1, "the Text field is in it");
-    expect(secs.indexOf("spacing") < secs.indexOf("content") && secs.indexOf("content") < secs.indexOf("fill") && await page.locator('.bd-ipanel .bd-sec[data-sec="spacing"].is-closed').count() === 1, "spacing sits with the layout group above Content, folded while nothing in it is set");
+    expect(secs.indexOf("size") < secs.indexOf("spacing") && secs.indexOf("spacing") < secs.indexOf("fill") && await page.locator('.bd-ipanel .bd-sec[data-sec="spacing"].is-closed').count() === 1, "spacing sits with placement after Size, folded while nothing in it is set");
     expect(await page.locator(".bd-inspect-head .bd-head-actions > :not(.bd-about)").count() === 1, "the head has one menu beside the name, not a row of buttons");
     await page.locator(".bd-inspect-head .bd-layer-menu").click();
     const actions = await page.locator(".bd-dd-opt .bd-dd-opt-label").allTextContents();
@@ -822,8 +831,8 @@ try {
     await page.mouse.up();
     await frame().waitForSelector('[data-bf-type="Image"]', { timeout: 4000 }).catch(() => { throw new Error("an Image dropped from its tray doesn't land on the frame"); });
     await page.waitForFunction(() => /Image/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect(await current() === "position", `an Image's inspector starts with where it is, got ${await current()}`);
-    ok("an Image dragged from its tray lands on the frame, selected, with its position at the top of the inspector");
+    expect(await current() === "content" && await page.locator('.bd-ipanel > .bd-sec[data-sec="position"]').count() === 1, `an Image's inspector starts with its own content, then where it is, got ${await current()}`);
+    ok("an Image dragged from its tray lands on the frame, selected, with its content and then its position in the inspector");
 
     await category(page, "Layout");
     await page.locator('.bd-tile[data-type="Shape"]').click();
@@ -850,7 +859,7 @@ try {
     await page.locator('.bd-tile[data-type="Button"]').click();
     await frame().waitForSelector('[data-bf-type="Section"] [data-bf-type="Button"]');
     await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect(await current() === "position", `a Button's inspector starts with where it is, got ${await current()}`);
+    expect(await current() !== "position" && await page.locator('.bd-ipanel > .bd-sec[data-sec="position"]').count() === 1, `a Button's inspector starts with its own properties, then where it is, got ${await current()}`);
     const tint = await frame().evaluate(() => {
       const btn = document.querySelector('[data-bf-type="Button"] button, [data-bf-type="Button"] a, button');
       const probe = document.createElement("div");
@@ -902,7 +911,7 @@ try {
     const rail = (name) => page.locator(".bd-rail .bd-tab", { hasText: name });
 
     const tabs = await page.$$eval(".bd-rail [role=tab]", (b) => b.map((x) => x.textContent));
-    expect(tabs.join() === "Home,Assets,Pages,Layers,Content,Configure,Assistant,Context", `the rail holds Home, Assets, Pages, Layers, Content, Configure, Assistant and Context, got ${tabs}`);
+    expect(tabs.join() === "Home,Assets,Pages,Layers,Content,Configure,Agent,Context", `the rail holds Home, Assets, Pages, Layers, Content, Configure, Agent and Context, got ${tabs}`);
     const dupes = await page.locator(".bd-toolbar [aria-label='New frame'], .bd-toolbar [aria-label='Dark mode'], .bd-toolbar .bd-frame-size").count();
     expect(dupes === 0, "the top bar no longer repeats New frame, the frame size or dark mode");
     const gone = await page.locator(".bd-toolbar [aria-label='New'], .bd-toolbar [aria-label='Undo'], .bd-toolbar [aria-label='Redo'], .bd-toolbar [aria-label='Hide panels'], .bd-toolbar [aria-label='Copy link'], .bd-toolbar .bd-saved").count();
@@ -3672,12 +3681,12 @@ try {
     /* Signed in with the cloud on, the assistant goes live from its menu. */
     await page.keyboard.press("Escape");
     await page.waitForFunction(() => !document.querySelector(".bd-acct[open]"));
-    await page.locator(".bd-rail .bd-tab", { hasText: "Assistant" }).click();
+    await page.locator(".bd-rail .bd-tab", { hasText: "Agent" }).click();
     await page.waitForSelector(".bd-as-badge.is-live");
     expect((await page.evaluate(() => localStorage.getItem("dovetail-assistant"))) === null, "signed in with the cloud connected, the assistant starts live without being asked");
     await page.locator(".bd-as-menu-btn").click();
     const liveSwitch = page.locator(".bd-as-pop [role=switch][aria-labelledby=bd-as-m-live]");
-    expect(!(await liveSwitch.isDisabled()) && (await liveSwitch.getAttribute("aria-checked")) === "true", "signed in, the Live assistant switch is on offer and on");
+    expect(!(await liveSwitch.isDisabled()) && (await liveSwitch.getAttribute("aria-checked")) === "true", "signed in, the Live agent switch is on offer and on");
     await liveSwitch.click();
     await page.waitForSelector(".bd-as-badge:not(.is-live)");
     expect((await page.evaluate(() => localStorage.getItem("dovetail-assistant"))) === "practice", "the switch turns practice on for this browser, and that is kept");
@@ -6425,7 +6434,7 @@ try {
 
   await step("The assistant keeps a lesson it's taught in the file's context, sends it with every later request, and doesn't keep it twice", async () => {
     const { page } = await open({ width: 1440, height: 900 });
-    await page.locator(".bd-rail .bd-tab", { hasText: "Assistant" }).click();
+    await page.locator(".bd-rail .bd-tab", { hasText: "Agent" }).click();
     await page.locator(".bd-as").waitFor();
     const ask = async (t, until) => { await page.locator(".bd-as-input").fill(t); await page.keyboard.press("Enter"); await page.waitForFunction((re) => { const b = [...document.querySelectorAll(".bd-as-bot")].pop(); return b && new RegExp(re).test(b.textContent); }, until, { timeout: 20000 }); await page.locator('.bd-as-send[aria-label="Send"]').waitFor({ timeout: 20000 }); };
     await ask("Remember that cards never get brand fills.", "Lessons");
@@ -6438,7 +6447,7 @@ try {
     const body = await page.locator(".bd-cx-body").inputValue();
     expect((body.match(/^- cards never get brand fills$/gm) || []).length === 1, `the doc holds the lesson once, got ${body}`);
     ok("a lesson goes into a Lessons doc in the file's context, once, where the person can edit it");
-    await page.locator(".bd-rail .bd-tab", { hasText: "Assistant" }).click();
+    await page.locator(".bd-rail .bd-tab", { hasText: "Agent" }).click();
     await ask("What's the theme?", "brand is");
     const sent = await page.evaluate(() => window.__builder.assistantMsgs().filter((m) => m.role === "user" && Array.isArray(m.content)).map((m) => m.content.filter((b) => b.type === "text").map((b) => b.text).join("\n")).filter((t) => /<builder-context>/.test(t)).pop());
     expect(/## Lessons[\s\S]*- cards never get brand fills/.test(sent || ""), `the next request carries the lesson in its context, got ${(sent || "").slice(0, 300)}`);
@@ -6469,7 +6478,7 @@ try {
     await page.waitForFunction(() => window.__builder.doc().frames.some((f) => f.root.children.some((c) => c.id === "ah")));
     await page.evaluate(() => window.__builder.select(["ah"]));
     await page.waitForFunction(() => window.__builder.selection().includes("ah"));
-    await page.locator(".bd-rail .bd-tab", { hasText: "Assistant" }).click();
+    await page.locator(".bd-rail .bd-tab", { hasText: "Agent" }).click();
     await page.locator(".bd-as").waitFor();
     expect(await page.locator(".bd-as-badge", { hasText: "Practice" }).count() === 1, "the panel says it's in practice mode");
     await page.locator(".bd-as-comp .bd-as-chip.is-target", { hasText: "Section" }).waitFor();
@@ -6602,7 +6611,7 @@ try {
     await page.locator(".bd-as-menu-btn").click();
     await lookSwitch.click();
     await page.keyboard.press("Escape");
-    await page.locator(".bd-as-bar .bd-seg-btn", { hasText: "Quick" }).click();
+    if ((await page.locator(".bd-as-effort").getAttribute("aria-pressed")) === "true") await page.locator(".bd-as-effort").click();
     expect(await page.evaluate(() => localStorage.getItem("dovetail-assistant-effort")) === "low", "Quick is remembered");
     ok("the menu turns looking off for this file, and Quick is remembered");
     const lastBot = () => page.locator(".bd-as-bot").last();
@@ -6718,7 +6727,7 @@ try {
     await page.waitForTimeout(400);
     await page.reload();
     await page.waitForFunction(() => window.__builder && window.__builder.saved && window.__builder.saved().ok);
-    await page.locator(".bd-rail .bd-tab", { hasText: "Assistant" }).click();
+    await page.locator(".bd-rail .bd-tab", { hasText: "Agent" }).click();
     await page.locator(".bd-as").waitFor();
     await page.waitForFunction((n) => document.querySelectorAll(".bd-as-me").length === n, said, { timeout: 10000 });
     ok("the conversation is still there after a reload");
@@ -6740,7 +6749,7 @@ try {
     await page.waitForTimeout(400);
     await page.reload();
     await page.waitForFunction(() => window.__builder && window.__builder.saved && window.__builder.saved().ok);
-    await page.locator(".bd-rail .bd-tab", { hasText: "Assistant" }).click();
+    await page.locator(".bd-rail .bd-tab", { hasText: "Agent" }).click();
     await page.waitForFunction((n) => document.querySelectorAll(".bd-as-me").length === n, firstCount, { timeout: 10000 });
     await page.locator(".bd-as-head button[aria-label='Conversations']").click();
     expect(await page.locator(".bd-as-tr").count() === 2, "both are still listed after a reload, the one left open reopened");

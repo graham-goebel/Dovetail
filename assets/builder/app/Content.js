@@ -94,7 +94,7 @@ var Content = React.memo(function Content(p) {
   }
   if (!p.tab) {
     return e("div", { className: "bd-content" },
-      e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Content")),
+      e("div", { className: "bd-panel-head bd-panel-top" }, e("h2", { className: "bd-panel-title" }, "Content")),
       e("p", { className: "bd-content-note bd-content-scope" }, p.scopeNote),
       e("ul", { className: "bd-kinds", role: "list" }, [brandCard(p)].concat(LIB_TABS.map(function (t) {
         var items = p.library[t[0]];

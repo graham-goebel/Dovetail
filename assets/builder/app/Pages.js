@@ -215,7 +215,7 @@ var Pages = React.memo(function Pages(p) {
           } }));
   };
   return e("div", { className: "bd-pages-panel" },
-    e("div", { className: "bd-panel-head" },
+    e("div", { className: "bd-panel-head bd-panel-top" },
       e("h2", { className: "bd-panel-title" }, "Pages"),
       e("span", { className: "bd-panel-acts" },
         e("button", { type: "button", className: "bd-act", "aria-label": "New folder", title: "New folder", onClick: p.addFolder }, e(Icon, { name: "folder" })),
