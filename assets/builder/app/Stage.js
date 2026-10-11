@@ -38,7 +38,8 @@ function placeMarks(raw, boxes, cam) {
     return { id: w.id, r: r, rot: w.rot, box: { left: cx - w.size.width * z / 2, top: cy - w.size.height * z / 2, width: w.size.width * z, height: w.size.height * z } };
   };
   var hv = raw.hover;
-  return { sel: raw.sel.map(place).filter(Boolean), hover: hv && boxes[hv.fid] ? onStage(hv.r, boxes[hv.fid], cam) : null, drop: raw.drop,
+  var at = function (m) { return m && boxes[m.fid] ? onStage(m.r, boxes[m.fid], cam) : null; };
+  return { sel: raw.sel.map(place).filter(Boolean), hover: at(hv), part: at(raw.part), partHover: at(raw.partHover), drop: raw.drop,
     agents: (raw.agents || []).map(function (m) { var b = boxes[m.fid]; return b ? Object.assign({}, m, { r: onStage(m.r, b, cam) }) : null; }).filter(Boolean),
     edited: (raw.edited || []).map(function (m) { var b = boxes[m.fid]; return b ? { id: m.id, icon: m.icon, label: m.label, r: onStage(m.r, b, cam) } : null; }).filter(Boolean) };
 }
@@ -215,6 +216,10 @@ function Marks(p) {
     }) : null,
     p.marquee ? e("div", { className: "bd-marquee", style: { left: p.marquee.left + "px", top: p.marquee.top + "px", width: p.marquee.width + "px", height: p.marquee.height + "px" } }) : null,
     !p.preview && marks.hover ? e("div", { className: "bd-mark bd-mark-hover", style: marks.hover }) : null,
+    /* Inside the selected component: its part under the pointer, and the
+       part picked (named in the component's tag). */
+    !p.preview && marks.partHover ? e("div", { className: "bd-mark bd-mark-part is-hover", style: marks.partHover }) : null,
+    !p.preview && p.part && marks.part ? e("div", { className: "bd-mark bd-mark-part", style: marks.part }) : null,
     /* A selected free layer pinned to an edge: a dashed line to it. */
     !p.preview && p.sel && marks.sel.length === 1 && marks.sel[0].r && p.boxes[p.frame.id] && !p.frame.bare && p.frame.mode !== "structured" ? (function () {
       var at = locate(p.doc, p.sel), st = at && at.node.style;
@@ -252,7 +257,7 @@ function Marks(p) {
         isMain ? e("span", {
           className: "bd-mark-tag", title: "Drag to move",
           onPointerDown: function (ev) { ev.preventDefault(); ev.stopPropagation(); p.startDrag(ev, { kind: "move", id: at.node.id, label: at.node.type }); },
-        }, nameOf(at.node) + (p.part && p.part.id === m.id ? " › Title" : ""),
+        }, nameOf(at.node) + (p.part && p.part.id === m.id && p.partLabel ? " › " + p.partLabel : ""),
           /* Its actions, the same as a right-click on it. Keyboard users
              have them on Shift+F10. */
           e("button", { type: "button", className: "bd-mark-more", tabIndex: -1, title: "Actions for " + nameOf(at.node), "aria-label": "Actions for " + nameOf(at.node),

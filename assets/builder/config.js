@@ -129,7 +129,7 @@ var SHORTCUTS = [
   ["Edit", [["Undo", "Ctrl+Z"], ["Redo", "Ctrl+Shift+Z"], ["Cut, copy, paste", "Ctrl+X, Ctrl+C, Ctrl+V"], ["Paste a picture", "Ctrl+V"], ["Duplicate", "Ctrl+D"],
     ["Copy style, paste style", "Ctrl+Alt+C, Ctrl+Alt+V"], ["Delete", "Del"], ["Rename", "F2"], ["Create component", "Ctrl+Alt+K"]]],
   ["Select", [["Select all", "Ctrl+A"], ["Add to the selection", "Shift-click"], ["Into the selection", "Enter"], ["Out to its parent", "Shift+Enter"],
-    ["Deselect", "Esc"], ["Menu for the selection", "Shift+F10"]]],
+    ["Into a selected component's part", "Click again"], ["Straight to what's under the pointer", "Ctrl-click"], ["Out of a part, then deselect", "Esc"], ["Menu for the selection", "Shift+F10"]]],
   ["View", [["Zoom in, zoom out", "Ctrl +, Ctrl −"], ["Zoom to fit", "Shift+1"], ["Zoom to the selection", "Shift+2"], ["Actual size", "Shift+0"],
     ["Pan", "Space-drag"], ["Rulers", "Shift+R"], ["Layout columns", "Shift+G"], ["Hide the panels", "Tab"], ["Measure the spacing, held", "Shift, Alt"], ["Search components", "/"], ["These shortcuts", "?"]]],
   ["Arrange", [["Bring forward, send backward", "Ctrl+], Ctrl+["], ["Bring to front, send to back", "Ctrl+Shift+], Ctrl+Shift+["], ["Group, ungroup", "Ctrl+G, Ctrl+Shift+G"],

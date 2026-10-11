@@ -2517,6 +2517,17 @@ span.bd-layer-twisty.is-open .bd-ic {
   outline: var(--dt-border-width-default) dashed var(--dt-text-secondary);
 }
 
+/* A part of the selected component: dashed under the pointer, solid once
+   picked, in the component colour. */
+.bd-mark-part {
+  outline: var(--dt-border-width-default) solid var(--bd-component);
+  outline-offset: 1px;
+}
+
+.bd-mark-part.is-hover {
+  outline-style: dashed;
+}
+
 .bd-mark-sel {
   outline: var(--dt-border-width-default) solid var(--bd-select);
 }
@@ -5345,9 +5356,10 @@ span.bd-layer-twisty.is-open .bd-ic {
   margin-right: var(--dt-space-inset-2xs);
 }
 
-/* A component's own part: shown, set through its props, not picked. */
+/* A component's own part: picked to change what it shows, through the
+   component's props. */
 .bd-layer.is-part {
-  color: var(--dt-text-tertiary);
+  color: var(--dt-text-secondary);
 }
 
 .bd-layer-main.is-static {
@@ -5956,8 +5968,7 @@ span.bd-layer-twisty.is-open .bd-ic {
 
 
 
-/* A block's title: a part that can be picked, for its words and size. */
-.bd-layer.is-part.is-pickable {
+.bd-layer.is-part.is-current {
   color: var(--dt-text-primary);
 }
 

@@ -176,12 +176,6 @@
     var m = n && META[n.type];
     return !!n && (!!n.inst || !!m && !m.builder && !PRIMITIVE_TYPES[n.type]);
   }
-  function hasTitlePart(type) {
-    var m = META[type];
-    return !!m && m.props.some(function(p) {
-      return p.name === "titleSize";
-    });
-  }
   function nodeIsOpen(n, collapsed) {
     return n.type === "Root" || isContainer(n.type) ? !collapsed[n.id] : collapsed[n.id] === false;
   }
@@ -305,7 +299,9 @@
       ["Add to the selection", "Shift-click"],
       ["Into the selection", "Enter"],
       ["Out to its parent", "Shift+Enter"],
-      ["Deselect", "Esc"],
+      ["Into a selected component's part", "Click again"],
+      ["Straight to what's under the pointer", "Ctrl-click"],
+      ["Out of a part, then deselect", "Esc"],
       ["Menu for the selection", "Shift+F10"]
     ]],
     ["View", [
@@ -10960,45 +10956,29 @@
     };
     var partRow = function(r, f) {
       var it = r.part;
-      if (it.kind === "Heading" && hasTitlePart(r.owner.type) && f) {
-        var onPart = p.partId != null && p.partId === r.owner.id && f.id === doc2.active;
-        return e(
-          "div",
-          {
-            key: r.key,
-            className: cx("bd-layer is-part is-pickable", onPart && "is-current"),
-            role: "treeitem",
-            "aria-level": r.depth + 1,
-            "aria-selected": String(!!onPart),
-            style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" }
-          },
-          e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
-          e(
-            "button",
-            { type: "button", className: "bd-layer-main", title: "The title of " + r.owner.type + ": its words and size", onClick: function() {
-              p.pick(r.owner.id, false, false, "layers", f.id, "title");
-            } },
-            e(Icon, { name: "heading" }),
-            e("span", { className: "bd-layer-name" }, "Title"),
-            it.text ? e("span", { className: "bd-layer-text" }, it.text) : null
-          )
-        );
-      }
+      var mine = !!f && f.id === doc2.active;
+      var onPart = mine && !!p.part && p.part.id === r.owner.id && p.part.n === it.n;
       return e(
         "div",
         {
           key: r.key,
-          className: "bd-layer is-part",
+          className: cx("bd-layer is-part is-pickable", onPart && "is-current"),
           role: "treeitem",
           "aria-level": r.depth + 1,
-          "aria-disabled": "true",
-          style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
-          title: it.kind + " in " + r.owner.type + ": part of the component, set through its props in the inspector"
+          "aria-selected": String(onPart),
+          style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" }
         },
         e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
         e(
-          "span",
-          { className: "bd-layer-main is-static" },
+          "button",
+          {
+            type: "button",
+            className: "bd-layer-main",
+            title: it.kind + " in " + r.owner.type + ": select it to change what it shows",
+            onClick: function() {
+              if (f) p.pick(r.owner.id, false, false, "layers", f.id, { n: it.n, kind: it.kind, text: it.whole || it.text || "" });
+            }
+          },
           e(Icon, { name: PART_ICON[it.kind] || "component" }),
           e("span", { className: "bd-layer-name" }, it.kind),
           it.text ? e("span", { className: "bd-layer-text" }, it.text) : null
@@ -15112,9 +15092,14 @@
       return { id: w.id, r, rot: w.rot, box: { left: cx2 - w.size.width * z / 2, top: cy - w.size.height * z / 2, width: w.size.width * z, height: w.size.height * z } };
     };
     var hv = raw.hover;
+    var at2 = function(m) {
+      return m && boxes[m.fid] ? onStage(m.r, boxes[m.fid], cam) : null;
+    };
     return {
       sel: raw.sel.map(place).filter(Boolean),
-      hover: hv && boxes[hv.fid] ? onStage(hv.r, boxes[hv.fid], cam) : null,
+      hover: at2(hv),
+      part: at2(raw.part),
+      partHover: at2(raw.partHover),
       drop: raw.drop,
       agents: (raw.agents || []).map(function(m) {
         var b = boxes[m.fid];
@@ -15362,6 +15347,10 @@
       }) : null,
       p.marquee ? e("div", { className: "bd-marquee", style: { left: p.marquee.left + "px", top: p.marquee.top + "px", width: p.marquee.width + "px", height: p.marquee.height + "px" } }) : null,
       !p.preview && marks.hover ? e("div", { className: "bd-mark bd-mark-hover", style: marks.hover }) : null,
+      /* Inside the selected component: its part under the pointer, and the
+         part picked (named in the component's tag). */
+      !p.preview && marks.partHover ? e("div", { className: "bd-mark bd-mark-part is-hover", style: marks.partHover }) : null,
+      !p.preview && p.part && marks.part ? e("div", { className: "bd-mark bd-mark-part", style: marks.part }) : null,
       /* A selected free layer pinned to an edge: a dashed line to it. */
       !p.preview && p.sel && marks.sel.length === 1 && marks.sel[0].r && p.boxes[p.frame.id] && !p.frame.bare && p.frame.mode !== "structured" ? (function() {
         var at2 = locate(p.doc, p.sel), st = at2 && at2.node.style;
@@ -15410,7 +15399,7 @@
                 p.startDrag(ev, { kind: "move", id: at2.node.id, label: at2.node.type });
               }
             },
-            nameOf(at2.node) + (p.part && p.part.id === m.id ? " › Title" : ""),
+            nameOf(at2.node) + (p.part && p.part.id === m.id && p.partLabel ? " › " + p.partLabel : ""),
             /* Its actions, the same as a right-click on it. Keyboard users
                have them on Shift+F10. */
             e(
@@ -19183,6 +19172,17 @@
             var r = hf.rect(h.id);
             return r ? { fid: h.f, r } : null;
           })() : null,
+          /* The part picked, and the one under the pointer in the selected
+             component (unless it's the one picked). */
+          part: (function() {
+            var pt = partRef.current;
+            var r = pt && f && f.partRect ? f.partRect(pt.id, pt.n) : null;
+            return r ? { fid, r } : null;
+          })(),
+          partHover: h && hf && h.n != null && h.f === fid && selRef.current.length === 1 && selRef.current[0] === h.id && !(partRef.current && partRef.current.id === h.id && partRef.current.n === h.n) && hf.partRect ? (function() {
+            var r = hf.partRect(h.id, h.n);
+            return r ? { fid: h.f, r } : null;
+          })() : null,
           drop: m.drop,
           agents: (bridgeSessionsRef.current || []).map(function(x) {
             var aa = x.at && x.at.fid ? api(x.at.fid) : null, r = aa && aa.rect ? aa.rect(x.at.id) : null;
@@ -19197,6 +19197,17 @@
           })()
         };
       });
+      var pt1 = partRef.current;
+      if (pt1 && f && f.partInfo) {
+        var now = f.partInfo(pt1.id, pt1.n);
+        if (now && now.kind === pt1.kind && (now.text !== pt1.text || now.src !== pt1.src || now.icon !== pt1.icon)) {
+          var np = Object.assign({}, pt1, { text: now.text, src: now.src, icon: now.icon });
+          partRef.current = np;
+          setPart(function(cur) {
+            return cur && cur.id === np.id && cur.n === np.n ? np : cur;
+          });
+        }
+      }
       var ed = editRef.current;
       if (ed && f) {
         var t = f.textRect(ed.id, ed.value);
@@ -20166,6 +20177,9 @@
             pick: on(function(fid, id, additive, deep, part2) {
               pickRef.current(id, additive, deep, "canvas", fid, part2);
             }),
+            scope: on(function(fid, id) {
+              return fid === docRef.current.active ? scopeRef.current(id) : id;
+            }),
             menu: on(function(fid, id, x, y) {
               var p = toPage(fid, x, y);
               openMenuRef.current(p.x, p.y, id, fid);
@@ -20177,17 +20191,27 @@
             playKey: function(key, alt) {
               return playKeyRef.current(key, alt);
             },
-            edit: on(function(fid, id, text2) {
+            /* A double-click inside a closed component types into it as
+               before; a part of an open one is picked as it's typed into. */
+            edit: on(function(fid, id, text2, part2) {
               if (docRef.current.active !== fid) activateRef.current(fid);
+              var sel0 = selRef.current;
+              if (part2 && typeof part2.n === "number" && sel0.length === 1 && sel0[0] === id) {
+                var pt0 = { id, n: part2.n, kind: part2.kind, text: part2.text || "", src: part2.src || "", icon: part2.icon || "" };
+                partRef.current = pt0;
+                setPart(pt0);
+              }
               beginEditRef.current(id, text2);
             }),
-            hover: on(function(fid, id) {
+            hover: on(function(fid, id, part2) {
               var h = hoverRef.current;
               if (!id) {
                 if (h && h.f === fid) setHover(null);
                 return;
               }
-              if (!h || h.f !== fid || h.id !== id) setHover({ f: fid, id });
+              var to = fid === docRef.current.active ? scopeRef.current(id) : id;
+              var n = to === id && part2 && typeof part2.n === "number" ? part2.n : null;
+              if (!h || h.f !== fid || h.id !== to || h.n !== n) setHover({ f: fid, id: to, n });
             }),
             key: function(ev) {
               return keyRef.current(ev);
@@ -20496,12 +20520,44 @@
       if (!a || a === document.body || a.classList.contains("bd-inline")) return;
       if (mountEl.contains(a) || a.closest && a.closest("#app-toolbar")) a.blur();
     };
-    var pick2 = function(id, additive, deep, from, fid, part2) {
+    var scopeTarget = function(id) {
+      var d = docRef.current;
+      var at2 = locate(d, id);
+      if (!at2) return id;
+      var open = {};
+      selRef.current.forEach(function(sid) {
+        var s0 = locate(d, sid);
+        if (s0) s0.path.forEach(function(n) {
+          open[n.id] = true;
+        });
+      });
+      for (var i = 1; i < at2.path.length - 1; i++) {
+        var a = at2.path[i];
+        if (hasSlots(a) && !open[a.id]) return a.id;
+      }
+      return id;
+    };
+    var scopeRef = useRef(scopeTarget);
+    scopeRef.current = scopeTarget;
+    var pick2 = function(id, additive, deep, from, fid, atom) {
       if (from === "canvas") releaseFocus();
       var other = fid && fid !== docRef.current.active;
       if (other) {
         activate(fid);
         additive = false;
+      }
+      if (from === "canvas" && !deep && id && id !== "root" && !other) {
+        var to = scopeTarget(id);
+        if (to !== id) {
+          id = to;
+          atom = null;
+        }
+      } else if (from === "canvas" && other && id && id !== "root") {
+        var to2 = scopeTarget(id);
+        if (to2 !== id) {
+          id = to2;
+          atom = null;
+        }
       }
       if (!id || id === "root") {
         if (additive) return;
@@ -20517,9 +20573,17 @@
         }) : cur.concat([id]));
         return;
       }
+      var cur1 = selRef.current;
+      var wasOn = cur1.length === 1 && cur1[0] === id;
+      if (atom && typeof atom.n === "number" && from !== "canvas") {
+        var fa0 = api(fid || docRef.current.active), info = fa0 && fa0.partInfo ? fa0.partInfo(id, atom.n) : null;
+        if (info) atom = info;
+      }
+      var nextPart = atom && typeof atom.n === "number" && (from !== "canvas" || wasOn || deep) ? { id, n: atom.n, kind: atom.kind, text: atom.text || "", src: atom.src || "", icon: atom.icon || "" } : null;
       select([id]);
-      var at0 = locate(docRef.current, id);
-      setPart(part2 && at0 && hasTitlePart(at0.node.type) ? { id, part: part2 } : null);
+      partRef.current = nextPart;
+      setPart(nextPart);
+      if (nextPart && from === "canvas") announce(partLabel(nextPart) + " in " + nameOf(locate(docRef.current, id).node) + " selected");
       if (deep) {
         setTimeout(function() {
           beginEditRef.current(id);
@@ -21686,6 +21750,10 @@
         (ev.shiftKey ? actions2.out : actions2.into)();
         return true;
       }
+      if (ev.key === "Escape" && partRef.current) {
+        setPart(null);
+        return true;
+      }
       if (ev.key === "Escape") {
         if (!selRef.current.length) setFrameOn(false);
         select([]);
@@ -22371,18 +22439,19 @@
       var pt = partRef.current;
       if (pt && selRef.current.length === 1 && selRef.current[0] === pt.id) {
         var pat = locate(d, pt.id);
-        if (!pat) return false;
-        var tdef = META[pat.node.type].props.filter(function(p) {
-          return p.name === "titleSize";
-        })[0];
-        var tcur = pat.node.props.titleSize || tdef && tdef.default || "heading-lg";
-        var ti = TITLE_STEPS.indexOf(tcur), tj = Math.max(0, Math.min(TITLE_STEPS.length - 1, (ti < 0 ? 1 : ti) + by));
+        var pb = pat ? bindPart(pat.node, pt) : null;
+        if (!pb || !pb.size) return false;
+        var steps = TITLE_STEPS.filter(function(o) {
+          return pb.size.options.indexOf(o) >= 0;
+        });
+        var tcur = pat.node.props[pb.size.name] || pb.size.default || "heading-lg";
+        var ti = steps.indexOf(tcur), tj = Math.max(0, Math.min(steps.length - 1, (ti < 0 ? 1 : ti) + by));
         if (tj === ti) {
           announce(by > 0 ? "Already the largest size" : "Already the smallest size");
           return true;
         }
-        setProp([pt.id], "titleSize", TITLE_STEPS[tj]);
-        announce("Title " + tcur.replace(/-/g, " ") + " to " + TITLE_STEPS[tj].replace(/-/g, " "));
+        setProp([pt.id], pb.size.name, steps[tj]);
+        announce(pb.label + " " + tcur.replace(/-/g, " ") + " to " + steps[tj].replace(/-/g, " "));
         return true;
       }
       var nodes = selRef.current.map(function(id) {
@@ -26273,72 +26342,243 @@
         ))
       );
     };
-    var partInspector = function(node) {
-      var at2 = locate(doc2, node.id);
-      var spec = META[node.type].props.filter(function(p) {
-        return p.name === "titleSize";
-      })[0];
+    var bindPart = function(node, pt) {
+      if (!node || !pt) return null;
+      var meta = META[node.type] || { props: [] };
       var base = scalars[node.type] || {};
-      var cur = node.props.titleSize || spec.default;
-      var text2 = typeof node.props.title === "string" ? node.props.title : typeof base.title === "string" ? base.title : "";
-      var tid = "bd-part-text-" + node.id, sid = "bd-part-size-" + node.id;
-      var styleName = function(v) {
-        var t = TEXT_STYLES.filter(function(x) {
-          return x[0] === v;
-        })[0];
-        return t ? t[1] : v;
+      var valueOf = function(sp) {
+        var v = node.props[sp.name];
+        return v !== void 0 ? v : base[sp.name] !== void 0 ? base[sp.name] : sp.default;
       };
-      return e(
-        "div",
-        { className: "bd-inspect" },
-        e(
+      var related = function(name) {
+        var stem = name.replace(/(Label|Text)$/, "");
+        return meta.props.filter(function(sp) {
+          return sp.name !== name && sp.name.indexOf(stem) === 0 && sp.name.length > stem.length && /^(enum|boolean|url|icon)$/.test(sp.kind);
+        });
+      };
+      if (pt.kind === "Image" || pt.kind === "Video") {
+        var media2 = meta.props.filter(function(sp) {
+          return sp.kind === "media";
+        });
+        var hit = media2.filter(function(sp) {
+          return pt.src && valueOf(sp) === pt.src;
+        })[0] || (media2.length === 1 ? media2[0] : null);
+        if (!hit) return null;
+        var alt = meta.props.filter(function(sp) {
+          return sp.name === hit.name + "Alt" || sp.name === "alt" && media2.length === 1;
+        });
+        return { kind: "media", prop: hit.name, label: PROP_LABEL[hit.name] && hit.name !== "position" ? PROP_LABEL[hit.name] : words(hit.name).replace(/^./, function(c) {
+          return c.toUpperCase();
+        }), spec: hit, more: alt.concat(related(hit.name)) };
+      }
+      if (pt.kind === "Icon") {
+        var icons = meta.props.filter(function(sp) {
+          return sp.kind === "icon";
+        });
+        var ih = icons.filter(function(sp) {
+          return pt.icon && valueOf(sp) === pt.icon;
+        })[0] || (icons.length === 1 ? icons[0] : null);
+        return ih ? { kind: "icon", prop: ih.name, label: "Icon", spec: ih, more: related(ih.name) } : null;
+      }
+      var src = pt.text ? textSource(node, pt.text, api()) : null;
+      if (!src) return null;
+      var listSpec = src.index != null ? meta.props.filter(function(sp) {
+        return sp.name === src.prop;
+      })[0] : null;
+      var cap = function(t) {
+        return t.replace(/^./, function(c) {
+          return c.toUpperCase();
+        });
+      };
+      if (listSpec) {
+        var one2 = (listSpec.label || words(src.prop)).replace(/ies$/, "y").replace(/s$/, "");
+        return {
+          kind: "item",
+          prop: src.prop,
+          index: src.index,
+          field: src.field || null,
+          sample: src.sample,
+          spec: listSpec,
+          label: cap(src.field ? words(src.field) : one2) + " " + (src.index + 1),
+          list: cap(listSpec.label || words(src.prop)),
+          more: []
+        };
+      }
+      var more = related(src.prop);
+      var size = more.filter(function(sp) {
+        return sp.kind === "enum" && /Size$/.test(sp.name) && sp.options.every(function(o) {
+          return TEXT_STYLES.some(function(t) {
+            return t[0] === o;
+          });
+        });
+      })[0] || null;
+      return { kind: "text", prop: src.prop, label: cap(PROP_LABEL[src.prop] && src.prop !== "position" ? PROP_LABEL[src.prop] : words(src.prop)), size, more: more.filter(function(sp) {
+        return sp !== size;
+      }) };
+    };
+    var partLabel = function(pt) {
+      var at2 = pt ? locate(docRef.current, pt.id) : null;
+      var b = at2 ? bindPart(at2.node, pt) : null;
+      return b ? b.label : pt ? pt.kind : "";
+    };
+    var partInspector = function(node, pt) {
+      var b = bindPart(node, pt);
+      var base = scalars[node.type] || {};
+      var back = headAction("left", "Back to " + nameOf(node), function() {
+        setPart(null);
+      });
+      var head3 = function(icon2, title, sub2) {
+        return e(
           "div",
           { className: "bd-inspect-head" },
           e(
             "div",
             { className: "bd-head-row" },
-            e("h2", { className: "bd-inspect-title" }, e(Icon, { name: "heading" }), "Title"),
-            e("div", { className: "bd-head-actions" }, headAction("left", "Back to " + nameOf(node), function() {
-              setPart(null);
-            }))
+            e("h2", { className: "bd-inspect-title" }, e(Icon, { name: icon2 }), title),
+            e("div", { className: "bd-head-actions" }, back)
           ),
-          e("p", { className: "bd-inspect-sub" }, kbd("The heading " + nameOf(node) + " draws. Its words and size are the block's own props; Shift+Up and Shift+Down step the size."))
-        ),
+          e("p", { className: "bd-inspect-sub" }, sub2)
+        );
+      };
+      var icon = PART_ICON[pt.kind] || "component";
+      if (!b) {
+        return e(
+          "div",
+          { className: "bd-inspect bd-inspect-part" },
+          head3(icon, pt.kind, pt.kind + " in " + nameOf(node) + ". The component draws it itself: it has nothing of its own to set, and follows the component's props."),
+          e(
+            "div",
+            { className: "bd-ipanel" },
+            sec("part-none", "Set it from " + nameOf(node), e("button", { type: "button", className: "bd-btn", onClick: function() {
+              setPart(null);
+            } }, e(Icon, { name: "component" }), "Show " + nameOf(node) + "'s props"))
+          )
+        );
+      }
+      var keepText = function(v) {
+        setPart(function(cur2) {
+          return cur2 && cur2.id === pt.id && cur2.n === pt.n ? Object.assign({}, cur2, { text: String(v || "").replace(/\s+/g, " ").trim() }) : cur2;
+        });
+      };
+      var tid = "bd-part-text-" + node.id;
+      var wordsField = function(value2, onChange, label2, hint) {
+        var long = String(value2 || "").length > 60;
+        return e(
+          Field,
+          { key: "words", id: tid, label: label2 || "Words", hint: hint || "Double-click it on the canvas to type in place" },
+          long ? e("textarea", { className: "bd-input bd-textarea", rows: 3, "aria-labelledby": tid, value: value2, onChange: function(ev) {
+            onChange(ev.target.value);
+          } }) : e("input", { className: "bd-input", type: "text", "aria-labelledby": tid, value: value2, onChange: function(ev) {
+            onChange(ev.target.value);
+          } })
+        );
+      };
+      var rows = [], extra = [];
+      var sub = "";
+      if (b.kind === "text") {
+        var text2 = typeof node.props[b.prop] === "string" ? node.props[b.prop] : typeof base[b.prop] === "string" ? base[b.prop] : "";
+        sub = "Part of " + nameOf(node) + ", set by its " + b.prop + " prop" + (b.size ? ". Shift+Up and Shift+Down step the size." : ".");
+        if (b.size) {
+          var sid = "bd-part-size-" + node.id, cur = node.props[b.size.name] || b.size.default;
+          var styleName = function(v) {
+            var t = TEXT_STYLES.filter(function(x) {
+              return x[0] === v;
+            })[0];
+            return t ? t[1] : v;
+          };
+          rows.push(e(
+            Field,
+            { key: "size", id: sid, label: "Size", hint: "--dt-text-" + cur + "-size" },
+            e(Dropdown, {
+              labelledBy: sid,
+              value: cur,
+              className: "bd-dd-field",
+              onChange: function(v) {
+                setProp([node.id], b.size.name, v === b.size.default ? void 0 : v);
+              },
+              options: b.size.options.map(function(o) {
+                var px = pxMap["text|" + o];
+                return { value: o, label: styleName(o), px: px != null ? Math.round(px) : null, short: (px != null ? Math.round(px) + " " : "") + styleName(o), hint: o + (o === b.size.default ? " · the default" : "") };
+              })
+            })
+          ));
+        }
+        rows.push(wordsField(text2, function(v) {
+          keepText(v);
+          setProp([node.id], b.prop, v);
+        }));
+      } else if (b.kind === "item") {
+        var own = Array.isArray(node.props[b.prop]) ? node.props[b.prop] : null;
+        var list2 = (own || b.sample || []).slice();
+        var item = list2[b.index];
+        var setItem = function(patch) {
+          var next = (Array.isArray(node.props[b.prop]) ? node.props[b.prop] : b.sample || []).slice();
+          next[b.index] = typeof patch === "string" && !b.field ? patch : Object.assign({}, next[b.index], patch);
+          setProp([node.id], b.prop, next);
+        };
+        sub = "One of " + nameOf(node) + "'s " + b.list.toLowerCase() + ". Edit the rest from the component.";
+        if (!b.field) rows.push(wordsField(String(item == null ? "" : item), function(v) {
+          keepText(v);
+          setItem(v);
+        }));
+        else (b.spec.fields || []).forEach(function(fs) {
+          var fid = "bd-part-" + fs.name + "-" + node.id;
+          var fv = item ? item[fs.name] : void 0;
+          if (fs.name === b.field) rows.push(wordsField(fv == null ? "" : String(fv), function(v) {
+            keepText(v);
+            var o = {};
+            o[b.field] = v;
+            setItem(o);
+          }, words(fs.name).replace(/^./, function(c) {
+            return c.toUpperCase();
+          })));
+          else if (fs.kind === "text") rows.push(e(
+            Field,
+            { key: fs.name, id: fid, label: words(fs.name).replace(/^./, function(c) {
+              return c.toUpperCase();
+            }) },
+            e("input", { className: "bd-input", type: "text", "aria-labelledby": fid, value: fv == null ? "" : String(fv), onChange: function(ev) {
+              var o = {};
+              o[fs.name] = ev.target.value || void 0;
+              setItem(o);
+            } })
+          ));
+          else if (fs.kind === "url") rows.push(e(
+            Field,
+            { key: fs.name, id: fid, label: "Link" },
+            e(LinkTo, { labelledBy: fid, value: fv, pages: pagesOf(projectRef.current), pageNow: pageRef.current, onChange: function(v) {
+              var o = {};
+              o[fs.name] = v;
+              setItem(o);
+            } })
+          ));
+        });
+        extra.push(e("button", { key: "all", type: "button", className: "bd-btn", onClick: function() {
+          setPart(null);
+        } }, e(Icon, { name: "listView" }), "All " + b.list.toLowerCase()));
+      } else {
+        sub = "Part of " + nameOf(node) + ", set by its " + b.prop + " prop.";
+        rows.push(propControl(b.spec, [node]));
+      }
+      var more = (b.more || []).map(function(sp) {
+        return propControl(sp, [node]);
+      }).filter(Boolean);
+      return e(
+        "div",
+        { className: "bd-inspect bd-inspect-part" },
+        head3(icon, b.label, sub),
         e(
           "div",
           { className: "bd-ipanel" },
-          sec("part-title", "Text style", [
-            e(
-              Field,
-              { key: "size", id: sid, label: "Size", hint: "--dt-text-" + cur + "-size" },
-              e(Dropdown, {
-                labelledBy: sid,
-                value: cur,
-                className: "bd-dd-field",
-                onChange: function(v) {
-                  setProp([node.id], "titleSize", v === spec.default ? void 0 : v);
-                },
-                options: spec.options.map(function(o) {
-                  var px = pxMap["text|" + o];
-                  return { value: o, label: styleName(o), px: px != null ? Math.round(px) : null, short: (px != null ? Math.round(px) + " " : "") + styleName(o), hint: o + (o === spec.default ? " · the default" : "") };
-                })
-              })
-            ),
-            e(
-              Field,
-              { key: "text", id: tid, label: "Words", hint: "Double-click it on the canvas to type in place" },
-              e("input", { className: "bd-input", type: "text", "aria-labelledby": tid, value: text2, onChange: function(ev) {
-                setProp([node.id], "title", ev.target.value);
-              } })
-            )
-          ], null, node.props.titleSize !== void 0)
+          sec("part-content", "Content", rows.concat(extra.length ? [e("div", { key: "acts", className: "bd-media-actions" }, extra)] : []), null, b.size ? node.props[b.size.name] !== void 0 : false),
+          more.length ? sec("part-more", "With it", more) : null
         )
       );
     };
     var nodeInspector = function(nodes) {
       var first = nodes[0];
       var many = nodes.length > 1;
-      if (!many && part && part.id === first.id && hasTitlePart(first.type)) return partInspector(first);
+      if (!many && part && part.id === first.id) return partInspector(first, part);
       var sameType = nodes.every(function(n) {
         return n.type === first.type;
       });
@@ -26575,7 +26815,7 @@
           } }, name));
         });
         if (many) crumbs.push(sep("many"), e("span", { key: "many", className: "bd-crumb", "aria-current": "true" }, selection.length + " layers"));
-        else if (part) crumbs.push(sep("part"), e("span", { key: "part", className: "bd-crumb", "aria-current": "true" }, "Title"));
+        else if (part) crumbs.push(sep("part"), e("span", { key: "part", className: "bd-crumb", "aria-current": "true" }, partLabel(part)));
       }
       return e("nav", { className: "bd-crumbs bd-tb-crumbs", "aria-label": "Where you are" }, crumbs);
     };
@@ -27241,7 +27481,7 @@
     var labelsProps = { boxes, doc: doc2, frameMenu, frameOn, frameOps, isRenaming, justDragged, preview, sel, setRenaming, sizeText, startFrameMove };
     var viewProps = { boxes, canvasView, colInfo, doc: doc2, guideDrag, preview, startGuide };
     var rulersProps = { RULER, box, boxes, canvasView, frame: frame2, guideDrag, insets, marksRaw, preview, startGuide, wide };
-    var marksProps = { HANDLES_FLOW, HANDLES_FREE, boxes, doc: doc2, dupFrame, edit, frame: frame2, frameOn, marksRaw, marquee, openMenu, part, preview, sel, sizing, startDrag, startNodeResize, startRotate };
+    var marksProps = { HANDLES_FLOW, HANDLES_FREE, boxes, doc: doc2, dupFrame, edit, frame: frame2, frameOn, marksRaw, marquee, openMenu, part, partLabel: part ? partLabel(part) : "", preview, sel, sizing, startDrag, startNodeResize, startRotate };
     var spacingProps = { boxes, openToken, spacing };
     var editorProps = { boxes, edit, editChange, editDone };
     var resizersProps = { HANDLES_FREE, boxes, doc: doc2, frameOn, resizing, sel, sizeName, startResize };
@@ -27540,7 +27780,7 @@
       doc: doc2,
       selection,
       edited: editedIds,
-      partId: part ? part.id : null,
+      part,
       listDrop,
       hover,
       frameOn,
