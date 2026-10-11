@@ -138,6 +138,7 @@ var Layers = React.memo(function Layers(p) {
   };
   var listDrop = p.listDrop;
   return e("div", { className: "bd-layers-panel" },
+    e("div", { className: "bd-panel-head bd-panel-top" }, e("h2", { className: "bd-panel-title" }, "Layers")),
     e("div", { className: "bd-layers", ref: p.layersRef, role: "tree", "aria-label": "Layers", "aria-multiselectable": "true" },
       doc.frames.map(function (f) {
         var on = f.id === doc.active;

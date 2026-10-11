@@ -201,7 +201,7 @@ var Assets = React.memo(function Assets(p) {
       tileList(p, found));
   }
   if (!p.kind) {
-    return e("div", { className: "bd-assets is-cards" }, head,
+    return e("div", { className: "bd-assets is-cards" }, e("div", { className: "bd-panel-head bd-panel-top" }, e("h2", { className: "bd-panel-title" }, "Assets")), head,
       e("ul", { className: "bd-kinds bd-asset-kinds", role: "list" }, ASSET_KINDS.map(function (k) {
         var note = k[3];
         var count = k[0] === "containers" ? "Frames and screen sizes" : k[0] === "variables" ? VAR_SETS.length + " sets" : k[0] === "templates" ? (STARTERS.length - 1) + " pages" : groupsOf(k[0]).reduce(function (t, g) { return t + usableIn(p, g).length; }, 0) + " to add";

@@ -213,6 +213,15 @@ kbd {
   font-weight: var(--dt-font-weight-semibold);
 }
 
+/* Every left panel opens on the same bar as the Agent panel. */
+.bd-panel-top {
+  flex: none;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  min-height: 49px;
+  border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+.bd-panel-top .bd-panel-title { font-size: var(--dt-font-size-sm); line-height: 24px; }
+
 /* Configure, held in the panel on this page instead of floating over it. */
 .bd-config-dock {
   flex: 1;
@@ -1243,6 +1252,40 @@ html.bd-configure-docked .configure-open-btn {
 
 .bd-flex-top-side .bd-seg .bd-seg-btn {
   flex: 1;
+}
+
+/* The row and column toggle with wrap beside it, as one group. */
+.bd-flex-dir {
+  display: flex;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bd-flex-dir .bd-seg {
+  flex: 1;
+  min-width: 0;
+}
+
+.bd-flex-dir .bd-seg .bd-seg-btn {
+  flex: 1;
+}
+
+.bd-flex-wrap {
+  flex: none;
+}
+
+.bd-flex-top-side .bd-flex-pair {
+  margin-top: 0;
+}
+
+/* Beside the grid the fields are narrow: they drop their chevrons to
+   keep the value in view. */
+.bd-flex-top-side .bd-dd-chev {
+  display: none;
+}
+
+.bd-flex-top-side .bd-dd {
+  padding-inline: var(--dt-space-inset-xs);
 }
 
 /* Two fields or two buttons sharing a row. */
@@ -9191,4 +9234,116 @@ input.bd-folder-name {
 .bd-as-mrow.is-off .bd-switch:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* The inspector in two parts: what a layer is and says, then a divider,
+   then where it sits. With properties of its own above, the second part
+   folds into one line. */
+.bd-insp-divider {
+  height: 4px;
+  background: var(--dt-surface-sunken);
+}
+
+.bd-place-sum {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  width: 100%;
+  min-height: var(--dt-size-control-md);
+  padding: 0 var(--dt-space-inset-sm);
+  border: 0;
+  border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  background: none;
+  color: var(--dt-text-secondary);
+  font: inherit;
+  font-size: var(--dt-font-size-xs);
+  text-align: start;
+  cursor: pointer;
+}
+
+.bd-place-sum:hover {
+  color: var(--dt-text-primary);
+}
+
+.bd-place-sum:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: calc(-1 * var(--dt-focus-ring-width));
+}
+
+.bd-place-sum-h {
+  flex: none;
+  color: var(--dt-text-primary);
+  font-weight: var(--dt-font-weight-semibold);
+}
+
+.bd-place-sum-t {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dt-text-tertiary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A frame's sections: a card each, folded until pressed. */
+.bd-part {
+  margin-top: var(--dt-space-stack-2xs);
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-control);
+}
+
+.bd-part.is-hidden .bd-part-name {
+  opacity: 0.5;
+}
+
+.bd-part-head {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-inline-end: 2px;
+}
+
+.bd-part-name {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  min-width: 0;
+  min-height: var(--dt-size-control-sm);
+  padding: 0 var(--dt-space-inset-xs);
+  border: 0;
+  background: none;
+  color: var(--bd-component);
+  font: inherit;
+  font-size: var(--dt-font-size-xs);
+  font-weight: var(--dt-font-weight-semibold);
+  text-align: start;
+  cursor: pointer;
+}
+
+.bd-part-name span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bd-part-name:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: -2px;
+}
+
+.bd-part-chev {
+  color: var(--dt-text-tertiary);
+}
+
+.bd-part-body {
+  padding: 0 var(--dt-space-inset-xs) var(--dt-space-inset-xs);
+}
+/* Agent composer: reach and effort are one icon each, lit when pressed. */
+.bd-as-toggle[aria-pressed="true"] {
+  background: var(--dt-surface-selected);
+  box-shadow: inset 0 0 0 var(--dt-border-width-default) var(--dt-border-strong);
+  color: var(--dt-text-primary);
 }

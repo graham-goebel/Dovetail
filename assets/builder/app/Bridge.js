@@ -43,7 +43,7 @@ var BridgeDialog = memo(function BridgeDialog(p) {
   return e("dialog", { className: "bd-code bd-bridge-dlg", ref: p.dialogRef, "aria-labelledby": "bd-br-title" },
     e("div", { className: "bd-code-head" },
       e("div", { className: "bd-code-intro" }, e("h2", { id: "bd-br-title" }, "Let agents edit this file"),
-        e("p", { className: "bd-inspect-sub" }, "An agent works on your open canvas with the assistant's own tools: it reads the page, makes changes, runs the checks and takes pictures. Each gets its own link, so you see who did what, and can end one without the others.")),
+        e("p", { className: "bd-inspect-sub" }, "An agent works on your open canvas with the Agent panel's own tools: it reads the page, makes changes, runs the checks and takes pictures. Each gets its own link, so you see who did what, and can end one without the others.")),
       e("div", { className: "bd-code-actions" }, e("button", { type: "button", className: "bd-act", "aria-label": "Close", onClick: close }, e(Icon, { name: "close" })))),
     e("div", { className: "bd-br-body" },
       off ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sessions run through the builder's cloud, which isn't connected here yet (docs/cloud.md).")

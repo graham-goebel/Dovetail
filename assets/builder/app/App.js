@@ -1,6 +1,6 @@
 /* The builder itself: the canvas, the panels, the inspector, history and every action. */
 
-import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, useEvent, allSame, VIRTUAL_AFTER, LIVE_MAX, nodeLabel, typeIcon, hasTitlePart, nodeIsOpen, frameSize, IS_MAC, PANELS, SHORTCUTS } from "../config.js";
+import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, isComponentLayer, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, useEvent, allSame, VIRTUAL_AFTER, LIVE_MAX, nodeLabel, typeIcon, hasTitlePart, nodeIsOpen, frameSize, IS_MAC, PANELS, SHORTCUTS } from "../config.js";
 import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
@@ -1177,7 +1177,7 @@ function App(props) {
         runChecks(fid).then(function (got) { patchTurn(turn.id, { checks: got.rows, checksOn: fid, checking: false }); }, function () { patchTurn(turn.id, { checking: false }); });
       }, 0);
     }, function (err) {
-      patchTurn(turn.id, function (x) { return { status: "error", error: err.message || "The assistant stopped.", made: history.current.past.length - x.from }; });
+      patchTurn(turn.id, function (x) { return { status: "error", error: err.message || "The agent stopped.", made: history.current.past.length - x.from }; });
     }).then(finish);
   };
   var runRef = useRef(runAssistant); runRef.current = runAssistant;
@@ -1343,12 +1343,12 @@ function App(props) {
       asDraftState[1]("Change the plan: ");
       setTimeout(function () { var el = document.querySelector(".bd-as-input"); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }, 0);
     },
-    setPlans: function (on) { asPlanState[1](on); writePref(AS_PLAN_KEY, on ? "on" : "off"); announce(on ? "The assistant shows a plan before big changes" : "The assistant builds without asking first"); },
+    setPlans: function (on) { asPlanState[1](on); writePref(AS_PLAN_KEY, on ? "on" : "off"); announce(on ? "The agent shows a plan before big changes" : "The agent builds without asking first"); },
     setEffort: function (v) { asEffortState[1](v); writePref(AS_EFFORT_KEY, v); },
     setLook: function (on) {
       try { if (on) window.localStorage.removeItem(LOOK_KEY + projectRef.current.id); else window.localStorage.setItem(LOOK_KEY + projectRef.current.id, "off"); } catch (err) { /* this visit only */ }
       asLookTick[1](function (n) { return n + 1; });
-      announce(on ? "The assistant can look at this file's canvas" : "The assistant won't send pictures of this file's canvas");
+      announce(on ? "The agent can look at this file's canvas" : "The agent won't send pictures of this file's canvas");
     },
     /* Undo one of a reply's changes and every one after it, while nothing
        else has been edited since. */
@@ -1369,7 +1369,7 @@ function App(props) {
     },
     /* The conversation as Markdown, to keep or share. */
     exportThread: function () {
-      var lines = ["# Assistant: " + ((projectRef.current && projectRef.current.name) || "file"), ""];
+      var lines = ["# Agent: " + ((projectRef.current && projectRef.current.name) || "file"), ""];
       asThread.forEach(function (t) {
         if (t.role === "user") lines.push("**You:** " + t.text, "");
         else if (t.role === "edits") { lines.push("_You changed:_"); t.lines.forEach(function (l) { lines.push("- " + l); }); lines.push(""); }
@@ -1386,7 +1386,7 @@ function App(props) {
       var blob = new Blob([lines.join("\n")], { type: "text/markdown" });
       var link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = "assistant-" + (((projectRef.current && projectRef.current.name) || "file").replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "file") + ".md";
+      link.download = "agent-" + (((projectRef.current && projectRef.current.name) || "file").replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "file") + ".md";
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -1400,7 +1400,7 @@ function App(props) {
       if (history.current.past.length !== t.from + t.made) { announce("Other edits came after this reply, so undo them first, or use Undo step by step."); return; }
       for (var i = 0; i < t.made; i++) undo();
       patchTurn(id, { undone: true });
-      announce("Undid the assistant's " + t.changes.length + (t.changes.length === 1 ? " change" : " changes"));
+      announce("Undid the agent's " + t.changes.length + (t.changes.length === 1 ? " change" : " changes"));
     },
     /* A check's Fix: a message naming what failed and where. */
     fix: function (id, row) {
@@ -6097,19 +6097,21 @@ function App(props) {
   /* Direction, wrap, a 3 × 3 alignment pad and the gap, for anything that
      lays its children out with flex. */
   /* Auto layout's controls, one way for a frame and a container: the
-     alignment grid beside the direction and wrap, then the spacing fields
-     in pairs, then the two spreads side by side. */
+     alignment grid, and beside it the direction and wrap, the spacing
+     fields in a pair, and the two spreads side by side. */
   var flexRows = function (matrix, head, fields, toggles) {
-    return [
-      head.length || matrix ? e("div", { key: "top", className: matrix ? "bd-flex-top" : "bd-flex-head" },
-        matrix, matrix ? e("div", { className: "bd-flex-top-side" }, head) : head) : null,
+    var side = [
+      head.length ? e("div", { key: "dir", className: "bd-flex-dir" }, head) : null,
       fields.length ? e("div", { key: "fields", className: "bd-flex-pair" }, fields) : null,
       toggles.length ? e("div", { key: "toggles", className: "bd-flex-pair" }, toggles) : null,
-    ];
+    ].filter(Boolean);
+    if (!matrix) return side;
+    return [e("div", { key: "top", className: "bd-flex-top" }, matrix, e("div", { className: "bd-flex-top-side" }, side))];
   };
+  /* Wrap sits with the row and column toggle, as a third icon. */
   var wrapButton = function (on, onClick) {
-    return e("button", { key: "wrap", type: "button", className: "bd-btn bd-btn-sm bd-flex-wrap", "aria-pressed": String(!!on), title: on ? "Wraps onto new lines" : "Stays on one line", "aria-label": "Wrap onto new lines", onClick: onClick },
-      e(Icon, { name: "wrapLines" }), "Wrap");
+    return e("button", { key: "wrap", type: "button", className: "bd-act bd-flex-wrap", "aria-pressed": String(!!on), title: on ? "Wraps onto new lines" : "Stays on one line", "aria-label": "Wrap onto new lines", onClick: onClick },
+      e(Icon, { name: "wrapLines" }));
   };
   var flexSection = function (nodes, meta) {
     var first = nodes[0];
@@ -6137,7 +6139,7 @@ function App(props) {
     if (pad && align.options.indexOf("stretch") >= 0) side.push(e("button", { key: "stretch", type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(a === "stretch"), title: "Children fill the cross axis",
       onClick: function () { setProp(ids, "align", a === "stretch" ? "flex-start" : "stretch"); } }, e(Icon, { name: "alignStretch" }), "Stretch"));
     if (pad && justify.options.indexOf("space-between") >= 0) side.push(e("button", { key: "between", type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(j === "space-between"), title: "Spread children along the main axis",
-      onClick: function () { setProp(ids, "justify", j === "space-between" ? "flex-start" : "space-between"); } }, e(Icon, { name: "justifyBetween" }), "Space between"));
+      onClick: function () { setProp(ids, "justify", j === "space-between" ? "flex-start" : "space-between"); } }, e(Icon, { name: "justifyBetween" }), "Between"));
     var rest = meta.props.filter(function (p) { return (p.tab || "content") === "layout" && ["direction", "wrap", "gap"].indexOf(p.name) < 0 && !(pad && (p.name === "align" || p.name === "justify")); })
       .map(function (p) { return propControl(p, nodes); }).filter(Boolean);
     if (!head.length && !pad && !side.length && !rest.length) return null;
@@ -6432,6 +6434,24 @@ function App(props) {
     if (!FOLDED_FIRST[key]) return !!closedSecs[key];
     return closedSecs[key] === undefined ? !changed : closedSecs[key] !== false;
   };
+  /* Whether a layer's placement shows in full under its own properties,
+     for this visit. */
+  /* Placement folded or open is remembered per browser. */
+  var placeOpenSt = useState(function () { try { return window.localStorage.getItem("dovetail-builder-place") === "open"; } catch (err) { return false; } });
+  var placeOpen = placeOpenSt[0];
+  var setPlaceOpen = function (on) { placeOpenSt[1](on); try { window.localStorage.setItem("dovetail-builder-place", on ? "open" : "folded"); } catch (err) { /* this visit only */ } };
+  /* Which of a frame's sections are open in its inspector. */
+  var openPartsSt = useState({}), openParts = openPartsSt[0], setOpenParts = openPartsSt[1];
+  /* Placement in a line: how it sits, its size and its padding. */
+  var placeSummary = function (nodes, free) {
+    var n = nodes[0], st = n.style || {};
+    if (nodes.length > 1) return nodes.length + " layers";
+    var pos = free ? "Free" : st.position ? words(st.position) : "In flow";
+    var side = function (fk, tk, rk) { return st[rk] ? st[rk] : st[fk] ? st[fk] * 4 + "px" : st[tk] ? String(st[tk]) : "Auto"; };
+    var size = side("fw", "w", "rw") + " × " + side("fh", "height", "rh");
+    var pad = st.padding ? "padding " + st.padding : "";
+    return [pos, size, pad].filter(Boolean).join(" · ");
+  };
   var sec = function (key, title, children, action, changed) {
     var empty = children == null;
     return e(Section, { key: key, id: key, title: title, action: action, changed: changed, closed: empty || isClosed(key, changed),
@@ -6658,13 +6678,13 @@ function App(props) {
       [e(Dropdown, { key: "gap", label: "Gap", prefix: "Gap", value: gapNow, className: "bd-dd-field", narrow: true,
           options: gapSpec.options.map(function (o) { return { value: o, label: o === "none" ? "None" : o, hint: o === "none" ? undefined : DATA.rootGaps.indexOf(o) >= 0 ? "--dt-layout-" + (fdir === "row" ? "inline" : "stack") + "-" + o : (fdir === "row" ? "--dt-space-inline-" : "--dt-space-stack-") + o }; }),
           onChange: function (v) { setFlow({ gap: v === "none" ? undefined : v }); } }),
-        e(Dropdown, { key: "padding", label: "Padding", prefix: "Padding", value: fl.padding || "", className: "bd-dd-field", narrow: true,
+        e(Dropdown, { key: "padding", label: "Padding", prefix: "Pad", value: fl.padding || "", className: "bd-dd-field", narrow: true,
           options: [{ value: "", label: "None" }].concat(DATA.tokens.padding.options.map(function (o) { return { value: o.value, label: o.value, hint: o.tokens[0] }; })),
           onChange: function (v) { setFlow({ padding: v || undefined }); } })],
       [e("button", { key: "stretch", type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(a === "stretch"), title: "Children fill the cross axis",
           onClick: function () { setFlow({ align: a === "stretch" ? "flex-start" : "stretch" }); } }, e(Icon, { name: "alignStretch" }), "Stretch"),
         e("button", { key: "between", type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(j === "space-between"), title: "Spread children along the main axis",
-          onClick: function () { setFlow({ justify: j === "space-between" ? "flex-start" : "space-between" }); } }, e(Icon, { name: "justifyBetween" }), "Space between")]
+          onClick: function () { setFlow({ justify: j === "space-between" ? "flex-start" : "space-between" }); } }, e(Icon, { name: "justifyBetween" }), "Between")]
     ), toggle);
   };
   /* What spills past the frame's edges: clipped, or scrolled one way. A
@@ -6724,7 +6744,33 @@ function App(props) {
         e(Dropdown, { key: "resize", label: "Resizing", prefix: "Resizing", value: frame.hug ? "hug" : "fixed", className: "bd-dd-field",
           onChange: function (v) { change(function (d) { var f = active(d); f.hug = v === "hug"; if (!f.hug) f.height = side(Math.round(b.h), MAX_HEIGHT, f.height); return undefined; }, v === "hug" ? frame.name + " hugs its contents" : frame.name + " has a fixed height"); },
           options: [{ value: "fixed", label: "Fixed width and height", short: "Fixed", hint: "Stays the size you set, like a device screen", icon: "fit" }, { value: "hug", label: "Hug contents", short: "Hug contents", hint: "Fixed width; the height grows with what's in it", icon: "column" }] })])];
-    var body = place.concat([
+    /* What the frame is made of: each component on its page as a card,
+       folded until pressed, open to its words and options; the eye hides
+       it, the arrow selects it. A template's frame reads section by
+       section here. */
+    var parts = frame.root.children.filter(function (c) { return isComponentLayer(c) || c.type === "Section"; });
+    var sections = parts.length ? sec("frame-sections", "Sections", parts.map(function (c) {
+      var open = !!openParts[c.id];
+      var m = META[c.type] || { props: [] };
+      var base = scalars[c.type] || {};
+      var hasText = !m.container && !m.builder && (typeof base.children === "string" || typeof c.props.children === "string");
+      var rows = open ? (hasText ? [e(Field, { key: "text", id: "bd-sec-text-" + c.id, label: "Text" },
+          e("input", { className: "bd-input", type: "text", "aria-labelledby": "bd-sec-text-" + c.id, value: c.props.children != null ? String(c.props.children) : String(base.children || ""), onChange: function (ev) { setProp([c.id], "children", ev.target.value); } }))] : [])
+        .concat((function () {
+          /* Its words and options; a band with none shows its arrangement. */
+          var tab = function (t) { return m.props.filter(function (p) { return (p.tab || "content") === t; }); };
+          var list = tab("content").length ? tab("content") : tab("layout");
+          return list.map(function (p) { return propControl(p, [c]); }).filter(Boolean);
+        })()) : [];
+      return e("div", { key: c.id, className: cx("bd-part", open && "is-open", c.hide && "is-hidden") },
+        e("div", { className: "bd-part-head" },
+          e("button", { type: "button", className: "bd-part-name", "aria-expanded": String(open), onClick: function () { setOpenParts(function (o) { var n = Object.assign({}, o); if (n[c.id]) delete n[c.id]; else n[c.id] = true; return n; }); } },
+            e(Icon, { name: c.inst ? "component" : typeIcon(c.type) }), e("span", null, nameOf(c)), e(Icon, { name: open ? "down" : "right", className: "bd-part-chev" })),
+          e("button", { type: "button", className: "bd-act bd-act-ghost bd-act-sm", "aria-label": (c.hide ? "Show " : "Hide ") + nameOf(c), title: c.hide ? "Show it" : "Hide it", onClick: function () { flagLayer(c.id, frame.id, "hide"); } }, e(Icon, { name: c.hide ? "eyeOff" : "eye" })),
+          e("button", { type: "button", className: "bd-act bd-act-ghost bd-act-sm", "aria-label": "Select " + nameOf(c), title: "Select it", onClick: function () { select([c.id]); } }, e(Icon, { name: "pointer" }))),
+        open && rows.length ? e("div", { className: "bd-part-body" }, rows) : open ? e("p", { className: "bd-sec-empty bd-part-body" }, "Nothing to set here; select it for its look.") : null);
+    })) : null;
+    var body = (sections ? [sections, e("div", { key: "divider", className: "bd-insp-divider", role: "separator" })] : []).concat(place).concat([
         frame.typeScale === "social" ? frameRatio() : null,
         /* How the frame lays out what's in it comes before how it looks. */
         frameAuto()].concat(look, [
@@ -6858,16 +6904,32 @@ function App(props) {
     /* One Group in a freeform frame turns its auto layout on and off. */
     var autoGroup = !many && first.type === "Group" && !first.style.bool && frame.mode !== "structured" && !frame.bare;
     var groupOn = autoGroup && groupFlows(first);
-    var body = [
-      sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "z", "x", "y"].concat(placedFree ? ["fw", "fh", "rw", "rh", "rot"] : []))),
-      sec("size", "Size", placedFree ? [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes, "mins")] : [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, placedFree ? ["minW", "h", "textWrap"] : ["w", "minW", "height", "h", "self", "textWrap", "fw", "fh", "rw", "rh"])),
+    /* What it is and says comes first: its auto layout, arrangement,
+       content and style. Then, below a divider, where it sits: position,
+       size, spacing and look. With properties of its own above, that part
+       folds into one line that says it in short, and opens on a press. */
+    var own = [
       autoGroup ? sec("flex", "Auto layout", groupOn ? flex : null, autoButton(groupOn, function () { if (groupOn) actions.freeLayout(first.id); else actions.autoLayout(first.id); }, first.name || "the group"), groupOn && propsSet(nodes, propNames("layout")))
         : meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
       arrange ? sec("props-arrange", "Arrangement", arrange, null, propsSet(nodes, propNames("layout"))) : null,
-      sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
       contentRows.length ? sec("content", "Content", contentRows, null, propsSet(nodes, propNames("content"))) : null,
       styleRows.length ? sec("props-style", "Style", styleRows, null, propsSet(nodes, propNames("appearance"))) : null,
+    ].filter(Boolean);
+    var placeKeys = ["position", "anchor", "offset", "z", "x", "y", "fw", "fh", "rw", "rh", "rot", "w", "minW", "height", "h", "self", "textWrap"].concat(SPACING_KEYS);
+    var place = [
+      sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "z", "x", "y"].concat(placedFree ? ["fw", "fh", "rw", "rh", "rot"] : []))),
+      sec("size", "Size", placedFree ? [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes, "mins")] : [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, placedFree ? ["minW", "h", "textWrap"] : ["w", "minW", "height", "h", "self", "textWrap", "fw", "fh", "rw", "rh"])),
+      sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
     ].concat(lookSections(nodes, null));
+    var folds = own.length > 0 && !placeOpen;
+    var body = own.concat(own.length ? [e("div", { key: "divider", className: "bd-insp-divider", role: "separator" })] : [],
+      folds ? [e("button", { key: "place-sum", type: "button", className: "bd-place-sum", "aria-expanded": "false", title: "Show position, size, spacing and look", onClick: function () { setPlaceOpen(true); } },
+          e(Icon, { name: "sliders" }), e("span", { className: "bd-place-sum-h" }, "Placement"),
+          e("span", { className: "bd-place-sum-t" }, placeSummary(nodes, placedFree)),
+          styled(nodes, placeKeys) ? e("span", { className: "bd-sec-dot", title: "Changed from the default" }) : null,
+          e(Icon, { name: "down", className: "bd-sec-chev" }))]
+        : (own.length ? [e("button", { key: "place-fold", type: "button", className: "bd-place-sum is-open", "aria-expanded": "true", title: "Fold position, size, spacing and look into one line", onClick: function () { setPlaceOpen(false); } },
+            e(Icon, { name: "sliders" }), e("span", { className: "bd-place-sum-h" }, "Placement"), e("span", { className: "bd-place-sum-t" }), e(Icon, { name: "up", className: "bd-sec-chev" }))] : []).concat(place));
     var title = many ? nodes.length + " " + (sameType ? first.type + (first.type.endsWith("s") ? "" : "s") : "items") : null;
     var arrangeTools = arrangeRow(nodes);
     return e("div", { className: "bd-inspect" },
@@ -7646,7 +7708,7 @@ function App(props) {
       })),
     e("div", { className: cx("bd-shell", hidePanels && "is-bare", arriving && "is-arriving", leftClosed && "is-left-closed"), "data-pane": pane, inert: home ? "" : undefined, "aria-hidden": home ? "true" : undefined,
       style: wide ? { "--bd-left-w": (leftClosed ? railW || 88 : panels.left) + "px", "--bd-right-w": (rightClosed ? 0 : panels.right) + "px" } : undefined },
-      e("aside", { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content, configure, assistant and context", hidden: hidePanels || undefined },
+      e("aside", { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content, configure, agent and context", hidden: hidePanels || undefined },
         e("div", { className: "bd-left-tabs bd-rail" },
           e("div", { className: "bd-rail-tabs", role: "tablist", "aria-label": "Left panel", "aria-orientation": wide ? "vertical" : "horizontal" },
             RAIL.map(function (r) {
@@ -7659,7 +7721,7 @@ function App(props) {
             e(Icon, { name: "user" }), e("span", { className: "bd-rail-label", "aria-hidden": "true" }, "Account"))),
         e("div", { className: "bd-left-body", id: "bd-left-body", role: "tabpanel" },
           e("div", { className: cx("bd-left-main", left === "configure" && "bd-config-main") },
-            left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null)
+            left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-panel-head bd-panel-top" }, e("h2", { className: "bd-panel-title" }, "Configure")), e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null)
               : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps)
               : left === "assistant" ? e(AssistantPanel, { thread: asThread, busy: asBusy, draft: asDraftState[0], setDraft: asDraftState[1], mode: asModeState[0], setMode: function (m) { setAssistantMode(m); asModeState[1](assistantMode(account.status === "in")); }, canLive: cloudReady() && account.status === "in", cloudOn: cloudReady(), signIn: openAccount,
                   target: selectedNodes.length ? (selectedNodes.length === 1 ? (selectedNodes[0].name || selectedNodes[0].type) : selectedNodes.length + " layers") : null,

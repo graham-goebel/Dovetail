@@ -579,8 +579,8 @@
     ["layers", "Layers", "Everything in each frame", "layers2"],
     ["content", "Content", "Images, illustrations and icons", "folder"],
     ["configure", "Configure", "The system's brand, colour, type and layout", "sliders"],
-    ["assistant", "Assistant", "Ask for design changes on the canvas", "wand"],
-    ["context", "Context", "Docs and skills the assistant reads", "book"]
+    ["assistant", "Agent", "Ask the agent for design changes on the canvas", "wand"],
+    ["context", "Context", "Docs and skills the agent reads", "book"]
   ];
   var TEXT_STYLES = [
     ["display-lg", "Display large"],
@@ -7885,6 +7885,8 @@
     textFixed: ["M4 5h16v14H4z", "M8 9h8", "M8 12h8", "M8 15h5"]
   };
   var HERO = {
+    send: ["M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"],
+    bulb: ["M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"],
     grip: ["M9 6h.01", "M9 12h.01", "M9 18h.01", "M15 6h.01", "M15 12h.01", "M15 18h.01"],
     home: ["m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"],
     undo: ["M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"],
@@ -8076,7 +8078,7 @@
           "div",
           { className: "bd-code-intro" },
           e("h2", { id: "bd-br-title" }, "Let agents edit this file"),
-          e("p", { className: "bd-inspect-sub" }, "An agent works on your open canvas with the assistant's own tools: it reads the page, makes changes, runs the checks and takes pictures. Each gets its own link, so you see who did what, and can end one without the others.")
+          e("p", { className: "bd-inspect-sub" }, "An agent works on your open canvas with the Agent panel's own tools: it reads the page, makes changes, runs the checks and takes pictures. Each gets its own link, so you see who did what, and can end one without the others.")
         ),
         e("div", { className: "bd-code-actions" }, e("button", { type: "button", className: "bd-act", "aria-label": "Close", onClick: close }, e(Icon, { name: "close" })))
       ),
@@ -11065,6 +11067,7 @@
     return e(
       "div",
       { className: "bd-layers-panel" },
+      e("div", { className: "bd-panel-head bd-panel-top" }, e("h2", { className: "bd-panel-title" }, "Layers")),
       e(
         "div",
         { className: "bd-layers", ref: p.layersRef, role: "tree", "aria-label": "Layers", "aria-multiselectable": "true" },
@@ -11445,7 +11448,7 @@
       { className: "bd-pages-panel" },
       e(
         "div",
-        { className: "bd-panel-head" },
+        { className: "bd-panel-head bd-panel-top" },
         e("h2", { className: "bd-panel-title" }, "Pages"),
         e(
           "span",
@@ -11789,6 +11792,7 @@
       return e(
         "div",
         { className: "bd-assets is-cards" },
+        e("div", { className: "bd-panel-head bd-panel-top" }, e("h2", { className: "bd-panel-title" }, "Assets")),
         head3,
         e("ul", { className: "bd-kinds bd-asset-kinds", role: "list" }, ASSET_KINDS.map(function(k) {
           var note3 = k[3];
@@ -12051,7 +12055,7 @@
       return e(
         "div",
         { className: "bd-content" },
-        e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Content")),
+        e("div", { className: "bd-panel-head bd-panel-top" }, e("h2", { className: "bd-panel-title" }, "Content")),
         e("p", { className: "bd-content-note bd-content-scope" }, p.scopeNote),
         e("ul", { className: "bd-kinds", role: "list" }, [brandCard(p)].concat(LIB_TABS.map(function(t) {
           var items2 = p.library[t[0]];
@@ -12891,6 +12895,7 @@
           }
         }
       },
+      e("div", { className: "bd-panel-head bd-panel-top" }, e("h2", { className: "bd-panel-title" }, "Context")),
       e(
         "div",
         { className: "bd-cx-top" },
@@ -13574,12 +13579,12 @@
     return e(
       "div",
       { className: "bd-as-menu", ref },
-      e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-menu-btn", "aria-label": "Assistant settings", "aria-expanded": open, "aria-haspopup": "true", onClick: function() {
+      e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-menu-btn", "aria-label": "Agent settings", "aria-expanded": open, "aria-haspopup": "true", onClick: function() {
         setOpen(!open);
       } }, e(Icon, { name: "more" })),
       open ? e(
         "div",
-        { className: "bd-as-pop", role: "group", "aria-label": "Assistant settings" },
+        { className: "bd-as-pop", role: "group", "aria-label": "Agent settings" },
         /* Live or practice: live sends requests to the model through the cloud
            and needs a signed-in person; practice answers from a script here. */
         e(
@@ -13588,7 +13593,7 @@
           e(
             "span",
             { className: "bd-as-mrow-t" },
-            e("b", { id: "bd-as-m-live" }, "Live assistant"),
+            e("b", { id: "bd-as-m-live" }, "Live agent"),
             e("span", null, p.canLive ? "On once you're signed in: each request goes to the model through the cloud, on the account's usage. Off, a script in this browser answers, free." : p.cloudOn ? "Sign in to send requests to the model. Until then a script in this browser answers." : "Needs the cloud connected. A script in this browser answers.")
           ),
           p.cloudOn && !p.canLive ? e("button", { type: "button", className: "bd-as-mbtn bd-as-msign", onClick: function() {
@@ -13715,7 +13720,7 @@
       e(
         "div",
         { className: "bd-as-head" },
-        e("span", { className: "bd-as-title" }, "Assistant"),
+        e("span", { className: "bd-as-title" }, "Agent"),
         p.mode === "practice" ? e("span", { className: "bd-as-badge", title: "Answers come from a script in this browser; nothing is sent or charged" }, "Practice") : e("span", { className: "bd-as-badge is-live", title: "Requests go to the model through the cloud, on the account's usage" }, "Live"),
         e("button", { type: "button", className: cx("bd-act bd-act-ghost", p.view === "list" && "is-on"), title: p.view === "list" ? "Back to the conversation" : "Conversations", "aria-label": "Conversations", "aria-pressed": p.view === "list", onClick: function() {
           p.showList(p.view !== "list");
@@ -13843,7 +13848,7 @@
           rows: 2,
           value: p.draft,
           placeholder: p.waiting ? "Answer the question, or pick an option…" : p.busy ? "Add a note while it works…" : (p.pics || []).length ? "Say what to build from the picture, or send it as it is…" : "Ask for a change, describe a new page, or paste a picture…",
-          "aria-label": p.busy ? "Add a note for the assistant" : "Message the assistant",
+          "aria-label": p.busy ? "Add a note for the agent" : "Message the agent",
           onChange: function(ev) {
             p.setDraft(ev.target.value);
           },
@@ -13874,27 +13879,31 @@
         e(
           "div",
           { className: "bd-as-bar" },
-          e(Segmented, {
-            label: "What it may change",
-            value: p.reach,
-            onChange: function(v) {
-              if (v) p.setReach(v);
-            },
-            options: [{ value: "selection", label: "Selection" }, { value: "page", label: "Page" }]
-          }),
-          e(Segmented, {
-            label: "How hard it thinks",
-            value: p.effort,
-            onChange: function(v) {
-              if (v) p.setEffort(v);
-            },
-            options: [{ value: "low", label: "Quick", title: "Quicker, for small edits" }, { value: "high", label: "Careful", title: "Thinks it through, for pages and redesigns" }]
-          }),
+          e("button", {
+            type: "button",
+            className: "bd-act bd-act-ghost bd-as-toggle bd-as-reach",
+            "aria-label": "Whole page",
+            "aria-pressed": String(p.reach === "page"),
+            title: p.reach === "page" ? "May change the whole page: press to keep it to the selection" : "Changes the selection only: press to let it change the whole page",
+            onClick: function() {
+              p.setReach(p.reach === "page" ? "selection" : "page");
+            }
+          }, e(Icon, { name: p.reach === "page" ? "file" : "cursor" })),
+          e("button", {
+            type: "button",
+            className: "bd-act bd-act-ghost bd-as-toggle bd-as-effort",
+            "aria-label": "Think it through",
+            "aria-pressed": String(p.effort !== "low"),
+            title: p.effort !== "low" ? "Careful: thinks it through, for pages and redesigns. Press for quick" : "Quick: for small edits. Press to think it through",
+            onClick: function() {
+              p.setEffort(p.effort !== "low" ? "low" : "high");
+            }
+          }, e(Icon, { name: p.effort !== "low" ? "bulb" : "bolt" })),
           e("span", { className: "bd-as-sp" }),
           e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-attach", "aria-label": "Attach a picture", title: "Attach a picture to build from (or paste or drop one)", disabled: (p.pics || []).length >= 3, onClick: function() {
             if (fileRef.current) fileRef.current.click();
           } }, e(Icon, { name: "image" })),
-          p.busy && p.draft.trim() ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Add the note", onClick: send }, e(Icon, { name: "up" })) : p.busy ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Stop", onClick: p.stop }, e(Icon, { name: "close" })) : e("button", { type: "button", className: "bd-as-send", "aria-label": "Send", disabled: !p.draft.trim() && !(p.pics || []).length, onClick: send }, e(Icon, { name: "up" }))
+          p.busy && p.draft.trim() ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Add the note", onClick: send }, e(Icon, { name: "send" })) : p.busy ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Stop", onClick: p.stop }, e(Icon, { name: "close" })) : e("button", { type: "button", className: "bd-as-send", "aria-label": "Send", disabled: !p.draft.trim() && !(p.pics || []).length, onClick: send }, e(Icon, { name: "send" }))
         )
       )
     );
@@ -17375,7 +17384,7 @@
         }, 0);
       }, function(err) {
         patchTurn(turn.id, function(x) {
-          return { status: "error", error: err.message || "The assistant stopped.", made: history.current.past.length - x.from };
+          return { status: "error", error: err.message || "The agent stopped.", made: history.current.past.length - x.from };
         });
       }).then(finish);
     };
@@ -17662,7 +17671,7 @@
       setPlans: function(on) {
         asPlanState[1](on);
         writePref(AS_PLAN_KEY, on ? "on" : "off");
-        announce(on ? "The assistant shows a plan before big changes" : "The assistant builds without asking first");
+        announce(on ? "The agent shows a plan before big changes" : "The agent builds without asking first");
       },
       setEffort: function(v) {
         asEffortState[1](v);
@@ -17677,7 +17686,7 @@
         asLookTick[1](function(n) {
           return n + 1;
         });
-        announce(on ? "The assistant can look at this file's canvas" : "The assistant won't send pictures of this file's canvas");
+        announce(on ? "The agent can look at this file's canvas" : "The agent won't send pictures of this file's canvas");
       },
       /* Undo one of a reply's changes and every one after it, while nothing
          else has been edited since. */
@@ -17707,7 +17716,7 @@
       },
       /* The conversation as Markdown, to keep or share. */
       exportThread: function() {
-        var lines = ["# Assistant: " + (projectRef.current && projectRef.current.name || "file"), ""];
+        var lines = ["# Agent: " + (projectRef.current && projectRef.current.name || "file"), ""];
         asThread.forEach(function(t) {
           if (t.role === "user") lines.push("**You:** " + t.text, "");
           else if (t.role === "edits") {
@@ -17746,7 +17755,7 @@
         var blob = new Blob([lines.join("\n")], { type: "text/markdown" });
         var link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = "assistant-" + ((projectRef.current && projectRef.current.name || "file").replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "file") + ".md";
+        link.download = "agent-" + ((projectRef.current && projectRef.current.name || "file").replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "file") + ".md";
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -17772,7 +17781,7 @@
         }
         for (var i = 0; i < t.made; i++) undo();
         patchTurn(id, { undone: true });
-        announce("Undid the assistant's " + t.changes.length + (t.changes.length === 1 ? " change" : " changes"));
+        announce("Undid the agent's " + t.changes.length + (t.changes.length === 1 ? " change" : " changes"));
       },
       /* A check's Fix: a message naming what failed and where. */
       fix: function(id, row) {
@@ -24124,23 +24133,19 @@
       );
     };
     var flexRows = function(matrix, head3, fields, toggles) {
-      return [
-        head3.length || matrix ? e(
-          "div",
-          { key: "top", className: matrix ? "bd-flex-top" : "bd-flex-head" },
-          matrix,
-          matrix ? e("div", { className: "bd-flex-top-side" }, head3) : head3
-        ) : null,
+      var side2 = [
+        head3.length ? e("div", { key: "dir", className: "bd-flex-dir" }, head3) : null,
         fields.length ? e("div", { key: "fields", className: "bd-flex-pair" }, fields) : null,
         toggles.length ? e("div", { key: "toggles", className: "bd-flex-pair" }, toggles) : null
-      ];
+      ].filter(Boolean);
+      if (!matrix) return side2;
+      return [e("div", { key: "top", className: "bd-flex-top" }, matrix, e("div", { className: "bd-flex-top-side" }, side2))];
     };
     var wrapButton = function(on, onClick) {
       return e(
         "button",
-        { key: "wrap", type: "button", className: "bd-btn bd-btn-sm bd-flex-wrap", "aria-pressed": String(!!on), title: on ? "Wraps onto new lines" : "Stays on one line", "aria-label": "Wrap onto new lines", onClick },
-        e(Icon, { name: "wrapLines" }),
-        "Wrap"
+        { key: "wrap", type: "button", className: "bd-act bd-flex-wrap", "aria-pressed": String(!!on), title: on ? "Wraps onto new lines" : "Stays on one line", "aria-label": "Wrap onto new lines", onClick },
+        e(Icon, { name: "wrapLines" })
       );
     };
     var flexSection = function(nodes, meta) {
@@ -24217,7 +24222,7 @@
         onClick: function() {
           setProp(ids, "justify", j === "space-between" ? "flex-start" : "space-between");
         }
-      }, e(Icon, { name: "justifyBetween" }), "Space between"));
+      }, e(Icon, { name: "justifyBetween" }), "Between"));
       var rest = meta.props.filter(function(p) {
         return (p.tab || "content") === "layout" && ["direction", "wrap", "gap"].indexOf(p.name) < 0 && !(pad && (p.name === "align" || p.name === "justify"));
       }).map(function(p) {
@@ -24715,6 +24720,33 @@
     var isClosed = function(key, changed) {
       if (!FOLDED_FIRST[key]) return !!closedSecs[key];
       return closedSecs[key] === void 0 ? !changed : closedSecs[key] !== false;
+    };
+    var placeOpenSt = useState(function() {
+      try {
+        return window.localStorage.getItem("dovetail-builder-place") === "open";
+      } catch (err) {
+        return false;
+      }
+    });
+    var placeOpen = placeOpenSt[0];
+    var setPlaceOpen = function(on) {
+      placeOpenSt[1](on);
+      try {
+        window.localStorage.setItem("dovetail-builder-place", on ? "open" : "folded");
+      } catch (err) {
+      }
+    };
+    var openPartsSt = useState({}), openParts = openPartsSt[0], setOpenParts = openPartsSt[1];
+    var placeSummary = function(nodes, free) {
+      var n = nodes[0], st = n.style || {};
+      if (nodes.length > 1) return nodes.length + " layers";
+      var pos = free ? "Free" : st.position ? words(st.position) : "In flow";
+      var side2 = function(fk, tk, rk) {
+        return st[rk] ? st[rk] : st[fk] ? st[fk] * 4 + "px" : st[tk] ? String(st[tk]) : "Auto";
+      };
+      var size = side2("fw", "w", "rw") + " × " + side2("fh", "height", "rh");
+      var pad = st.padding ? "padding " + st.padding : "";
+      return [pos, size, pad].filter(Boolean).join(" · ");
     };
     var sec = function(key, title, children, action, changed) {
       var empty = children == null;
@@ -25227,7 +25259,7 @@
           e(Dropdown, {
             key: "padding",
             label: "Padding",
-            prefix: "Padding",
+            prefix: "Pad",
             value: fl.padding || "",
             className: "bd-dd-field",
             narrow: true,
@@ -25259,7 +25291,7 @@
             onClick: function() {
               setFlow({ justify: j === "space-between" ? "flex-start" : "space-between" });
             }
-          }, e(Icon, { name: "justifyBetween" }), "Space between")
+          }, e(Icon, { name: "justifyBetween" }), "Between")
         ]
       ), toggle);
     };
@@ -25439,7 +25471,62 @@
           })
         ])
       ];
-      var body = place2.concat([
+      var parts = frame2.root.children.filter(function(c) {
+        return isComponentLayer(c) || c.type === "Section";
+      });
+      var sections2 = parts.length ? sec("frame-sections", "Sections", parts.map(function(c) {
+        var open = !!openParts[c.id];
+        var m = META[c.type] || { props: [] };
+        var base = scalars[c.type] || {};
+        var hasText = !m.container && !m.builder && (typeof base.children === "string" || typeof c.props.children === "string");
+        var rows = open ? (hasText ? [e(
+          Field,
+          { key: "text", id: "bd-sec-text-" + c.id, label: "Text" },
+          e("input", { className: "bd-input", type: "text", "aria-labelledby": "bd-sec-text-" + c.id, value: c.props.children != null ? String(c.props.children) : String(base.children || ""), onChange: function(ev) {
+            setProp([c.id], "children", ev.target.value);
+          } })
+        )] : []).concat((function() {
+          var tab = function(t) {
+            return m.props.filter(function(p) {
+              return (p.tab || "content") === t;
+            });
+          };
+          var list2 = tab("content").length ? tab("content") : tab("layout");
+          return list2.map(function(p) {
+            return propControl(p, [c]);
+          }).filter(Boolean);
+        })()) : [];
+        return e(
+          "div",
+          { key: c.id, className: cx("bd-part", open && "is-open", c.hide && "is-hidden") },
+          e(
+            "div",
+            { className: "bd-part-head" },
+            e(
+              "button",
+              { type: "button", className: "bd-part-name", "aria-expanded": String(open), onClick: function() {
+                setOpenParts(function(o) {
+                  var n = Object.assign({}, o);
+                  if (n[c.id]) delete n[c.id];
+                  else n[c.id] = true;
+                  return n;
+                });
+              } },
+              e(Icon, { name: c.inst ? "component" : typeIcon(c.type) }),
+              e("span", null, nameOf(c)),
+              e(Icon, { name: open ? "down" : "right", className: "bd-part-chev" })
+            ),
+            e("button", { type: "button", className: "bd-act bd-act-ghost bd-act-sm", "aria-label": (c.hide ? "Show " : "Hide ") + nameOf(c), title: c.hide ? "Show it" : "Hide it", onClick: function() {
+              flagLayer(c.id, frame2.id, "hide");
+            } }, e(Icon, { name: c.hide ? "eyeOff" : "eye" })),
+            e("button", { type: "button", className: "bd-act bd-act-ghost bd-act-sm", "aria-label": "Select " + nameOf(c), title: "Select it", onClick: function() {
+              select([c.id]);
+            } }, e(Icon, { name: "pointer" }))
+          ),
+          open && rows.length ? e("div", { className: "bd-part-body" }, rows) : open ? e("p", { className: "bd-sec-empty bd-part-body" }, "Nothing to set here; select it for its look.") : null
+        );
+      })) : null;
+      var body = (sections2 ? [sections2, e("div", { key: "divider", className: "bd-insp-divider", role: "separator" })] : []).concat(place2).concat([
         frame2.typeScale === "social" ? frameRatio() : null,
         /* How the frame lays out what's in it comes before how it looks. */
         frameAuto()
@@ -25749,18 +25836,45 @@
       });
       var autoGroup = !many && first.type === "Group" && !first.style.bool && frame2.mode !== "structured" && !frame2.bare;
       var groupOn = autoGroup && groupFlows(first);
-      var body = [
-        sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "z", "x", "y"].concat(placedFree ? ["fw", "fh", "rw", "rh", "rot"] : []))),
-        sec("size", "Size", placedFree ? [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes, "mins")] : [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, placedFree ? ["minW", "h", "textWrap"] : ["w", "minW", "height", "h", "self", "textWrap", "fw", "fh", "rw", "rh"])),
+      var own = [
         autoGroup ? sec("flex", "Auto layout", groupOn ? flex : null, autoButton(groupOn, function() {
           if (groupOn) actions2.freeLayout(first.id);
           else actions2.autoLayout(first.id);
         }, first.name || "the group"), groupOn && propsSet(nodes, propNames("layout"))) : meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
         arrange2 ? sec("props-arrange", "Arrangement", arrange2, null, propsSet(nodes, propNames("layout"))) : null,
-        sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
         contentRows.length ? sec("content", "Content", contentRows, null, propsSet(nodes, propNames("content"))) : null,
         styleRows.length ? sec("props-style", "Style", styleRows, null, propsSet(nodes, propNames("appearance"))) : null
+      ].filter(Boolean);
+      var placeKeys = ["position", "anchor", "offset", "z", "x", "y", "fw", "fh", "rw", "rh", "rot", "w", "minW", "height", "h", "self", "textWrap"].concat(SPACING_KEYS);
+      var place2 = [
+        sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "z", "x", "y"].concat(placedFree ? ["fw", "fh", "rw", "rh", "rot"] : []))),
+        sec("size", "Size", placedFree ? [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes, "mins")] : [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, placedFree ? ["minW", "h", "textWrap"] : ["w", "minW", "height", "h", "self", "textWrap", "fw", "fh", "rw", "rh"])),
+        sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS))
       ].concat(lookSections(nodes, null));
+      var folds = own.length > 0 && !placeOpen;
+      var body = own.concat(
+        own.length ? [e("div", { key: "divider", className: "bd-insp-divider", role: "separator" })] : [],
+        folds ? [e(
+          "button",
+          { key: "place-sum", type: "button", className: "bd-place-sum", "aria-expanded": "false", title: "Show position, size, spacing and look", onClick: function() {
+            setPlaceOpen(true);
+          } },
+          e(Icon, { name: "sliders" }),
+          e("span", { className: "bd-place-sum-h" }, "Placement"),
+          e("span", { className: "bd-place-sum-t" }, placeSummary(nodes, placedFree)),
+          styled(nodes, placeKeys) ? e("span", { className: "bd-sec-dot", title: "Changed from the default" }) : null,
+          e(Icon, { name: "down", className: "bd-sec-chev" })
+        )] : (own.length ? [e(
+          "button",
+          { key: "place-fold", type: "button", className: "bd-place-sum is-open", "aria-expanded": "true", title: "Fold position, size, spacing and look into one line", onClick: function() {
+            setPlaceOpen(false);
+          } },
+          e(Icon, { name: "sliders" }),
+          e("span", { className: "bd-place-sum-h" }, "Placement"),
+          e("span", { className: "bd-place-sum-t" }),
+          e(Icon, { name: "up", className: "bd-sec-chev" })
+        )] : []).concat(place2)
+      );
       var title = many ? nodes.length + " " + (sameType ? first.type + (first.type.endsWith("s") ? "" : "s") : "items") : null;
       var arrangeTools = arrangeRow(nodes);
       return e(
@@ -26989,7 +27103,7 @@
         },
         e(
           "aside",
-          { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content, configure, assistant and context", hidden: hidePanels || void 0 },
+          { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content, configure, agent and context", hidden: hidePanels || void 0 },
           e(
             "div",
             { className: "bd-left-tabs bd-rail" },
@@ -27033,7 +27147,7 @@
             e(
               "div",
               { className: cx("bd-left-main", left === "configure" && "bd-config-main") },
-              left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null) : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps) : left === "assistant" ? e(AssistantPanel, {
+              left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-panel-head bd-panel-top" }, e("h2", { className: "bd-panel-title" }, "Configure")), e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null) : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps) : left === "assistant" ? e(AssistantPanel, {
                 thread: asThread,
                 busy: asBusy,
                 draft: asDraftState[0],
