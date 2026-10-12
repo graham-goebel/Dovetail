@@ -51,14 +51,18 @@ function tooBig(doc) {
   return JSON.stringify(doc).length > DOC_MAX;
 }
 
-/* Everything this person can see: files, each page's version, and groups. */
-function listCloud(sb) {
+/* Everything this person can see: files, each page's version, groups,
+   and, given who they are, their role on each file ({ fileId: role }). */
+function listCloud(sb, me) {
   return Promise.all([
     sb.from("projects").select(PROJECT_COLUMNS).order("updated_at", { ascending: false }).then(check),
     sb.from("pages").select("project_id, page_id, version, updated_at").then(check),
     sb.from("file_groups").select("id, name, owner, updated_at").then(check),
+    me ? sb.from("project_members").select("project_id, role").eq("user_id", me).then(check) : Promise.resolve([]),
   ]).then(function (got) {
-    return { projects: got[0] || [], pages: got[1] || [], groups: got[2] || [] };
+    var roles = {};
+    (got[3] || []).forEach(function (r) { roles[r.project_id] = r.role; });
+    return { projects: got[0] || [], pages: got[1] || [], groups: got[2] || [], roles: roles };
   });
 }
 

@@ -100,6 +100,65 @@ do $$ begin
 end $$;
 reset role;
 
+-- Dan is invited as a viewer: he opens and reads the project, and changes
+-- nothing; the owner can make him an editor, an editor can't, and nobody
+-- can make a second owner.
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001', 'ann@example.com');
+insert into public.project_invites (project_id, email, role) values ('11111111-1111-1111-1111-111111111111', 'dan@example.com', 'viewer');
+do $$ begin
+  begin
+    insert into public.project_invites (project_id, email, role) values ('11111111-1111-1111-1111-111111111111', 'eve@example.com', 'owner');
+    raise exception 'access check failed: an invite made an owner';
+  exception when check_violation then null; end;
+end $$;
+reset role;
+select pg_temp.as_user('dddddddd-0000-0000-0000-000000000004', 'dan@example.com');
+select pg_temp.expect(public.accept_invites() = 1, 'a viewer accepts');
+select pg_temp.expect((select role from public.project_members where user_id = auth.uid()) = 'viewer', 'the invite''s role carries over');
+select pg_temp.expect((select count(*) from public.pages) = 1, 'a viewer reads the pages');
+select pg_temp.expect(not public.can_edit('11111111-1111-1111-1111-111111111111'), 'a viewer cannot edit');
+update public.pages set doc = '{"frames":["dan"]}' where page_id = 'main';
+update public.projects set name = 'Dan''s' where id = '11111111-1111-1111-1111-111111111111';
+do $$ begin
+  begin
+    insert into public.pages (project_id, page_id, doc) values ('11111111-1111-1111-1111-111111111111', 'dan', '{}');
+    raise exception 'access check failed: a viewer added a page';
+  exception when insufficient_privilege then null; end;
+  begin
+    insert into public.project_invites (project_id, email) values ('11111111-1111-1111-1111-111111111111', 'eve@example.com');
+    raise exception 'access check failed: a viewer invited someone';
+  exception when insufficient_privilege then null; end;
+end $$;
+select pg_temp.expect(public.can_use_topic('project:11111111-1111-1111-1111-111111111111:main'), 'a viewer listens on the live channel');
+select pg_temp.expect(not public.can_send_topic('project:11111111-1111-1111-1111-111111111111:main'), 'a viewer may not send on it');
+select set_config('realtime.topic', 'project:11111111-1111-1111-1111-111111111111:main', false);
+do $$ begin
+  begin
+    insert into realtime.messages (topic, payload) values ('project:11111111-1111-1111-1111-111111111111:main', '{}');
+    raise exception 'access check failed: a viewer sent on the live channel';
+  exception when insufficient_privilege then null; end;
+end $$;
+update public.project_members set role = 'editor' where user_id = auth.uid();
+reset role;
+select pg_temp.expect((select doc from public.pages where page_id = 'main') = '{"frames":[2]}' and (select name from public.projects) = 'Kiln', 'a viewer''s writes change nothing');
+select pg_temp.expect((select role from public.project_members where user_id = 'dddddddd-0000-0000-0000-000000000004') = 'viewer', 'a viewer cannot raise their own role');
+select pg_temp.as_user('bbbbbbbb-0000-0000-0000-000000000002', 'ben@example.com');
+update public.project_members set role = 'editor' where user_id = 'dddddddd-0000-0000-0000-000000000004';
+reset role;
+select pg_temp.expect((select role from public.project_members where user_id = 'dddddddd-0000-0000-0000-000000000004') = 'viewer', 'an editor cannot change roles');
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001', 'ann@example.com');
+update public.project_members set role = 'editor' where user_id = 'dddddddd-0000-0000-0000-000000000004';
+select pg_temp.expect((select role from public.project_members where user_id = 'dddddddd-0000-0000-0000-000000000004') = 'editor', 'the owner makes a viewer an editor');
+do $$ begin
+  begin
+    update public.project_members set role = 'owner' where user_id = 'dddddddd-0000-0000-0000-000000000004';
+    raise exception 'access check failed: the owner made a second owner';
+  exception when insufficient_privilege then null; end;
+end $$;
+update public.project_members set role = 'viewer' where user_id = auth.uid();
+select pg_temp.expect((select role from public.project_members where user_id = auth.uid()) = 'owner', 'the owner cannot step down to viewer');
+reset role;
+
 -- Ben leaves; the owner can remove members; deleting the project takes it all.
 select pg_temp.as_user('bbbbbbbb-0000-0000-0000-000000000002', 'ben@example.com');
 delete from public.project_members where user_id = auth.uid();

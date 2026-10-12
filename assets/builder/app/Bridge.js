@@ -44,11 +44,11 @@ var BridgeDialog = memo(function BridgeDialog(p) {
     e("div", { className: "bd-code-head" },
       e("div", { className: "bd-code-intro" }, e("h2", { id: "bd-br-title" }, "Let agents edit this file"),
         e("p", { className: "bd-inspect-sub" }, "An agent works on your open canvas with the Agent panel's own tools: it reads the page, makes changes, runs the checks and takes pictures. Each gets its own link, so you see who did what, and can end one without the others. ",
-          p.onConnectClaude ? e("button", { type: "button", className: "bd-link", onClick: function () { close(); p.onConnectClaude(); } }, "Use your own Claude instead") : null)),
+          p.onConnectClaude ? e("button", { type: "button", className: "bd-acct-link", onClick: function () { close(); p.onConnectClaude(); } }, "Use your own Claude instead") : null)),
       e("div", { className: "bd-code-actions" }, e("button", { type: "button", className: "bd-act", "aria-label": "Close", onClick: close }, e(Icon, { name: "close" })))),
     e("div", { className: "bd-br-body" },
       off ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sessions run through the builder's cloud, which isn't connected here yet (docs/cloud.md).")
-        : out ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: a session is tied to your account. ", e("button", { type: "button", className: "bd-link", onClick: p.onSignIn }, "Sign in")) : null,
+        : out ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: a session is tied to your account. ", e("button", { type: "button", className: "bd-acct-link", onClick: p.onSignIn }, "Sign in")) : null,
       list.length ? e("ul", { className: "bd-br-agents", role: "list", "aria-label": "Agents on this file" }, list.map(function (a) {
         return e("li", { key: a.key, className: "bd-br-agent" },
           e(Avatar, { agent: a }),
@@ -97,7 +97,7 @@ var ClaudeDialog = memo(function ClaudeDialog(p) {
       e("div", { className: "bd-code-actions" }, e("button", { type: "button", className: "bd-act", "aria-label": "Close", onClick: close }, e(Icon, { name: "close" })))),
     e("div", { className: "bd-br-body" },
       off ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Connecting runs through the builder's cloud, which isn't connected here yet (docs/cloud.md).")
-        : out ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: the connector is tied to your account. ", e("button", { type: "button", className: "bd-link", onClick: p.onSignIn }, "Sign in"))
+        : out ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: the connector is tied to your account. ", e("button", { type: "button", className: "bd-acct-link", onClick: p.onSignIn }, "Sign in"))
         : e("p", { className: cx("bd-br-note bd-cc-state", c.status === "live" && "is-live", c.status === "error" && "is-error"), role: "status" }, e(Icon, { name: c.status === "live" ? "check" : c.status === "error" ? "alert" : "link" }), state),
       out ? null : e("ol", { className: "bd-cc-steps", role: "list" },
         step(1, c.url ? "Copy your connector link" : has ? "Your connector link" : "Make your connector link",

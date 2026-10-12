@@ -36,7 +36,7 @@ import { EditorAt, Labels, Marks, Resizers, Rulers, SpacingLines, ViewMarks, Wor
 import { STARTERS } from "../model/starters.js";
 import { addPlayground } from "../model/playground.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
-import { invite as inviteToFile, listPeople, removeMember, withdraw as withdrawInvite } from "../cloud/sharing.js";
+import { invite as inviteToFile, listPeople, myRole, removeMember, setRole as setMemberRole, withdraw as withdrawInvite } from "../cloud/sharing.js";
 import { ShareDialog } from "./Share.js";
 import { fileCloud } from "../cloud/status.js";
 import { createSync, topicFor } from "../cloud/sync.js";
@@ -95,6 +95,9 @@ function App(props) {
   var projectState = useState(init.project);
   var project = projectState[0], setProject = projectState[1];
   var projectRef = useRef(project); projectRef.current = project;
+  /* A file shared with you as a viewer: it opens and reads, and every edit
+     is turned away with a word (the cloud refuses them too). */
+  var viewOnly = !!project && project.cloudRole === "viewer";
   /* The document last written for the project, so opening one isn't saved
      back as an edit (which would change its edited time). */
   var lastSaved = useRef(init.from === "saved" ? doc : null);
@@ -425,9 +428,9 @@ function App(props) {
   useEffect(function () {
     var live = syncRef.current, me = account.account;
     if (!live) return;
-    if (me && project.cloud && pageId) live.join(topicFor(project.cloud, pageId), { id: me.id, name: me.email, color: colorFor(me.id) });
+    if (me && project.cloud && pageId) live.join(topicFor(project.cloud, pageId), { id: me.id, name: me.email, color: colorFor(me.id), watching: viewOnly || undefined });
     else live.leave();
-  }, [liveTick, project.cloud, pageId]);
+  }, [liveTick, project.cloud, pageId, viewOnly]);
   /* One step's changes to everyone else; too big, the page goes up and
      they load it. */
   var liveSend = function (changes) {
@@ -1493,6 +1496,13 @@ function App(props) {
     return getClient().then(function (sb) { return listPeople(sb, cid); }).then(function (got) {
       if (projectRef.current.cloud !== cid) return;
       setPeople({ members: got.members, invites: got.invites, loading: false, error: null, busy: false });
+      /* Your own role, as the cloud has it now: the file follows at once, not on the next sync. */
+      var mine = account.account ? myRole(got.members, account.account.id) : null;
+      if (mine && mine !== (projectRef.current.cloudRole || null)) {
+        store.setCloud(projectRef.current.id, { cloudRole: mine }).then(function (meta) {
+          if (meta && projectRef.current.id === meta.id) { projectRef.current = meta; setProject(meta); }
+        });
+      }
     }, function (err) {
       setPeople(function (s) { return Object.assign({}, s, { loading: false, busy: false, error: err && err.message ? err.message : "Couldn't load who's on this file." }); });
     });
@@ -1509,8 +1519,19 @@ function App(props) {
       setPeople(function (s) { return Object.assign({}, s, { busy: false, error: err && err.message ? err.message : "That didn't go through." }); });
     });
   };
-  var onInvite = function (email, done) {
-    peopleWork(function (sb) { return inviteToFile(sb, projectRef.current.cloud, email, people.members); }, "Invited " + email.trim().toLowerCase()).then(function (out) { if (out && done) done(); });
+  var onInvite = function (email, role, done) {
+    var as = role === "viewer" ? "viewer" : "editor";
+    peopleWork(function (sb) { return inviteToFile(sb, projectRef.current.cloud, email, people.members, as); }, "Invited " + email.trim().toLowerCase() + (as === "viewer" ? " to view" : " to edit")).then(function (out) { if (out && done) done(); });
+  };
+  var onSetRole = function (userId, role) { peopleWork(function (sb) { return setMemberRole(sb, projectRef.current.cloud, userId, role); }, role === "viewer" ? "They can view the file now, not change it" : "They can edit the file now"); };
+  /* A link that opens this file for anyone on it: the Builder with the file's cloud id. */
+  var fileLink = function () { return projectRef.current.cloud ? location.origin + location.pathname + "#open=" + projectRef.current.cloud : ""; };
+  var onCopyLink = function () {
+    var url = fileLink();
+    if (!url) return;
+    var done = function () { announce("Link copied. It opens this file for anyone on it."); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { window.prompt("Copy this link", url); });
+    else window.prompt("Copy this link", url);
   };
   var onWithdraw = function (email) { peopleWork(function (sb) { return withdrawInvite(sb, projectRef.current.cloud, email); }, "Invite withdrawn"); };
   var onRemove = function (userId) { peopleWork(function (sb) { return removeMember(sb, projectRef.current.cloud, userId); }, "Removed from the file"); };
@@ -1549,7 +1570,9 @@ function App(props) {
     history.current.future = [];
     liveSend(redo);
   }, []);
+  var refuseView = function () { announce("You can view this file, not change it. Its owner can make you an editor."); };
   var commit = useCallback(function (next, nextSel, message) {
+    if (projectRef.current && projectRef.current.cloudRole === "viewer") { refuseView(); return; }
     next = freeze(next, true);
     remember(docRef.current, next);
     docRef.current = next;
@@ -1586,6 +1609,7 @@ function App(props) {
   };
 
   var change = useCallback(function (fn, message) {
+    if (projectRef.current && projectRef.current.cloudRole === "viewer") { refuseView(); return false; }
     var out = draft(fn, true);
     if (!out) return false;
     commit(out.doc, out.result, message);
@@ -1604,6 +1628,7 @@ function App(props) {
   var undo = useCallback(function () {
     var h = history.current;
     if (!h.past.length) return;
+    if (projectRef.current && projectRef.current.cloudRole === "viewer") { refuseView(); return; }
     var step = h.past.pop();
     h.future.push(step);
     place(step.undo);
@@ -1613,6 +1638,7 @@ function App(props) {
   var redo = useCallback(function () {
     var h = history.current;
     if (!h.future.length) return;
+    if (projectRef.current && projectRef.current.cloudRole === "viewer") { refuseView(); return; }
     var step = h.future.pop();
     h.past.push(step);
     place(step.redo);
@@ -4811,6 +4837,27 @@ function App(props) {
       switchTo(meta, d, "Opened " + meta.name, pg);
     }, function () { setOpening(null); announce("That file couldn't be opened."); });
   };
+  /* #open=<the file's cloud id>, from Share's Copy link: once signed in and
+     the file has come down, it opens; signed out, Account opens first; not
+     on the file, the link says so. */
+  var openWant = useRef((/^#open=([0-9a-f-]{36})$/.exec(location.hash) || [])[1] || null);
+  var openAsked = useRef(false);
+  useEffect(function () {
+    var want = openWant.current;
+    if (!want) return;
+    var done = function () { openWant.current = null; window.history.replaceState(null, "", location.pathname + location.search); };
+    if (account.status === "out") {
+      if (!openAsked.current) { openAsked.current = true; announce("Sign in to open the file this link is for."); openAccount(); }
+      return;
+    }
+    if (account.status !== "in") return;
+    refreshProjects().then(function (list) {
+      if (openWant.current !== want) return;
+      var hit = (list || []).filter(function (p) { return p.cloud === want; })[0];
+      if (hit) { done(); if (hit.id !== projectRef.current.id) openProject(hit); else announce("This is the file the link is for."); return; }
+      if (mirrorState.status === "synced" || mirrorState.status === "error") { done(); announce("That link is for a file that isn't shared with this account."); }
+    });
+  }, [account.status, mirrorState.status, mirrorState.at]);
   var newProject = function (starterId) {
     var s = starterId ? STARTERS.filter(function (x) { return x[0] === starterId; })[0] : null;
     var d = s ? s[2]() : emptyDoc();
@@ -7267,7 +7314,9 @@ function App(props) {
      a double-click; each step of the path selects. */
   var titleCrumbs = function () {
     var sep = function (k) { return e("span", { key: "s" + k, className: "bd-crumb-sep", "aria-hidden": true }, "›"); };
-    var crumbs = [e(Renamable, { key: "project", className: "bd-project-name bd-crumb", value: project.name, label: "File name", hint: "Double-click to rename this file", focusable: true, onChange: function (v) { renameProject(project.id, v); } })];
+    var crumbs = [viewOnly ? e("span", { key: "project", className: "bd-project-name bd-crumb" }, project.name)
+      : e(Renamable, { key: "project", className: "bd-project-name bd-crumb", value: project.name, label: "File name", hint: "Double-click to rename this file", focusable: true, onChange: function (v) { renameProject(project.id, v); } })];
+    if (viewOnly) crumbs.push(e("span", { key: "view", className: "bd-view-pill", title: "Shared with you to view. Its owner can make you an editor." }, e(Icon, { name: "eye" }), "View only"));
     /* A file in a project names it first; it opens that project on Home. */
     var inGroup = project.group ? groupById(project.group) : null;
     if (inGroup) crumbs.unshift(e("button", { key: "group", type: "button", className: "bd-crumb bd-tb-group", title: "Open " + inGroup.name + " on Home", onClick: function () { openProjects(inGroup.id); } }, inGroup.name), sep("group"));
@@ -8070,7 +8119,7 @@ function App(props) {
     e(PlayDialog, { dialogRef: playRef, frameRef: playFrameRef, stageRef: playStageRef, play: play, setPlay: setPlay, box: playBox, frame: play ? frameById(doc, play.fid) : null,
       pageName: playPageName, frameSrc: frameSrc, onClose: onPlayClosed, onBack: onPlayBack, onLoad: onRenderPlay }),
     e(AccountDialog, { dialogRef: accountRef, state: account, setState: accountState[1], cloud: mirrorState }),
-    e(ShareDialog, { dialogRef: shareRef, account: account, file: project, people: people, cloud: cloudSt, onMoveOut: function () { moveFile(project.id, null); }, onInvite: onInvite, onWithdraw: onWithdraw, onRemove: onRemove, onLeave: onLeave, onSignIn: openAccount, onAccount: openAccount }),
+    e(ShareDialog, { dialogRef: shareRef, account: account, file: project, people: people, cloud: cloudSt, onMoveOut: function () { moveFile(project.id, null); }, onInvite: onInvite, onWithdraw: onWithdraw, onRemove: onRemove, onSetRole: onSetRole, onLeave: onLeave, onSignIn: openAccount, onAccount: openAccount, link: fileLink(), onCopyLink: onCopyLink }),
     menu ? e(ContextMenu, { x: menu.x, y: menu.y, label: "Actions", options: menuOptions(menu.ids), onClose: function () { setMenu(null); }, onChoose: onMenu }) : null,
     e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));
 }

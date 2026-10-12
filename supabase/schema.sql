@@ -26,21 +26,24 @@ create table if not exists public.projects (
   updated_at timestamptz not null default now()
 );
 
--- Who can open and edit a project. Its owner is added when it's made.
+-- Who can open a project, and whether they can change it: its owner (added
+-- when it's made), editors, and viewers, who open it and read it but change
+-- nothing.
 create table if not exists public.project_members (
   project_id uuid not null references public.projects (id) on delete cascade,
   user_id uuid not null references auth.users (id) on delete cascade,
-  role text not null default 'editor' check (role in ('owner', 'editor')),
+  role text not null default 'editor' check (role in ('owner', 'editor', 'viewer')),
   email citext,
   added_at timestamptz not null default now(),
   primary key (project_id, user_id)
 );
 
 -- An invite waits for someone by email; signing in with that address (once
--- it is confirmed) turns it into a membership.
+-- it is confirmed) turns it into a membership with the invite's role.
 create table if not exists public.project_invites (
   project_id uuid not null references public.projects (id) on delete cascade,
   email citext not null check (email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
+  role text not null default 'editor' check (role in ('editor', 'viewer')),
   invited_by uuid not null default auth.uid() references auth.users (id) on delete cascade,
   created_at timestamptz not null default now(),
   primary key (project_id, email)
@@ -57,6 +60,14 @@ create table if not exists public.pages (
   updated_at timestamptz not null default now(),
   primary key (project_id, page_id)
 );
+
+-- A project made before viewers existed: its role check takes them, and its
+-- invites gain a role (editor, as every invite was).
+alter table public.project_members drop constraint if exists project_members_role_check;
+alter table public.project_members add constraint project_members_role_check check (role in ('owner', 'editor', 'viewer'));
+alter table public.project_invites add column if not exists role text not null default 'editor';
+alter table public.project_invites drop constraint if exists project_invites_role_check;
+alter table public.project_invites add constraint project_invites_role_check check (role in ('editor', 'viewer'));
 
 create index if not exists project_members_user on public.project_members (user_id);
 create index if not exists project_invites_email on public.project_invites (email);
@@ -78,6 +89,16 @@ language sql stable security definer set search_path = public as $$
   select exists (
     select 1 from public.project_members m
     where m.project_id = pid and m.user_id = auth.uid() and m.role = 'owner'
+  );
+$$;
+
+-- Whether the signed-in user may change a project: its owner or an editor.
+-- A viewer is a member who can't.
+create or replace function public.can_edit(pid uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.project_members m
+    where m.project_id = pid and m.user_id = auth.uid() and m.role in ('owner', 'editor')
   );
 $$;
 
@@ -129,7 +150,7 @@ begin
     return 0;
   end if;
   insert into public.project_members (project_id, user_id, role, email)
-  select i.project_id, auth.uid(), 'editor', me
+  select i.project_id, auth.uid(), i.role, me
   from public.project_invites i where i.email = me
   on conflict (project_id, user_id) do nothing;
   get diagnostics joined = row_count;
@@ -139,7 +160,8 @@ end;
 $$;
 
 -- Live editing runs on private Realtime channels named
--- project:<project id>:<page id>; only the project's members may use one.
+-- project:<project id>:<page id>; only the project's members may listen on
+-- one, and only those who can edit it may send (edits, and being there).
 create or replace function public.can_use_topic(topic text) returns boolean
 language plpgsql stable security definer set search_path = public as $$
 declare
@@ -155,12 +177,28 @@ exception when others then
 end;
 $$;
 
+create or replace function public.can_send_topic(topic text) returns boolean
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if topic is null or topic !~ '^project:[0-9a-f-]{36}(:[A-Za-z0-9_-]{1,40})?$' then
+    return false;
+  end if;
+  return public.can_edit(split_part(topic, ':', 2)::uuid);
+exception when others then
+  return false;
+end;
+$$;
+
 revoke all on function public.is_member(uuid) from public, anon;
 revoke all on function public.is_owner(uuid) from public, anon;
+revoke all on function public.can_edit(uuid) from public, anon;
+revoke all on function public.can_send_topic(text) from public, anon;
 revoke all on function public.accept_invites() from public, anon;
 revoke all on function public.can_use_topic(text) from public, anon;
 grant execute on function public.is_member(uuid) to authenticated;
 grant execute on function public.is_owner(uuid) to authenticated;
+grant execute on function public.can_edit(uuid) to authenticated;
+grant execute on function public.can_send_topic(text) to authenticated;
 grant execute on function public.accept_invites() to authenticated;
 grant execute on function public.can_use_topic(text) to authenticated;
 
@@ -188,8 +226,8 @@ alter table public.pages enable row level security;
 -- Nothing here is for visitors who aren't signed in.
 revoke all on public.projects, public.project_members, public.project_invites, public.pages from anon;
 
--- Projects: members see and change them; anyone signed in makes their own;
--- only the owner deletes one.
+-- Projects: members see them, and those who can edit change them; anyone
+-- signed in makes their own; only the owner deletes one.
 drop policy if exists "projects: members read" on public.projects;
 create policy "projects: members read" on public.projects for select to authenticated
   using (owner = auth.uid() or public.is_member(id));
@@ -198,54 +236,59 @@ create policy "projects: make your own" on public.projects for insert to authent
   with check (owner = auth.uid());
 drop policy if exists "projects: members change" on public.projects;
 create policy "projects: members change" on public.projects for update to authenticated
-  using (public.is_member(id)) with check (public.is_member(id));
+  using (public.can_edit(id)) with check (public.can_edit(id));
 drop policy if exists "projects: owner deletes" on public.projects;
 create policy "projects: owner deletes" on public.projects for delete to authenticated
   using (owner = auth.uid());
 
 -- Members: a project's members see each other; its owner adds and removes
--- people; anyone may leave a project.
+-- people and sets their roles (never a second owner); anyone may leave.
 drop policy if exists "members: members read" on public.project_members;
 create policy "members: members read" on public.project_members for select to authenticated
   using (public.is_member(project_id));
 drop policy if exists "members: owner adds" on public.project_members;
 create policy "members: owner adds" on public.project_members for insert to authenticated
-  with check (public.is_owner(project_id));
+  with check (public.is_owner(project_id) and role <> 'owner');
+drop policy if exists "members: owner sets roles" on public.project_members;
+create policy "members: owner sets roles" on public.project_members for update to authenticated
+  using (public.is_owner(project_id) and role <> 'owner')
+  with check (public.is_owner(project_id) and role <> 'owner');
 drop policy if exists "members: owner removes, anyone leaves" on public.project_members;
 create policy "members: owner removes, anyone leaves" on public.project_members for delete to authenticated
   using (public.is_owner(project_id) or user_id = auth.uid());
 
--- Invites: a project's members invite and withdraw; the person invited can
--- see invites to their own address.
+-- Invites: those who can edit a project invite and withdraw; every member
+-- sees them; the person invited can see invites to their own address.
 drop policy if exists "invites: members and invitee read" on public.project_invites;
 create policy "invites: members and invitee read" on public.project_invites for select to authenticated
   using (public.is_member(project_id) or email = (auth.jwt() ->> 'email')::citext);
 drop policy if exists "invites: members invite" on public.project_invites;
 create policy "invites: members invite" on public.project_invites for insert to authenticated
-  with check (public.is_member(project_id) and invited_by = auth.uid());
+  with check (public.can_edit(project_id) and invited_by = auth.uid());
 drop policy if exists "invites: members withdraw" on public.project_invites;
 create policy "invites: members withdraw" on public.project_invites for delete to authenticated
-  using (public.is_member(project_id));
+  using (public.can_edit(project_id));
 
--- Pages: a project's members read and write every page of it.
+-- Pages: a project's members read every page of it; those who can edit
+-- write them.
 drop policy if exists "pages: members read" on public.pages;
 create policy "pages: members read" on public.pages for select to authenticated
   using (public.is_member(project_id));
 drop policy if exists "pages: members add" on public.pages;
 create policy "pages: members add" on public.pages for insert to authenticated
-  with check (public.is_member(project_id));
+  with check (public.can_edit(project_id));
 drop policy if exists "pages: members save" on public.pages;
 create policy "pages: members save" on public.pages for update to authenticated
-  using (public.is_member(project_id)) with check (public.is_member(project_id));
+  using (public.can_edit(project_id)) with check (public.can_edit(project_id));
 drop policy if exists "pages: members remove" on public.pages;
 create policy "pages: members remove" on public.pages for delete to authenticated
-  using (public.is_member(project_id));
+  using (public.can_edit(project_id));
 
--- Realtime: members broadcast and receive on their project's channels, and
--- see who else is there.
+-- Realtime: members receive on their project's channels; those who can edit
+-- also broadcast and show as there.
 drop policy if exists "realtime: members listen" on realtime.messages;
 create policy "realtime: members listen" on realtime.messages for select to authenticated
   using (public.can_use_topic(realtime.topic()));
 drop policy if exists "realtime: members send" on realtime.messages;
 create policy "realtime: members send" on realtime.messages for insert to authenticated
-  with check (public.can_use_topic(realtime.topic()));
+  with check (public.can_send_topic(realtime.topic()));

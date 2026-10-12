@@ -19,7 +19,7 @@ const freshStore = () => { window.localStorage.removeItem("dovetail-builder-stor
    filters, order, single/maybeSingle; pages count versions on update. */
 function fakeClient(me = "u1") {
   let seq = 1;
-  const db = { projects: [], pages: [], file_groups: [] };
+  const db = { projects: [], pages: [], file_groups: [], project_members: [] };
   const uuid = () => `00000000-0000-4000-8000-${String(seq++).padStart(12, "0")}`;
   const from = (table) => {
     let op = "select", payload = null, single = false, maybe = false;
@@ -61,7 +61,9 @@ function fakeClient(me = "u1") {
         if (table === "file_groups") db.projects.forEach((p) => { if (gone.some((g) => g.id === p.group_id)) p.group_id = null; });
         return { data: null, error: null };
       }
-      const rows = db[table].filter(match).map((r) => ({ ...r }));
+      /* A file's maker is its owner member, as schema.sql's trigger makes them; others are added by hand. */
+      const all = table === "project_members" ? db.projects.map((p) => ({ project_id: p.id, user_id: p.owner, role: "owner" })).concat(db.project_members) : db[table];
+      const rows = all.filter(match).map((r) => ({ ...r }));
       if (single || maybe) return { data: rows[0] || null, error: single && !rows[0] ? { message: "no rows" } : null };
       return { data: rows, error: null };
     };
@@ -199,4 +201,36 @@ test("a file moved out of the Playground goes up", async () => {
   assert.equal(sb.db.projects.length, 1, "it's in the cloud");
   assert.equal(sb.db.projects[0].name, "Getting started");
   assert.ok((await store.getProject(file.id)).cloud);
+});
+
+test("a file shared as a viewer comes down and stays level, but nothing of theirs goes up; made an editor, their saves go up again", async () => {
+  const local = freshStore();
+  const hub = createMirrorHub();
+  const store = watchStore(local, hub);
+  const sb = fakeClient("u2");
+  sb.db.projects.push({ id: "f-ann", name: "Ann's", owner: "u1", group_id: null, settings: { pages: [{ id: "main", name: "Home" }], folders: [], page: "main", stage: "" } });
+  sb.db.pages.push({ project_id: "f-ann", page_id: "main", doc: doc("Ann"), version: 4 });
+  sb.db.project_members.push({ project_id: "f-ann", user_id: "u2", role: "viewer" });
+  await hub.start(sb, { me: "u2" });
+  let meta = (await store.listProjects())[0];
+  assert.equal(meta.cloudRole, "viewer", "the record keeps their role");
+  await store.saveDoc(meta.id, doc("Not mine to change"));
+  await store.renameProject(meta.id, "Renamed here");
+  await tick(900);
+  await hub.sync();
+  assert.equal(headingOf(sb.db.pages[0].doc), "Ann", "a viewer's save stays here");
+  assert.equal(sb.db.pages[0].version, 4);
+  assert.equal(sb.db.projects[0].name, "Ann's", "and so does a rename");
+  assert.equal(hub.state().status, "synced", "nothing failed for trying");
+  sb.db.pages[0].doc = doc("Ann two"); sb.db.pages[0].version = 5;
+  await hub.sync();
+  assert.equal(headingOf(await store.loadDoc(meta.id, "main")), "Ann two", "the owner's changes still come down");
+  sb.db.project_members[0].role = "editor";
+  await hub.sync();
+  meta = await store.getProject(meta.id);
+  assert.equal(meta.cloudRole, "editor", "a new role is taken on the next sync");
+  await store.saveDoc(meta.id, doc("Mine now"));
+  await tick(900);
+  await hub.sync();
+  assert.equal(headingOf(sb.db.pages[0].doc), "Mine now", "an editor's save goes up");
 });

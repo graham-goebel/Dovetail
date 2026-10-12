@@ -4005,9 +4005,62 @@ try {
     await page.locator(".bd-share-dlg .bd-br-agent.is-invited button", { hasText: "Withdraw" }).click();
     await page.waitForFunction(() => !document.querySelector(".bd-share-dlg .bd-br-agent.is-invited"));
     expect((await page.evaluate(() => window.__fakeSb.db.project_invites.length)) === 0, "withdrawing takes the invite back");
+    /* An invite to view, then the owner makes someone on the file a viewer. */
+    await page.selectOption(".bd-sh-form select.bd-sh-role", "viewer");
+    await page.fill(".bd-sh-form input[type=email]", "dan@example.com");
+    await page.locator(".bd-sh-form button[type=submit]").click();
+    await page.waitForSelector(".bd-share-dlg .bd-br-agent.is-invited");
+    expect((await page.evaluate(() => window.__fakeSb.db.project_invites.map((i) => i.role).join())) === "viewer" && /Invited to view/.test(await page.locator(".bd-share-dlg .bd-br-agent.is-invited").textContent()), "an invite to view is written as one and says so");
+    await page.locator(".bd-share-dlg .bd-br-agent.is-invited button", { hasText: "Withdraw" }).click();
+    await page.waitForFunction(() => !document.querySelector(".bd-share-dlg .bd-br-agent.is-invited"));
+    await page.locator(".bd-share-dlg .bd-br-foot button", { hasText: "Done" }).click();
+    await page.evaluate(() => { const db = window.__fakeSb.db; db.project_members.push({ project_id: db.projects[0].id, user_id: "u2", role: "editor", email: "ben@example.com", added_at: new Date().toISOString() }); });
+    await page.locator(".bd-tb-right .bd-people").click();
+    const benRow = page.locator(".bd-share-dlg .bd-br-agent", { hasText: "ben@example.com" });
+    await benRow.locator("select.bd-sh-role").waitFor();
+    await benRow.locator("select.bd-sh-role").selectOption("viewer");
+    await page.waitForFunction(() => window.__fakeSb.db.project_members.find((m) => m.user_id === "u2").role === "viewer");
+    expect(await page.locator(".bd-share-dlg .bd-br-agent", { hasText: "ann@example.com" }).locator("select").count() === 0, "the owner's own role isn't a choice");
+    ok("an invite to view, and the owner makes someone a viewer");
+    /* Copy link: the Builder with the file's cloud id. */
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.locator(".bd-share-dlg .bd-sh-copy").click();
+    const cid = await page.evaluate(() => window.__builder.project().cloud);
+    await page.waitForFunction((id) => navigator.clipboard.readText().then((t) => t.endsWith("#open=" + id)), cid);
+    ok("Copy link puts a link to the file on the clipboard");
+    await page.locator(".bd-share-dlg .bd-br-foot button", { hasText: "Done" }).click();
+    await page.waitForFunction(() => !document.querySelector(".bd-share-dlg[open]"));
+    /* Made a viewer yourself: the file says View only and turns edits away. */
+    await page.evaluate(() => { const db = window.__fakeSb.db; db.project_members.find((m) => m.user_id === "u1").role = "viewer"; db.project_members = db.project_members.filter((m) => m.user_id !== "u2"); });
+    await page.locator(".bd-tb-right .bd-people").click();
+    await page.waitForSelector(".bd-view-pill");
+    expect(await page.locator(".bd-share-dlg .bd-sh-form").count() === 0 && /You can view this file/.test(await page.locator(".bd-share-dlg .bd-br-body").textContent()), "a viewer has no invite form, and is told why");
+    await page.locator(".bd-share-dlg .bd-br-foot button", { hasText: "Done" }).click();
+    const before = await page.evaluate(() => JSON.stringify(window.__builder.doc()));
+    await page.evaluate(() => { const d = window.__builder.doc(); const f = d.frames.find((x) => x.id === d.active) || d.frames[0]; window.__builder.edit(f.root.children[0].id, "name", "A viewer's edit"); });
+    await page.waitForFunction(() => [...document.querySelectorAll('.visually-hidden[role="status"]')].some((el) => /view this file, not change it/.test(el.textContent)));
+    expect((await page.evaluate(() => JSON.stringify(window.__builder.doc()))) === before, "a viewer's edit changes nothing");
+    ok("a viewer sees View only, has no invite form, and an edit is turned away in words");
+    await page.evaluate(() => { window.__fakeSb.db.project_members.find((m) => m.user_id === "u1").role = "owner"; });
+    await page.locator(".bd-tb-right .bd-people").click();
+    await page.waitForFunction(() => !document.querySelector(".bd-view-pill"));
     await page.locator(".bd-share-dlg .bd-br-foot button", { hasText: "Done" }).click();
     await page.waitForFunction(() => !document.querySelector(".bd-share-dlg[open]"));
     ok("the people in the top bar open Share: the owner, an invite, a caught duplicate, a withdrawal");
+    /* A file link: signed out, Account opens first; signed in to an account the file isn't shared with, it says so. */
+    {
+      const linked = await open({ width: 1440, height: 900 }, { before: withCloud, hash: "#open=00000000-0000-4000-8000-00000000abcd" });
+      const status = (re) => linked.page.waitForFunction((src) => [...document.querySelectorAll('.visually-hidden[role="status"]')].some((el) => new RegExp(src).test(el.textContent)), re.source);
+      await linked.page.waitForSelector(".bd-acct[open] #bd-acct-email");
+      await status(/Sign in to open the file this link is for/);
+      await linked.page.fill("#bd-acct-email", "ann@example.com");
+      await linked.page.fill("#bd-acct-pass", "correct horse battery");
+      await linked.page.locator(".bd-acct button[type=submit]").click();
+      await status(/isn't shared with this account/);
+      expect(!/#open=/.test(await linked.page.evaluate(() => location.hash)), "the link's address is cleared once it's been followed");
+      await linked.page.close();
+    }
+    ok("a file link asks you to sign in, then says when the file isn't shared with you");
 
     /* Live: the open page has a channel; someone joining shows in the top
        bar; their edit lands on the canvas without a step in the history;

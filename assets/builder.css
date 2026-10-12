@@ -4577,6 +4577,42 @@ span.bd-layer-twisty.is-open .bd-ic {
   color: var(--dt-text-secondary);
 }
 
+/* What each person can do: a small choice beside them (the owner's), and
+   in the invite form. */
+.bd-sh-role {
+  width: auto;
+  flex: none;
+  min-width: 0;
+}
+
+/* On a phone the invite form stacks: the address, then its role and Invite. */
+@media (max-width: 480px) {
+  .bd-sh-form {
+    flex-wrap: wrap;
+  }
+  .bd-sh-form .bd-br-name {
+    flex-basis: 100%;
+  }
+}
+
+/* A file shared with you to view: says so beside its name. */
+.bd-view-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs, 4px);
+  margin-inline-start: var(--dt-space-inline-xs);
+  padding: 0 var(--dt-space-inset-xs);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-pill, 999px);
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
+  white-space: nowrap;
+}
+.bd-view-pill .bd-ic {
+  width: 14px;
+  height: 14px;
+}
+
 /* Export is its icon alone; its name is in its label. */
 .bd-export {
   min-width: var(--dt-size-control-sm);
