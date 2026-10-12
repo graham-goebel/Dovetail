@@ -172,12 +172,23 @@ Deno.serve(async (req) => {
           messages: parsed.messages,
           tools: parsed.tools.map((t) => ({ ...t, eager_input_streaming: true })),
         };
-        const stream = client.beta.messages.stream(params as unknown as Parameters<typeof client.beta.messages.stream>[0], { signal: req.signal });
-        for await (const event of stream) send(event);
-        const final = await stream.finalMessage();
-        input = final.usage?.input_tokens ?? 0;
-        output = final.usage?.output_tokens ?? 0;
-        status = final.stop_reason === "refusal" ? "refused" : "done";
+        // The raw events, relayed as they come: nothing here puts the reply
+        // back together. Tool inputs stream as they're written and aren't
+        // checked on the way, so one can arrive as JSON that doesn't parse;
+        // the Builder reads each when its block ends and answers a broken
+        // one with an error the model can retry, instead of the whole turn
+        // failing here.
+        const stream = await client.beta.messages.create({ ...params, stream: true } as unknown as Parameters<typeof client.beta.messages.create>[0], { signal: req.signal });
+        let stop: string | null = null;
+        for await (const event of stream as AsyncIterable<{ type: string; message?: { usage?: { input_tokens?: number } }; delta?: { stop_reason?: string }; usage?: { output_tokens?: number } }>) {
+          send(event);
+          if (event.type === "message_start") input = event.message?.usage?.input_tokens ?? input;
+          if (event.type === "message_delta") {
+            output = event.usage?.output_tokens ?? output;
+            stop = event.delta?.stop_reason ?? stop;
+          }
+        }
+        status = stop === "refusal" ? "refused" : "done";
       } catch (err) {
         send({ type: "error", error: { message: err instanceof Error ? err.message : "The assistant stopped." } });
       } finally {
