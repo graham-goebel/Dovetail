@@ -3,7 +3,7 @@
 import "./setup.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { invite, listPeople, removeMember, withdraw } from "../../../assets/builder/cloud/sharing.js";
+import { invite, listPeople, myRole, removeMember, setRole, withdraw } from "../../../assets/builder/cloud/sharing.js";
 
 function fakeClient() {
   const db = { project_members: [{ project_id: "f1", user_id: "u1", role: "owner", email: "ann@example.com", added_at: "2026-01-01" }], project_invites: [] };
@@ -15,6 +15,7 @@ function fakeClient() {
       select() { return api; }, order() { return api; },
       insert(p) { op = "insert"; payload = p; return api; },
       delete() { op = "delete"; return api; },
+      update(p) { op = "update"; payload = p; return api; },
       eq(k, v) { filters.push([k, v]); return api; },
       single() { single = true; return api; },
       then(res, rej) { return Promise.resolve().then(run).then(res, rej); },
@@ -26,12 +27,19 @@ function fakeClient() {
         db[table].push(row);
         return { data: single ? row : [row], error: null };
       }
+      if (op === "update") {
+        /* As the database's policy does: only the owner changes a role, never an owner's. */
+        const hit = db[table].filter((r) => match(r) && r.role !== "owner" && sb.me === "u1");
+        hit.forEach((r) => Object.assign(r, payload));
+        return { data: hit, error: null };
+      }
       if (op === "delete") { db[table] = db[table].filter((r) => !match(r)); return { data: null, error: null }; }
       return { data: db[table].filter(match), error: null };
     };
     return api;
   };
-  return { db, from };
+  const sb = { db, from, me: "u1" };
+  return sb;
 }
 
 test("the people on a file and the invites waiting, then an invite, a withdrawal and a removal", async () => {
@@ -50,4 +58,23 @@ test("the people on a file and the invites waiting, then an invite, a withdrawal
   sb.db.project_members.push({ project_id: "f1", user_id: "u2", role: "editor", email: "cat@example.com", added_at: "2026-01-02" });
   await removeMember(sb, "f1", "u2");
   assert.deepEqual((await listPeople(sb, "f1")).members.map((m) => m.user_id), ["u1"]);
+});
+
+test("an invite carries a role, the owner changes one, and myRole reads yours", async () => {
+  const sb = fakeClient();
+  const viewer = await invite(sb, "f1", "dan@example.com", [], "viewer");
+  assert.equal(viewer.role, "viewer");
+  assert.equal((await invite(sb, "f1", "eve@example.com", [])).role, "editor", "an invite is for an editor unless it says");
+  assert.equal((await invite(sb, "f1", "fay@example.com", [], "owner")).role, "editor", "an invite can't make an owner");
+  assert.deepEqual((await listPeople(sb, "f1")).invites.map((i) => i.role), ["viewer", "editor", "editor"]);
+  sb.db.project_members.push({ project_id: "f1", user_id: "u4", role: "viewer", email: "dan@example.com", added_at: "2026-01-03" });
+  assert.equal((await setRole(sb, "f1", "u4", "editor")).role, "editor");
+  await assert.rejects(setRole(sb, "f1", "u4", "owner"), /isn't a role/);
+  await assert.rejects(setRole(sb, "f1", "u1", "viewer"), /Only the file's owner/, "the owner's own row doesn't change");
+  sb.me = "u4";
+  await assert.rejects(setRole(sb, "f1", "u4", "viewer"), /Only the file's owner/, "anyone else is refused in words");
+  const members = (await listPeople(sb, "f1")).members;
+  assert.equal(myRole(members, "u1"), "owner");
+  assert.equal(myRole(members, "u4"), "editor");
+  assert.equal(myRole(members, "nobody"), null);
 });

@@ -132,7 +132,11 @@ function supabaseTransport(sb) {
           h.onPeers(list);
         });
         ch.subscribe(function (status) {
-          if (status === "SUBSCRIBED") { ch.track(h.state || {}); h.onStatus("joined"); }
+          if (status === "SUBSCRIBED") {
+            /* Someone who can only view the file listens without showing as there. */
+            if (!(h.state && h.state.watching)) ch.track(h.state || {});
+            h.onStatus("joined");
+          }
           else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") h.onStatus("error");
           else if (status === "CLOSED") h.onStatus("closed");
         });

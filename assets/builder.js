@@ -3559,7 +3559,7 @@
       setCloud: function(id, patch) {
         return b.get("projects", id).then(function(meta) {
           if (!meta) return null;
-          ["cloud", "cloudVersions", "cloudDirty", "cloudOwner"].forEach(function(k) {
+          ["cloud", "cloudVersions", "cloudDirty", "cloudOwner", "cloudRole"].forEach(function(k) {
             if (!(k in patch)) return;
             if (patch[k] == null) delete meta[k];
             else meta[k] = patch[k];
@@ -7660,7 +7660,7 @@
           });
           ch.subscribe(function(status) {
             if (status === "SUBSCRIBED") {
-              ch.track(h.state || {});
+              if (!(h.state && h.state.watching)) ch.track(h.state || {});
               h.onStatus("joined");
             } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") h.onStatus("error");
             else if (status === "CLOSED") h.onStatus("closed");
@@ -8234,7 +8234,7 @@
             "p",
             { className: "bd-inspect-sub" },
             "An agent works on your open canvas with the Agent panel's own tools: it reads the page, makes changes, runs the checks and takes pictures. Each gets its own link, so you see who did what, and can end one without the others. ",
-            p.onConnectClaude ? e("button", { type: "button", className: "bd-link", onClick: function() {
+            p.onConnectClaude ? e("button", { type: "button", className: "bd-acct-link", onClick: function() {
               close();
               p.onConnectClaude();
             } }, "Use your own Claude instead") : null
@@ -8245,7 +8245,7 @@
       e(
         "div",
         { className: "bd-br-body" },
-        off ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sessions run through the builder's cloud, which isn't connected here yet (docs/cloud.md).") : out ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: a session is tied to your account. ", e("button", { type: "button", className: "bd-link", onClick: p.onSignIn }, "Sign in")) : null,
+        off ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sessions run through the builder's cloud, which isn't connected here yet (docs/cloud.md).") : out ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: a session is tied to your account. ", e("button", { type: "button", className: "bd-acct-link", onClick: p.onSignIn }, "Sign in")) : null,
         list2.length ? e("ul", { className: "bd-br-agents", role: "list", "aria-label": "Agents on this file" }, list2.map(function(a) {
           return e(
             "li",
@@ -8331,7 +8331,7 @@
       e(
         "div",
         { className: "bd-br-body" },
-        off ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Connecting runs through the builder's cloud, which isn't connected here yet (docs/cloud.md).") : out ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: the connector is tied to your account. ", e("button", { type: "button", className: "bd-link", onClick: p.onSignIn }, "Sign in")) : e("p", { className: cx("bd-br-note bd-cc-state", c.status === "live" && "is-live", c.status === "error" && "is-error"), role: "status" }, e(Icon, { name: c.status === "live" ? "check" : c.status === "error" ? "alert" : "link" }), state),
+        off ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Connecting runs through the builder's cloud, which isn't connected here yet (docs/cloud.md).") : out ? e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: the connector is tied to your account. ", e("button", { type: "button", className: "bd-acct-link", onClick: p.onSignIn }, "Sign in")) : e("p", { className: cx("bd-br-note bd-cc-state", c.status === "live" && "is-live", c.status === "error" && "is-error"), role: "status" }, e(Icon, { name: c.status === "live" ? "check" : c.status === "error" ? "alert" : "link" }), state),
         out ? null : e(
           "ol",
           { className: "bd-cc-steps", role: "list" },
@@ -16214,6 +16214,7 @@
 
   // assets/builder/cloud/sharing.js
   var EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  var ROLES = ["editor", "viewer"];
   function check2(res) {
     if (res && res.error) throw new Error(friendly2(res.error));
     return res ? res.data : null;
@@ -16221,24 +16222,38 @@
   function friendly2(err) {
     var m = String(err && err.message || "");
     if (/duplicate key|already exists/i.test(m)) return "They're already invited.";
-    if (/row-level security|permission denied/i.test(m)) return "Only the file's owner can do that.";
+    if (/row-level security|permission denied/i.test(m)) return "You can't do that on this file.";
     return m || "The cloud refused that.";
   }
   function listPeople(sb, cloudId) {
     return Promise.all([
       sb.from("project_members").select("user_id, role, email, added_at").eq("project_id", cloudId).order("added_at", { ascending: true }).then(check2),
-      sb.from("project_invites").select("email, created_at").eq("project_id", cloudId).order("created_at", { ascending: true }).then(check2)
+      sb.from("project_invites").select("email, role, created_at").eq("project_id", cloudId).order("created_at", { ascending: true }).then(check2)
     ]).then(function(got) {
       return { members: got[0] || [], invites: got[1] || [] };
     });
   }
-  function invite(sb, cloudId, email, members) {
+  function invite(sb, cloudId, email, members, role) {
     var addr = String(email || "").trim().toLowerCase();
     if (!EMAIL.test(addr)) return Promise.reject(new Error("That isn't an email address."));
     if ((members || []).some(function(m) {
       return String(m.email || "").toLowerCase() === addr;
     })) return Promise.reject(new Error("They're already on this file."));
-    return sb.from("project_invites").insert({ project_id: cloudId, email: addr }).select("email, created_at").single().then(check2);
+    var as = ROLES.indexOf(role) >= 0 ? role : "editor";
+    return sb.from("project_invites").insert({ project_id: cloudId, email: addr, role: as }).select("email, role, created_at").single().then(check2);
+  }
+  function setRole(sb, cloudId, userId, role) {
+    if (ROLES.indexOf(role) < 0) return Promise.reject(new Error("That isn't a role."));
+    return sb.from("project_members").update({ role }).eq("project_id", cloudId).eq("user_id", userId).select("user_id, role").then(check2).then(function(rows) {
+      if (!rows || !rows.length) throw new Error("Only the file's owner can change what someone can do.");
+      return rows[0];
+    });
+  }
+  function myRole(members, me) {
+    var hit = (members || []).filter(function(m) {
+      return m.user_id === me;
+    })[0];
+    return hit ? hit.role : null;
   }
   function withdraw(sb, cloudId, email) {
     return sb.from("project_invites").delete().eq("project_id", cloudId).eq("email", String(email || "").trim().toLowerCase()).then(check2);
@@ -16248,8 +16263,10 @@
   }
 
   // assets/builder/app/Share.js
+  var ROLE_LABEL = { owner: "Owner", editor: "Can edit", viewer: "Can view" };
   function ShareDialog(p) {
     var emailSt = useState(""), email = emailSt[0], setEmail = emailSt[1];
+    var roleSt = useState("editor"), role = roleSt[0], setRole2 = roleSt[1];
     var me = p.account && p.account.status === "in" ? p.account.account : null;
     var file = p.file || {};
     var people = p.people || { members: [], invites: [] };
@@ -16257,6 +16274,10 @@
     var owner = people.members.filter(function(m) {
       return m.role === "owner";
     })[0];
+    var meRow = me ? people.members.filter(function(m) {
+      return m.user_id === me.id;
+    })[0] : null;
+    var canInvite = !meRow || meRow.role !== "viewer";
     var close = function() {
       if (p.dialogRef.current) p.dialogRef.current.close();
     };
@@ -16264,13 +16285,13 @@
       ev.preventDefault();
       var addr = email.trim();
       if (!addr) return;
-      p.onInvite(addr, function() {
+      p.onInvite(addr, role, function() {
         setEmail("");
       });
     };
     var body;
     if (!me) {
-      body = e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: sharing is tied to your account. ", e("button", { type: "button", className: "bd-link", onClick: p.onSignIn }, "Sign in"));
+      body = e("p", { className: "bd-br-note" }, e(Icon, { name: "info" }), "Sign in first: sharing is tied to your account. ", e("button", { type: "button", className: "bd-acct-link", onClick: p.onSignIn }, "Sign in"));
     } else if (!file.cloud) {
       var c = p.cloud || { detail: "This file is on its way to the cloud. Once it's there, you can share it." };
       body = e(
@@ -16296,8 +16317,23 @@
                 "div",
                 { className: "bd-br-agent-t" },
                 e("b", null, m.email || "Someone", you ? e("span", { className: "bd-sh-you" }, " (you)") : null),
-                e("span", null, m.role === "owner" ? "Owner" : "Can edit")
+                mine && !you ? null : e("span", null, ROLE_LABEL[m.role] || "Can edit")
               ),
+              /* The owner sets what each person can do. */
+              mine && !you ? e(
+                "select",
+                {
+                  className: "bd-input bd-sh-role",
+                  "aria-label": "What " + (m.email || "they") + " can do",
+                  value: m.role,
+                  disabled: people.busy,
+                  onChange: function(ev) {
+                    p.onSetRole(m.user_id, ev.target.value);
+                  }
+                },
+                e("option", { value: "editor" }, "Can edit"),
+                e("option", { value: "viewer" }, "Can view")
+              ) : null,
               mine && !you ? e("button", { type: "button", className: "bd-btn bd-btn-sm", disabled: people.busy, onClick: function() {
                 p.onRemove(m.user_id);
               } }, "Remove") : you && !mine ? e("button", { type: "button", className: "bd-btn bd-btn-sm", disabled: people.busy, onClick: p.onLeave }, "Leave") : null
@@ -16308,15 +16344,15 @@
               "li",
               { key: "i:" + i.email, className: "bd-br-agent is-invited" },
               e("span", { className: "bd-av is-ghost", "aria-hidden": true }, e(Icon, { name: "user" })),
-              e("div", { className: "bd-br-agent-t" }, e("b", null, i.email), e("span", null, "Invited; joins when they sign in with this address")),
-              e("button", { type: "button", className: "bd-btn bd-btn-sm", disabled: people.busy, onClick: function() {
+              e("div", { className: "bd-br-agent-t" }, e("b", null, i.email), e("span", null, "Invited to " + (i.role === "viewer" ? "view" : "edit") + "; joins when they sign in with this address")),
+              canInvite ? e("button", { type: "button", className: "bd-btn bd-btn-sm", disabled: people.busy, onClick: function() {
                 p.onWithdraw(i.email);
-              } }, "Withdraw")
+              } }, "Withdraw") : null
             );
           }),
           people.loading && !people.members.length ? e("li", { className: "bd-br-agent" }, e("span", { className: "bd-av is-blank" }), e("div", { className: "bd-br-agent-t" }, e("span", null, "Loading…"))) : null
         ),
-        e(
+        canInvite ? e(
           "form",
           { className: "bd-sh-form", onSubmit: submit },
           e(
@@ -16327,9 +16363,17 @@
               setEmail(ev.target.value);
             } })
           ),
+          e(
+            "select",
+            { className: "bd-input bd-sh-role", "aria-label": "What they can do", value: role, disabled: people.busy, onChange: function(ev) {
+              setRole2(ev.target.value);
+            } },
+            e("option", { value: "editor" }, "Can edit"),
+            e("option", { value: "viewer" }, "Can view")
+          ),
           e("button", { type: "submit", className: "bd-btn bd-btn-primary", disabled: people.busy || !email.trim() }, e(Icon, { name: "plus" }), "Invite")
-        ),
-        e("p", { className: "bd-inspect-sub" }, "They'll find the file on their Home once they've signed in with that address. Everyone on a file can edit it" + (owner && owner.user_id !== me.id ? "; " + owner.email + " owns it." : "."))
+        ) : e("p", { className: "bd-br-note" }, e(Icon, { name: "eye" }), "You can view this file. Its owner and editors invite people."),
+        e("p", { className: "bd-inspect-sub" }, "They'll find the file on their Home once they've signed in with that address. Editors change the file; viewers open and read it" + (owner && owner.user_id !== me.id ? ". " + owner.email + " owns it." : "."))
       );
     }
     return e(
@@ -16342,7 +16386,7 @@
           "div",
           { className: "bd-code-intro" },
           e("h2", { id: "bd-sh-title" }, "Share " + (file.name || "this file")),
-          e("p", { className: "bd-inspect-sub" }, "Who can open and edit this file. Your own account is under ", e("button", { type: "button", className: "bd-link", onClick: p.onAccount }, "Account"), ".")
+          e("p", { className: "bd-inspect-sub" }, "Who can open this file, and what each person can do. Your own account is under ", e("button", { type: "button", className: "bd-acct-link", onClick: p.onAccount }, "Account"), ".")
         ),
         e("div", { className: "bd-code-actions" }, e("button", { type: "button", className: "bd-act", "aria-label": "Close", onClick: close }, e(Icon, { name: "close" })))
       ),
@@ -16358,6 +16402,7 @@
         { className: "bd-br-foot" },
         e("span", { className: "bd-edit-undo" }, e(Icon, { name: "lock" }), "Only people on the file can open it."),
         e("span", { className: "bd-edit-sp" }),
+        me && file.cloud && p.link ? e("button", { type: "button", className: "bd-btn bd-sh-copy", title: "A link that opens this file for anyone on it", onClick: p.onCopyLink }, e(Icon, { name: "link" }), "Copy link") : null,
         e("button", { type: "button", className: "bd-btn", onClick: close }, "Done")
       )
     );
@@ -16933,6 +16978,7 @@
     var project = projectState[0], setProject = projectState[1];
     var projectRef = useRef(project);
     projectRef.current = project;
+    var viewOnly2 = !!project && project.cloudRole === "viewer";
     var lastSaved = useRef(init.from === "saved" ? doc2 : null);
     var selState = useState([]);
     var selection = selState[0], setSelection = selState[1];
@@ -17259,9 +17305,9 @@
     useEffect(function() {
       var live = syncRef.current, me = account2.account;
       if (!live) return;
-      if (me && project.cloud && pageId) live.join(topicFor(project.cloud, pageId), { id: me.id, name: me.email, color: colorFor(me.id) });
+      if (me && project.cloud && pageId) live.join(topicFor(project.cloud, pageId), { id: me.id, name: me.email, color: colorFor(me.id), watching: viewOnly2 || void 0 });
       else live.leave();
-    }, [liveTick, project.cloud, pageId]);
+    }, [liveTick, project.cloud, pageId, viewOnly2]);
     var liveSend = function(changes) {
       var live = syncRef.current;
       if (!live || live.send(changes)) return;
@@ -18902,6 +18948,15 @@
       }).then(function(got) {
         if (projectRef.current.cloud !== cid) return;
         setPeople({ members: got.members, invites: got.invites, loading: false, error: null, busy: false });
+        var mine = account2.account ? myRole(got.members, account2.account.id) : null;
+        if (mine && mine !== (projectRef.current.cloudRole || null)) {
+          store.setCloud(projectRef.current.id, { cloudRole: mine }).then(function(meta) {
+            if (meta && projectRef.current.id === meta.id) {
+              projectRef.current = meta;
+              setProject(meta);
+            }
+          });
+        }
       }, function(err) {
         setPeople(function(s) {
           return Object.assign({}, s, { loading: false, busy: false, error: err && err.message ? err.message : "Couldn't load who's on this file." });
@@ -18932,12 +18987,32 @@
         });
       });
     };
-    var onInvite = function(email, done) {
+    var onInvite = function(email, role, done) {
+      var as = role === "viewer" ? "viewer" : "editor";
       peopleWork(function(sb) {
-        return invite(sb, projectRef.current.cloud, email, people.members);
-      }, "Invited " + email.trim().toLowerCase()).then(function(out) {
+        return invite(sb, projectRef.current.cloud, email, people.members, as);
+      }, "Invited " + email.trim().toLowerCase() + (as === "viewer" ? " to view" : " to edit")).then(function(out) {
         if (out && done) done();
       });
+    };
+    var onSetRole = function(userId, role) {
+      peopleWork(function(sb) {
+        return setRole(sb, projectRef.current.cloud, userId, role);
+      }, role === "viewer" ? "They can view the file now, not change it" : "They can edit the file now");
+    };
+    var fileLink = function() {
+      return projectRef.current.cloud ? location.origin + location.pathname + "#open=" + projectRef.current.cloud : "";
+    };
+    var onCopyLink = function() {
+      var url = fileLink();
+      if (!url) return;
+      var done = function() {
+        announce("Link copied. It opens this file for anyone on it.");
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function() {
+        window.prompt("Copy this link", url);
+      });
+      else window.prompt("Copy this link", url);
     };
     var onWithdraw = function(email) {
       peopleWork(function(sb) {
@@ -18979,7 +19054,14 @@
       history.current.future = [];
       liveSend(redo2);
     }, []);
+    var refuseView = function() {
+      announce("You can view this file, not change it. Its owner can make you an editor.");
+    };
     var commit = useCallback(function(next, nextSel, message) {
+      if (projectRef.current && projectRef.current.cloudRole === "viewer") {
+        refuseView();
+        return;
+      }
       next = freeze(next, true);
       remember(docRef.current, next);
       docRef.current = next;
@@ -19010,6 +19092,10 @@
       return true;
     };
     var change = useCallback(function(fn, message) {
+      if (projectRef.current && projectRef.current.cloudRole === "viewer") {
+        refuseView();
+        return false;
+      }
       var out = draft(fn, true);
       if (!out) return false;
       commit(out.doc, out.result, message);
@@ -19028,6 +19114,10 @@
     var undo = useCallback(function() {
       var h = history.current;
       if (!h.past.length) return;
+      if (projectRef.current && projectRef.current.cloudRole === "viewer") {
+        refuseView();
+        return;
+      }
       var step = h.past.pop();
       h.future.push(step);
       place(step.undo);
@@ -19037,6 +19127,10 @@
     var redo = useCallback(function() {
       var h = history.current;
       if (!h.future.length) return;
+      if (projectRef.current && projectRef.current.cloudRole === "viewer") {
+        refuseView();
+        return;
+      }
       var step = h.future.pop();
       h.past.push(step);
       place(step.redo);
@@ -23229,6 +23323,41 @@
         announce("That file couldn't be opened.");
       });
     };
+    var openWant = useRef((/^#open=([0-9a-f-]{36})$/.exec(location.hash) || [])[1] || null);
+    var openAsked = useRef(false);
+    useEffect(function() {
+      var want = openWant.current;
+      if (!want) return;
+      var done = function() {
+        openWant.current = null;
+        window.history.replaceState(null, "", location.pathname + location.search);
+      };
+      if (account2.status === "out") {
+        if (!openAsked.current) {
+          openAsked.current = true;
+          announce("Sign in to open the file this link is for.");
+          openAccount();
+        }
+        return;
+      }
+      if (account2.status !== "in") return;
+      refreshProjects().then(function(list2) {
+        if (openWant.current !== want) return;
+        var hit = (list2 || []).filter(function(p) {
+          return p.cloud === want;
+        })[0];
+        if (hit) {
+          done();
+          if (hit.id !== projectRef.current.id) openProject(hit);
+          else announce("This is the file the link is for.");
+          return;
+        }
+        if (mirrorState.status === "synced" || mirrorState.status === "error") {
+          done();
+          announce("That link is for a file that isn't shared with this account.");
+        }
+      });
+    }, [account2.status, mirrorState.status, mirrorState.at]);
     var newProject = function(starterId) {
       var s = starterId ? STARTERS.filter(function(x) {
         return x[0] === starterId;
@@ -27426,9 +27555,10 @@
       var sep = function(k) {
         return e("span", { key: "s" + k, className: "bd-crumb-sep", "aria-hidden": true }, "›");
       };
-      var crumbs = [e(Renamable, { key: "project", className: "bd-project-name bd-crumb", value: project.name, label: "File name", hint: "Double-click to rename this file", focusable: true, onChange: function(v) {
+      var crumbs = [viewOnly2 ? e("span", { key: "project", className: "bd-project-name bd-crumb" }, project.name) : e(Renamable, { key: "project", className: "bd-project-name bd-crumb", value: project.name, label: "File name", hint: "Double-click to rename this file", focusable: true, onChange: function(v) {
         renameProject(project.id, v);
       } })];
+      if (viewOnly2) crumbs.push(e("span", { key: "view", className: "bd-view-pill", title: "Shared with you to view. Its owner can make you an editor." }, e(Icon, { name: "eye" }), "View only"));
       var inGroup = project.group ? groupById(project.group) : null;
       if (inGroup) crumbs.unshift(e("button", { key: "group", type: "button", className: "bd-crumb bd-tb-group", title: "Open " + inGroup.name + " on Home", onClick: function() {
         openProjects(inGroup.id);
@@ -28863,7 +28993,7 @@
       e(AccountDialog, { dialogRef: accountRef, state: account2, setState: accountState[1], cloud: mirrorState }),
       e(ShareDialog, { dialogRef: shareRef, account: account2, file: project, people, cloud: cloudSt, onMoveOut: function() {
         moveFile(project.id, null);
-      }, onInvite, onWithdraw, onRemove, onLeave, onSignIn: openAccount, onAccount: openAccount }),
+      }, onInvite, onWithdraw, onRemove, onSetRole, onLeave, onSignIn: openAccount, onAccount: openAccount, link: fileLink(), onCopyLink }),
       menu ? e(ContextMenu, { x: menu.x, y: menu.y, label: "Actions", options: menuOptions(menu.ids), onClose: function() {
         setMenu(null);
       }, onChoose: onMenu }) : null,
@@ -28984,13 +29114,18 @@
   function tooBig(doc2) {
     return JSON.stringify(doc2).length > DOC_MAX;
   }
-  function listCloud(sb) {
+  function listCloud(sb, me) {
     return Promise.all([
       sb.from("projects").select(PROJECT_COLUMNS).order("updated_at", { ascending: false }).then(check4),
       sb.from("pages").select("project_id, page_id, version, updated_at").then(check4),
-      sb.from("file_groups").select("id, name, owner, updated_at").then(check4)
+      sb.from("file_groups").select("id, name, owner, updated_at").then(check4),
+      me ? sb.from("project_members").select("project_id, role").eq("user_id", me).then(check4) : Promise.resolve([])
     ]).then(function(got) {
-      return { projects: got[0] || [], pages: got[1] || [], groups: got[2] || [] };
+      var roles = {};
+      (got[3] || []).forEach(function(r) {
+        roles[r.project_id] = r.role;
+      });
+      return { projects: got[0] || [], pages: got[1] || [], groups: got[2] || [], roles };
     });
   }
   function createCloudFile(sb, meta, docs, groupCloud) {
@@ -29062,6 +29197,9 @@
 
   // assets/builder/cloud/mirror.js
   var PUSH_DELAY = 800;
+  function viewOnly(meta) {
+    return !!meta && meta.cloudRole === "viewer";
+  }
   var META_CALLS = ["renameProject", "setThumb", "setSettings", "setPage", "renamePage", "movePage", "placePage", "addFolder", "renameFolder", "foldFolder", "moveFolder", "deleteFolder", "setFolders"];
   function createMirrorHub() {
     var sb = null, store = null, hooks = {};
@@ -29135,7 +29273,7 @@
         return store.setCloud(meta.id, { cloud: made.id, cloudVersions: made.versions, cloudDirty: {}, cloudOwner: hooks.me || null });
       }).then(changed);
     };
-    var download = function(row, groups) {
+    var download = function(row, groups, role) {
       var g = groups.filter(function(x) {
         return x.id === row.group_id;
       })[0];
@@ -29147,6 +29285,7 @@
         });
         var meta = metaFromRow(row, got[1]);
         meta.cloudVersions = versions;
+        if (role) meta.cloudRole = role;
         return store.adopt(meta, docs);
       });
     };
@@ -29170,7 +29309,7 @@
     };
     var push = function(pid, pageId) {
       return store.getProject(pid).then(function(meta) {
-        if (!meta || !meta.cloud) return null;
+        if (!meta || !meta.cloud || viewOnly(meta)) return null;
         return store.loadDoc(pid, pageId).then(function(doc2) {
           if (!doc2) return null;
           var known = (meta.cloudVersions || {})[pageId];
@@ -29202,7 +29341,7 @@
           }).then(function(m) {
             if (m) meta = m;
           });
-        } else if (dirty[pageId]) {
+        } else if (dirty[pageId] && !viewOnly(meta)) {
           steps = steps.then(function() {
             return push(meta.id, pageId);
           }).then(function(m) {
@@ -29217,7 +29356,7 @@
           if (m) meta = m;
         });
       });
-      if (dirty.meta) steps = steps.then(function() {
+      if (dirty.meta && !viewOnly(meta)) steps = steps.then(function() {
         return cloudGroupFor(meta);
       }).then(function(g) {
         return pushMeta(sb, meta, g);
@@ -29232,7 +29371,7 @@
       if (stopped || !sb) return Promise.resolve();
       return later(function() {
         say({ status: "syncing", error: "" });
-        return Promise.all([store.listProjects(), listCloud(sb), store.listGroups()]).then(function(got) {
+        return Promise.all([store.listProjects(), listCloud(sb, hooks.me), store.listGroups()]).then(function(got) {
           var local = got[0], cloud = got[1], groups = got[2];
           var builderMade = {};
           groups.forEach(function(g) {
@@ -29244,9 +29383,13 @@
           });
           var steps = Promise.resolve();
           cloud.projects.forEach(function(row) {
-            var meta = byCloud[row.id];
+            var meta = byCloud[row.id], role = cloud.roles[row.id] || null;
             steps = steps.then(function() {
-              return meta ? level(meta, row, cloud.pages) : download(row, cloud.groups);
+              if (!meta) return download(row, cloud.groups, role);
+              var roleNow = (meta.cloudRole || null) === role ? Promise.resolve(meta) : store.setCloud(meta.id, { cloudRole: role }).then(changed);
+              return roleNow.then(function(m) {
+                return level(m || meta, row, cloud.pages);
+              });
             });
           });
           local.forEach(function(m) {
@@ -29359,7 +29502,7 @@
         });
         schedule("meta:" + pid, function() {
           return store.getProject(pid).then(function(meta) {
-            if (!meta || !meta.cloud) return null;
+            if (!meta || !meta.cloud || viewOnly(meta)) return null;
             return cloudGroupFor(meta).then(function(g) {
               return pushMeta(sb, meta, g);
             });
@@ -29388,7 +29531,7 @@
         });
         later(function() {
           return store.getProject(pid).then(function(meta) {
-            return meta && meta.cloud ? deletePage(sb, meta.cloud, pageId) : null;
+            return meta && meta.cloud && !viewOnly(meta) ? deletePage(sb, meta.cloud, pageId) : null;
           }).catch(fail);
         });
         return hub.metaChanged(pid);

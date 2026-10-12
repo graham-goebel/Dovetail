@@ -18,6 +18,10 @@
      push that fails (offline) marks the page to push on the next sync,
      which also runs when the browser comes back online or the tab wakes.
 
+   A file shared with someone as a viewer comes down and stays level, but
+   nothing of theirs goes up: its record keeps their role (cloudRole), and
+   every send skips it.
+
    Groups (Home's projects) mirror to file_groups the same way. The
    Content library and the assistant's conversations stay local for now. */
 
@@ -26,6 +30,8 @@ import { removeMember } from "./sharing.js";
 
 var PUSH_DELAY = 800;
 /* Store calls that change a file's record, not its pages. */
+/* A file this person may only read. */
+function viewOnly(meta) { return !!meta && meta.cloudRole === "viewer"; }
 var META_CALLS = ["renameProject", "setThumb", "setSettings", "setPage", "renamePage", "movePage", "placePage", "addFolder", "renameFolder", "foldFolder", "moveFolder", "deleteFolder", "setFolders"];
 
 function createMirrorHub() {
@@ -80,13 +86,14 @@ function createMirrorHub() {
     }).then(changed);
   };
   /* A whole cloud file, down, as a new local file. */
-  var download = function (row, groups) {
+  var download = function (row, groups, role) {
     var g = groups.filter(function (x) { return x.id === row.group_id; })[0];
     return Promise.all([fetchPages(sb, row.id), localGroupFor(row.group_id, g && g.name)]).then(function (got) {
       var docs = {}, versions = {};
       got[0].forEach(function (p) { docs[p.page_id] = p.doc; versions[p.page_id] = p.version; });
       var meta = metaFromRow(row, got[1]);
       meta.cloudVersions = versions;
+      if (role) meta.cloudRole = role;
       return store.adopt(meta, docs);
     });
   };
@@ -109,7 +116,7 @@ function createMirrorHub() {
   /* One page, up, from the version known here. */
   var push = function (pid, pageId) {
     return store.getProject(pid).then(function (meta) {
-      if (!meta || !meta.cloud) return null;
+      if (!meta || !meta.cloud || viewOnly(meta)) return null;
       return store.loadDoc(pid, pageId).then(function (doc) {
         if (!doc) return null;
         var known = (meta.cloudVersions || {})[pageId];
@@ -132,7 +139,7 @@ function createMirrorHub() {
     Object.keys(cloudV).forEach(function (pageId) {
       if (known[pageId] == null || cloudV[pageId] > known[pageId]) {
         steps = steps.then(function () { return fetchPage(sb, row.id, pageId); }).then(function (r) { return r ? takeCloud(meta, pageId, r.doc, r.version) : null; }).then(function (m) { if (m) meta = m; });
-      } else if (dirty[pageId]) {
+      } else if (dirty[pageId] && !viewOnly(meta)) {
         steps = steps.then(function () { return push(meta.id, pageId); }).then(function (m) { if (m) meta = m; });
       }
     });
@@ -141,7 +148,7 @@ function createMirrorHub() {
       if (cloudV[p.id] == null) steps = steps.then(function () { return push(meta.id, p.id); }).then(function (m) { if (m) meta = m; });
     });
     /* The record itself, when it changed here (name, pages, folders). */
-    if (dirty.meta) steps = steps.then(function () { return cloudGroupFor(meta); }).then(function (g) { return pushMeta(sb, meta, g); }).then(function () {
+    if (dirty.meta && !viewOnly(meta)) steps = steps.then(function () { return cloudGroupFor(meta); }).then(function (g) { return pushMeta(sb, meta, g); }).then(function () {
       var d = Object.assign({}, meta.cloudDirty || {}); delete d.meta;
       return store.setCloud(meta.id, { cloudDirty: d });
     });
@@ -152,7 +159,7 @@ function createMirrorHub() {
     if (stopped || !sb) return Promise.resolve();
     return later(function () {
       say({ status: "syncing", error: "" });
-      return Promise.all([store.listProjects(), listCloud(sb), store.listGroups()]).then(function (got) {
+      return Promise.all([store.listProjects(), listCloud(sb, hooks.me), store.listGroups()]).then(function (got) {
         var local = got[0], cloud = got[1], groups = got[2];
         /* The Playground the Builder makes for itself stays in this browser. */
         var builderMade = {};
@@ -161,8 +168,13 @@ function createMirrorHub() {
         local.forEach(function (m) { if (m.cloud) byCloud[m.cloud] = m; });
         var steps = Promise.resolve();
         cloud.projects.forEach(function (row) {
-          var meta = byCloud[row.id];
-          steps = steps.then(function () { return meta ? level(meta, row, cloud.pages) : download(row, cloud.groups); });
+          var meta = byCloud[row.id], role = cloud.roles[row.id] || null;
+          steps = steps.then(function () {
+            if (!meta) return download(row, cloud.groups, role);
+            /* Their role changed (made a viewer, or an editor again): the record follows first. */
+            var roleNow = (meta.cloudRole || null) === role ? Promise.resolve(meta) : store.setCloud(meta.id, { cloudRole: role }).then(changed);
+            return roleNow.then(function (m) { return level(m || meta, row, cloud.pages); });
+          });
         });
         local.forEach(function (m) {
           if (m.cloud && !cloud.projects.some(function (r) { return r.id === m.cloud; })) {
@@ -240,7 +252,7 @@ function createMirrorHub() {
       if (stopped) return markDirty(pid, "meta").catch(function () {});
       schedule("meta:" + pid, function () {
         return store.getProject(pid).then(function (meta) {
-          if (!meta || !meta.cloud) return null;
+          if (!meta || !meta.cloud || viewOnly(meta)) return null;
           return cloudGroupFor(meta).then(function (g) { return pushMeta(sb, meta, g); });
         });
       }, function () { return markDirty(pid, "meta"); });
@@ -258,7 +270,7 @@ function createMirrorHub() {
     },
     pageRemoved: function (pid, pageId) {
       if (stopped) return markDirty(pid, "meta").catch(function () {});
-      later(function () { return store.getProject(pid).then(function (meta) { return meta && meta.cloud ? deletePage(sb, meta.cloud, pageId) : null; }).catch(fail); });
+      later(function () { return store.getProject(pid).then(function (meta) { return meta && meta.cloud && !viewOnly(meta) ? deletePage(sb, meta.cloud, pageId) : null; }).catch(fail); });
       return hub.metaChanged(pid);
     },
     /* Deleting here deletes there, for a file of your own; one shared with

@@ -76,16 +76,22 @@ small change here.
 Every request from the Builder carries the signed-in person's token, and
 Postgres checks it against row-level security on every row:
 
-- **Projects** are seen and changed by their members. Anyone signed in can
-  make one, and becomes its owner. Only the owner deletes it.
-- **Members**: the owner adds and removes people; anyone can leave.
-- **Invites** are by email. Members invite; the person invited sees invites
-  to their address, and signing in with that address, once confirmed, joins
-  them to the project.
-- **Pages** (each page's document) are read and written by the project's
-  members. Each save counts up a version and records who made it.
-- **Live channels** are named `project:<project id>:<page id>`, and only the
-  project's members may listen or send on one.
+- **Projects** are seen by their members and changed by those who can edit
+  them: the owner and editors. A viewer opens and reads a project but
+  changes nothing. Anyone signed in can make one, and becomes its owner. Only
+  the owner deletes it.
+- **Members**: the owner adds and removes people and makes each an editor
+  or a viewer (never a second owner); anyone can leave.
+- **Invites** are by email, each as an editor or a viewer. The owner and
+  editors invite; the person invited sees invites to their address, and
+  signing in with that address, once confirmed, joins them to the project
+  with the invite's role.
+- **Pages** (each page's document) are read by the project's members and
+  written by those who can edit. Each save counts up a version and records
+  who made it.
+- **Live channels** are named `project:<project id>:<page id>`. The
+  project's members may listen on one; only those who can edit may send,
+  edits and presence alike, so a viewer watches without showing as there.
 
 Visitors who aren't signed in can't read or write anything.
 
@@ -138,14 +144,34 @@ changes from another device arrive on the next sync.
 ## Sharing a file
 
 The people in the top bar open **Share** (`assets/builder/app/Share.js`,
-over `cloud/sharing.js`): who's on the file, an invite by email, withdraw,
-Remove (the owner) and Leave (anyone else). The rows are `project_members`
-and `project_invites`; the database decides who may do what, as under "How
-it keeps things private". An invite turns into membership when that address
-signs in, confirmed (`accept_invites`), and the file then comes down to them
-on the sync that follows. Deleting a file shared with you leaves it instead,
-so it stays for the others. A shared file's edits still meet on the next
-sync; live editing on it is the next step.
+over `cloud/sharing.js`): who's on the file and what each can do, an invite
+by email to edit or to view, withdraw, a role choice and Remove beside each
+person (the owner), Leave (anyone else), and **Copy link**. The rows are
+`project_members` and `project_invites`; the database decides who may do
+what, as under "How it keeps things private". An invite turns into
+membership, with its role, when that address signs in, confirmed
+(`accept_invites`), and the file then comes down to them on the sync that
+follows. Deleting a file shared with you leaves it instead, so it stays for
+the others.
+
+**Viewers.** The mirror keeps each file's role on its record (`cloudRole`)
+and never sends a viewer's saves or record changes; the owner's changes still
+come down. A viewer's Builder shows **View only** beside the file's name and
+turns every edit and undo away with a word. A role changed by the owner
+reaches the person on their next sync, or at once when they open Share.
+
+**Copy link** puts `builder.html#open=<file id>` on the clipboard. Invites
+send no email, so this is the link to send with one. Opened, it asks the
+person to sign in if they aren't, opens the file once it has come down, and
+says so when the file isn't shared with that account. The link grants
+nothing by itself: only people on the file can open it.
+
+Viewers came after the first version of the schema. On a project set up
+before them, run `supabase/schema.sql` again in the SQL editor (it's safe to
+re-run): it widens the role check, adds a role to invites, adds `can_edit`
+and `can_send_topic`, and moves the write policies onto them. Run it before
+the Builder that knows about viewers goes live, since that Builder writes a
+role on each invite.
 
 ## Live editing
 
@@ -281,7 +307,8 @@ The Builder's design assistant reads context (docs and skills) and makes changes
 
 Built: the schema and its tests, signing in and out, new accounts with a
 confirmed email, password resets, invites accepted on sign-in, files kept in
-the cloud and brought level on sign-in, sharing a file, live editing with
+the cloud and brought level on sign-in, sharing a file to edit or to view, a
+link to a file, live editing with
 presence on its pages, conversations shared in a file, the assistant and live
 agent sessions. The Builder fetches nothing until the address and key are set.
 

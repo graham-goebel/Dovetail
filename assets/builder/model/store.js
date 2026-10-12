@@ -622,7 +622,7 @@ function makeStore(b) {
     setCloud: function (id, patch) {
       return b.get("projects", id).then(function (meta) {
         if (!meta) return null;
-        ["cloud", "cloudVersions", "cloudDirty", "cloudOwner"].forEach(function (k) {
+        ["cloud", "cloudVersions", "cloudDirty", "cloudOwner", "cloudRole"].forEach(function (k) {
           if (!(k in patch)) return;
           if (patch[k] == null) delete meta[k]; else meta[k] = patch[k];
         });
